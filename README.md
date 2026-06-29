@@ -31,6 +31,20 @@ Core loop:
 
 Controls: mouse, touch, arrow keys, or `A` / `D`.
 
+## Emerald Galactic Heroes
+
+`emerald-galactic-heroes.html` is the third mini game: an arcade shooter where players defend the emerald sector from fictional rival gas empire ships.
+
+Core loop:
+
+1. Launch the hero ship.
+2. Auto-fire emerald lasers.
+3. Dodge purple enemy shots and red FUD meteors.
+4. Collect shield and shard bomb power-ups.
+5. Survive waves and boss cruisers for score and rank.
+
+Controls: mouse, touch, arrow keys, or `WASD`.
+
 ## How To Run
 
 Open `index.html` in a browser.

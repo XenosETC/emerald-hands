@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Emerald Galactic Heroes: a fictional ETC-inspired arcade shooter.">
+    <title>Emerald Galactic Heroes</title>
+    <link rel="preload" href="assets/emerald-galactic-heroes/space-background.png" as="image">
+    <link rel="preload" href="assets/emerald-galactic-heroes/sprite-sheet.png" as="image">
+    <link rel="stylesheet" href="emerald-galactic-heroes.css">
+  </head>
+  <body>
+    <main class="galaxy-shell">
+      <section class="galaxy-game" aria-label="Emerald Galactic Heroes game">
+        <div class="galaxy-topbar">
+          <div>
+            <p class="eyebrow">ETC Mini Games Lab</p>
+            <h1>Emerald Galactic Heroes</h1>
+          </div>
+          <nav class="galaxy-nav" aria-label="Mini game navigation">
+            <a href="index.html">Emerald Hands</a>
+            <a href="shard-rush.html">Shard Rush</a>
+            <button id="startButton" type="button">Launch Hero</button>
+          </nav>
+        </div>
+
+        <div class="galaxy-stage">
+          <canvas id="galaxyCanvas" width="1280" height="720" aria-label="Emerald Galactic Heroes playfield"></canvas>
+          <section class="galaxy-hud" aria-label="Battle status">
+            <div>
+              <span id="scoreLabel">0</span>
+              <small>score</small>
+            </div>
+            <div>
+              <span id="shieldLabel">3</span>
+              <small>shields</small>
+            </div>
+            <div>
+              <span id="waveLabel">1</span>
+              <small>wave</small>
+            </div>
+            <div>
+              <span id="rankLabel">Cadet</span>
+              <small>rank</small>
+            </div>
+          </section>
+          <section class="galaxy-overlay" id="galaxyOverlay">
+            <p class="eyebrow">Gas Empire Incoming</p>
+            <h2 id="overlayTitle">Defend the Emerald Sector</h2>
+            <p id="overlayText">Move with mouse, touch, arrow keys, or WASD. Auto-fire emerald lasers, dodge purple shots, and survive the boss cruiser.</p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="emerald-galactic-heroes.js"></script>
+  </body>
+</html>
