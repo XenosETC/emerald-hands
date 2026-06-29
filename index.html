@@ -13,6 +13,7 @@
     <link rel="preload" href="assets/acquisition-desk.png" as="image">
     <link rel="preload" href="assets/research-lab.png" as="image">
     <link rel="preload" href="assets/market-building.png" as="image">
+    <link rel="preload" href="assets/prestige-sage.png" as="image">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -159,6 +160,41 @@
         </article>
       </section>
     </main>
+
+    <section class="prestige-modal" id="prestigeModal" aria-labelledby="prestigeModalTitle" aria-modal="true" role="dialog" hidden>
+      <div class="prestige-modal__backdrop" data-close-prestige></div>
+      <article class="prestige-modal__panel">
+        <img class="prestige-modal__art" src="assets/prestige-sage.png" alt="">
+        <div class="prestige-modal__copy">
+          <p class="eyebrow">Emerald Sage Appears</p>
+          <h2 id="prestigeModalTitle">The Vault Recognizes You</h2>
+          <p class="prestige-modal__message" id="prestigeMessage">
+            Your run has been sealed into the archive. The next cycle begins stronger.
+          </p>
+          <div class="prestige-modal__stats" aria-label="Prestige summary">
+            <div>
+              <span id="prestigeReward">0</span>
+              <small>OG points gained</small>
+            </div>
+            <div>
+              <span id="prestigeTotal">0</span>
+              <small>total OG points</small>
+            </div>
+            <div>
+              <span id="prestigeBoost">+0%</span>
+              <small>next-run boost</small>
+            </div>
+          </div>
+          <div class="prestige-modal__rank">
+            <span>Prestige Rank</span>
+            <strong id="prestigeRank">Emerald Initiate</strong>
+          </div>
+          <button class="prestige-modal__button" id="prestigeContinue" type="button" data-close-prestige>
+            Begin Next Cycle
+          </button>
+        </div>
+      </article>
+    </section>
 
     <script src="app.js"></script>
   </body>

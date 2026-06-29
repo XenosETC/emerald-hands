@@ -55,6 +55,16 @@ const ranks = [
   { name: "Ancient OG", at: 400000 },
 ];
 
+const prestigeRanks = [
+  { name: "Retail Ghost", at: 0 },
+  { name: "Emerald Initiate", at: 1 },
+  { name: "Vault Disciple", at: 3 },
+  { name: "Market Sage", at: 7 },
+  { name: "Ancient Allocator", at: 15 },
+  { name: "Mythic Operator", at: 30 },
+  { name: "Emerald Sovereign", at: 60 },
+];
+
 const events = [
   { label: "Green Candle Blessing", body: "Momentum hits. Passive production gets a quick shard bonus.", effect: 0.18 },
   { label: "Paper Hands Panic", body: "Weak hands shook out. You held the vault line.", effect: 0.08 },
@@ -82,6 +92,13 @@ const els = {
   eventCard: document.querySelector("#eventCard"),
   empireArt: document.querySelector("#empireArt"),
   buyButtons: document.querySelectorAll("[data-buy]"),
+  prestigeModal: document.querySelector("#prestigeModal"),
+  prestigeMessage: document.querySelector("#prestigeMessage"),
+  prestigeReward: document.querySelector("#prestigeReward"),
+  prestigeTotal: document.querySelector("#prestigeTotal"),
+  prestigeBoost: document.querySelector("#prestigeBoost"),
+  prestigeRank: document.querySelector("#prestigeRank"),
+  prestigeClosers: document.querySelectorAll("[data-close-prestige]"),
 };
 
 let lastTick = performance.now();
@@ -168,6 +185,10 @@ function empireValue() {
 function prestigeReward() {
   if (state.totalEarned < 400000) return 0;
   return Math.max(1, Math.floor(Math.sqrt(state.totalEarned / 400000)) + state.levels.vault);
+}
+
+function prestigeRankFor(points) {
+  return prestigeRanks.reduce((best, rank) => (points >= rank.at ? rank : best), prestigeRanks[0]);
 }
 
 function currentRank() {
@@ -288,6 +309,15 @@ function prestige() {
   const confirmed = confirm(`Reset this run for ${format(reward)} OG Points?`);
   if (!confirmed) return;
 
+  const summary = {
+    reward,
+    totalEarned: state.totalEarned,
+    empireValue: empireValue(),
+    oldPoints: state.ogPoints,
+    newPoints: state.ogPoints + reward,
+    runRank: currentRank().name,
+  };
+
   state.shards = 0;
   state.totalEarned = 0;
   state.ogPoints += reward;
@@ -295,8 +325,30 @@ function prestige() {
   state.levels = { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0, market: 0 };
   announce("OG Prestige Locked", `${format(reward)} OG Points secured. New runs start stronger.`);
   chime(740, 0.16);
+  setTimeout(() => chime(980, 0.12), 120);
+  setTimeout(() => chime(1240, 0.18), 260);
   render();
+  showPrestigeModal(summary);
   saveState();
+}
+
+function showPrestigeModal(summary) {
+  const boostPercent = Math.round((1 + summary.newPoints * 0.12 - 1) * 100);
+  const rank = prestigeRankFor(summary.newPoints);
+  els.prestigeReward.textContent = `+${format(summary.reward)}`;
+  els.prestigeTotal.textContent = format(summary.newPoints);
+  els.prestigeBoost.textContent = `+${boostPercent}%`;
+  els.prestigeRank.textContent = rank.name;
+  els.prestigeMessage.textContent =
+    `The Emerald Sage seals ${format(summary.totalEarned)} shards and ${format(summary.empireValue)} empire value from your ${summary.runRank} run. ` +
+    `Your next cycle begins with ${format(summary.newPoints)} OG Points.`;
+  els.prestigeModal.hidden = false;
+  document.body.classList.add("prestige-open");
+}
+
+function closePrestigeModal() {
+  els.prestigeModal.hidden = true;
+  document.body.classList.remove("prestige-open");
 }
 
 function pop(amount, x, y) {
@@ -346,6 +398,16 @@ for (const button of els.buyButtons) {
 }
 
 els.prestigeButton.addEventListener("click", prestige);
+
+for (const closer of els.prestigeClosers) {
+  closer.addEventListener("click", closePrestigeModal);
+}
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !els.prestigeModal.hidden) {
+    closePrestigeModal();
+  }
+});
 
 els.resetButton.addEventListener("click", () => {
   const confirmed = confirm("Reset this Emerald Hands run?");
