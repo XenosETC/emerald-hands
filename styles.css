@@ -107,7 +107,15 @@ h1 {
 }
 
 .ghost-button {
+  display: grid;
+  place-items: center;
   padding: 0 16px;
+  text-decoration: none;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .ghost-button:hover,
@@ -521,6 +529,10 @@ small,
 
   .topbar {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbar-actions {
     flex-direction: column;
   }
 

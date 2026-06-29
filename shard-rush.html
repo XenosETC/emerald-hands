@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Shard Rush: a fictional ETC-inspired arcade mini game.">
+    <title>Shard Rush</title>
+    <link rel="preload" href="assets/shard-rush/arena-background.png" as="image">
+    <link rel="preload" href="assets/shard-rush/sprite-sheet.png" as="image">
+    <link rel="stylesheet" href="shard-rush.css">
+  </head>
+  <body>
+    <main class="rush-shell">
+      <section class="rush-game" aria-label="Shard Rush game">
+        <div class="rush-topbar">
+          <div>
+            <p class="eyebrow">ETC Mini Games Lab</p>
+            <h1>Shard Rush</h1>
+          </div>
+          <nav class="rush-nav" aria-label="Mini game navigation">
+            <a href="index.html">Emerald Hands</a>
+            <button id="startButton" type="button">Start 60s Sprint</button>
+          </nav>
+        </div>
+
+        <div class="rush-stage">
+          <canvas id="rushCanvas" width="1280" height="720" aria-label="Shard Rush playfield"></canvas>
+          <section class="rush-hud" aria-label="Run status">
+            <div>
+              <span id="scoreLabel">0</span>
+              <small>score</small>
+            </div>
+            <div>
+              <span id="timeLabel">60</span>
+              <small>seconds</small>
+            </div>
+            <div>
+              <span id="comboLabel">x1</span>
+              <small>combo</small>
+            </div>
+            <div>
+              <span id="rankLabel">Unranked</span>
+              <small>rank</small>
+            </div>
+          </section>
+          <section class="rush-overlay" id="rushOverlay">
+            <p class="eyebrow">Market Sprint</p>
+            <h2 id="overlayTitle">Catch the green. Dodge the red.</h2>
+            <p id="overlayText">Move the vault with mouse, touch, or arrow keys. Build streaks with shards, liquidity orbs, dead LP fragments, and candle boosts.</p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="shard-rush.js"></script>
+  </body>
+</html>

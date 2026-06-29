@@ -18,6 +18,19 @@ This is intentionally a game economy only. Shards are not real ETC, not a financ
 6. Buy `OG Vault` upgrades for late-game multipliers.
 7. Reach `Ancient OG`, prestige into `OG Points`, and start the next run with a stronger multiplier.
 
+## Shard Rush
+
+`shard-rush.html` is the second mini game: a 60-second arcade sprint where players move a vault collector, catch green market objects, and dodge red hazards.
+
+Core loop:
+
+1. Start a 60-second sprint.
+2. Catch emerald shards, liquidity orbs, candle boosts, dead LP fragments, and combo tokens.
+3. Avoid red FUD blocks and broken bot hazards.
+4. Build score, combo, and end-run rank.
+
+Controls: mouse, touch, arrow keys, or `A` / `D`.
+
 ## How To Run
 
 Open `index.html` in a browser.
