@@ -86,6 +86,7 @@ const els = {
   perSecond: document.querySelector("#perSecond"),
   empireValue: document.querySelector("#empireValue"),
   ogPoints: document.querySelector("#ogPoints"),
+  prestigeRankLabel: document.querySelector("#prestigeRankLabel"),
   rankLabel: document.querySelector("#rankLabel"),
   nextRankLabel: document.querySelector("#nextRankLabel"),
   rankProgress: document.querySelector("#rankProgress"),
@@ -237,6 +238,7 @@ function render() {
   els.perSecond.textContent = format(perSecond());
   els.empireValue.textContent = format(empireValue());
   els.ogPoints.textContent = format(state.ogPoints);
+  els.prestigeRankLabel.textContent = prestigeRankFor(state.ogPoints).name;
   els.rankLabel.textContent = rank.name;
   els.nextRankLabel.textContent = next ? `Next: ${next.name}` : "Max rank reached";
 
