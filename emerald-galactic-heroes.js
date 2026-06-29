@@ -171,7 +171,7 @@ function updateEnemies(delta) {
     enemy.shotTimer -= delta;
 
     if (enemy.type !== "meteor" && enemy.shotTimer <= 0) {
-      enemyShots.push({ x: enemy.x, y: enemy.y + enemy.size * 0.28, speed: enemy.type === "boss" ? 250 : 330, size: enemy.type === "boss" ? 62 : 54 });
+      enemyShots.push({ x: enemy.x, y: enemy.y + enemy.size * 0.28, speed: enemy.type === "boss" ? 250 : 330, size: enemy.type === "boss" ? 52 : 44 });
       enemy.shotTimer = enemy.type === "boss" ? 0.55 : 1.5;
     }
 
@@ -338,16 +338,42 @@ function drawSprite(type, x, y, size, rotation) {
 
 function drawEnemyShot(shot) {
   ctx.save();
-  const glow = ctx.createRadialGradient(shot.x, shot.y, 4, shot.x, shot.y, shot.size * 0.8);
+  const glow = ctx.createRadialGradient(shot.x, shot.y, 4, shot.x, shot.y, shot.size * 0.68);
   glow.addColorStop(0, "rgba(220, 190, 255, 0.92)");
   glow.addColorStop(0.45, "rgba(121, 73, 255, 0.44)");
   glow.addColorStop(1, "rgba(121, 73, 255, 0)");
   ctx.fillStyle = glow;
   ctx.beginPath();
-  ctx.ellipse(shot.x, shot.y, shot.size * 0.52, shot.size * 0.88, 0, 0, Math.PI * 2);
+  ctx.ellipse(shot.x, shot.y, shot.size * 0.42, shot.size * 0.72, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
   drawSprite("enemyLaser", shot.x, shot.y, shot.size, Math.PI);
+}
+
+function drawAssetGuide() {
+  if (!sprites.complete || sprites.naturalWidth === 0) return;
+  document.querySelectorAll("[data-sprite]").forEach((preview) => {
+    const previewCtx = preview.getContext("2d");
+    const type = preview.dataset.sprite;
+    const size = type === "hero" || type === "boss" ? 54 : type === "fighter" ? 48 : 58;
+    previewCtx.clearRect(0, 0, preview.width, preview.height);
+    previewCtx.save();
+    previewCtx.translate(preview.width / 2, preview.height / 2);
+    drawSpriteToContext(previewCtx, type, 0, 0, size, type === "fighter" || type === "boss" ? Math.PI : 0);
+    previewCtx.restore();
+  });
+}
+
+function drawSpriteToContext(targetCtx, type, x, y, size, rotation) {
+  const sprite = spriteMap[type];
+  if (!sprite) return;
+  const dw = size * (sprite.dw || 1);
+  const dh = size * (sprite.dh || 1);
+  targetCtx.save();
+  targetCtx.translate(x, y);
+  targetCtx.rotate(rotation);
+  targetCtx.drawImage(sprites, sprite.sx, sprite.sy, sprite.sw, sprite.sh, -dw / 2, -dh / 2, dw, dh);
+  targetCtx.restore();
 }
 
 function drawParticles() {
@@ -436,6 +462,10 @@ canvas.addEventListener("pointerup", () => {
 });
 
 background.addEventListener("load", draw);
-sprites.addEventListener("load", draw);
+sprites.addEventListener("load", () => {
+  draw();
+  drawAssetGuide();
+});
+if (sprites.complete) drawAssetGuide();
 updateHud();
 requestAnimationFrame(loop);
