@@ -36,6 +36,11 @@ const upgrades = {
     growth: 2.05,
     getValue: (level) => 1 + level * 0.06,
   },
+  market: {
+    baseCost: 86000,
+    growth: 2.08,
+    getValue: (level) => level * 145,
+  },
 };
 
 const ranks = [
@@ -89,7 +94,7 @@ function loadState() {
     totalEarned: 0,
     ogPoints: 0,
     lifetimePrestiges: 0,
-    levels: { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0 },
+    levels: { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0, market: 0 },
     lastSaved: Date.now(),
   };
 
@@ -136,12 +141,14 @@ function perSecond() {
   const business = upgrades.business.getValue(state.levels.business);
   const media = upgrades.media.getValue(state.levels.media);
   const acquisition = upgrades.acquisition.getValue(state.levels.acquisition);
+  const market = upgrades.market.getValue(state.levels.market);
   const synergy =
     1 +
     state.levels.business * 0.035 +
     state.levels.infra * 0.012 +
-    state.levels.acquisition * 0.025;
-  return (infra + business + media + acquisition) * synergy * vaultMultiplier();
+    state.levels.acquisition * 0.025 +
+    state.levels.market * 0.03;
+  return (infra + business + media + acquisition + market) * synergy * vaultMultiplier();
 }
 
 function empireValue() {
@@ -153,6 +160,7 @@ function empireValue() {
       state.levels.media * 12400 +
       state.levels.acquisition * 27500 +
       state.levels.research * 52000 +
+      state.levels.market * 94000 +
       state.ogPoints * 100000
   );
 }
@@ -195,6 +203,7 @@ function labelFor(type) {
     media: "Media Studio",
     acquisition: "Acquisition Desk",
     research: "Research Lab",
+    market: "Market Building",
   }[type];
 }
 
@@ -243,6 +252,10 @@ function render() {
     els.empireArt.style.backgroundImage = 'url("assets/research-lab.png")';
   }
 
+  if (state.levels.market > 0) {
+    els.empireArt.style.backgroundImage = 'url("assets/market-building.png")';
+  }
+
   if (state.levels.vault > 0 || rank.name === "Ancient OG") {
     els.empireArt.style.backgroundImage = 'url("assets/og-vault.png")';
   }
@@ -279,7 +292,7 @@ function prestige() {
   state.totalEarned = 0;
   state.ogPoints += reward;
   state.lifetimePrestiges += 1;
-  state.levels = { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0 };
+  state.levels = { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0, market: 0 };
   announce("OG Prestige Locked", `${format(reward)} OG Points secured. New runs start stronger.`);
   chime(740, 0.16);
   render();

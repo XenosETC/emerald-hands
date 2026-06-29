@@ -14,7 +14,7 @@ This is intentionally a game economy only. Shards are not real ETC, not a financ
 2. Buy `Sharper Hands` to improve click income.
 3. Buy `Emerald Rails` to generate passive shard flow.
 4. Buy `Shard Businesses` to compound production and empire value.
-5. Add `Media Studio`, `Acquisition Desk`, and `Research Lab` upgrades for IP, deal-flow, and automation layers.
+5. Add `Media Studio`, `Acquisition Desk`, `Research Lab`, and `Market Building` upgrades for IP, deal-flow, automation, and dead-LP revival layers.
 6. Buy `OG Vault` upgrades for late-game multipliers.
 7. Reach `Ancient OG`, prestige into `OG Points`, and start the next run with a stronger multiplier.
 
