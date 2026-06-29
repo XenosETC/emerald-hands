@@ -65,6 +65,15 @@ const prestigeRanks = [
   { name: "Emerald Sovereign", at: 60 },
 ];
 
+const upgradeArt = {
+  business: "assets/business-district.png",
+  vault: "assets/og-vault.png",
+  media: "assets/media-studio.png",
+  acquisition: "assets/acquisition-desk.png",
+  research: "assets/research-lab.png",
+  market: "assets/market-building.png",
+};
+
 const events = [
   { label: "Green Candle Blessing", body: "Momentum hits. Passive production gets a quick shard bonus.", effect: 0.18 },
   { label: "Paper Hands Panic", body: "Weak hands shook out. You held the vault line.", effect: 0.08 },
@@ -113,6 +122,7 @@ function loadState() {
     ogPoints: 0,
     lifetimePrestiges: 0,
     levels: { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0, market: 0 },
+    featuredUpgrade: null,
     lastSaved: Date.now(),
   };
 
@@ -210,6 +220,9 @@ function buy(type) {
   if (state.shards < cost) return;
   state.shards -= cost;
   state.levels[type] += 1;
+  if (upgradeArt[type]) {
+    state.featuredUpgrade = type;
+  }
   chime(220 + state.levels[type] * 22, 0.08);
   announce(`${labelFor(type)} acquired`, `${format(cost)} shards deployed. The machine gets cleaner.`);
   render();
@@ -259,29 +272,20 @@ function render() {
     reward > 0 ? `Prestige for ${format(reward)} OG Points` : "Reach Ancient OG to prestige";
   els.prestigeButton.disabled = reward === 0;
 
-  if (state.levels.business > 0) {
-    els.empireArt.style.backgroundImage = 'url("assets/business-district.png")';
+  const featuredUpgrade = selectedArtUpgrade(rank);
+  els.empireArt.style.backgroundImage = `url("${upgradeArt[featuredUpgrade] || "assets/infra-core.png"}")`;
+}
+
+function selectedArtUpgrade(rank) {
+  if (state.featuredUpgrade && state.levels[state.featuredUpgrade] > 0) {
+    return state.featuredUpgrade;
   }
 
-  if (state.levels.media > 0) {
-    els.empireArt.style.backgroundImage = 'url("assets/media-studio.png")';
-  }
-
-  if (state.levels.acquisition > 0) {
-    els.empireArt.style.backgroundImage = 'url("assets/acquisition-desk.png")';
-  }
-
-  if (state.levels.research > 0) {
-    els.empireArt.style.backgroundImage = 'url("assets/research-lab.png")';
-  }
-
-  if (state.levels.market > 0) {
-    els.empireArt.style.backgroundImage = 'url("assets/market-building.png")';
-  }
-
-  if (state.levels.vault > 0 || rank.name === "Ancient OG") {
-    els.empireArt.style.backgroundImage = 'url("assets/og-vault.png")';
-  }
+  const fallbackOrder = ["market", "research", "acquisition", "media", "vault", "business"];
+  const ownedUpgrade = fallbackOrder.find((type) => state.levels[type] > 0);
+  if (ownedUpgrade) return ownedUpgrade;
+  if (rank.name === "Ancient OG") return "vault";
+  return null;
 }
 
 function format(value) {
@@ -325,6 +329,7 @@ function prestige() {
   state.ogPoints += reward;
   state.lifetimePrestiges += 1;
   state.levels = { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0, market: 0 };
+  state.featuredUpgrade = null;
   announce("OG Prestige Locked", `${format(reward)} OG Points secured. New runs start stronger.`);
   chime(740, 0.16);
   setTimeout(() => chime(980, 0.12), 120);
