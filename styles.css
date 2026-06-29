@@ -33,15 +33,15 @@ button {
 }
 
 .shell {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1500px, calc(100% - 28px));
   margin: 0 auto;
-  padding: 28px 0 40px;
+  padding: 10px 0 14px;
 }
 
 .hero {
   position: relative;
   overflow: hidden;
-  min-height: 640px;
+  min-height: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel-strong);
@@ -69,7 +69,7 @@ button {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 26px;
+  padding: 14px 22px 8px;
 }
 
 .eyebrow,
@@ -85,7 +85,7 @@ button {
 
 h1 {
   margin: 0;
-  font-size: clamp(2rem, 5vw, 4.6rem);
+  font-size: clamp(2rem, 3.6vw, 3.35rem);
   line-height: 0.94;
   letter-spacing: 0;
 }
@@ -116,9 +116,9 @@ h1 {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(300px, 0.92fr) minmax(320px, 1.08fr);
-  gap: 20px;
-  padding: 0 26px 26px;
+  grid-template-columns: minmax(320px, 0.8fr) minmax(520px, 1.2fr);
+  gap: 16px;
+  padding: 0 22px 14px;
 }
 
 .click-panel,
@@ -134,8 +134,8 @@ h1 {
   display: grid;
   justify-items: center;
   align-content: start;
-  min-height: 492px;
-  padding: 18px;
+  min-height: 372px;
+  padding: 12px;
 }
 
 .rank-strip {
@@ -153,9 +153,9 @@ h1 {
 }
 
 .shard-button {
-  width: min(350px, 82vw);
+  width: min(238px, 72vw);
   aspect-ratio: 1;
-  margin: 18px 0 8px;
+  margin: 10px 0 2px;
   border: 0;
   border-radius: 50%;
   background:
@@ -187,7 +187,7 @@ h1 {
 }
 
 .primary-stat span {
-  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-size: clamp(1.9rem, 3.5vw, 3rem);
   font-weight: 950;
   line-height: 1;
   text-shadow: 0 0 24px rgba(35, 240, 156, 0.32);
@@ -201,14 +201,14 @@ small,
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .stat-grid div {
   min-width: 0;
-  padding: 12px;
+  padding: 10px;
   border: 1px solid rgba(117, 255, 189, 0.12);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.035);
@@ -223,10 +223,10 @@ small,
 .empire-panel {
   display: grid;
   grid-template-rows: 1fr auto auto auto;
-  gap: 14px;
+  gap: 10px;
   align-content: stretch;
-  min-height: 492px;
-  padding: 16px;
+  min-height: 372px;
+  padding: 12px;
 }
 
 .empire-art {
@@ -238,8 +238,8 @@ small,
 }
 
 .event-card {
-  min-height: 90px;
-  padding: 16px;
+  min-height: 68px;
+  padding: 10px 14px;
   border: 1px solid rgba(216, 180, 95, 0.24);
   border-radius: 8px;
   background: rgba(1, 5, 4, 0.72);
@@ -269,34 +269,36 @@ small,
 
 .shop {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 16px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 10px;
 }
 
 .upgrade-card {
   display: grid;
-  grid-template-columns: 76px 1fr;
+  grid-template-columns: 1fr;
   grid-template-rows: auto auto;
-  gap: 14px;
-  padding: 12px;
+  gap: 11px;
+  min-height: 218px;
+  padding: 10px;
 }
 
 .upgrade-card img {
-  width: 76px;
-  height: 76px;
+  width: 100%;
+  height: 86px;
   border-radius: 8px;
   object-fit: cover;
 }
 
 .upgrade-card h2 {
   margin: 0 0 5px;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
 }
 
 .buy-button {
   grid-column: 1 / -1;
   width: 100%;
+  min-height: 46px;
   font-weight: 850;
 }
 
@@ -335,7 +337,37 @@ small,
   }
 }
 
-@media (max-width: 900px) {
+@media (min-width: 641px) and (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: minmax(250px, 0.82fr) minmax(320px, 1.18fr);
+    gap: 12px;
+  }
+
+  .shop {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .click-panel,
+  .empire-panel {
+    min-height: 360px;
+  }
+
+  .shard-button {
+    width: min(205px, 38vw);
+  }
+
+  .upgrade-card {
+    grid-template-columns: 104px 1fr;
+    min-height: 0;
+  }
+
+  .upgrade-card img {
+    width: 104px;
+    height: 104px;
+  }
+}
+
+@media (max-width: 640px) {
   .hero-grid,
   .shop {
     grid-template-columns: 1fr;
