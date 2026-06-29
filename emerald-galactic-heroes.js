@@ -5,6 +5,7 @@ const els = {
   startButton: document.querySelector("#startButton"),
   score: document.querySelector("#scoreLabel"),
   shields: document.querySelector("#shieldLabel"),
+  armor: document.querySelector("#armorLabel"),
   wave: document.querySelector("#waveLabel"),
   rank: document.querySelector("#rankLabel"),
   overlay: document.querySelector("#galaxyOverlay"),
@@ -40,7 +41,8 @@ const particles = [];
 const state = {
   running: false,
   score: 0,
-  shields: 3,
+  shieldCharge: 100,
+  shieldCells: 3,
   wave: 1,
   elapsed: 0,
   spawnTimer: 0,
@@ -59,7 +61,8 @@ function startGame() {
   Object.assign(state, {
     running: true,
     score: 0,
-    shields: 3,
+    shieldCharge: 100,
+    shieldCells: 3,
     wave: 1,
     elapsed: 0,
     spawnTimer: 0,
@@ -105,6 +108,7 @@ function update(delta) {
   if (!state.running) return;
   state.elapsed += delta;
   state.hero.invuln = Math.max(0, state.hero.invuln - delta);
+  state.shieldCharge = Math.min(100, state.shieldCharge + delta * 4.5);
 
   state.wave = Math.min(5, 1 + Math.floor(state.elapsed / 24));
   state.spawnTimer -= delta;
@@ -128,10 +132,10 @@ function update(delta) {
 
 function moveHero(delta) {
   const speed = 560;
-  if (keys.has("ArrowLeft") || keys.has("a")) state.hero.x -= speed * delta;
-  if (keys.has("ArrowRight") || keys.has("d")) state.hero.x += speed * delta;
-  if (keys.has("ArrowUp") || keys.has("w")) state.hero.y -= speed * delta;
-  if (keys.has("ArrowDown") || keys.has("s")) state.hero.y += speed * delta;
+  if (keys.has("arrowleft") || keys.has("a")) state.hero.x -= speed * delta;
+  if (keys.has("arrowright") || keys.has("d")) state.hero.x += speed * delta;
+  if (keys.has("arrowup") || keys.has("w")) state.hero.y -= speed * delta;
+  if (keys.has("arrowdown") || keys.has("s")) state.hero.y += speed * delta;
   if (pointer.active) {
     state.hero.x += (pointer.x - state.hero.x) * Math.min(1, delta * 10);
     state.hero.y += (pointer.y - state.hero.y) * Math.min(1, delta * 10);
@@ -151,7 +155,7 @@ function updateShots(delta) {
     const shot = enemyShots[i];
     shot.y += shot.speed * delta;
     if (distance(shot, state.hero) < 42) {
-      hitHero();
+      hitShield();
       enemyShots.splice(i, 1);
     } else if (shot.y > canvas.height + 70) {
       enemyShots.splice(i, 1);
@@ -186,7 +190,7 @@ function updateEnemies(delta) {
     }
 
     if (enemies[i] && distance(enemy, state.hero) < enemy.size * 0.45) {
-      hitHero();
+      hitShip(enemy.type);
       if (enemy.type !== "boss") enemies.splice(i, 1);
     } else if (enemy.y > canvas.height + 110) {
       if (enemy.type === "boss") state.bossSpawned = false;
@@ -219,7 +223,10 @@ function updatePickups(delta) {
     const pickup = pickups[i];
     pickup.y += pickup.speed * delta;
     if (distance(pickup, state.hero) < 58) {
-      if (pickup.type === "shield") state.shields = Math.min(5, state.shields + 1);
+      if (pickup.type === "shield") {
+        state.shieldCharge = 100;
+        state.shieldCells = Math.min(5, state.shieldCells + 1);
+      }
       if (pickup.type === "bomb") {
         state.score += enemies.length * 500;
         for (const enemy of enemies) burst(enemy.x, enemy.y, "#d8b45f", 8);
@@ -244,12 +251,20 @@ function updateParticles(delta) {
   }
 }
 
-function hitHero() {
+function hitShield() {
   if (state.hero.invuln > 0) return;
-  state.shields -= 1;
+  state.shieldCharge = Math.max(0, state.shieldCharge - 14);
+  state.hero.invuln = 0.25;
+  burst(state.hero.x, state.hero.y, "#8edcff", 8);
+}
+
+function hitShip(type) {
+  if (state.hero.invuln > 0) return;
+  state.shieldCells -= type === "boss" ? 2 : 1;
+  state.shieldCharge = Math.max(0, state.shieldCharge - 28);
   state.hero.invuln = 1.2;
   burst(state.hero.x, state.hero.y, "#ff5975", 14);
-  if (state.shields <= 0) endGame();
+  if (state.shieldCells <= 0) endGame();
 }
 
 function burst(x, y, color, count) {
@@ -342,7 +357,8 @@ function rankForScore(score, wave) {
 
 function updateHud() {
   els.score.textContent = format(state.score);
-  els.shields.textContent = state.shields;
+  els.shields.textContent = `${Math.round(state.shieldCharge)}%`;
+  els.armor.textContent = state.shieldCells;
   els.wave.textContent = state.wave;
   els.rank.textContent = rankForScore(state.score, state.wave);
 }

@@ -2,6 +2,8 @@
 
 Premium small ETC-inspired idle/clicker mini game.
 
+Open `mini-games.html` for the ETC Mini Games Lab hub.
+
 ## Concept
 
 Players collect fictional `Emerald Shards`, spend them on infrastructure, use infrastructure to generate passive production, then acquire businesses and vault upgrades to compound the shard engine.
@@ -45,9 +47,11 @@ Core loop:
 
 Controls: mouse, touch, arrow keys, or `WASD`.
 
+Enemy lasers reduce regenerating shield charge. Physical ship collisions consume shield cells.
+
 ## How To Run
 
-Open `index.html` in a browser.
+Open `mini-games.html` in a browser for the full arcade hub, or `index.html` to jump straight into Emerald Hands.
 
 No build step is required.
 
