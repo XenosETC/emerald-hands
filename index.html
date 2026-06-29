@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Emerald Hands: a fictional ETC-inspired idle mini game.">
+    <title>Emerald Hands</title>
+    <link rel="preload" href="assets/emerald-shards.png" as="image">
+    <link rel="preload" href="assets/infra-core.png" as="image">
+    <link rel="preload" href="assets/business-district.png" as="image">
+    <link rel="preload" href="assets/og-vault.png" as="image">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero" aria-labelledby="game-title">
+        <div class="hero__backdrop" aria-hidden="true"></div>
+        <div class="topbar">
+          <div>
+            <p class="eyebrow">ETC Mini Games Lab</p>
+            <h1 id="game-title">Emerald Hands</h1>
+          </div>
+          <button class="ghost-button" id="resetButton" type="button">Reset Run</button>
+        </div>
+
+        <div class="hero-grid">
+          <section class="click-panel" aria-label="Shard collector">
+            <div class="rank-strip">
+              <span id="rankLabel">Noob Retail</span>
+              <span id="nextRankLabel">Next: Bag Holder</span>
+            </div>
+
+            <button class="shard-button" id="shardButton" type="button" aria-label="Collect emerald shards">
+              <img src="assets/emerald-shards.png" alt="">
+            </button>
+
+            <div class="primary-stat">
+              <span id="shardCount">0</span>
+              <small>Emerald Shards</small>
+            </div>
+
+            <div class="stat-grid">
+              <div>
+                <span id="perClick">1</span>
+                <small>per click</small>
+              </div>
+              <div>
+                <span id="perSecond">0</span>
+                <small>per sec</small>
+              </div>
+              <div>
+                <span id="empireValue">0</span>
+                <small>empire value</small>
+              </div>
+            </div>
+          </section>
+
+          <section class="empire-panel" aria-label="Empire status">
+            <div class="empire-art" id="empireArt"></div>
+            <div class="event-card" id="eventCard">
+              <span>Market Signal</span>
+              <strong>Tap shards. Buy infra. Acquire businesses. Become OG.</strong>
+            </div>
+            <div class="progress-shell" aria-label="Rank progress">
+              <div class="progress-bar" id="rankProgress"></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="shop" aria-label="Upgrade shop">
+        <article class="upgrade-card" data-upgrade="click">
+          <img src="assets/emerald-shards.png" alt="">
+          <div>
+            <p>Retail Conviction</p>
+            <h2>Sharper Hands</h2>
+            <span>Increase shards earned per tap.</span>
+          </div>
+          <button type="button" class="buy-button" data-buy="click">Buy</button>
+        </article>
+
+        <article class="upgrade-card" data-upgrade="infra">
+          <img src="assets/infra-core.png" alt="">
+          <div>
+            <p>Infrastructure</p>
+            <h2>Emerald Rails</h2>
+            <span>Infra produces passive shards every second.</span>
+          </div>
+          <button type="button" class="buy-button" data-buy="infra">Buy</button>
+        </article>
+
+        <article class="upgrade-card" data-upgrade="business">
+          <img src="assets/business-district.png" alt="">
+          <div>
+            <p>Cash Flow</p>
+            <h2>Shard Businesses</h2>
+            <span>Businesses compound production and empire value.</span>
+          </div>
+          <button type="button" class="buy-button" data-buy="business">Buy</button>
+        </article>
+
+        <article class="upgrade-card" data-upgrade="vault">
+          <img src="assets/og-vault.png" alt="">
+          <div>
+            <p>Prestige</p>
+            <h2>OG Vault</h2>
+            <span>Late-game vaults multiply the whole machine.</span>
+          </div>
+          <button type="button" class="buy-button" data-buy="vault">Buy</button>
+        </article>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
