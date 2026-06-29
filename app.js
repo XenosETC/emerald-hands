@@ -21,6 +21,21 @@ const upgrades = {
     growth: 2.2,
     getValue: (level) => 1 + level * 0.18,
   },
+  media: {
+    baseCost: 9500,
+    growth: 1.9,
+    getValue: (level) => level * 38,
+  },
+  acquisition: {
+    baseCost: 18000,
+    growth: 1.96,
+    getValue: (level) => level * 76,
+  },
+  research: {
+    baseCost: 42000,
+    growth: 2.05,
+    getValue: (level) => 1 + level * 0.06,
+  },
 };
 
 const ranks = [
@@ -30,7 +45,9 @@ const ranks = [
   { name: "Infra Operator", at: 2200 },
   { name: "Business Buyer", at: 8500 },
   { name: "Emerald Capitalist", at: 26000 },
-  { name: "Ancient OG", at: 100000 },
+  { name: "Studio Operator", at: 65000 },
+  { name: "Acquisition Lord", at: 160000 },
+  { name: "Ancient OG", at: 400000 },
 ];
 
 const events = [
@@ -39,6 +56,8 @@ const events = [
   { label: "Infra Flywheel", body: "Rails, servers, and workflows squeeze more yield from the machine.", effect: 0.14 },
   { label: "Business Roll-Up", body: "A tiny cash-flow asset joins the portfolio. Shards like discipline.", effect: 0.2 },
   { label: "Ancient Relic Found", body: "The OG vault hums. Your shard engine gets blessed.", effect: 0.25 },
+  { label: "IP Run-Up", body: "The media studio minted attention while you were stacking.", effect: 0.22 },
+  { label: "Deal Flow Hit", body: "The acquisition desk found a clean little operator.", effect: 0.28 },
 ];
 
 const state = loadState();
@@ -46,10 +65,12 @@ const state = loadState();
 const els = {
   shardButton: document.querySelector("#shardButton"),
   resetButton: document.querySelector("#resetButton"),
+  prestigeButton: document.querySelector("#prestigeButton"),
   shardCount: document.querySelector("#shardCount"),
   perClick: document.querySelector("#perClick"),
   perSecond: document.querySelector("#perSecond"),
   empireValue: document.querySelector("#empireValue"),
+  ogPoints: document.querySelector("#ogPoints"),
   rankLabel: document.querySelector("#rankLabel"),
   nextRankLabel: document.querySelector("#nextRankLabel"),
   rankProgress: document.querySelector("#rankProgress"),
@@ -66,12 +87,19 @@ function loadState() {
   const fallback = {
     shards: 0,
     totalEarned: 0,
-    levels: { click: 0, infra: 0, business: 0, vault: 0 },
+    ogPoints: 0,
+    lifetimePrestiges: 0,
+    levels: { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0 },
     lastSaved: Date.now(),
   };
 
   try {
-    return { ...fallback, ...JSON.parse(localStorage.getItem(SAVE_KEY)) };
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+    return {
+      ...fallback,
+      ...saved,
+      levels: { ...fallback.levels, ...saved?.levels },
+    };
   } catch {
     return fallback;
   }
@@ -88,18 +116,32 @@ function costFor(type) {
 }
 
 function vaultMultiplier() {
-  return upgrades.vault.getValue(state.levels.vault);
+  return upgrades.vault.getValue(state.levels.vault) * prestigeMultiplier() * researchMultiplier();
+}
+
+function prestigeMultiplier() {
+  return 1 + state.ogPoints * 0.12;
+}
+
+function researchMultiplier() {
+  return upgrades.research.getValue(state.levels.research);
 }
 
 function perClick() {
-  return upgrades.click.getValue(state.levels.click) * vaultMultiplier();
+  return (upgrades.click.getValue(state.levels.click) + state.levels.media * 0.7) * vaultMultiplier();
 }
 
 function perSecond() {
   const infra = upgrades.infra.getValue(state.levels.infra);
   const business = upgrades.business.getValue(state.levels.business);
-  const synergy = 1 + state.levels.business * 0.035 + state.levels.infra * 0.012;
-  return (infra + business) * synergy * vaultMultiplier();
+  const media = upgrades.media.getValue(state.levels.media);
+  const acquisition = upgrades.acquisition.getValue(state.levels.acquisition);
+  const synergy =
+    1 +
+    state.levels.business * 0.035 +
+    state.levels.infra * 0.012 +
+    state.levels.acquisition * 0.025;
+  return (infra + business + media + acquisition) * synergy * vaultMultiplier();
 }
 
 function empireValue() {
@@ -107,8 +149,17 @@ function empireValue() {
     state.totalEarned +
       state.levels.infra * 220 +
       state.levels.business * 1450 +
-      state.levels.vault * 8400
+      state.levels.vault * 8400 +
+      state.levels.media * 12400 +
+      state.levels.acquisition * 27500 +
+      state.levels.research * 52000 +
+      state.ogPoints * 100000
   );
+}
+
+function prestigeReward() {
+  if (state.totalEarned < 400000) return 0;
+  return Math.max(1, Math.floor(Math.sqrt(state.totalEarned / 400000)) + state.levels.vault);
 }
 
 function currentRank() {
@@ -141,6 +192,9 @@ function labelFor(type) {
     infra: "Emerald Rails",
     business: "Shard Business",
     vault: "OG Vault",
+    media: "Media Studio",
+    acquisition: "Acquisition Desk",
+    research: "Research Lab",
   }[type];
 }
 
@@ -152,6 +206,7 @@ function render() {
   els.perClick.textContent = format(perClick());
   els.perSecond.textContent = format(perSecond());
   els.empireValue.textContent = format(empireValue());
+  els.ogPoints.textContent = format(state.ogPoints);
   els.rankLabel.textContent = rank.name;
   els.nextRankLabel.textContent = next ? `Next: ${next.name}` : "Max rank reached";
 
@@ -167,7 +222,16 @@ function render() {
     button.disabled = state.shards < cost;
   }
 
+  const reward = prestigeReward();
+  els.prestigeButton.textContent =
+    reward > 0 ? `Prestige for ${format(reward)} OG Points` : "Reach Ancient OG to prestige";
+  els.prestigeButton.disabled = reward === 0;
+
   if (state.levels.business > 0) {
+    els.empireArt.style.backgroundImage = 'url("assets/business-district.png")';
+  }
+
+  if (state.levels.media > 0 || state.levels.acquisition > 0) {
     els.empireArt.style.backgroundImage = 'url("assets/business-district.png")';
   }
 
@@ -195,6 +259,23 @@ function maybeEvent(deltaSeconds) {
   const bonus = Math.max(10, perSecond() * 6, state.totalEarned * event.effect * 0.015);
   earn(bonus);
   announce(event.label, `${event.body} +${format(bonus)} shards.`);
+}
+
+function prestige() {
+  const reward = prestigeReward();
+  if (reward === 0) return;
+  const confirmed = confirm(`Reset this run for ${format(reward)} OG Points?`);
+  if (!confirmed) return;
+
+  state.shards = 0;
+  state.totalEarned = 0;
+  state.ogPoints += reward;
+  state.lifetimePrestiges += 1;
+  state.levels = { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0 };
+  announce("OG Prestige Locked", `${format(reward)} OG Points secured. New runs start stronger.`);
+  chime(740, 0.16);
+  render();
+  saveState();
 }
 
 function pop(amount, x, y) {
@@ -242,6 +323,8 @@ els.shardButton.addEventListener("click", (event) => {
 for (const button of els.buyButtons) {
   button.addEventListener("click", () => buy(button.dataset.buy));
 }
+
+els.prestigeButton.addEventListener("click", prestige);
 
 els.resetButton.addEventListener("click", () => {
   const confirmed = confirm("Reset this Emerald Hands run?");

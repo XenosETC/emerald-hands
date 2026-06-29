@@ -91,7 +91,8 @@ h1 {
 }
 
 .ghost-button,
-.buy-button {
+.buy-button,
+.prestige-button {
   min-height: 42px;
   border: 1px solid var(--line-strong);
   border-radius: 8px;
@@ -106,7 +107,8 @@ h1 {
 }
 
 .ghost-button:hover,
-.buy-button:hover:not(:disabled) {
+.buy-button:hover:not(:disabled),
+.prestige-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(116, 255, 197, 0.82);
   background: rgba(15, 62, 45, 0.75);
@@ -198,7 +200,7 @@ small,
 
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   width: 100%;
   margin-top: 18px;
@@ -220,7 +222,7 @@ small,
 
 .empire-panel {
   display: grid;
-  grid-template-rows: 1fr auto auto;
+  grid-template-rows: 1fr auto auto auto;
   gap: 14px;
   align-content: stretch;
   min-height: 492px;
@@ -298,7 +300,15 @@ small,
   font-weight: 850;
 }
 
-.buy-button:disabled {
+.prestige-button {
+  width: 100%;
+  border-color: rgba(216, 180, 95, 0.45);
+  background: linear-gradient(90deg, rgba(35, 240, 156, 0.15), rgba(216, 180, 95, 0.12));
+  font-weight: 900;
+}
+
+.buy-button:disabled,
+.prestige-button:disabled {
   color: rgba(239, 255, 247, 0.42);
   border-color: rgba(255, 255, 255, 0.08);
   cursor: not-allowed;
