@@ -231,8 +231,16 @@ function render() {
     els.empireArt.style.backgroundImage = 'url("assets/business-district.png")';
   }
 
-  if (state.levels.media > 0 || state.levels.acquisition > 0) {
-    els.empireArt.style.backgroundImage = 'url("assets/business-district.png")';
+  if (state.levels.media > 0) {
+    els.empireArt.style.backgroundImage = 'url("assets/media-studio.png")';
+  }
+
+  if (state.levels.acquisition > 0) {
+    els.empireArt.style.backgroundImage = 'url("assets/acquisition-desk.png")';
+  }
+
+  if (state.levels.research > 0) {
+    els.empireArt.style.backgroundImage = 'url("assets/research-lab.png")';
   }
 
   if (state.levels.vault > 0 || rank.name === "Ancient OG") {
