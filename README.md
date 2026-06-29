@@ -24,6 +24,22 @@ Open `index.html` in a browser.
 
 No build step is required.
 
+## Deploy To Render
+
+This repo is Render-ready as a static site.
+
+1. Push the latest `master` branch to GitHub.
+2. Open Render's Blueprint flow: https://dashboard.render.com/blueprint/new
+3. Connect `https://github.com/XenosETC/emerald-hands`.
+4. Apply the `render.yaml` Blueprint.
+
+Render should create one static web service:
+
+- Name: `emerald-hands`
+- Runtime: `static`
+- Publish path: `.`
+- Build command: none
+
 ## Assumptions And Risks
 
 - This is an entertainment prototype, not financial software.
