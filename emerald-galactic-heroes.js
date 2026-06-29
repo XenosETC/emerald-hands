@@ -49,6 +49,7 @@ const state = {
   weaponLevel: 1,
   allyTimer: 0,
   wingmenDropCooldown: 0,
+  pickupDropCooldown: 0,
   elapsed: 0,
   spawnTimer: 0,
   shotTimer: 0,
@@ -72,6 +73,7 @@ function startGame() {
     weaponLevel: 1,
     allyTimer: 0,
     wingmenDropCooldown: 0,
+    pickupDropCooldown: 0,
     elapsed: 0,
     spawnTimer: 0,
     shotTimer: 0,
@@ -120,6 +122,7 @@ function update(delta) {
   state.shieldCharge = Math.min(100, state.shieldCharge + delta * 4.5);
   state.allyTimer = Math.max(0, state.allyTimer - delta);
   state.wingmenDropCooldown = Math.max(0, state.wingmenDropCooldown - delta);
+  state.pickupDropCooldown = Math.max(0, state.pickupDropCooldown - delta);
 
   state.wave = Math.min(5, 1 + Math.floor(state.elapsed / 24));
   updateWeaponLevel();
@@ -321,24 +324,27 @@ function updateWeaponLevel() {
 
 function maybeDropPickup(enemy) {
   const boss = enemy.type === "boss";
+  if (!boss && (state.pickupDropCooldown > 0 || pickups.length >= 2)) return;
   const wingmenAvailable = state.allyTimer <= 0 && state.wingmenDropCooldown <= 0;
   const wingmenChance = [0, 0.1, 0.055, 0.032, 0.018][state.weaponLevel] || 0.018;
+  const utilityChance = [0, 0.12, 0.09, 0.07, 0.055][state.weaponLevel] || 0.055;
   let type = null;
   if (boss) {
-    type = wingmenAvailable && Math.random() < 0.18 ? "wingmen" : Math.random() < 0.62 ? "bomb" : "shield";
+    type = wingmenAvailable && Math.random() < 0.18 ? "wingmen" : Math.random() < 0.58 ? "bomb" : "shield";
   } else if (enemy.type === "fighter" && wingmenAvailable && Math.random() < wingmenChance) {
     type = "wingmen";
-  } else if (Math.random() < 0.18) {
+  } else if (enemy.y > 90 && Math.random() < utilityChance) {
     type = Math.random() < 0.5 ? "shield" : "bomb";
   }
   if (!type) return;
   if (type === "wingmen") state.wingmenDropCooldown = 22;
+  state.pickupDropCooldown = type === "wingmen" ? 8 : 4.5;
   pickups.push({
     type,
     x: enemy.x,
-    y: enemy.y,
+    y: clamp(enemy.y, 150, canvas.height - 190),
     size: type === "wingmen" ? 62 : 56,
-    speed: 150,
+    speed: type === "wingmen" ? 118 : 132,
   });
 }
 
