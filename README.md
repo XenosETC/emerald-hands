@@ -48,7 +48,7 @@ Core loop:
 Controls: mouse, touch, arrow keys, or `WASD`.
 
 Enemy lasers reduce regenerating shield charge. Physical ship collisions consume shield cells.
-If shield charge hits zero, one shield cell breaks and the charge restarts low. Weapons auto-upgrade from `Mk I` through `Mk IV` as score and waves climb. Destroyed ships can drop a `Wingmen Beacon` that adds two ally fighters for 30 seconds.
+If shield charge hits zero, one shield cell breaks and the charge restarts low. Weapons auto-upgrade from `Mk I` through `Mk IV` as score and waves climb. Destroyed ships can drop a `Wingmen Beacon` that adds two ally fighters for 30 seconds; beacon drops become rarer at higher weapon tiers.
 
 ## How To Run
 

@@ -48,6 +48,7 @@ const state = {
   wave: 1,
   weaponLevel: 1,
   allyTimer: 0,
+  wingmenDropCooldown: 0,
   elapsed: 0,
   spawnTimer: 0,
   shotTimer: 0,
@@ -70,6 +71,7 @@ function startGame() {
     wave: 1,
     weaponLevel: 1,
     allyTimer: 0,
+    wingmenDropCooldown: 0,
     elapsed: 0,
     spawnTimer: 0,
     shotTimer: 0,
@@ -92,18 +94,19 @@ function endGame() {
 
 function spawnEnemy() {
   if (state.wave >= 3 && !state.bossSpawned) {
-    enemies.push({ type: "boss", x: canvas.width / 2, y: -110, size: 150, hp: 34, speed: 46, shotTimer: 1.2 });
+    enemies.push({ type: "boss", x: canvas.width / 2, y: -90, size: 150, hp: 34 + state.weaponLevel * 7, speed: 46, shotTimer: 1.2 });
     state.bossSpawned = true;
     return;
   }
 
   const isMeteor = Math.random() < 0.24;
+  const hpScale = Math.max(0, state.weaponLevel - 1);
   enemies.push({
     type: isMeteor ? "meteor" : "fighter",
     x: 90 + Math.random() * (canvas.width - 180),
-    y: -80,
+    y: -48,
     size: isMeteor ? 78 : 86,
-    hp: isMeteor ? 3 : 2 + Math.floor(state.wave / 2),
+    hp: isMeteor ? 3 + Math.floor(hpScale / 2) : 2 + Math.floor(state.wave / 2) + hpScale,
     speed: 90 + Math.random() * 70 + state.wave * 18,
     drift: (Math.random() - 0.5) * 55,
     shotTimer: 0.7 + Math.random() * 1.2,
@@ -116,6 +119,7 @@ function update(delta) {
   state.hero.invuln = Math.max(0, state.hero.invuln - delta);
   state.shieldCharge = Math.min(100, state.shieldCharge + delta * 4.5);
   state.allyTimer = Math.max(0, state.allyTimer - delta);
+  state.wingmenDropCooldown = Math.max(0, state.wingmenDropCooldown - delta);
 
   state.wave = Math.min(5, 1 + Math.floor(state.elapsed / 24));
   updateWeaponLevel();
@@ -317,15 +321,18 @@ function updateWeaponLevel() {
 
 function maybeDropPickup(enemy) {
   const boss = enemy.type === "boss";
+  const wingmenAvailable = state.allyTimer <= 0 && state.wingmenDropCooldown <= 0;
+  const wingmenChance = [0, 0.1, 0.055, 0.032, 0.018][state.weaponLevel] || 0.018;
   let type = null;
   if (boss) {
-    type = Math.random() < 0.34 ? "wingmen" : Math.random() < 0.62 ? "bomb" : "shield";
-  } else if (enemy.type === "fighter" && Math.random() < 0.1) {
+    type = wingmenAvailable && Math.random() < 0.18 ? "wingmen" : Math.random() < 0.62 ? "bomb" : "shield";
+  } else if (enemy.type === "fighter" && wingmenAvailable && Math.random() < wingmenChance) {
     type = "wingmen";
   } else if (Math.random() < 0.18) {
     type = Math.random() < 0.5 ? "shield" : "bomb";
   }
   if (!type) return;
+  if (type === "wingmen") state.wingmenDropCooldown = 22;
   pickups.push({
     type,
     x: enemy.x,
