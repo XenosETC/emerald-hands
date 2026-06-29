@@ -20,14 +20,14 @@ const sprites = new Image();
 sprites.src = "assets/emerald-galactic-heroes/sprite-sheet.png";
 
 const spriteMap = {
-  hero: { col: 0, row: 0 },
-  fighter: { col: 1, row: 0 },
-  boss: { col: 2, row: 0 },
-  meteor: { col: 3, row: 0 },
-  heroLaser: { col: 0, row: 1 },
-  enemyLaser: { col: 1, row: 1 },
-  shield: { col: 2, row: 1 },
-  bomb: { col: 3, row: 1 },
+  hero: { sx: 0, sy: 96, sw: 374, sh: 560, dw: 1.18, dh: 1.58 },
+  fighter: { sx: 360, sy: 140, sw: 250, sh: 500, dw: 1, dh: 1.5 },
+  boss: { sx: 628, sy: 82, sw: 312, sh: 570, dw: 1.08, dh: 1.52 },
+  meteor: { sx: 948, sy: 154, sw: 286, sh: 380, dw: 1.12, dh: 1 },
+  heroLaser: { sx: 92, sy: 712, sw: 188, sh: 408, dw: 0.48, dh: 1.75 },
+  enemyLaser: { sx: 440, sy: 716, sw: 112, sh: 376, dw: 0.55, dh: 1.85 },
+  shield: { sx: 640, sy: 740, sw: 300, sh: 304, dw: 1, dh: 1 },
+  bomb: { sx: 946, sy: 742, sw: 278, sh: 338, dw: 0.92, dh: 1.06 },
 };
 
 const keys = new Set();
@@ -171,7 +171,7 @@ function updateEnemies(delta) {
     enemy.shotTimer -= delta;
 
     if (enemy.type !== "meteor" && enemy.shotTimer <= 0) {
-      enemyShots.push({ x: enemy.x, y: enemy.y + enemy.size * 0.28, speed: enemy.type === "boss" ? 250 : 330, size: 38 });
+      enemyShots.push({ x: enemy.x, y: enemy.y + enemy.size * 0.28, speed: enemy.type === "boss" ? 250 : 330, size: enemy.type === "boss" ? 62 : 54 });
       enemy.shotTimer = enemy.type === "boss" ? 0.55 : 1.5;
     }
 
@@ -286,7 +286,7 @@ function draw() {
   drawStars();
 
   for (const shot of heroShots) drawSprite("heroLaser", shot.x, shot.y, shot.size, 0);
-  for (const shot of enemyShots) drawSprite("enemyLaser", shot.x, shot.y, shot.size, Math.PI);
+  for (const shot of enemyShots) drawEnemyShot(shot);
   for (const pickup of pickups) drawSprite(pickup.type, pickup.x, pickup.y, pickup.size, 0);
   for (const enemy of enemies) drawSprite(enemy.type, enemy.x, enemy.y, enemy.size, Math.PI);
 
@@ -325,14 +325,29 @@ function drawStars() {
 
 function drawSprite(type, x, y, size, rotation) {
   if (!sprites.complete || sprites.naturalWidth === 0) return;
-  const cellW = sprites.naturalWidth / 4;
-  const cellH = sprites.naturalHeight / 2;
   const sprite = spriteMap[type];
+  if (!sprite) return;
+  const dw = size * (sprite.dw || 1);
+  const dh = size * (sprite.dh || 1);
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(rotation);
-  ctx.drawImage(sprites, sprite.col * cellW, sprite.row * cellH, cellW, cellH, -size / 2, -size / 2, size, size);
+  ctx.drawImage(sprites, sprite.sx, sprite.sy, sprite.sw, sprite.sh, -dw / 2, -dh / 2, dw, dh);
   ctx.restore();
+}
+
+function drawEnemyShot(shot) {
+  ctx.save();
+  const glow = ctx.createRadialGradient(shot.x, shot.y, 4, shot.x, shot.y, shot.size * 0.8);
+  glow.addColorStop(0, "rgba(220, 190, 255, 0.92)");
+  glow.addColorStop(0.45, "rgba(121, 73, 255, 0.44)");
+  glow.addColorStop(1, "rgba(121, 73, 255, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.ellipse(shot.x, shot.y, shot.size * 0.52, shot.size * 0.88, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  drawSprite("enemyLaser", shot.x, shot.y, shot.size, Math.PI);
 }
 
 function drawParticles() {
