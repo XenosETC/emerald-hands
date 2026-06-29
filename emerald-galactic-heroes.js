@@ -8,6 +8,8 @@ const els = {
   armor: document.querySelector("#armorLabel"),
   wave: document.querySelector("#waveLabel"),
   rank: document.querySelector("#rankLabel"),
+  weapon: document.querySelector("#weaponLabel"),
+  allies: document.querySelector("#allyLabel"),
   overlay: document.querySelector("#galaxyOverlay"),
   overlayTitle: document.querySelector("#overlayTitle"),
   overlayText: document.querySelector("#overlayText"),
@@ -44,6 +46,8 @@ const state = {
   shieldCharge: 100,
   shieldCells: 3,
   wave: 1,
+  weaponLevel: 1,
+  allyTimer: 0,
   elapsed: 0,
   spawnTimer: 0,
   shotTimer: 0,
@@ -64,6 +68,8 @@ function startGame() {
     shieldCharge: 100,
     shieldCells: 3,
     wave: 1,
+    weaponLevel: 1,
+    allyTimer: 0,
     elapsed: 0,
     spawnTimer: 0,
     shotTimer: 0,
@@ -109,8 +115,10 @@ function update(delta) {
   state.elapsed += delta;
   state.hero.invuln = Math.max(0, state.hero.invuln - delta);
   state.shieldCharge = Math.min(100, state.shieldCharge + delta * 4.5);
+  state.allyTimer = Math.max(0, state.allyTimer - delta);
 
   state.wave = Math.min(5, 1 + Math.floor(state.elapsed / 24));
+  updateWeaponLevel();
   state.spawnTimer -= delta;
   state.shotTimer -= delta;
   if (state.spawnTimer <= 0) {
@@ -118,8 +126,8 @@ function update(delta) {
     state.spawnTimer = Math.max(0.34, 1.08 - state.wave * 0.12);
   }
   if (state.shotTimer <= 0) {
-    heroShots.push({ x: state.hero.x, y: state.hero.y - 58, speed: 760, size: 46 });
-    state.shotTimer = 0.16;
+    fireHeroShots();
+    state.shotTimer = shotDelay();
   }
 
   moveHero(delta);
@@ -203,15 +211,7 @@ function destroyEnemy(enemy) {
   const boss = enemy.type === "boss";
   state.score += boss ? 9000 : enemy.type === "meteor" ? 450 : 850;
   burst(enemy.x, enemy.y, boss ? "#d8b45f" : "#74ffc5", boss ? 22 : 10);
-  if (Math.random() < (boss ? 1 : 0.18)) {
-    pickups.push({
-      type: Math.random() < 0.5 ? "shield" : "bomb",
-      x: enemy.x,
-      y: enemy.y,
-      size: 56,
-      speed: 150,
-    });
-  }
+  maybeDropPickup(enemy);
   if (boss) {
     state.bossSpawned = false;
     state.wave = Math.min(5, state.wave + 1);
@@ -233,6 +233,10 @@ function updatePickups(delta) {
         state.bossSpawned = false;
         enemies.length = 0;
         enemyShots.length = 0;
+      }
+      if (pickup.type === "wingmen") {
+        state.allyTimer = 30;
+        burst(state.hero.x, state.hero.y, "#74ffc5", 18);
       }
       pickups.splice(i, 1);
     } else if (pickup.y > canvas.height + 70) {
@@ -256,6 +260,7 @@ function hitShield() {
   state.shieldCharge = Math.max(0, state.shieldCharge - 14);
   state.hero.invuln = 0.25;
   burst(state.hero.x, state.hero.y, "#8edcff", 8);
+  if (state.shieldCharge <= 0) breakShieldCell();
 }
 
 function hitShip(type) {
@@ -265,6 +270,69 @@ function hitShip(type) {
   state.hero.invuln = 1.2;
   burst(state.hero.x, state.hero.y, "#ff5975", 14);
   if (state.shieldCells <= 0) endGame();
+}
+
+function breakShieldCell() {
+  state.shieldCells -= 1;
+  state.shieldCharge = state.shieldCells > 0 ? 45 : 0;
+  state.hero.invuln = 1;
+  burst(state.hero.x, state.hero.y, "#ffcc7a", 18);
+  if (state.shieldCells <= 0) endGame();
+}
+
+function fireHeroShots() {
+  const level = state.weaponLevel;
+  const baseY = state.hero.y - 58;
+  const patterns = {
+    1: [0],
+    2: [-18, 18],
+    3: [-34, 0, 34],
+    4: [-48, -16, 16, 48],
+  };
+  for (const offset of patterns[level]) {
+    heroShots.push({ x: state.hero.x + offset, y: baseY, speed: 760 + level * 18, size: 46 });
+  }
+  if (state.allyTimer > 0) {
+    const allyOffsets = [-108, 108];
+    for (const offset of allyOffsets) {
+      heroShots.push({ x: state.hero.x + offset, y: state.hero.y - 24, speed: 720, size: 38 });
+    }
+  }
+}
+
+function shotDelay() {
+  if (state.weaponLevel >= 4) return 0.1;
+  if (state.weaponLevel === 3) return 0.12;
+  if (state.weaponLevel === 2) return 0.14;
+  return 0.16;
+}
+
+function updateWeaponLevel() {
+  let nextLevel = 1;
+  if (state.wave >= 2 || state.score >= 5000) nextLevel = 2;
+  if (state.wave >= 3 || state.score >= 16000) nextLevel = 3;
+  if (state.wave >= 4 || state.score >= 36000) nextLevel = 4;
+  state.weaponLevel = Math.max(state.weaponLevel, nextLevel);
+}
+
+function maybeDropPickup(enemy) {
+  const boss = enemy.type === "boss";
+  let type = null;
+  if (boss) {
+    type = Math.random() < 0.34 ? "wingmen" : Math.random() < 0.62 ? "bomb" : "shield";
+  } else if (enemy.type === "fighter" && Math.random() < 0.1) {
+    type = "wingmen";
+  } else if (Math.random() < 0.18) {
+    type = Math.random() < 0.5 ? "shield" : "bomb";
+  }
+  if (!type) return;
+  pickups.push({
+    type,
+    x: enemy.x,
+    y: enemy.y,
+    size: type === "wingmen" ? 62 : 56,
+    speed: 150,
+  });
 }
 
 function burst(x, y, color, count) {
@@ -287,8 +355,9 @@ function draw() {
 
   for (const shot of heroShots) drawSprite("heroLaser", shot.x, shot.y, shot.size, 0);
   for (const shot of enemyShots) drawEnemyShot(shot);
-  for (const pickup of pickups) drawSprite(pickup.type, pickup.x, pickup.y, pickup.size, 0);
+  for (const pickup of pickups) drawPickup(pickup);
   for (const enemy of enemies) drawSprite(enemy.type, enemy.x, enemy.y, enemy.size, Math.PI);
+  drawWingmen();
 
   ctx.save();
   if (state.hero.invuln > 0) ctx.globalAlpha = 0.58 + Math.sin(performance.now() * 0.02) * 0.25;
@@ -296,6 +365,34 @@ function draw() {
   ctx.restore();
 
   drawParticles();
+}
+
+function drawPickup(pickup) {
+  if (pickup.type !== "wingmen") {
+    drawSprite(pickup.type, pickup.x, pickup.y, pickup.size, 0);
+    return;
+  }
+  ctx.save();
+  const glow = ctx.createRadialGradient(pickup.x, pickup.y, 4, pickup.x, pickup.y, pickup.size * 0.7);
+  glow.addColorStop(0, "rgba(116, 255, 197, 0.44)");
+  glow.addColorStop(1, "rgba(116, 255, 197, 0)");
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(pickup.x, pickup.y, pickup.size * 0.66, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+  drawSprite("hero", pickup.x - 16, pickup.y + 5, 28, 0);
+  drawSprite("hero", pickup.x + 16, pickup.y + 5, 28, 0);
+}
+
+function drawWingmen() {
+  if (state.allyTimer <= 0) return;
+  const pulse = 0.78 + Math.sin(performance.now() * 0.008) * 0.08;
+  ctx.save();
+  ctx.globalAlpha = pulse;
+  drawSprite("hero", state.hero.x - 108, state.hero.y + 22, 58, 0);
+  drawSprite("hero", state.hero.x + 108, state.hero.y + 22, 58, 0);
+  ctx.restore();
 }
 
 function drawCover(img, x, y, w, h) {
@@ -359,7 +456,12 @@ function drawAssetGuide() {
     previewCtx.clearRect(0, 0, preview.width, preview.height);
     previewCtx.save();
     previewCtx.translate(preview.width / 2, preview.height / 2);
-    drawSpriteToContext(previewCtx, type, 0, 0, size, type === "fighter" || type === "boss" ? Math.PI : 0);
+    if (type === "wingmen") {
+      drawSpriteToContext(previewCtx, "hero", -18, 3, 28, 0);
+      drawSpriteToContext(previewCtx, "hero", 18, 3, 28, 0);
+    } else {
+      drawSpriteToContext(previewCtx, type, 0, 0, size, type === "fighter" || type === "boss" ? Math.PI : 0);
+    }
     previewCtx.restore();
   });
 }
@@ -402,6 +504,8 @@ function updateHud() {
   els.armor.textContent = state.shieldCells;
   els.wave.textContent = state.wave;
   els.rank.textContent = rankForScore(state.score, state.wave);
+  els.weapon.textContent = `Mk ${roman(state.weaponLevel)}`;
+  els.allies.textContent = state.allyTimer > 0 ? `${Math.ceil(state.allyTimer)}s` : "0s";
 }
 
 function loop(now) {
@@ -432,6 +536,10 @@ function format(value) {
   if (value < 1000) return Math.round(value).toLocaleString();
   if (value < 1000000) return `${(value / 1000).toFixed(value < 10000 ? 1 : 0)}K`;
   return `${(value / 1000000).toFixed(1)}M`;
+}
+
+function roman(value) {
+  return ["I", "II", "III", "IV"][value - 1] || "I";
 }
 
 els.startButton.addEventListener("click", startGame);

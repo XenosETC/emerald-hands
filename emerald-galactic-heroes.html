@@ -48,11 +48,19 @@
               <span id="rankLabel">Cadet</span>
               <small>rank</small>
             </div>
+            <div>
+              <span id="weaponLabel">Mk I</span>
+              <small>weapon</small>
+            </div>
+            <div>
+              <span id="allyLabel">0s</span>
+              <small>wingmen</small>
+            </div>
           </section>
           <section class="galaxy-overlay" id="galaxyOverlay">
             <p class="eyebrow">Gas Empire Incoming</p>
             <h2 id="overlayTitle">Defend the Emerald Sector</h2>
-            <p id="overlayText">Move with mouse, touch, arrow keys, or WASD. Auto-fire emerald lasers, dodge purple shots, and survive the boss cruiser.</p>
+            <p id="overlayText">Move with mouse, touch, arrow keys, or WASD. Auto-fire upgrades from Mk I-IV as score and waves climb. Purple shots break charge; empty charge breaks a shield cell.</p>
           </section>
         </div>
       </section>
@@ -95,7 +103,7 @@
             <canvas width="140" height="120" data-sprite="heroLaser" aria-hidden="true"></canvas>
             <div>
               <h3>Emerald Laser</h3>
-              <p>Your auto-fire shot stream.</p>
+              <p>Your auto-fire stream. Upgrades as waves and score climb.</p>
             </div>
           </article>
           <article class="asset-card">
@@ -117,6 +125,13 @@
             <div>
               <h3>Shard Bomb</h3>
               <p>Clears enemies and enemy fire from the field.</p>
+            </div>
+          </article>
+          <article class="asset-card">
+            <canvas width="140" height="120" data-sprite="wingmen" aria-hidden="true"></canvas>
+            <div>
+              <h3>Wingmen Beacon</h3>
+              <p>Dropped by destroyed ships. Adds two allies for 30 seconds.</p>
             </div>
           </article>
         </div>
