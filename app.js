@@ -87,6 +87,8 @@ const events = [
 const state = loadState();
 let handsPlayRecorded = false;
 let lastRankName = currentRank().name;
+let rageTimer = 0;
+let rageCooldown = 55;
 
 const els = {
   shardButton: document.querySelector("#shardButton"),
@@ -103,6 +105,7 @@ const els = {
   rankProgress: document.querySelector("#rankProgress"),
   eventCard: document.querySelector("#eventCard"),
   empireArt: document.querySelector("#empireArt"),
+  rankProgressShell: document.querySelector("#rankProgressShell"),
   buyButtons: document.querySelectorAll("[data-buy]"),
   prestigeModal: document.querySelector("#prestigeModal"),
   prestigeMessage: document.querySelector("#prestigeMessage"),
@@ -159,12 +162,16 @@ function prestigeMultiplier() {
   return 1 + state.ogPoints * 0.12;
 }
 
+function rageMultiplier() {
+  return rageTimer > 0 ? 2 : 1;
+}
+
 function researchMultiplier() {
   return upgrades.research.getValue(state.levels.research);
 }
 
 function perClick() {
-  return (upgrades.click.getValue(state.levels.click) + state.levels.media * 0.7) * vaultMultiplier();
+  return (upgrades.click.getValue(state.levels.click) + state.levels.media * 0.7) * vaultMultiplier() * rageMultiplier();
 }
 
 function perSecond() {
@@ -179,7 +186,7 @@ function perSecond() {
     state.levels.infra * 0.012 +
     state.levels.acquisition * 0.025 +
     state.levels.market * 0.03;
-  return (infra + business + media + acquisition + market) * synergy * vaultMultiplier();
+  return (infra + business + media + acquisition + market) * synergy * vaultMultiplier() * rageMultiplier();
 }
 
 function empireValue() {
@@ -267,6 +274,14 @@ function render() {
   const progressEnd = next ? next.at : rank.at;
   const progress = next ? (state.totalEarned - progressStart) / (progressEnd - progressStart) : 1;
   els.rankProgress.style.width = `${Math.max(0, Math.min(1, progress)) * 100}%`;
+  els.rankProgressShell.classList.toggle("is-rage", rageTimer > 0);
+  els.eventCard.classList.toggle("is-rage", rageTimer > 0);
+  if (rageTimer > 0) {
+    announce(
+      "Emerald Sage of Rage",
+      `Orange lightning floods the vault. 2x clicks and passive shards for ${Math.ceil(rageTimer)}s.`
+    );
+  }
 
   for (const button of els.buyButtons) {
     const type = button.dataset.buy;
@@ -308,13 +323,29 @@ function announce(label, body) {
 
 function maybeEvent(deltaSeconds) {
   eventCooldown -= deltaSeconds;
+  rageCooldown = Math.max(0, rageCooldown - deltaSeconds);
   if (eventCooldown > 0 || state.totalEarned < 90) return;
 
   eventCooldown = 18 + Math.random() * 16;
+  if (rageTimer <= 0 && rageCooldown <= 0 && state.totalEarned >= 650 && Math.random() < 0.18) {
+    triggerSageOfRage();
+    return;
+  }
+
   const event = events[Math.floor(Math.random() * events.length)];
   const bonus = Math.max(10, perSecond() * 6, state.totalEarned * event.effect * 0.015);
   earn(bonus);
   announce(event.label, `${event.body} +${format(bonus)} shards.`);
+}
+
+function triggerSageOfRage() {
+  rageTimer = 30;
+  rageCooldown = 105 + Math.random() * 55;
+  eventCooldown = 22 + Math.random() * 8;
+  window.EmeraldArcade?.toast("Emerald Sage of Rage", "30s 2x shard frenzy", "assets/badges/market-sage.png");
+  chime(180, 0.1);
+  setTimeout(() => chime(540, 0.1), 90);
+  setTimeout(() => chime(920, 0.16), 190);
 }
 
 function prestige() {
@@ -405,6 +436,7 @@ function chime(frequency, duration) {
 function loop(now) {
   const deltaSeconds = Math.min(1, (now - lastTick) / 1000);
   lastTick = now;
+  rageTimer = Math.max(0, rageTimer - deltaSeconds);
   const passive = perSecond() * deltaSeconds;
   if (passive > 0) earn(passive);
   maybeEvent(deltaSeconds);
