@@ -99,6 +99,7 @@ let choiceBoost = 1;
 let choiceLabel = "";
 let choiceResult = "";
 let scrollChoiceOpen = false;
+let specialEventStreak = 0;
 
 const els = {
   shardButton: document.querySelector("#shardButton"),
@@ -366,32 +367,55 @@ function maybeEvent(deltaSeconds) {
   choiceCooldown = Math.max(0, choiceCooldown - deltaSeconds);
   if (eventCooldown > 0 || state.totalEarned < 90 || scrollChoiceOpen) return;
 
-  eventCooldown = 18 + Math.random() * 16;
-  if (rageTimer <= 0 && rageCooldown <= 0 && state.totalEarned >= 650 && Math.random() < 0.18) {
-    triggerSageOfRage();
-    return;
-  }
-
-  if (rageTimer <= 0 && flushTimer <= 0 && flushCooldown <= 0 && state.totalEarned >= 1200 && Math.random() < 0.24) {
-    triggerEmeraldFlush();
-    return;
-  }
-
-  if (rageTimer <= 0 && flushTimer <= 0 && choiceTimer <= 0 && choiceCooldown <= 0 && state.totalEarned >= 2400 && Math.random() < 0.16) {
-    openScrollChoice();
-    return;
-  }
+  eventCooldown = nextEventDelay();
+  const eventType = chooseEventType();
+  if (eventType === "rage") return triggerSageOfRage();
+  if (eventType === "flush") return triggerEmeraldFlush();
+  if (eventType === "choice") return openScrollChoice();
 
   const event = events[Math.floor(Math.random() * events.length)];
   const bonus = Math.max(10, perSecond() * 6, state.totalEarned * event.effect * 0.015);
   earn(bonus);
   announce(event.label, `${event.body} +${format(bonus)} shards.`);
+  specialEventStreak = 0;
+}
+
+function nextEventDelay() {
+  const empire = empireValue();
+  if (empire >= 180000) return 20 + Math.random() * 13;
+  if (empire >= 35000) return 22 + Math.random() * 15;
+  return 26 + Math.random() * 16;
+}
+
+function chooseEventType() {
+  const candidates = [{ type: "standard", weight: specialEventStreak > 0 ? 78 : 62 }];
+  const quiet = rageTimer <= 0 && flushTimer <= 0 && choiceTimer <= 0;
+  const streakPenalty = specialEventStreak > 0 ? 0.45 : 1;
+
+  if (quiet && rageCooldown <= 0 && state.totalEarned >= 650) {
+    candidates.push({ type: "rage", weight: 7 * streakPenalty });
+  }
+  if (quiet && flushCooldown <= 0 && state.totalEarned >= 1200) {
+    candidates.push({ type: "flush", weight: 22 * streakPenalty });
+  }
+  if (quiet && choiceCooldown <= 0 && state.totalEarned >= 2400) {
+    candidates.push({ type: "choice", weight: 12 * streakPenalty });
+  }
+
+  const totalWeight = candidates.reduce((sum, event) => sum + event.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const event of candidates) {
+    roll -= event.weight;
+    if (roll <= 0) return event.type;
+  }
+  return "standard";
 }
 
 function openScrollChoice() {
   scrollChoiceOpen = true;
-  eventCooldown = 24 + Math.random() * 10;
-  choiceCooldown = 125 + Math.random() * 65;
+  specialEventStreak += 1;
+  eventCooldown = 30 + Math.random() * 12;
+  choiceCooldown = 150 + Math.random() * 70;
   announce("Sage's Due Diligence", "The Emerald Sage offers two scrolls. Choose volatility or stewardship.");
   els.scrollModal.hidden = false;
   document.body.classList.add("scroll-open");
@@ -447,8 +471,9 @@ function chooseScroll(type) {
 
 function triggerSageOfRage() {
   rageTimer = 30;
-  rageCooldown = 105 + Math.random() * 55;
-  eventCooldown = 22 + Math.random() * 8;
+  specialEventStreak += 1;
+  rageCooldown = 145 + Math.random() * 75;
+  eventCooldown = 34 + Math.random() * 12;
   window.EmeraldArcade?.toast("Emerald Sage of Rage", "30s 2x shard frenzy", "assets/badges/market-sage.png");
   chime(180, 0.1);
   setTimeout(() => chime(540, 0.1), 90);
@@ -462,8 +487,9 @@ function triggerEmeraldFlush() {
   flushDrop = Math.floor(Math.min(baseline, cap));
   flushBoost = 1.1 + Math.random() * 0.1;
   flushTimer = 45;
-  flushCooldown = 85 + Math.random() * 55;
-  eventCooldown = 18 + Math.random() * 8;
+  specialEventStreak += 1;
+  flushCooldown = 105 + Math.random() * 65;
+  eventCooldown = 28 + Math.random() * 10;
   earn(flushDrop);
   announce(
     "Emerald Flush",
