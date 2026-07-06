@@ -6,6 +6,21 @@ Open `index.html` for the ETC Mini Games Lab hub. `emerald-hands.html` opens the
 
 The hub reads local arcade progress from `localStorage`: arcade XP, badges, best runs, and a rotating daily challenge. This is cosmetic/local only.
 
+## Arcade Badges
+
+The hub includes an eight-badge cosmetic trophy cabinet with generated emerald/gold medallion art under `assets/badges/`.
+
+Current badge unlocks:
+
+1. `Emerald Pilot`: play any arcade game.
+2. `Shard Stacker`: score 9K+ in Shard Rush.
+3. `LP Reviver`: earn the first OG point in Emerald Hands.
+4. `Combo Runner`: hit a x6 combo in Shard Rush.
+5. `Boss Challenger`: reach Wave 3 in Galactic Heroes.
+6. `Gasbreaker`: finish Galactic Heroes with Gasbreaker rank.
+7. `Market Sage`: reach 7 OG points in Emerald Hands.
+8. `Emerald Ace`: finish Galactic Heroes with Emerald Ace rank.
+
 ## Concept
 
 Players collect fictional `Emerald Shards`, spend them on infrastructure, use infrastructure to generate passive production, then acquire businesses and vault upgrades to compound the shard engine.

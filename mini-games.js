@@ -8,6 +8,7 @@ function format(value) {
 
 if (arcade) {
   const challenge = window.EmeraldArcade.todayChallenge();
+  const badgeCatalog = window.EmeraldArcade.badges || [];
   document.querySelector("#arcadeRank").textContent = window.EmeraldArcade.rankForXp(arcade.xp);
   document.querySelector("#arcadeXp").textContent = format(arcade.xp);
   document.querySelector("#arcadeBadges").textContent = arcade.badges.length || 0;
@@ -20,6 +21,23 @@ if (arcade) {
   document.querySelector("[data-stat='galaxy']").textContent =
     `${format(arcade.best.galaxy.score)} best | ${arcade.best.galaxy.rank}`;
 
-  const badges = arcade.badges.slice(-5);
-  document.querySelector("#badgeList").textContent = badges.length ? badges.join(" / ") : "No badges yet";
+  document.querySelector("#badgeSummary").textContent =
+    arcade.badges.length ? `${arcade.badges.length} / ${badgeCatalog.length} unlocked` : "Start any game to unlock your first badge.";
+
+  const badgeList = document.querySelector("#badgeList");
+  badgeList.innerHTML = "";
+
+  badgeCatalog.forEach((badge) => {
+    const unlocked = arcade.badges.includes(badge.slug);
+    const tile = document.createElement("article");
+    tile.className = `badge-tile${unlocked ? " is-unlocked" : ""}`;
+    tile.innerHTML = `
+      <img src="${badge.icon}" alt="" loading="lazy">
+      <div>
+        <strong>${badge.name}</strong>
+        <span>${unlocked ? badge.description : "Locked: " + badge.description}</span>
+      </div>
+    `;
+    badgeList.appendChild(tile);
+  });
 }
