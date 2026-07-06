@@ -89,6 +89,8 @@ let handsPlayRecorded = false;
 let lastRankName = currentRank().name;
 let rageTimer = 0;
 let rageCooldown = 55;
+let corruptionTimer = 0;
+let corruptionCooldown = 92;
 let flushTimer = 0;
 let flushCooldown = 38;
 let flushBoost = 1;
@@ -179,6 +181,10 @@ function rageMultiplier() {
   return rageTimer > 0 ? 2 : 1;
 }
 
+function corruptionMultiplier() {
+  return corruptionTimer > 0 ? 0.8 : 1;
+}
+
 function flushMultiplier() {
   return flushTimer > 0 ? flushBoost : 1;
 }
@@ -192,7 +198,12 @@ function researchMultiplier() {
 }
 
 function perClick() {
-  return (upgrades.click.getValue(state.levels.click) + state.levels.media * 0.7) * vaultMultiplier() * rageMultiplier();
+  return (
+    (upgrades.click.getValue(state.levels.click) + state.levels.media * 0.7) *
+    vaultMultiplier() *
+    rageMultiplier() *
+    corruptionMultiplier()
+  );
 }
 
 function perSecond() {
@@ -212,6 +223,7 @@ function perSecond() {
     synergy *
     vaultMultiplier() *
     rageMultiplier() *
+    corruptionMultiplier() *
     flushMultiplier() *
     choiceMultiplier()
   );
@@ -303,13 +315,22 @@ function render() {
   const progress = next ? (state.totalEarned - progressStart) / (progressEnd - progressStart) : 1;
   els.rankProgress.style.width = `${Math.max(0, Math.min(1, progress)) * 100}%`;
   els.rankProgressShell.classList.toggle("is-rage", rageTimer > 0);
+  els.rankProgressShell.classList.toggle("is-corrupted", corruptionTimer > 0 && rageTimer <= 0);
   els.eventCard.classList.toggle("is-rage", rageTimer > 0);
-  els.eventCard.classList.toggle("is-flush", flushTimer > 0 && rageTimer <= 0);
-  els.eventCard.classList.toggle("is-choice", choiceTimer > 0 && rageTimer <= 0 && flushTimer <= 0);
+  els.eventCard.classList.toggle("is-corrupted", corruptionTimer > 0 && rageTimer <= 0);
+  els.eventCard.classList.toggle("is-flush", flushTimer > 0 && rageTimer <= 0 && corruptionTimer <= 0);
+  els.eventCard.classList.toggle("is-choice", choiceTimer > 0 && rageTimer <= 0 && corruptionTimer <= 0 && flushTimer <= 0);
   if (rageTimer > 0) {
     announce(
       "Emerald Sage of Rage",
       `Orange lightning floods the vault. 2x clicks and passive shards for ${Math.ceil(rageTimer)}s.`
+    );
+  } else if (corruptionTimer > 0) {
+    announce(
+      "Corrupted Shards",
+      `Dark galaxy lightning contaminates the rails. Clicks and shards/sec run at 80% efficiency for ${Math.ceil(
+        corruptionTimer
+      )}s.`
     );
   } else if (flushTimer > 0) {
     announce(
@@ -363,6 +384,7 @@ function announce(label, body) {
 function maybeEvent(deltaSeconds) {
   eventCooldown -= deltaSeconds;
   rageCooldown = Math.max(0, rageCooldown - deltaSeconds);
+  corruptionCooldown = Math.max(0, corruptionCooldown - deltaSeconds);
   flushCooldown = Math.max(0, flushCooldown - deltaSeconds);
   choiceCooldown = Math.max(0, choiceCooldown - deltaSeconds);
   if (eventCooldown > 0 || state.totalEarned < 90 || scrollChoiceOpen) return;
@@ -370,6 +392,7 @@ function maybeEvent(deltaSeconds) {
   eventCooldown = nextEventDelay();
   const eventType = chooseEventType();
   if (eventType === "rage") return triggerSageOfRage();
+  if (eventType === "corruption") return triggerCorruptedShards();
   if (eventType === "flush") return triggerEmeraldFlush();
   if (eventType === "choice") return openScrollChoice();
 
@@ -389,11 +412,14 @@ function nextEventDelay() {
 
 function chooseEventType() {
   const candidates = [{ type: "standard", weight: specialEventStreak > 0 ? 78 : 62 }];
-  const quiet = rageTimer <= 0 && flushTimer <= 0 && choiceTimer <= 0;
+  const quiet = rageTimer <= 0 && corruptionTimer <= 0 && flushTimer <= 0 && choiceTimer <= 0;
   const streakPenalty = specialEventStreak > 0 ? 0.45 : 1;
 
   if (quiet && rageCooldown <= 0 && state.totalEarned >= 650) {
     candidates.push({ type: "rage", weight: 7 * streakPenalty });
+  }
+  if (quiet && corruptionCooldown <= 0 && state.totalEarned >= 950) {
+    candidates.push({ type: "corruption", weight: 11 * streakPenalty });
   }
   if (quiet && flushCooldown <= 0 && state.totalEarned >= 1200) {
     candidates.push({ type: "flush", weight: 22 * streakPenalty });
@@ -480,6 +506,17 @@ function triggerSageOfRage() {
   setTimeout(() => chime(920, 0.16), 190);
 }
 
+function triggerCorruptedShards() {
+  corruptionTimer = 30;
+  specialEventStreak += 1;
+  corruptionCooldown = 120 + Math.random() * 70;
+  eventCooldown = 28 + Math.random() * 12;
+  announce("Corrupted Shards", "Dark galaxy-purple lightning leaks into the shard rails. Efficiency drops by 20%.");
+  window.EmeraldArcade?.toast("Corrupted Shards", "30s 80% shard efficiency", "assets/badges/boss-challenger.png");
+  chime(130, 0.14);
+  setTimeout(() => chime(220, 0.12), 120);
+}
+
 function triggerEmeraldFlush() {
   const empire = empireValue();
   const baseline = Math.max(75, empire * 0.006, perSecond() * 10);
@@ -524,6 +561,7 @@ function prestige() {
   state.levels = { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0, market: 0 };
   state.featuredUpgrade = null;
   rageTimer = 0;
+  corruptionTimer = 0;
   flushTimer = 0;
   flushBoost = 1;
   choiceTimer = 0;
@@ -597,6 +635,7 @@ function loop(now) {
   const deltaSeconds = Math.min(1, (now - lastTick) / 1000);
   lastTick = now;
   rageTimer = Math.max(0, rageTimer - deltaSeconds);
+  corruptionTimer = Math.max(0, corruptionTimer - deltaSeconds);
   flushTimer = Math.max(0, flushTimer - deltaSeconds);
   choiceTimer = Math.max(0, choiceTimer - deltaSeconds);
   const passive = perSecond() * deltaSeconds;

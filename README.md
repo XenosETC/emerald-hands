@@ -55,10 +55,11 @@ Controls: mouse, touch, arrow keys, or `A` / `D`.
 Emerald Hands includes occasional event-card moments above the rank progress bar:
 
 - `Emerald Sage of Rage`: a rare 30-second 2x click and passive shard frenzy with red/orange lightning on the progress bar.
+- `Corrupted Shards`: a negative 30-second efficiency event with dark galaxy-purple lightning. Clicks and shards/sec run at 80% efficiency.
 - `Emerald Flush`: a regenerative shard mine acquisition that pays a capped empire-relative shard drop and boosts shards/sec by 10-20% for 45 seconds.
 - `Sage's Due Diligence`: a scroll-choice event. `Scroll of Volatile Dominion` offers bigger upside with controlled downside risk; `Scroll of Steward's Yield` offers a smaller guaranteed payout and clean passive boost.
 
-Cadence target: standard market signals should be the usual rhythm, `Emerald Flush` should appear sometimes, scroll choices should feel like a notable decision, and `Emerald Sage of Rage` should be the rare hype event. The scheduler uses weighted eligibility, per-event cooldowns, and an anti-clump penalty after special events.
+Cadence target: standard market signals should be the usual rhythm, `Emerald Flush` should appear sometimes, `Corrupted Shards` should lightly counterbalance boosts, scroll choices should feel like a notable decision, and `Emerald Sage of Rage` should be the rare hype event. The scheduler uses weighted eligibility, per-event cooldowns, and an anti-clump penalty after special events.
 
 ## Emerald Galactic Heroes
 
