@@ -50,6 +50,14 @@ Core loop:
 
 Controls: mouse, touch, arrow keys, or `A` / `D`.
 
+## Emerald Hands Events
+
+Emerald Hands includes occasional event-card moments above the rank progress bar:
+
+- `Emerald Sage of Rage`: a rare 30-second 2x click and passive shard frenzy with red/orange lightning on the progress bar.
+- `Emerald Flush`: a regenerative shard mine acquisition that pays a capped empire-relative shard drop and boosts shards/sec by 10-20% for 45 seconds.
+- `Sage's Due Diligence`: a scroll-choice event. `Scroll of Volatile Dominion` offers bigger upside with controlled downside risk; `Scroll of Steward's Yield` offers a smaller guaranteed payout and clean passive boost.
+
 ## Emerald Galactic Heroes
 
 `emerald-galactic-heroes.html` is the third mini game: an arcade shooter where players defend the emerald sector from fictional rival gas empire ships.

@@ -93,6 +93,12 @@ let flushTimer = 0;
 let flushCooldown = 38;
 let flushBoost = 1;
 let flushDrop = 0;
+let choiceTimer = 0;
+let choiceCooldown = 70;
+let choiceBoost = 1;
+let choiceLabel = "";
+let choiceResult = "";
+let scrollChoiceOpen = false;
 
 const els = {
   shardButton: document.querySelector("#shardButton"),
@@ -118,6 +124,8 @@ const els = {
   prestigeBoost: document.querySelector("#prestigeBoost"),
   prestigeRank: document.querySelector("#prestigeRank"),
   prestigeClosers: document.querySelectorAll("[data-close-prestige]"),
+  scrollModal: document.querySelector("#scrollModal"),
+  scrollChoices: document.querySelectorAll("[data-scroll-choice]"),
 };
 
 let lastTick = performance.now();
@@ -174,6 +182,10 @@ function flushMultiplier() {
   return flushTimer > 0 ? flushBoost : 1;
 }
 
+function choiceMultiplier() {
+  return choiceTimer > 0 ? choiceBoost : 1;
+}
+
 function researchMultiplier() {
   return upgrades.research.getValue(state.levels.research);
 }
@@ -194,7 +206,14 @@ function perSecond() {
     state.levels.infra * 0.012 +
     state.levels.acquisition * 0.025 +
     state.levels.market * 0.03;
-  return (infra + business + media + acquisition + market) * synergy * vaultMultiplier() * rageMultiplier() * flushMultiplier();
+  return (
+    (infra + business + media + acquisition + market) *
+    synergy *
+    vaultMultiplier() *
+    rageMultiplier() *
+    flushMultiplier() *
+    choiceMultiplier()
+  );
 }
 
 function empireValue() {
@@ -285,6 +304,7 @@ function render() {
   els.rankProgressShell.classList.toggle("is-rage", rageTimer > 0);
   els.eventCard.classList.toggle("is-rage", rageTimer > 0);
   els.eventCard.classList.toggle("is-flush", flushTimer > 0 && rageTimer <= 0);
+  els.eventCard.classList.toggle("is-choice", choiceTimer > 0 && rageTimer <= 0 && flushTimer <= 0);
   if (rageTimer > 0) {
     announce(
       "Emerald Sage of Rage",
@@ -297,6 +317,8 @@ function render() {
         flushTimer
       )}s. Mine payout: +${format(flushDrop)} shards.`
     );
+  } else if (choiceTimer > 0) {
+    announce(choiceLabel, `${choiceResult} +${Math.round((choiceBoost - 1) * 100)}% shards/sec for ${Math.ceil(choiceTimer)}s.`);
   }
 
   for (const button of els.buyButtons) {
@@ -341,7 +363,8 @@ function maybeEvent(deltaSeconds) {
   eventCooldown -= deltaSeconds;
   rageCooldown = Math.max(0, rageCooldown - deltaSeconds);
   flushCooldown = Math.max(0, flushCooldown - deltaSeconds);
-  if (eventCooldown > 0 || state.totalEarned < 90) return;
+  choiceCooldown = Math.max(0, choiceCooldown - deltaSeconds);
+  if (eventCooldown > 0 || state.totalEarned < 90 || scrollChoiceOpen) return;
 
   eventCooldown = 18 + Math.random() * 16;
   if (rageTimer <= 0 && rageCooldown <= 0 && state.totalEarned >= 650 && Math.random() < 0.18) {
@@ -354,10 +377,72 @@ function maybeEvent(deltaSeconds) {
     return;
   }
 
+  if (rageTimer <= 0 && flushTimer <= 0 && choiceTimer <= 0 && choiceCooldown <= 0 && state.totalEarned >= 2400 && Math.random() < 0.16) {
+    openScrollChoice();
+    return;
+  }
+
   const event = events[Math.floor(Math.random() * events.length)];
   const bonus = Math.max(10, perSecond() * 6, state.totalEarned * event.effect * 0.015);
   earn(bonus);
   announce(event.label, `${event.body} +${format(bonus)} shards.`);
+}
+
+function openScrollChoice() {
+  scrollChoiceOpen = true;
+  eventCooldown = 24 + Math.random() * 10;
+  choiceCooldown = 125 + Math.random() * 65;
+  announce("Sage's Due Diligence", "The Emerald Sage offers two scrolls. Choose volatility or stewardship.");
+  els.scrollModal.hidden = false;
+  document.body.classList.add("scroll-open");
+  window.EmeraldArcade?.toast("Sage's Due Diligence", "Choose a scroll allocation", "assets/badges/market-sage.png");
+}
+
+function closeScrollChoice() {
+  scrollChoiceOpen = false;
+  els.scrollModal.hidden = true;
+  document.body.classList.remove("scroll-open");
+}
+
+function chooseScroll(type) {
+  const empire = empireValue();
+  if (type === "risk") {
+    const success = Math.random() < 0.65;
+    if (success) {
+      const payout = Math.floor(Math.max(120, Math.min(empire * 0.028, state.totalEarned * 0.06)));
+      earn(payout);
+      choiceLabel = "Scroll of Volatile Dominion";
+      choiceResult = `Acquisition hits. +${format(payout)} shards deployed.`;
+      choiceBoost = 1.35;
+      choiceTimer = 40;
+      window.EmeraldArcade?.toast("Dominion Hit", `+${format(payout)} shards, risky boost live`, "assets/badges/gasbreaker.png");
+      chime(260, 0.08);
+      setTimeout(() => chime(880, 0.14), 110);
+    } else {
+      const cost = Math.floor(Math.min(state.shards * 0.12, empire * 0.008));
+      state.shards = Math.max(0, state.shards - cost);
+      choiceLabel = "Volatile Integration Drag";
+      choiceResult = `Deal got messy. -${format(cost)} shards, but operators salvaged a smaller boost.`;
+      choiceBoost = 1.12;
+      choiceTimer = 20;
+      window.EmeraldArcade?.toast("Messy Integration", "Risk scroll bit the treasury", "assets/badges/lp-reviver.png");
+      chime(180, 0.12);
+    }
+  } else {
+    const payout = Math.floor(Math.max(90, Math.min(empire * 0.012, state.totalEarned * 0.03)));
+    earn(payout);
+    choiceLabel = "Scroll of Steward's Yield";
+    choiceResult = `Clean allocation secured. +${format(payout)} shards banked.`;
+    choiceBoost = 1.12;
+    choiceTimer = 30;
+    window.EmeraldArcade?.toast("Steward's Yield", `+${format(payout)} shards, clean boost`, "assets/badges/shard-stacker.png");
+    chime(520, 0.08);
+    setTimeout(() => chime(720, 0.1), 110);
+  }
+  closeScrollChoice();
+  announce(choiceLabel, choiceResult);
+  render();
+  saveState();
 }
 
 function triggerSageOfRage() {
@@ -415,6 +500,9 @@ function prestige() {
   rageTimer = 0;
   flushTimer = 0;
   flushBoost = 1;
+  choiceTimer = 0;
+  choiceBoost = 1;
+  closeScrollChoice();
   announce("OG Prestige Locked", `${format(reward)} OG Points secured. New runs start stronger.`);
   chime(740, 0.16);
   setTimeout(() => chime(980, 0.12), 120);
@@ -484,6 +572,7 @@ function loop(now) {
   lastTick = now;
   rageTimer = Math.max(0, rageTimer - deltaSeconds);
   flushTimer = Math.max(0, flushTimer - deltaSeconds);
+  choiceTimer = Math.max(0, choiceTimer - deltaSeconds);
   const passive = perSecond() * deltaSeconds;
   if (passive > 0) earn(passive);
   maybeEvent(deltaSeconds);
@@ -513,9 +602,16 @@ for (const closer of els.prestigeClosers) {
   closer.addEventListener("click", closePrestigeModal);
 }
 
+for (const choice of els.scrollChoices) {
+  choice.addEventListener("click", () => chooseScroll(choice.dataset.scrollChoice));
+}
+
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !els.prestigeModal.hidden) {
     closePrestigeModal();
+  }
+  if (event.key === "Escape" && !els.scrollModal.hidden) {
+    closeScrollChoice();
   }
 });
 

@@ -14,6 +14,7 @@
     <link rel="preload" href="assets/research-lab.png" as="image">
     <link rel="preload" href="assets/market-building.png" as="image">
     <link rel="preload" href="assets/prestige-sage.png" as="image">
+    <link rel="preload" href="assets/scroll-choice-sage.png" as="image">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -201,6 +202,32 @@
           <button class="prestige-modal__button" id="prestigeContinue" type="button" data-close-prestige>
             Begin Next Cycle
           </button>
+        </div>
+      </article>
+    </section>
+
+    <section class="scroll-modal" id="scrollModal" aria-labelledby="scrollModalTitle" aria-modal="true" role="dialog" hidden>
+      <div class="scroll-modal__backdrop"></div>
+      <article class="scroll-modal__panel">
+        <img class="scroll-modal__art" src="assets/scroll-choice-sage.png" alt="">
+        <div class="scroll-modal__copy">
+          <p class="eyebrow">Sage's Due Diligence</p>
+          <h2 id="scrollModalTitle">Two Scrolls. One Allocation.</h2>
+          <p class="scroll-modal__message">
+            The Emerald Sage opens a deal room inside the vault. Choose volatility for upside, or stewardship for a clean guaranteed yield.
+          </p>
+          <div class="scroll-choice-grid">
+            <button class="scroll-choice scroll-choice--risk" type="button" data-scroll-choice="risk">
+              <span>Risk Scroll</span>
+              <strong>Scroll of Volatile Dominion</strong>
+              <small>Bigger upside. A messy acquisition can still bite the treasury.</small>
+            </button>
+            <button class="scroll-choice scroll-choice--safe" type="button" data-scroll-choice="safe">
+              <span>Safe Scroll</span>
+              <strong>Scroll of Steward's Yield</strong>
+              <small>Smaller guaranteed payout with a clean passive boost.</small>
+            </button>
+          </div>
         </div>
       </article>
     </section>
