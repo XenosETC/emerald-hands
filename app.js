@@ -85,6 +85,8 @@ const events = [
 ];
 
 const state = loadState();
+let handsPlayRecorded = false;
+let lastRankName = currentRank().name;
 
 const els = {
   shardButton: document.querySelector("#shardButton"),
@@ -246,6 +248,11 @@ function labelFor(type) {
 function render() {
   const next = nextRank();
   const rank = currentRank();
+  if (rank.name !== lastRankName) {
+    announce("Rank Up", `${rank.name} unlocked. The shard stack is getting serious.`);
+    window.EmeraldArcade?.toast("Emerald Hands Rank", rank.name, "assets/badges/lp-reviver.png");
+    lastRankName = rank.name;
+  }
 
   els.shardCount.textContent = format(state.shards);
   els.perClick.textContent = format(perClick());
@@ -338,6 +345,7 @@ function prestige() {
   render();
   showPrestigeModal(summary);
   saveState();
+  recordArcadeProgress(false, true);
 }
 
 function showPrestigeModal(summary) {
@@ -359,12 +367,14 @@ function closePrestigeModal() {
   document.body.classList.remove("prestige-open");
 }
 
-function recordArcadeProgress() {
-  window.EmeraldArcade?.record("hands", {
+function recordArcadeProgress(played = false, notify = false) {
+  const recorder = notify ? window.EmeraldArcade?.recordAndNotify : window.EmeraldArcade?.record;
+  recorder?.("hands", {
     prestigeRank: prestigeRankFor(state.ogPoints).name,
     ogPoints: state.ogPoints,
     empireValue: empireValue(),
     totalEarned: state.totalEarned,
+    played,
   });
 }
 
@@ -403,6 +413,10 @@ function loop(now) {
 }
 
 els.shardButton.addEventListener("click", (event) => {
+  if (!handsPlayRecorded) {
+    handsPlayRecorded = true;
+    recordArcadeProgress(true, true);
+  }
   const amount = perClick();
   earn(amount);
   pop(amount, event.clientX, event.clientY);

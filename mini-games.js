@@ -9,7 +9,10 @@ function format(value) {
 if (arcade) {
   const challenge = window.EmeraldArcade.todayChallenge();
   const badgeCatalog = window.EmeraldArcade.badges || [];
+  const nextRank = window.EmeraldArcade.nextRankForXp(arcade.xp);
   document.querySelector("#arcadeRank").textContent = window.EmeraldArcade.rankForXp(arcade.xp);
+  document.querySelector("#arcadeRankMeta").textContent =
+    nextRank.remaining > 0 ? `${nextRank.label} in ${format(nextRank.remaining)} XP` : nextRank.label;
   document.querySelector("#arcadeXp").textContent = format(arcade.xp);
   document.querySelector("#arcadeBadges").textContent = arcade.badges.length || 0;
   document.querySelector("#dailyChallenge").textContent = `${challenge.game}: ${challenge.task}`;

@@ -160,7 +160,7 @@ canvas {
   line-height: 0.98;
 }
 
-.galaxy-overlay p:last-child {
+.galaxy-overlay p:not(.eyebrow) {
   margin: 10px 0 0;
   color: #d6f4e7;
   line-height: 1.45;

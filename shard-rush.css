@@ -160,10 +160,34 @@ canvas {
   line-height: 0.98;
 }
 
-.rush-overlay p:last-child {
+.rush-overlay p:not(.eyebrow) {
   margin: 10px 0 0;
   color: #d6f4e7;
   line-height: 1.45;
+}
+
+.run-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.run-stats div {
+  padding: 8px;
+  border: 1px solid rgba(117, 255, 189, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.run-stats span {
+  display: block;
+  color: var(--emerald-strong);
+  font-weight: 950;
+}
+
+.run-stats small {
+  color: var(--muted);
 }
 
 .rush-overlay.is-hidden {

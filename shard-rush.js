@@ -10,6 +10,7 @@ const els = {
   overlay: document.querySelector("#rushOverlay"),
   overlayTitle: document.querySelector("#overlayTitle"),
   overlayText: document.querySelector("#overlayText"),
+  runStats: document.querySelector("#runStats"),
 };
 
 const background = new Image();
@@ -37,7 +38,10 @@ const state = {
   running: false,
   score: 0,
   combo: 1,
+  maxCombo: 1,
   streak: 0,
+  cleanCatches: 0,
+  hazardsHit: 0,
   timeLeft: 60,
   elapsed: 0,
   spawnTimer: 0,
@@ -51,7 +55,10 @@ function startGame() {
     running: true,
     score: 0,
     combo: 1,
+    maxCombo: 1,
     streak: 0,
+    cleanCatches: 0,
+    hazardsHit: 0,
     timeLeft: 60,
     elapsed: 0,
     spawnTimer: 0,
@@ -59,6 +66,8 @@ function startGame() {
     collectorX: canvas.width / 2,
   });
   els.overlay.classList.add("is-hidden");
+  els.runStats.hidden = true;
+  els.runStats.innerHTML = "";
   updateHud();
 }
 
@@ -66,9 +75,16 @@ function endGame() {
   state.running = false;
   const rank = rankForScore(state.score);
   els.overlayTitle.textContent = `${rank} Run`;
-  els.overlayText.textContent = `Final score: ${format(state.score)}. Catch clean shards, revive dead LP, and dodge red hazards to push the next sprint higher.`;
+  els.overlayText.textContent = `Final score: ${format(state.score)}. Max combo x${state.maxCombo}. Clean catches beat hazard hits every time.`;
+  els.runStats.hidden = false;
+  els.runStats.innerHTML = `
+    <div><span>${format(state.score)}</span><small>score</small></div>
+    <div><span>x${state.maxCombo}</span><small>max combo</small></div>
+    <div><span>${state.cleanCatches}</span><small>clean catches</small></div>
+    <div><span>${state.hazardsHit}</span><small>hazards hit</small></div>
+  `;
   els.overlay.classList.remove("is-hidden");
-  window.EmeraldArcade?.record("rush", { score: state.score, rank, combo: state.combo, played: true });
+  window.EmeraldArcade?.recordAndNotify("rush", { score: state.score, rank, combo: state.maxCombo, played: true });
   updateHud();
 }
 
@@ -146,6 +162,7 @@ function update(delta) {
 function collect(drop) {
   if (isHazard(drop.type)) {
     state.score = Math.max(0, state.score - (drop.type === "bot" ? 900 : 650));
+    state.hazardsHit += 1;
     breakCombo();
     return;
   }
@@ -153,8 +170,10 @@ function collect(drop) {
   const values = { shard: 120, liquidity: 360, candle: 520, deadlp: 440, combo: 250 };
   state.score += Math.round(values[drop.type] * state.combo);
   state.streak += 1;
+  state.cleanCatches += 1;
   if (drop.type === "combo" || drop.type === "candle" || state.streak % 6 === 0) {
     state.combo = Math.min(8, state.combo + 1);
+    state.maxCombo = Math.max(state.maxCombo, state.combo);
   }
 }
 

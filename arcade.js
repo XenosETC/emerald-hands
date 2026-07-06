@@ -73,6 +73,17 @@
     "Emerald Ace": "emerald-ace",
   };
 
+  const badgeBySlug = Object.fromEntries(badgeCatalog.map((badge) => [badge.slug, badge]));
+
+  const rankCatalog = [
+    { name: "Retail Pilot", at: 0 },
+    { name: "Shard Initiate", at: 800 },
+    { name: "LP Reviver", at: 2800 },
+    { name: "Arcade OG", at: 9000 },
+    { name: "Ancient Operator", at: 22000 },
+    { name: "Emerald Sovereign", at: 50000 },
+  ];
+
   function slugify(value) {
     return String(value)
       .trim()
@@ -114,6 +125,8 @@
 
   function record(game, payload) {
     const data = load();
+    const previousBadges = [...data.badges];
+    const previousRank = rankForXp(data.xp);
     data.gamesPlayed += payload?.played ? 1 : 0;
     if (payload?.played) uniquePush(data.badges, "emerald-pilot");
 
@@ -143,16 +156,21 @@
     }
 
     save(data);
-    return data;
+    return {
+      ...data,
+      unlockedBadges: data.badges.filter((badge) => !previousBadges.includes(badge)),
+      rankChanged: previousRank !== rankForXp(data.xp),
+    };
   }
 
   function rankForXp(xp) {
-    if (xp >= 50000) return "Emerald Sovereign";
-    if (xp >= 22000) return "Ancient Operator";
-    if (xp >= 9000) return "Arcade OG";
-    if (xp >= 2800) return "LP Reviver";
-    if (xp >= 800) return "Shard Initiate";
-    return "Retail Pilot";
+    return rankCatalog.reduce((best, rank) => (xp >= rank.at ? rank : best), rankCatalog[0]).name;
+  }
+
+  function nextRankForXp(xp) {
+    const next = rankCatalog.find((rank) => rank.at > xp);
+    if (!next) return { label: "Max arcade rank", remaining: 0 };
+    return { label: `Next: ${next.name}`, remaining: next.at - xp };
   }
 
   function todayChallenge() {
@@ -165,11 +183,124 @@
     return options[day % options.length];
   }
 
+  function ensureToastStyles() {
+    if (document.querySelector("#emerald-arcade-toast-styles")) return;
+    const style = document.createElement("style");
+    style.id = "emerald-arcade-toast-styles";
+    style.textContent = `
+      .arcade-toast-stack {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 90;
+        display: grid;
+        gap: 10px;
+        width: min(360px, calc(100vw - 28px));
+        pointer-events: none;
+      }
+
+      .arcade-toast {
+        display: grid;
+        grid-template-columns: 58px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 10px;
+        border: 1px solid rgba(116, 255, 197, 0.48);
+        border-radius: 8px;
+        color: #effff7;
+        background:
+          radial-gradient(circle at 10% 50%, rgba(35, 240, 156, 0.22), transparent 7rem),
+          rgba(2, 8, 6, 0.92);
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.46), inset 0 0 28px rgba(35, 240, 156, 0.08);
+        animation: arcade-toast-in 360ms ease-out, arcade-toast-out 360ms ease-in 4.4s forwards;
+      }
+
+      .arcade-toast img {
+        width: 58px;
+        height: 58px;
+        border: 1px solid rgba(216, 180, 95, 0.35);
+        border-radius: 8px;
+        object-fit: cover;
+      }
+
+      .arcade-toast span,
+      .arcade-toast strong {
+        display: block;
+      }
+
+      .arcade-toast span {
+        color: #74ffc5;
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .arcade-toast strong {
+        margin-top: 2px;
+        font-size: 1rem;
+      }
+
+      .arcade-toast small {
+        display: block;
+        margin-top: 3px;
+        color: #b8d6c9;
+        line-height: 1.28;
+      }
+
+      @keyframes arcade-toast-in {
+        from { opacity: 0; transform: translateY(12px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      @keyframes arcade-toast-out {
+        to { opacity: 0; transform: translateY(10px) scale(0.98); }
+      }
+    `;
+    document.head.append(style);
+  }
+
+  function toast(label, body, icon) {
+    ensureToastStyles();
+    let stack = document.querySelector(".arcade-toast-stack");
+    if (!stack) {
+      stack = document.createElement("div");
+      stack.className = "arcade-toast-stack";
+      document.body.append(stack);
+    }
+    const node = document.createElement("article");
+    node.className = "arcade-toast";
+    node.innerHTML = `
+      ${icon ? `<img src="${icon}" alt="">` : ""}
+      <div>
+        <span>${label}</span>
+        <strong>${body}</strong>
+      </div>
+    `;
+    stack.append(node);
+    window.setTimeout(() => node.remove(), 5000);
+  }
+
+  function recordAndNotify(game, payload) {
+    const result = record(game, payload);
+    for (const slug of result.unlockedBadges) {
+      const badge = badgeBySlug[slug];
+      if (badge) toast("Badge Unlocked", badge.name, badge.icon);
+    }
+    if (result.rankChanged) {
+      toast("Arcade Rank Up", rankForXp(result.xp), "assets/badges/emerald-ace.png");
+    }
+    return result;
+  }
+
   window.EmeraldArcade = {
     load,
     save,
     record,
+    recordAndNotify,
+    toast,
     rankForXp,
+    nextRankForXp,
     todayChallenge,
     badges: badgeCatalog,
   };

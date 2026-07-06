@@ -50,6 +50,10 @@ const state = {
   shieldCells: 3,
   wave: 1,
   weaponLevel: 1,
+  kills: 0,
+  bossKills: 0,
+  pickupsCollected: 0,
+  shieldCellsLost: 0,
   allyTimer: 0,
   wingmenDropCooldown: 0,
   pickupDropCooldown: 0,
@@ -76,6 +80,10 @@ function startGame() {
     shieldCells: 3,
     wave: 1,
     weaponLevel: 1,
+    kills: 0,
+    bossKills: 0,
+    pickupsCollected: 0,
+    shieldCellsLost: 0,
     allyTimer: 0,
     wingmenDropCooldown: 0,
     pickupDropCooldown: 0,
@@ -105,9 +113,12 @@ function endGame() {
     <div><span>${format(state.score)}</span><small>score</small></div>
     <div><span>${state.wave}</span><small>wave held</small></div>
     <div><span>Mk ${roman(state.weaponLevel)}</span><small>weapon reached</small></div>
+    <div><span>${state.kills}</span><small>ships cracked</small></div>
+    <div><span>${state.bossKills}</span><small>bosses broken</small></div>
+    <div><span>${state.pickupsCollected}</span><small>pickups used</small></div>
   `;
   els.overlay.classList.remove("is-hidden");
-  window.EmeraldArcade?.record("galaxy", {
+  window.EmeraldArcade?.recordAndNotify("galaxy", {
     score: state.score,
     rank,
     wave: state.wave,
@@ -241,6 +252,8 @@ function updateEnemies(delta) {
 
 function destroyEnemy(enemy) {
   const boss = enemy.type === "boss";
+  state.kills += 1;
+  if (boss) state.bossKills += 1;
   state.score += boss ? 9000 : enemy.type === "meteor" ? 450 : 850;
   burst(enemy.x, enemy.y, boss ? "#d8b45f" : "#74ffc5", boss ? 22 : 10);
   maybeDropPickup(enemy);
@@ -255,6 +268,7 @@ function updatePickups(delta) {
     const pickup = pickups[i];
     pickup.y += pickup.speed * delta;
     if (distance(pickup, state.hero) < 58) {
+      state.pickupsCollected += 1;
       if (pickup.type === "shield") {
         state.shieldCharge = 100;
         state.shieldCells = Math.min(5, state.shieldCells + 1);
@@ -301,7 +315,9 @@ function hitShield() {
 
 function hitShip(type) {
   if (state.hero.invuln > 0) return;
-  state.shieldCells -= type === "boss" ? 2 : 1;
+  const cellsLost = type === "boss" ? 2 : 1;
+  state.shieldCells -= cellsLost;
+  state.shieldCellsLost += cellsLost;
   state.shieldCharge = Math.max(0, state.shieldCharge - 28);
   state.hero.invuln = 1.2;
   burst(state.hero.x, state.hero.y, "#ff5975", 14);
@@ -311,6 +327,7 @@ function hitShip(type) {
 
 function breakShieldCell() {
   state.shieldCells -= 1;
+  state.shieldCellsLost += 1;
   state.shieldCharge = state.shieldCells > 0 ? 45 : 0;
   state.hero.invuln = 1;
   burst(state.hero.x, state.hero.y, "#ffcc7a", 18);
