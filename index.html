@@ -3,209 +3,99 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Emerald Hands: a fictional ETC-inspired idle mini game.">
-    <title>Emerald Hands</title>
-    <link rel="preload" href="assets/emerald-shards.png" as="image">
-    <link rel="preload" href="assets/infra-core.png" as="image">
-    <link rel="preload" href="assets/business-district.png" as="image">
+    <meta name="description" content="ETC Mini Games Lab arcade hub.">
+    <title>ETC Mini Games Lab</title>
     <link rel="preload" href="assets/og-vault.png" as="image">
-    <link rel="preload" href="assets/media-studio.png" as="image">
-    <link rel="preload" href="assets/acquisition-desk.png" as="image">
-    <link rel="preload" href="assets/research-lab.png" as="image">
-    <link rel="preload" href="assets/market-building.png" as="image">
-    <link rel="preload" href="assets/prestige-sage.png" as="image">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="preload" href="assets/shard-rush/arena-background.png" as="image">
+    <link rel="preload" href="assets/emerald-galactic-heroes/space-background.png" as="image">
+    <link rel="stylesheet" href="mini-games.css">
   </head>
   <body>
-    <main class="shell">
-      <section class="hero" aria-labelledby="game-title">
-        <div class="hero__backdrop" aria-hidden="true"></div>
-        <div class="topbar">
-          <div>
-            <p class="eyebrow">ETC Mini Games Lab</p>
-            <h1 id="game-title">Emerald Hands</h1>
-          </div>
-          <div class="topbar-actions">
-            <a class="ghost-button" href="mini-games.html">Arcade Hub</a>
-            <a class="ghost-button" href="shard-rush.html">Shard Rush</a>
-            <a class="ghost-button" href="emerald-galactic-heroes.html">Galactic Heroes</a>
-            <button class="ghost-button" id="resetButton" type="button">Reset Run</button>
-          </div>
+    <main class="hub-shell">
+      <section class="hub-hero" aria-labelledby="hub-title">
+        <div class="hub-copy">
+          <p class="eyebrow">ETC Mini Games Lab</p>
+          <h1 id="hub-title">Emerald Arcade</h1>
+          <p>Three small premium ETC-inspired games built for fast sessions, clean vibes, and arcade-style progression.</p>
         </div>
+        <a class="hub-action" href="emerald-hands.html">Continue Emerald Hands</a>
+      </section>
 
-        <div class="hero-grid">
-          <section class="click-panel" aria-label="Shard collector">
-            <div class="rank-strip">
-              <span id="rankLabel">Noob Retail</span>
-              <span id="nextRankLabel">Next: Bag Holder</span>
-            </div>
-
-            <button class="shard-button" id="shardButton" type="button" aria-label="Collect emerald shards">
-              <img src="assets/emerald-shards.png" alt="">
-            </button>
-
-            <div class="primary-stat">
-              <span id="shardCount">0</span>
-              <small>Emerald Shards</small>
-            </div>
-
-            <div class="stat-grid">
-              <div>
-                <span id="perClick">1</span>
-                <small>per click</small>
-              </div>
-              <div>
-                <span id="perSecond">0</span>
-                <small>per sec</small>
-              </div>
-              <div>
-                <span id="empireValue">0</span>
-                <small>empire value</small>
-              </div>
-              <div>
-                <span id="ogPoints">0</span>
-                <small>OG points</small>
-              </div>
-              <div class="rank-stat">
-                <span id="prestigeRankLabel">Retail Ghost</span>
-                <small>prestige rank</small>
-              </div>
-            </div>
-          </section>
-
-          <section class="empire-panel" aria-label="Empire status">
-            <div class="empire-art" id="empireArt"></div>
-            <div class="event-card" id="eventCard">
-              <span>Market Signal</span>
-              <strong>Tap shards. Buy infra. Acquire businesses. Become OG.</strong>
-            </div>
-            <div class="progress-shell" aria-label="Rank progress">
-              <div class="progress-bar" id="rankProgress"></div>
-            </div>
-            <button class="prestige-button" id="prestigeButton" type="button">Reach Ancient OG to prestige</button>
-          </section>
+      <section class="arcade-status" aria-label="Arcade progress">
+        <div>
+          <span id="arcadeRank">Retail Pilot</span>
+          <small>arcade rank</small>
+        </div>
+        <div>
+          <span id="arcadeXp">0</span>
+          <small>local XP</small>
+        </div>
+        <div>
+          <span id="arcadeBadges">0</span>
+          <small>badges</small>
+        </div>
+        <div class="arcade-status__wide">
+          <span id="dailyChallenge">Loading daily challenge</span>
+          <small>daily challenge</small>
         </div>
       </section>
 
-      <section class="shop" aria-label="Upgrade shop">
-        <article class="upgrade-card" data-upgrade="click">
-          <img src="assets/emerald-shards.png" alt="">
-          <div>
-            <p>Retail Conviction</p>
-            <h2>Sharper Hands</h2>
-            <span>Increase shards earned per tap.</span>
+      <section class="game-grid" aria-label="Available mini games">
+        <article class="game-card game-card--hands">
+          <div class="game-art" aria-hidden="true"></div>
+          <div class="game-body">
+            <p class="eyebrow">Idle Empire</p>
+            <h2>Emerald Hands</h2>
+            <p>Click shards, buy infra, build businesses, revive dead LP, and prestige from retail to Ancient OG.</p>
+            <div class="game-meta">
+              <span>Clicker</span>
+              <span>Prestige</span>
+              <span>Business Stack</span>
+            </div>
+            <p class="game-stat" data-stat="hands">Retail Ghost | 0 empire</p>
+            <a href="emerald-hands.html">Play Emerald Hands</a>
           </div>
-          <button type="button" class="buy-button" data-buy="click">Buy</button>
         </article>
 
-        <article class="upgrade-card" data-upgrade="infra">
-          <img src="assets/infra-core.png" alt="">
-          <div>
-            <p>Infrastructure</p>
-            <h2>Emerald Rails</h2>
-            <span>Infra produces passive shards every second.</span>
+        <article class="game-card game-card--rush">
+          <div class="game-art" aria-hidden="true"></div>
+          <div class="game-body">
+            <p class="eyebrow">Market Sprint</p>
+            <h2>Shard Rush</h2>
+            <p>Run a 60-second vault sprint, catch green market objects, dodge red hazards, and chase combo rank.</p>
+            <div class="game-meta">
+              <span>Arcade</span>
+              <span>60s Run</span>
+              <span>Combo Score</span>
+            </div>
+            <p class="game-stat" data-stat="rush">0 best | Unranked</p>
+            <a href="shard-rush.html">Play Shard Rush</a>
           </div>
-          <button type="button" class="buy-button" data-buy="infra">Buy</button>
         </article>
 
-        <article class="upgrade-card" data-upgrade="business">
-          <img src="assets/business-district.png" alt="">
-          <div>
-            <p>Cash Flow</p>
-            <h2>Shard Businesses</h2>
-            <span>Businesses compound production and empire value.</span>
+        <article class="game-card game-card--galaxy">
+          <div class="game-art" aria-hidden="true"></div>
+          <div class="game-body">
+            <p class="eyebrow">Space Defense</p>
+            <h2>Emerald Galactic Heroes</h2>
+            <p>Defend the emerald sector, auto-fire lasers, manage regenerating shields, and break the Gas Empire fleet.</p>
+            <div class="game-meta">
+              <span>Shooter</span>
+              <span>Boss Waves</span>
+              <span>Shield Regen</span>
+            </div>
+            <p class="game-stat" data-stat="galaxy">0 best | Cadet</p>
+            <a href="emerald-galactic-heroes.html">Play Galactic Heroes</a>
           </div>
-          <button type="button" class="buy-button" data-buy="business">Buy</button>
         </article>
+      </section>
 
-        <article class="upgrade-card" data-upgrade="vault">
-          <img src="assets/og-vault.png" alt="">
-          <div>
-            <p>Treasury</p>
-            <h2>OG Vault</h2>
-            <span>Late-game vaults multiply the whole machine.</span>
-          </div>
-          <button type="button" class="buy-button" data-buy="vault">Buy</button>
-        </article>
-
-        <article class="upgrade-card" data-upgrade="media">
-          <img src="assets/media-studio.png" alt="">
-          <div>
-            <p>IP Engine</p>
-            <h2>Media Studio</h2>
-            <span>Turns shard culture into attention and compounding reach.</span>
-          </div>
-          <button type="button" class="buy-button" data-buy="media">Buy</button>
-        </article>
-
-        <article class="upgrade-card" data-upgrade="acquisition">
-          <img src="assets/acquisition-desk.png" alt="">
-          <div>
-            <p>Capital Desk</p>
-            <h2>Acquisition Desk</h2>
-            <span>Finds better businesses and boosts empire value.</span>
-          </div>
-          <button type="button" class="buy-button" data-buy="acquisition">Buy</button>
-        </article>
-
-        <article class="upgrade-card" data-upgrade="research">
-          <img src="assets/research-lab.png" alt="">
-          <div>
-            <p>Automation</p>
-            <h2>Research Lab</h2>
-            <span>Improves every click, rail, business, and vault layer.</span>
-          </div>
-          <button type="button" class="buy-button" data-buy="research">Buy</button>
-        </article>
-
-        <article class="upgrade-card" data-upgrade="market">
-          <img src="assets/market-building.png" alt="">
-          <div>
-            <p>Dead LP Revival</p>
-            <h2>Market Building</h2>
-            <span>Turns dead LP into active rails for deeper shard markets.</span>
-          </div>
-          <button type="button" class="buy-button" data-buy="market">Buy</button>
-        </article>
+      <section class="badge-strip" aria-label="Recent badges">
+        <span>Latest Badges</span>
+        <strong id="badgeList">No badges yet</strong>
       </section>
     </main>
-
-    <section class="prestige-modal" id="prestigeModal" aria-labelledby="prestigeModalTitle" aria-modal="true" role="dialog" hidden>
-      <div class="prestige-modal__backdrop" data-close-prestige></div>
-      <article class="prestige-modal__panel">
-        <img class="prestige-modal__art" src="assets/prestige-sage.png" alt="">
-        <div class="prestige-modal__copy">
-          <p class="eyebrow">Emerald Sage Appears</p>
-          <h2 id="prestigeModalTitle">The Vault Recognizes You</h2>
-          <p class="prestige-modal__message" id="prestigeMessage">
-            Your run has been sealed into the archive. The next cycle begins stronger.
-          </p>
-          <div class="prestige-modal__stats" aria-label="Prestige summary">
-            <div>
-              <span id="prestigeReward">0</span>
-              <small>OG points gained</small>
-            </div>
-            <div>
-              <span id="prestigeTotal">0</span>
-              <small>total OG points</small>
-            </div>
-            <div>
-              <span id="prestigeBoost">+0%</span>
-              <small>next-run boost</small>
-            </div>
-          </div>
-          <div class="prestige-modal__rank">
-            <span>Prestige Rank</span>
-            <strong id="prestigeRank">Emerald Initiate</strong>
-          </div>
-          <button class="prestige-modal__button" id="prestigeContinue" type="button" data-close-prestige>
-            Begin Next Cycle
-          </button>
-        </div>
-      </article>
-    </section>
-
     <script src="arcade.js"></script>
-    <script src="app.js"></script>
+    <script src="mini-games.js"></script>
   </body>
 </html>

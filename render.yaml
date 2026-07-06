@@ -1,7 +1,7 @@
 services:
   - type: web
     runtime: static
-    name: emerald-hands
+    name: emerald-arcade
     staticPublishPath: "."
     routes:
       - type: rewrite

@@ -1,8 +1,8 @@
-# Emerald Hands
+# Emerald Arcade
 
-Premium small ETC-inspired idle/clicker mini game.
+Premium ETC-inspired mini games hub.
 
-Open `mini-games.html` for the ETC Mini Games Lab hub.
+Open `index.html` for the ETC Mini Games Lab hub. `emerald-hands.html` opens the idle/clicker game directly.
 
 The hub reads local arcade progress from `localStorage`: arcade XP, badges, best runs, and a rotating daily challenge. This is cosmetic/local only.
 
@@ -55,7 +55,7 @@ The shooter now includes boss warnings, weapon-upgrade popups, pickup text, hit 
 
 ## How To Run
 
-Open `mini-games.html` in a browser for the full arcade hub, or `index.html` to jump straight into Emerald Hands.
+Open `index.html` in a browser for the full arcade hub, or `emerald-hands.html` to jump straight into Emerald Hands.
 
 No build step is required.
 
@@ -65,12 +65,12 @@ This repo is Render-ready as a static site.
 
 1. Push the latest `master` branch to GitHub.
 2. Open Render's Blueprint flow: https://dashboard.render.com/blueprint/new
-3. Connect `https://github.com/XenosETC/emerald-hands`.
+3. Connect the GitHub repo that contains this project.
 4. Apply the `render.yaml` Blueprint.
 
 Render should create one static web service:
 
-- Name: `emerald-hands`
+- Name: `emerald-arcade`
 - Runtime: `static`
 - Publish path: `.`
 - Build command: none
