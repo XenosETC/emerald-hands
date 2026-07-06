@@ -37,6 +37,8 @@ This is intentionally a game economy only. Shards are not real ETC, not a financ
 6. Buy `OG Vault` upgrades for late-game multipliers.
 7. Reach `Ancient OG`, prestige into `OG Points`, and start the next run with a stronger multiplier.
 
+The first prestige is intentionally capped at `+1 OG Point` so players enter the prestige ladder as `Emerald Initiate`. Later prestiges scale with total earned and gentler vault bonuses.
+
 ## Shard Rush
 
 `shard-rush.html` is the second mini game: a 60-second arcade sprint where players move a vault collector, catch green market objects, and dodge red hazards.

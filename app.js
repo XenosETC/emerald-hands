@@ -248,7 +248,8 @@ function empireValue() {
 
 function prestigeReward() {
   if (state.totalEarned < 400000) return 0;
-  return Math.max(1, Math.floor(Math.sqrt(state.totalEarned / 400000)) + state.levels.vault);
+  if (state.lifetimePrestiges === 0 && state.ogPoints === 0) return 1;
+  return Math.max(1, Math.floor(Math.sqrt(state.totalEarned / 400000)) + Math.floor(state.levels.vault / 3));
 }
 
 function prestigeRankFor(points) {
