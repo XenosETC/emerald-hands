@@ -279,6 +279,18 @@ small,
   color: #ffb45f;
 }
 
+.event-card.is-flush {
+  border-color: rgba(116, 255, 197, 0.52);
+  background:
+    radial-gradient(circle at 14% 50%, rgba(35, 240, 156, 0.2), transparent 9rem),
+    linear-gradient(135deg, rgba(4, 50, 34, 0.76), rgba(2, 12, 9, 0.84));
+  box-shadow: inset 0 0 28px rgba(35, 240, 156, 0.14), 0 0 24px rgba(35, 240, 156, 0.1);
+}
+
+.event-card.is-flush span {
+  color: var(--emerald-strong);
+}
+
 .event-card strong {
   display: block;
   line-height: 1.35;

@@ -89,6 +89,10 @@ let handsPlayRecorded = false;
 let lastRankName = currentRank().name;
 let rageTimer = 0;
 let rageCooldown = 55;
+let flushTimer = 0;
+let flushCooldown = 38;
+let flushBoost = 1;
+let flushDrop = 0;
 
 const els = {
   shardButton: document.querySelector("#shardButton"),
@@ -166,6 +170,10 @@ function rageMultiplier() {
   return rageTimer > 0 ? 2 : 1;
 }
 
+function flushMultiplier() {
+  return flushTimer > 0 ? flushBoost : 1;
+}
+
 function researchMultiplier() {
   return upgrades.research.getValue(state.levels.research);
 }
@@ -186,7 +194,7 @@ function perSecond() {
     state.levels.infra * 0.012 +
     state.levels.acquisition * 0.025 +
     state.levels.market * 0.03;
-  return (infra + business + media + acquisition + market) * synergy * vaultMultiplier() * rageMultiplier();
+  return (infra + business + media + acquisition + market) * synergy * vaultMultiplier() * rageMultiplier() * flushMultiplier();
 }
 
 function empireValue() {
@@ -276,10 +284,18 @@ function render() {
   els.rankProgress.style.width = `${Math.max(0, Math.min(1, progress)) * 100}%`;
   els.rankProgressShell.classList.toggle("is-rage", rageTimer > 0);
   els.eventCard.classList.toggle("is-rage", rageTimer > 0);
+  els.eventCard.classList.toggle("is-flush", flushTimer > 0 && rageTimer <= 0);
   if (rageTimer > 0) {
     announce(
       "Emerald Sage of Rage",
       `Orange lightning floods the vault. 2x clicks and passive shards for ${Math.ceil(rageTimer)}s.`
+    );
+  } else if (flushTimer > 0) {
+    announce(
+      "Emerald Flush",
+      `Regenerative shard mine acquired. +${Math.round((flushBoost - 1) * 100)}% shards/sec for ${Math.ceil(
+        flushTimer
+      )}s. Mine payout: +${format(flushDrop)} shards.`
     );
   }
 
@@ -324,11 +340,17 @@ function announce(label, body) {
 function maybeEvent(deltaSeconds) {
   eventCooldown -= deltaSeconds;
   rageCooldown = Math.max(0, rageCooldown - deltaSeconds);
+  flushCooldown = Math.max(0, flushCooldown - deltaSeconds);
   if (eventCooldown > 0 || state.totalEarned < 90) return;
 
   eventCooldown = 18 + Math.random() * 16;
   if (rageTimer <= 0 && rageCooldown <= 0 && state.totalEarned >= 650 && Math.random() < 0.18) {
     triggerSageOfRage();
+    return;
+  }
+
+  if (rageTimer <= 0 && flushTimer <= 0 && flushCooldown <= 0 && state.totalEarned >= 1200 && Math.random() < 0.24) {
+    triggerEmeraldFlush();
     return;
   }
 
@@ -346,6 +368,27 @@ function triggerSageOfRage() {
   chime(180, 0.1);
   setTimeout(() => chime(540, 0.1), 90);
   setTimeout(() => chime(920, 0.16), 190);
+}
+
+function triggerEmeraldFlush() {
+  const empire = empireValue();
+  const baseline = Math.max(75, empire * 0.006, perSecond() * 10);
+  const cap = Math.max(120, Math.min(empire * 0.02, state.totalEarned * 0.05));
+  flushDrop = Math.floor(Math.min(baseline, cap));
+  flushBoost = 1.1 + Math.random() * 0.1;
+  flushTimer = 45;
+  flushCooldown = 85 + Math.random() * 55;
+  eventCooldown = 18 + Math.random() * 8;
+  earn(flushDrop);
+  announce(
+    "Emerald Flush",
+    `A magical regenerative shard mine joins the empire. +${format(flushDrop)} shards and +${Math.round(
+      (flushBoost - 1) * 100
+    )}% shards/sec.`
+  );
+  window.EmeraldArcade?.toast("Emerald Flush", `+${format(flushDrop)} shards, mine boost online`, "assets/badges/shard-stacker.png");
+  chime(420, 0.08);
+  setTimeout(() => chime(680, 0.1), 110);
 }
 
 function prestige() {
@@ -369,6 +412,9 @@ function prestige() {
   state.lifetimePrestiges += 1;
   state.levels = { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0, market: 0 };
   state.featuredUpgrade = null;
+  rageTimer = 0;
+  flushTimer = 0;
+  flushBoost = 1;
   announce("OG Prestige Locked", `${format(reward)} OG Points secured. New runs start stronger.`);
   chime(740, 0.16);
   setTimeout(() => chime(980, 0.12), 120);
@@ -437,6 +483,7 @@ function loop(now) {
   const deltaSeconds = Math.min(1, (now - lastTick) / 1000);
   lastTick = now;
   rageTimer = Math.max(0, rageTimer - deltaSeconds);
+  flushTimer = Math.max(0, flushTimer - deltaSeconds);
   const passive = perSecond() * deltaSeconds;
   if (passive > 0) earn(passive);
   maybeEvent(deltaSeconds);
