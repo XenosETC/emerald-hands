@@ -641,6 +641,87 @@ small,
   font-size: 1.15rem;
 }
 
+.prestige-ladder {
+  display: grid;
+  gap: 10px;
+}
+
+.prestige-ladder__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prestige-ladder__header span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.prestige-ladder__header strong {
+  color: var(--gold);
+  text-align: right;
+}
+
+.prestige-ladder__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.prestige-ladder__item {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid rgba(117, 255, 189, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.prestige-ladder__item span,
+.prestige-ladder__item strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.prestige-ladder__item span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.prestige-ladder__item strong {
+  margin-top: 2px;
+  color: rgba(239, 255, 247, 0.72);
+  font-size: 0.88rem;
+}
+
+.prestige-ladder__item.is-current {
+  border-color: rgba(216, 180, 95, 0.24);
+}
+
+.prestige-ladder__item.is-current strong {
+  color: #f1ddb0;
+}
+
+.prestige-ladder__item.is-earned {
+  border-color: rgba(116, 255, 197, 0.54);
+  background:
+    radial-gradient(circle at 14% 50%, rgba(35, 240, 156, 0.2), transparent 7rem),
+    rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 22px rgba(35, 240, 156, 0.08);
+}
+
+.prestige-ladder__item.is-earned strong {
+  color: var(--emerald-strong);
+}
+
+.prestige-ladder__item.is-locked {
+  opacity: 0.64;
+}
+
 .prestige-modal__button {
   min-height: 50px;
   border: 1px solid rgba(116, 255, 197, 0.68);
@@ -777,6 +858,19 @@ small,
   }
 
   .prestige-modal__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .prestige-ladder__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .prestige-ladder__header strong {
+    text-align: left;
+  }
+
+  .prestige-ladder__list {
     grid-template-columns: 1fr;
   }
 }

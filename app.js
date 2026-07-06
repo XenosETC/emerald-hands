@@ -113,6 +113,7 @@ const els = {
   empireValue: document.querySelector("#empireValue"),
   ogPoints: document.querySelector("#ogPoints"),
   prestigeRankLabel: document.querySelector("#prestigeRankLabel"),
+  prestigeRankMeta: document.querySelector("#prestigeRankMeta"),
   rankLabel: document.querySelector("#rankLabel"),
   nextRankLabel: document.querySelector("#nextRankLabel"),
   rankProgress: document.querySelector("#rankProgress"),
@@ -126,6 +127,8 @@ const els = {
   prestigeTotal: document.querySelector("#prestigeTotal"),
   prestigeBoost: document.querySelector("#prestigeBoost"),
   prestigeRank: document.querySelector("#prestigeRank"),
+  prestigeRankPath: document.querySelector("#prestigeRankPath"),
+  prestigeLadder: document.querySelector("#prestigeLadder"),
   prestigeClosers: document.querySelectorAll("[data-close-prestige]"),
   scrollModal: document.querySelector("#scrollModal"),
   scrollChoices: document.querySelectorAll("[data-scroll-choice]"),
@@ -252,6 +255,10 @@ function prestigeRankFor(points) {
   return prestigeRanks.reduce((best, rank) => (points >= rank.at ? rank : best), prestigeRanks[0]);
 }
 
+function nextPrestigeRankFor(points) {
+  return prestigeRanks.find((rank) => rank.at > points) || null;
+}
+
 function currentRank() {
   return ranks.reduce((best, rank) => (state.totalEarned >= rank.at ? rank : best), ranks[0]);
 }
@@ -307,6 +314,10 @@ function render() {
   els.empireValue.textContent = format(empireValue());
   els.ogPoints.textContent = format(state.ogPoints);
   els.prestigeRankLabel.textContent = prestigeRankFor(state.ogPoints).name;
+  const nextPrestigeRank = nextPrestigeRankFor(state.ogPoints);
+  els.prestigeRankMeta.textContent = nextPrestigeRank
+    ? `Next: ${nextPrestigeRank.name} at ${format(nextPrestigeRank.at)} OG`
+    : "Max prestige rank";
   els.rankLabel.textContent = rank.name;
   els.nextRankLabel.textContent = next ? `Next: ${next.name}` : "Max rank reached";
 
@@ -580,15 +591,43 @@ function prestige() {
 function showPrestigeModal(summary) {
   const boostPercent = Math.round((1 + summary.newPoints * 0.12 - 1) * 100);
   const rank = prestigeRankFor(summary.newPoints);
+  const oldRank = prestigeRankFor(summary.oldPoints);
   els.prestigeReward.textContent = `+${format(summary.reward)}`;
   els.prestigeTotal.textContent = format(summary.newPoints);
   els.prestigeBoost.textContent = `+${boostPercent}%`;
   els.prestigeRank.textContent = rank.name;
+  els.prestigeRankPath.textContent =
+    oldRank.name === rank.name ? `${rank.name} strengthened` : `${oldRank.name} to ${rank.name}`;
+  renderPrestigeLadder(summary.oldPoints, summary.newPoints);
   els.prestigeMessage.textContent =
     `The Emerald Sage seals ${format(summary.totalEarned)} shards and ${format(summary.empireValue)} empire value from your ${summary.runRank} run. ` +
     `Your next cycle begins with ${format(summary.newPoints)} OG Points.`;
   els.prestigeModal.hidden = false;
   document.body.classList.add("prestige-open");
+}
+
+function renderPrestigeLadder(oldPoints, newPoints) {
+  els.prestigeLadder.innerHTML = prestigeRanks
+    .map((rank) => {
+      const current = oldPoints >= rank.at;
+      const landing = newPoints >= rank.at;
+      const next = oldPoints < rank.at && newPoints < rank.at;
+      const className = [
+        "prestige-ladder__item",
+        current ? "is-current" : "",
+        !current && landing ? "is-earned" : "",
+        next ? "is-locked" : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+      return `
+        <div class="${className}">
+          <span>${format(rank.at)} OG</span>
+          <strong>${rank.name}</strong>
+        </div>
+      `;
+    })
+    .join("");
 }
 
 function closePrestigeModal() {
