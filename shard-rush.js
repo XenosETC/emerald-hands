@@ -68,6 +68,7 @@ function endGame() {
   els.overlayTitle.textContent = `${rank} Run`;
   els.overlayText.textContent = `Final score: ${format(state.score)}. Catch clean shards, revive dead LP, and dodge red hazards to push the next sprint higher.`;
   els.overlay.classList.remove("is-hidden");
+  window.EmeraldArcade?.record("rush", { score: state.score, rank, combo: state.combo, played: true });
   updateHud();
 }
 

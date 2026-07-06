@@ -166,6 +166,29 @@ canvas {
   line-height: 1.45;
 }
 
+.run-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.run-stats div {
+  padding: 8px;
+  border: 1px solid rgba(117, 255, 189, 0.16);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.run-stats span {
+  display: block;
+  font-weight: 950;
+}
+
+.run-stats small {
+  color: var(--muted);
+}
+
 .galaxy-overlay.is-hidden {
   display: none;
 }

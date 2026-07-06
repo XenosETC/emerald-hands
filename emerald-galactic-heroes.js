@@ -13,6 +13,7 @@ const els = {
   overlay: document.querySelector("#galaxyOverlay"),
   overlayTitle: document.querySelector("#overlayTitle"),
   overlayText: document.querySelector("#overlayText"),
+  runStats: document.querySelector("#runStats"),
 };
 
 const background = new Image();
@@ -39,9 +40,11 @@ const heroShots = [];
 const enemyShots = [];
 const pickups = [];
 const particles = [];
+const popups = [];
 
 const state = {
   running: false,
+  ended: false,
   score: 0,
   shieldCharge: 100,
   shieldCells: 3,
@@ -50,6 +53,7 @@ const state = {
   allyTimer: 0,
   wingmenDropCooldown: 0,
   pickupDropCooldown: 0,
+  bossWarningShown: false,
   elapsed: 0,
   spawnTimer: 0,
   shotTimer: 0,
@@ -66,6 +70,7 @@ function startGame() {
   particles.length = 0;
   Object.assign(state, {
     running: true,
+    ended: false,
     score: 0,
     shieldCharge: 100,
     shieldCells: 3,
@@ -74,6 +79,7 @@ function startGame() {
     allyTimer: 0,
     wingmenDropCooldown: 0,
     pickupDropCooldown: 0,
+    bossWarningShown: false,
     elapsed: 0,
     spawnTimer: 0,
     shotTimer: 0,
@@ -82,20 +88,38 @@ function startGame() {
   });
   Object.assign(state.hero, { x: canvas.width / 2, y: canvas.height - 100, invuln: 1.2 });
   els.overlay.classList.add("is-hidden");
+  els.runStats.hidden = true;
+  els.runStats.innerHTML = "";
   updateHud();
 }
 
 function endGame() {
+  if (state.ended) return;
+  state.ended = true;
   state.running = false;
   const rank = rankForScore(state.score, state.wave);
   els.overlayTitle.textContent = `${rank} Stand`;
   els.overlayText.textContent = `Final score: ${format(state.score)}. You held wave ${state.wave} against the Gas Empire.`;
+  els.runStats.hidden = false;
+  els.runStats.innerHTML = `
+    <div><span>${format(state.score)}</span><small>score</small></div>
+    <div><span>${state.wave}</span><small>wave held</small></div>
+    <div><span>Mk ${roman(state.weaponLevel)}</span><small>weapon reached</small></div>
+  `;
   els.overlay.classList.remove("is-hidden");
+  window.EmeraldArcade?.record("galaxy", {
+    score: state.score,
+    rank,
+    wave: state.wave,
+    weapon: `Mk ${roman(state.weaponLevel)}`,
+    played: true,
+  });
   updateHud();
 }
 
 function spawnEnemy() {
   if (state.wave >= 3 && !state.bossSpawned) {
+    notify("Boss Cruiser Incoming", canvas.width / 2, 118, "#d8b45f");
     enemies.push({ type: "boss", x: canvas.width / 2, y: -90, size: 150, hp: 34 + state.weaponLevel * 7, speed: 46, shotTimer: 1.2 });
     state.bossSpawned = true;
     return;
@@ -142,6 +166,7 @@ function update(delta) {
   updateEnemies(delta);
   updatePickups(delta);
   updateParticles(delta);
+  updatePopups(delta);
   updateHud();
 }
 
@@ -233,6 +258,7 @@ function updatePickups(delta) {
       if (pickup.type === "shield") {
         state.shieldCharge = 100;
         state.shieldCells = Math.min(5, state.shieldCells + 1);
+        notify("Shield Cell", pickup.x, pickup.y, "#8edcff");
       }
       if (pickup.type === "bomb") {
         state.score += enemies.length * 500;
@@ -240,10 +266,12 @@ function updatePickups(delta) {
         state.bossSpawned = false;
         enemies.length = 0;
         enemyShots.length = 0;
+        notify("Shard Bomb", pickup.x, pickup.y, "#d8b45f");
       }
       if (pickup.type === "wingmen") {
         state.allyTimer = 30;
         burst(state.hero.x, state.hero.y, "#74ffc5", 18);
+        notify("Wingmen +30s", pickup.x, pickup.y, "#74ffc5");
       }
       pickups.splice(i, 1);
     } else if (pickup.y > canvas.height + 70) {
@@ -267,6 +295,7 @@ function hitShield() {
   state.shieldCharge = Math.max(0, state.shieldCharge - 14);
   state.hero.invuln = 0.25;
   burst(state.hero.x, state.hero.y, "#8edcff", 8);
+  notify("-14% shield", state.hero.x, state.hero.y - 76, "#8edcff");
   if (state.shieldCharge <= 0) breakShieldCell();
 }
 
@@ -276,6 +305,7 @@ function hitShip(type) {
   state.shieldCharge = Math.max(0, state.shieldCharge - 28);
   state.hero.invuln = 1.2;
   burst(state.hero.x, state.hero.y, "#ff5975", 14);
+  notify("Shield Cell Hit", state.hero.x, state.hero.y - 82, "#ff5975");
   if (state.shieldCells <= 0) endGame();
 }
 
@@ -284,6 +314,7 @@ function breakShieldCell() {
   state.shieldCharge = state.shieldCells > 0 ? 45 : 0;
   state.hero.invuln = 1;
   burst(state.hero.x, state.hero.y, "#ffcc7a", 18);
+  notify("Cell Broken", state.hero.x, state.hero.y - 92, "#ffcc7a");
   if (state.shieldCells <= 0) endGame();
 }
 
@@ -319,7 +350,11 @@ function updateWeaponLevel() {
   if (state.wave >= 2 || state.score >= 5000) nextLevel = 2;
   if (state.wave >= 3 || state.score >= 16000) nextLevel = 3;
   if (state.wave >= 4 || state.score >= 36000) nextLevel = 4;
-  state.weaponLevel = Math.max(state.weaponLevel, nextLevel);
+  if (nextLevel > state.weaponLevel) {
+    state.weaponLevel = nextLevel;
+    notify(`Weapon Mk ${roman(state.weaponLevel)}`, state.hero.x, state.hero.y - 110, "#74ffc5");
+    burst(state.hero.x, state.hero.y, "#74ffc5", 24);
+  }
 }
 
 function maybeDropPickup(enemy) {
@@ -361,6 +396,19 @@ function burst(x, y, color, count) {
   }
 }
 
+function notify(text, x, y, color) {
+  popups.push({ text, x, y, color, life: 1.25, vy: -42 });
+}
+
+function updatePopups(delta) {
+  for (let i = popups.length - 1; i >= 0; i -= 1) {
+    const popup = popups[i];
+    popup.y += popup.vy * delta;
+    popup.life -= delta;
+    if (popup.life <= 0) popups.splice(i, 1);
+  }
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawCover(background, 0, 0, canvas.width, canvas.height);
@@ -378,6 +426,7 @@ function draw() {
   ctx.restore();
 
   drawParticles();
+  drawPopups();
 }
 
 function drawPickup(pickup) {
@@ -501,6 +550,20 @@ function drawParticles() {
     ctx.fill();
     ctx.restore();
   }
+}
+
+function drawPopups() {
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.font = "900 28px Inter, system-ui, sans-serif";
+  ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+  ctx.shadowBlur = 10;
+  for (const popup of popups) {
+    ctx.globalAlpha = Math.max(0, Math.min(1, popup.life));
+    ctx.fillStyle = popup.color;
+    ctx.fillText(popup.text, popup.x, popup.y);
+  }
+  ctx.restore();
 }
 
 function rankForScore(score, wave) {

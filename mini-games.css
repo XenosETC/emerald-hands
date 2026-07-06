@@ -110,6 +110,35 @@ h1 {
   margin-top: 14px;
 }
 
+.arcade-status {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 2fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.arcade-status div,
+.badge-strip {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(117, 255, 189, 0.18);
+  border-radius: 8px;
+  background: rgba(2, 8, 6, 0.82);
+}
+
+.arcade-status span {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 1.15rem;
+  font-weight: 950;
+}
+
+.arcade-status small,
+.badge-strip span,
+.game-stat {
+  color: var(--muted);
+}
+
 .game-card {
   overflow: hidden;
   border: 1px solid var(--line);
@@ -171,8 +200,27 @@ h1 {
   font-weight: 800;
 }
 
+.game-stat {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 .game-card a {
   width: 100%;
+}
+
+.badge-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.badge-strip strong {
+  color: #f1ddb0;
+  text-align: right;
 }
 
 @media (max-width: 980px) {
@@ -185,6 +233,15 @@ h1 {
 
   .game-grid {
     grid-template-columns: 1fr;
+  }
+
+  .arcade-status {
+    grid-template-columns: 1fr;
+  }
+
+  .badge-strip {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .game-body {

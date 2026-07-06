@@ -4,6 +4,8 @@ Premium small ETC-inspired idle/clicker mini game.
 
 Open `mini-games.html` for the ETC Mini Games Lab hub.
 
+The hub reads local arcade progress from `localStorage`: arcade XP, badges, best runs, and a rotating daily challenge. This is cosmetic/local only.
+
 ## Concept
 
 Players collect fictional `Emerald Shards`, spend them on infrastructure, use infrastructure to generate passive production, then acquire businesses and vault upgrades to compound the shard engine.
@@ -49,6 +51,7 @@ Controls: mouse, touch, arrow keys, or `WASD`.
 
 Enemy lasers reduce regenerating shield charge. Physical ship collisions consume shield cells.
 If shield charge hits zero, one shield cell breaks and the charge restarts low. Weapons auto-upgrade from `Mk I` through `Mk IV` as score and waves climb. Destroyed ships can drop sparse reachable pickups, including a `Wingmen Beacon` that adds two ally fighters for 30 seconds; beacon drops become rarer at higher weapon tiers.
+The shooter now includes boss warnings, weapon-upgrade popups, pickup text, hit feedback, and end-run stat summaries.
 
 ## How To Run
 
@@ -77,12 +80,12 @@ Render should create one static web service:
 - This is an entertainment prototype, not financial software.
 - All shard balances are local browser state in `localStorage`.
 - `OG Points` are also fictional local progress and do not represent ownership, tokens, or yield.
+- Arcade XP, badges, daily challenges, and best scores are local cosmetic progress only.
 - Real wallet integration, real token rewards, staking, yield, sweepstakes, or gambling-style mechanics would require legal and security review.
 - The generated art is project-local under `assets/` and should be replaced or licensed intentionally before commercial distribution.
 
 ## Next Steps
 
 - Add mobile haptics and richer sound design.
-- Add clearer prestige celebration art and sound.
-- Add more business categories, like cloud infra, treasury desk, creator network, and game studio.
+- Add ETCScreener embeds for the hub only after the screener surface is stable.
 - Add a leaderboard only after spam, auth, and abuse risks are scoped.

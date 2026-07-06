@@ -141,6 +141,7 @@ function loadState() {
 function saveState() {
   state.lastSaved = Date.now();
   localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  recordArcadeProgress();
 }
 
 function costFor(type) {
@@ -358,6 +359,15 @@ function closePrestigeModal() {
   document.body.classList.remove("prestige-open");
 }
 
+function recordArcadeProgress() {
+  window.EmeraldArcade?.record("hands", {
+    prestigeRank: prestigeRankFor(state.ogPoints).name,
+    ogPoints: state.ogPoints,
+    empireValue: empireValue(),
+    totalEarned: state.totalEarned,
+  });
+}
+
 function pop(amount, x, y) {
   const node = document.createElement("div");
   node.className = "float-pop";
@@ -429,4 +439,5 @@ els.resetButton.addEventListener("click", () => {
 setInterval(saveState, 2500);
 window.addEventListener("beforeunload", saveState);
 render();
+recordArcadeProgress();
 requestAnimationFrame(loop);
