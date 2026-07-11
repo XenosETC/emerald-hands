@@ -38,6 +38,16 @@
   };
   shieldSprites[1].src = "assets/pepe-relic-rumble/shard-shield-green.png";
   shieldSprites[2].src = "assets/pepe-relic-rumble/shard-shield-red.png";
+  const auraSprites = {
+    1: new Image(),
+    2: new Image(),
+  };
+  auraSprites[1].src = "assets/pepe-relic-rumble/shard-aura-green-game.png";
+  auraSprites[2].src = "assets/pepe-relic-rumble/shard-aura-corrupt-game.png";
+  Object.values(auraSprites).forEach((image) => {
+    image.addEventListener("load", () => buildAuraDrawCache());
+  });
+  let auraDrawCache = {};
   const spriteSources = {
     idle: "assets/pepe-relic-rumble/pepe-brawler.png",
     punch: "assets/pepe-relic-rumble/pepe-punch.png",
@@ -95,6 +105,24 @@
       bctx.fillRect(0, 0, width, height);
       bctx.globalCompositeOperation = "source-over";
     }
+    return buffer;
+  }
+
+  function buildAuraDrawCache() {
+    const nextCache = {};
+    for (const [id, image] of Object.entries(auraSprites)) {
+      if (!image.complete || !image.naturalWidth) return;
+      nextCache[id] = makeAuraSprite(image, 320, 480);
+    }
+    auraDrawCache = nextCache;
+  }
+
+  function makeAuraSprite(image, width, height) {
+    const buffer = document.createElement("canvas");
+    buffer.width = width;
+    buffer.height = height;
+    const bctx = buffer.getContext("2d");
+    bctx.drawImage(image, 0, 0, width, height);
     return buffer;
   }
 
@@ -753,19 +781,24 @@
     if (!f.charging && charge < 0.92) return;
     const now = performance.now();
     const pulse = 0.72 + Math.sin(now / 115) * 0.28;
-    const color = f.id === 2 ? "255, 74, 74" : "116, 255, 197";
+    const flameColor = f.id === 2 ? "255, 74, 74" : "116, 255, 197";
+    const lightningColor = f.id === 2 ? "196, 84, 255" : "116, 255, 197";
     const isCharging = f.charging;
     const auraAlpha = isCharging || charge >= 1 ? 0.78 : 0.2 + charge * 0.34;
     const radiusX = 70 + charge * 34 + pulse * 8;
     const radiusY = 112 + charge * 44 + pulse * 12;
 
     ctx.save();
-    ctx.strokeStyle = `rgba(${color}, ${auraAlpha})`;
+    ctx.strokeStyle = `rgba(${flameColor}, ${auraAlpha})`;
     ctx.lineWidth = isCharging ? 5 : 3 + charge * 2;
-    ctx.shadowColor = `rgba(${color}, 0.95)`;
+    ctx.shadowColor = `rgba(${lightningColor}, 0.95)`;
     ctx.shadowBlur = isCharging ? 12 : 5 + charge * 7;
 
-    drawShardKiFlame(color, charge, now);
+    if (drawGeneratedShardAura(f, charge, now, auraAlpha, isCharging)) {
+      ctx.shadowBlur = 5;
+    } else {
+      drawShardKiFlame(flameColor, lightningColor, charge, now, isCharging);
+    }
 
     const shardCount = isCharging ? 7 : 4;
     for (let i = 0; i < shardCount; i += 1) {
@@ -776,6 +809,28 @@
       drawMiniShard(x, y, 7 + charge * 6, f.palette.light, angle);
     }
     ctx.restore();
+  }
+
+  function drawGeneratedShardAura(f, charge, now, auraAlpha, isCharging) {
+    const aura = auraDrawCache[f.id] || auraSprites[f.id];
+    if (!aura || !aura.complete && !aura.width) return false;
+    const breathe = 1 + Math.sin(now / 105) * (isCharging ? 0.035 : 0.018);
+    const surge = isCharging ? 1 : 0.82 + charge * 0.18;
+    const width = (250 + charge * 76) * breathe;
+    const height = (374 + charge * 100) * breathe;
+    const alpha = clamp((isCharging ? 0.58 : 0.24 + charge * 0.28) * surge, 0.18, 0.72);
+    const xJitter = Math.sin(now / 62) * (isCharging ? 2.5 : 1.2);
+    const yJitter = Math.cos(now / 78) * (isCharging ? 2.5 : 1.1);
+
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(aura, -width / 2 + xJitter, -height + 18 + yJitter, width, height);
+    ctx.globalAlpha = alpha * 0.42;
+    ctx.drawImage(aura, -width * 0.44 - xJitter, -height * 0.94 + 16 - yJitter, width * 0.88, height * 0.94);
+    ctx.restore();
+
+    return true;
   }
 
   function drawShardShield(f) {
@@ -799,39 +854,81 @@
     ctx.restore();
   }
 
-  function drawShardKiFlame(color, charge, now) {
+  function drawShardKiFlame(color, lightningColor, charge, now, isCharging) {
     const height = 170 + charge * 76;
     const width = 82 + charge * 42;
-    const spikes = 7;
     const flicker = Math.sin(now / 72) * 8;
-    const gradient = ctx.createLinearGradient(0, -36, 0, -height);
-    gradient.addColorStop(0, `rgba(${color}, 0.02)`);
-    gradient.addColorStop(0.28, `rgba(${color}, ${0.18 + charge * 0.2})`);
-    gradient.addColorStop(1, `rgba(${color}, 0)`);
 
     ctx.save();
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.moveTo(-width, -28);
-    for (let i = 0; i <= spikes; i += 1) {
-      const t = i / spikes;
-      const side = i % 2 === 0 ? 1 : 0.62;
-      const x = -width + t * width * 2;
-      const y = -58 - Math.sin(t * Math.PI) * height * side - Math.sin(now / 95 + i) * 13 - flicker;
-      ctx.lineTo(x, y);
+    ctx.globalCompositeOperation = "screen";
+    for (let layer = 0; layer < 2; layer += 1) {
+      const layerWidth = width * (1 - layer * 0.28);
+      const layerHeight = height * (1 - layer * 0.18);
+      const licks = 8 - layer;
+      const gradient = ctx.createLinearGradient(0, -28, 0, -layerHeight);
+      gradient.addColorStop(0, `rgba(${color}, ${0.03 + layer * 0.02})`);
+      gradient.addColorStop(0.3, `rgba(${color}, ${0.22 + charge * 0.2 - layer * 0.04})`);
+      gradient.addColorStop(0.78, `rgba(${color}, ${0.12 + charge * 0.12})`);
+      gradient.addColorStop(1, `rgba(${color}, 0)`);
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.moveTo(-layerWidth, -24);
+      for (let i = 0; i <= licks; i += 1) {
+        const t = i / licks;
+        const wave = Math.sin(now / (80 + layer * 22) + i * 1.7) * (12 - layer * 3);
+        const taper = Math.sin(t * Math.PI);
+        const lickHeight = layerHeight * (0.58 + taper * 0.48 + (i % 2) * 0.18);
+        const x = -layerWidth + t * layerWidth * 2 + wave;
+        const y = -48 - taper * lickHeight - Math.sin(now / 115 + i) * 14 - flicker;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(layerWidth, -24);
+      ctx.quadraticCurveTo(0, 20, -layerWidth, -24);
+      ctx.fill();
     }
-    ctx.lineTo(width, -28);
-    ctx.quadraticCurveTo(0, 20, -width, -28);
-    ctx.fill();
 
     ctx.strokeStyle = `rgba(${color}, ${0.38 + charge * 0.28})`;
-    ctx.lineWidth = 5;
+    ctx.lineWidth = 4;
+    ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(-width * 0.75, -40);
     ctx.quadraticCurveTo(-width * 0.42, -height * 0.5, -width * 0.22, -height - flicker);
     ctx.moveTo(width * 0.68, -42);
     ctx.quadraticCurveTo(width * 0.32, -height * 0.52, width * 0.16, -height * 0.92 + flicker);
     ctx.stroke();
+
+    drawAuraLightning(lightningColor, charge, now, isCharging);
+    ctx.restore();
+  }
+
+  function drawAuraLightning(color, charge, now, isCharging) {
+    const boltCount = isCharging ? 5 : 3;
+    const alpha = isCharging ? 0.62 : 0.34 + charge * 0.18;
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.shadowColor = `rgba(${color}, 0.9)`;
+    ctx.shadowBlur = isCharging ? 12 : 7;
+    for (let i = 0; i < boltCount; i += 1) {
+      const side = i % 2 === 0 ? -1 : 1;
+      const phase = now / (88 + i * 15) + i * 2.1;
+      const startX = side * (42 + i * 8 + Math.sin(phase) * 10);
+      const startY = -64 - i * 10;
+      const segments = 4;
+      ctx.strokeStyle = `rgba(${color}, ${alpha * (1 - i * 0.08)})`;
+      ctx.lineWidth = i === 0 ? 3.4 : 2.2;
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      for (let s = 1; s <= segments; s += 1) {
+        const t = s / segments;
+        const arc = Math.sin(t * Math.PI);
+        const x = startX + side * arc * (18 + charge * 18) + Math.sin(phase + s * 1.8) * 12;
+        const y = startY - t * (92 + charge * 90) + Math.cos(phase + s) * 9;
+        ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
