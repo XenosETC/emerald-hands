@@ -633,8 +633,9 @@
   function drawSpritePepe(f, ghostAlpha) {
     const alpha = ghostAlpha || 1;
     const action = spriteStateFor(f);
-    const cachedSprite = spriteDrawCache[action]?.[f.id === 2 ? "corrupt" : "normal"];
-    const sprite = cachedSprite || pepeSprites[action] || pepeSprites.idle;
+    const spriteKey = action === "walk" || action === "jump" ? "idle" : action;
+    const cachedSprite = spriteDrawCache[spriteKey]?.[f.id === 2 ? "corrupt" : "normal"];
+    const sprite = cachedSprite || pepeSprites[spriteKey] || pepeSprites.idle;
     const profile = spriteProfiles[action] || spriteProfiles.idle;
     const isGhost = alpha < 1;
     const stride = Math.sin((f.walkTime || 0) * 22);
