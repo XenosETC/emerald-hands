@@ -8,6 +8,7 @@
       hands: { prestigeRank: "Retail Ghost", ogPoints: 0, empireValue: 0, totalEarned: 0 },
       rush: { score: 0, rank: "Unranked", combo: 1 },
       galaxy: { score: 0, rank: "Cadet", wave: 1, weapon: "Mk I" },
+      rumble: { wins: 0, rank: "Unranked", rounds: 0 },
     },
     badges: [],
   };
@@ -106,6 +107,7 @@
           hands: { ...defaults.best.hands, ...saved?.best?.hands },
           rush: { ...defaults.best.rush, ...saved?.best?.rush },
           galaxy: { ...defaults.best.galaxy, ...saved?.best?.galaxy },
+          rumble: { ...defaults.best.rumble, ...saved?.best?.rumble },
         },
         badges: Array.isArray(saved?.badges) ? [...new Set(saved.badges.map(normalizeBadge).filter(Boolean))] : [],
       };
@@ -155,6 +157,11 @@
       if ((payload.rank || "") === "Emerald Ace") uniquePush(data.badges, "emerald-ace");
     }
 
+    if (game === "rumble") {
+      if ((payload.wins || 0) >= data.best.rumble.wins) data.best.rumble = { ...data.best.rumble, ...payload };
+      data.xp += (payload.wins || 0) * 180 + Math.max(0, 4 - (payload.rounds || 4)) * 120;
+    }
+
     save(data);
     return {
       ...data,
@@ -179,6 +186,7 @@
       { game: "Emerald Hands", task: "Reach a new prestige or push empire value higher." },
       { game: "Shard Rush", task: "Score 9K+ without dropping your combo below x2." },
       { game: "Galactic Heroes", task: "Reach Wave 3 or trigger a weapon upgrade." },
+      { game: "Pepe Relic Rumble", task: "Win a best-of-five vault fight." },
     ];
     return options[day % options.length];
   }

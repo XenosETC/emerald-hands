@@ -21,6 +21,26 @@ Current badge unlocks:
 7. `Market Sage`: reach 7 OG points in Emerald Hands.
 8. `Emerald Ace`: finish Galactic Heroes with Emerald Ace rank.
 
+## Pepe Relic Rumble
+
+`pepe-relic-rumble.html` is a local two-player chunky Pepe stick-fighting prototype.
+
+The fighter art uses generated transparent sprites under `assets/pepe-relic-rumble/`, derived from the user's chunky Pepe brawler reference. Chroma-key sources are kept beside the final PNGs for regeneration/audit.
+The stage uses a generated side-view Pepe arena background at `assets/pepe-relic-rumble/pepe-arena.png`.
+
+Core loop:
+
+1. Start a best-of-five vault fight.
+2. Move, jump, punch, kick, and block with thick green Pepe brawlers.
+3. Charge energy through time, blocking, and clean hits.
+4. Spend full energy on a short-range relic burst.
+5. Win three rounds to record a local arcade result.
+
+Controls:
+
+- Player 1: `WASD` move, `F` punch, `G` kick, `H` block or relic burst.
+- Player 2: arrow keys move, `J` punch, `K` kick, `L` block or relic burst.
+
 ## Concept
 
 Players collect fictional `Emerald Shards`, spend them on infrastructure, use infrastructure to generate passive production, then acquire businesses and vault upgrades to compound the shard engine.

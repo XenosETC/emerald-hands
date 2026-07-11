@@ -23,6 +23,8 @@ if (arcade) {
     `${format(arcade.best.rush.score)} best | ${arcade.best.rush.rank}`;
   document.querySelector("[data-stat='galaxy']").textContent =
     `${format(arcade.best.galaxy.score)} best | ${arcade.best.galaxy.rank}`;
+  document.querySelector("[data-stat='rumble']").textContent =
+    `${format(arcade.best.rumble.wins)} wins | ${arcade.best.rumble.rank}`;
 
   document.querySelector("#badgeSummary").textContent =
     arcade.badges.length ? `${arcade.badges.length} / ${badgeCatalog.length} unlocked` : "Start any game to unlock your first badge.";

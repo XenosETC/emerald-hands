@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Pepe Relic Rumble: a chunky green Pepe stick-fighting mini game.">
+    <title>Pepe Relic Rumble</title>
+    <link rel="preload" href="assets/pepe-relic-rumble/pepe-arena.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/pepe-brawler.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/pepe-punch.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/pepe-kick.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/pepe-block.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/pepe-hurt.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/pepe-special.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/pepe-ko.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/shard-shield-green.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/shard-shield-red.png" as="image">
+    <link rel="stylesheet" href="pepe-relic-rumble.css">
+  </head>
+  <body>
+    <main class="rumble-shell">
+      <section class="rumble-game" aria-label="Pepe Relic Rumble game">
+        <div class="rumble-topbar">
+          <div>
+            <p class="eyebrow">Pepe Legends</p>
+            <h1>Relic Rumble</h1>
+          </div>
+          <nav class="rumble-nav" aria-label="Mini game navigation">
+            <a href="index.html">Arcade Hub</a>
+            <a href="shard-rush.html">Shard Rush</a>
+            <a href="emerald-galactic-heroes.html">Galactic Heroes</a>
+            <button id="startButton" type="button">Start Fight</button>
+          </nav>
+        </div>
+
+        <div class="rumble-stage">
+          <canvas id="rumbleCanvas" width="1280" height="720" aria-label="Pepe Relic Rumble playfield"></canvas>
+
+          <section class="rumble-hud" aria-label="Fight status">
+            <div class="fighter-panel">
+              <span id="p1Name">Crown Pepe</span>
+              <strong id="p1Health">100</strong>
+              <meter id="p1Meter" min="0" max="100" value="100"></meter>
+              <small>WASD move | S charge | F punch | G kick | H shield/special</small>
+            </div>
+            <div class="round-panel">
+              <span id="roundLabel">Round 1</span>
+              <strong id="timerLabel">60</strong>
+              <small id="stateLabel">first to 3 rounds</small>
+            </div>
+            <div class="fighter-panel fighter-panel--right">
+              <span id="p2Name">Corrupt Pepe</span>
+              <strong id="p2Health">100</strong>
+              <meter id="p2Meter" min="0" max="100" value="100"></meter>
+              <small>Arrows move | Down charge | J punch | K kick | L shield/special</small>
+            </div>
+          </section>
+
+          <section class="rumble-overlay" id="rumbleOverlay">
+            <p class="eyebrow">Chunky Stick Fighter</p>
+            <h2 id="overlayTitle">Two green Pepes enter the vault.</h2>
+            <p id="overlayText">Win three rounds with thick-limbed punches, kicks, blocks, and one charged relic burst per fighter.</p>
+            <div class="control-grid" aria-label="Controls">
+              <div>
+                <strong>Player 1</strong>
+                <span>WASD, F punch, G kick, H block or special</span>
+              </div>
+              <div>
+                <strong>Player 2</strong>
+                <span>Arrow keys, J punch, K kick, L block or special</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="arcade.js"></script>
+    <script src="pepe-relic-rumble.js"></script>
+  </body>
+</html>
