@@ -105,7 +105,7 @@ h1 {
 
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
   margin-top: 14px;
 }
@@ -179,6 +179,36 @@ h1 {
   height: 100%;
   object-fit: cover;
   object-position: center 38%;
+}
+
+.game-card--pepe-run .game-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 54%, rgba(80, 255, 157, .28), transparent 38%),
+    linear-gradient(155deg, #12041f, #040807 68%);
+}
+
+.game-card--pepe-run .game-art::before {
+  content: "";
+  position: absolute;
+  inset: 55% -10% -20%;
+  transform: rotate(-6deg);
+  border-top: 5px solid #52ff9b;
+  background: linear-gradient(#173523, #020604);
+  box-shadow: 0 -8px 30px rgba(82, 255, 155, .25);
+}
+
+.game-card--pepe-run .game-art img {
+  position: relative;
+  z-index: 1;
+  width: 145px;
+  height: 145px;
+  border-radius: 50%;
+  object-fit: cover;
+  filter: drop-shadow(0 0 24px rgba(82, 255, 155, .45));
 }
 
 .game-body {
@@ -257,7 +287,7 @@ h1 {
 
 .badge-list {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
 }
 

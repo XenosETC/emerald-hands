@@ -9,6 +9,7 @@
       rush: { score: 0, rank: "Unranked", combo: 1 },
       galaxy: { score: 0, rank: "Cadet", wave: 1, weapon: "Mk I" },
       rumble: { wins: 0, rank: "Unranked", rounds: 0 },
+      pepeRun: { score: 0, rank: "Fresh Frog", shards: 0, combo: 1 },
     },
     badges: [],
   };
@@ -62,6 +63,12 @@
       description: "Finish Galactic Heroes as Emerald Ace.",
       icon: "assets/badges/emerald-ace.png",
     },
+    {
+      slug: "chart-surfer",
+      name: "Chart Surfer",
+      description: "Score 4.5K+ in PepeCoin Emerald Run.",
+      icon: "assets/pepecoin-run/pepecoin-classic.png",
+    },
   ];
 
   const legacyBadgeMap = {
@@ -108,6 +115,7 @@
           rush: { ...defaults.best.rush, ...saved?.best?.rush },
           galaxy: { ...defaults.best.galaxy, ...saved?.best?.galaxy },
           rumble: { ...defaults.best.rumble, ...saved?.best?.rumble },
+          pepeRun: { ...defaults.best.pepeRun, ...saved?.best?.pepeRun },
         },
         badges: Array.isArray(saved?.badges) ? [...new Set(saved.badges.map(normalizeBadge).filter(Boolean))] : [],
       };
@@ -162,6 +170,12 @@
       data.xp += (payload.wins || 0) * 180 + Math.max(0, 4 - (payload.rounds || 4)) * 120;
     }
 
+    if (game === "pepeRun") {
+      if ((payload.score || 0) > data.best.pepeRun.score) data.best.pepeRun = { ...data.best.pepeRun, ...payload };
+      data.xp += Math.floor((payload.score || 0) / 90) + (payload.shards || 0) * 4;
+      if ((payload.score || 0) >= 4500) uniquePush(data.badges, "chart-surfer");
+    }
+
     save(data);
     return {
       ...data,
@@ -187,6 +201,7 @@
       { game: "Shard Rush", task: "Score 9K+ without dropping your combo below x2." },
       { game: "Galactic Heroes", task: "Reach Wave 3 or trigger a weapon upgrade." },
       { game: "Pepe Relic Rumble", task: "Win a best-of-five vault fight." },
+      { game: "PepeCoin Emerald Run", task: "Collect 15 emeralds in one market run." },
     ];
     return options[day % options.length];
   }
