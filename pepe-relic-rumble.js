@@ -145,6 +145,10 @@
       invuln: 0,
       hurtTime: 0,
       walkTime: 0,
+      moveDir: 0,
+      moveMode: "idle",
+      jumpTime: 0,
+      landSquash: 0,
       charging: false,
       block: false,
       specialReady: true,
@@ -223,6 +227,10 @@
       f.invuln = 0;
       f.hurtTime = 0;
       f.walkTime = 0;
+      f.moveDir = 0;
+      f.moveMode = "idle";
+      f.jumpTime = 0;
+      f.landSquash = 0;
       f.charging = false;
       f.block = false;
       f.specialReady = true;
@@ -286,20 +294,26 @@
     const wantsCharge = codeDown(c.down);
     const move = (right ? 1 : 0) - (left ? 1 : 0);
     const canMove = !f.action || f.action === "block";
+    const wasGrounded = f.grounded;
 
     f.facing = opponent.x > f.x ? 1 : -1;
     f.cooldown = Math.max(0, f.cooldown - dt);
     f.invuln = Math.max(0, f.invuln - dt);
     f.hurtTime = Math.max(0, f.hurtTime - dt);
+    f.landSquash = Math.max(0, (f.landSquash || 0) - dt * 5.6);
     f.energy = clamp(f.energy + dt * 5.5, 0, 100);
     if (f.energy >= 100) f.specialReady = true;
+    f.moveDir = move;
+    f.moveMode = move
+      ? (Math.sign(move) === f.facing ? "run" : "retreat")
+      : "idle";
 
     if (canMove) {
       f.vx += move * (f.grounded ? 1.38 : 0.74);
       f.vx = clamp(f.vx, -13.5, 13.5);
       if (move) {
-        f.state = f.grounded ? "walk" : "jump";
-        f.walkTime += dt;
+        f.state = f.grounded ? f.moveMode : "jump";
+        f.walkTime += dt * (f.moveMode === "run" ? 1.45 : 0.92);
       }
     }
 
@@ -307,6 +321,7 @@
       f.vy = -18.9;
       f.grounded = false;
       f.state = "jump";
+      f.jumpTime = 0;
       burst(f.x - f.facing * 24, f.y - 8, 8, "rgba(116, 255, 197, 0.85)");
     }
 
@@ -348,6 +363,7 @@
     f.vy += gravity;
     f.x += f.vx;
     f.y += f.vy;
+    if (!f.grounded) f.jumpTime += dt;
     f.vx *= f.grounded ? 0.82 : 0.94;
     f.x = clamp(f.x, 88, W - 88);
 
@@ -355,7 +371,12 @@
       f.y = floorY;
       f.vy = 0;
       f.grounded = true;
-      if (!move && !f.action && !f.block) f.state = "idle";
+      if (!wasGrounded) {
+        f.landSquash = 1;
+        burst(f.x - f.facing * 18, f.y - 4, 5, "rgba(216, 180, 95, 0.65)");
+      }
+      if (move && !f.action && !f.block && !f.charging) f.state = f.moveMode;
+      if (!move && !f.action && !f.block && !f.charging) f.state = "idle";
     }
 
     if (f.action === "punch" && f.actionTime > 0.07 && f.actionTime < 0.22) {
@@ -661,41 +682,74 @@
   function drawSpritePepe(f, ghostAlpha) {
     const alpha = ghostAlpha || 1;
     const action = spriteStateFor(f);
-    const spriteKey = action === "walk" || action === "jump" ? "idle" : action;
+    const spriteKey = action === "run" || action === "retreat" || action === "jump" ? "idle" : action;
     const cachedSprite = spriteDrawCache[spriteKey]?.[f.id === 2 ? "corrupt" : "normal"];
     const sprite = cachedSprite || pepeSprites[spriteKey] || pepeSprites.idle;
     const profile = spriteProfiles[action] || spriteProfiles.idle;
     const isGhost = alpha < 1;
-    const stride = Math.sin((f.walkTime || 0) * 22);
-    const bob = action === "walk" ? Math.abs(stride) * -8 : 0;
-    const jumpLift = action === "jump" ? -18 : 0;
+    const runCycle = Math.sin((f.walkTime || 0) * 14);
+    const retreatCycle = Math.sin((f.walkTime || 0) * 10);
+    const jumpProgress = clamp((f.jumpTime || 0) / 0.62, 0, 1);
+    const jumpPose =
+      action === "jump" && f.vy < -6 ? "takeoff" :
+      action === "jump" && f.vy > 7 ? "fall" :
+      action === "jump" ? "float" :
+      "ground";
+    const land = f.landSquash || 0;
+    const bob =
+      action === "run" ? Math.abs(runCycle) * -4 :
+      action === "retreat" ? Math.abs(retreatCycle) * -2 :
+      0;
+    const jumpLift =
+      jumpPose === "takeoff" ? -24 - jumpProgress * 8 :
+      jumpPose === "float" ? -34 :
+      jumpPose === "fall" ? -18 :
+      0;
     const lean =
       action === "punch" ? 9 :
       action === "kick" ? -7 :
       action === "special" ? 12 :
       action === "block" ? -11 :
-      action === "walk" ? stride * 5 :
-      action === "jump" ? clamp(f.vy * 0.55, -12, 16) :
+      action === "run" ? 9 + runCycle * 1.5 :
+      action === "retreat" ? -8 + retreatCycle * 1.2 :
+      action === "jump" ? clamp(f.vy * 0.72, -18, 18) :
+      0;
+    const skew =
+      action === "run" ? -0.025 + runCycle * 0.006 :
+      action === "retreat" ? 0.022 + retreatCycle * 0.004 :
+      jumpPose === "takeoff" ? -0.05 :
+      jumpPose === "fall" ? 0.06 :
       0;
     const scaleY =
       action === "block" ? 0.94 :
       action === "special" ? 1.02 :
-      action === "walk" ? 0.98 + Math.abs(stride) * 0.035 :
-      action === "jump" ? 1.05 :
+      action === "run" ? 0.99 + Math.abs(runCycle) * 0.018 - land * 0.05 :
+      action === "retreat" ? 1 + Math.abs(retreatCycle) * 0.01 - land * 0.05 :
+      jumpPose === "takeoff" ? 1.1 :
+      jumpPose === "float" ? 1.04 :
+      jumpPose === "fall" ? 0.96 :
+      land ? 1 - land * 0.08 :
       1;
     const scaleX =
       action === "punch" || action === "special" ? 1.03 :
       action === "kick" ? 1.02 :
-      action === "walk" ? 1.02 - Math.abs(stride) * 0.018 :
-      action === "jump" ? 0.96 :
+      action === "run" ? 1.015 - Math.abs(runCycle) * 0.01 + land * 0.06 :
+      action === "retreat" ? 1.006 - Math.abs(retreatCycle) * 0.006 + land * 0.06 :
+      jumpPose === "takeoff" ? 0.92 :
+      jumpPose === "float" ? 0.98 :
+      jumpPose === "fall" ? 1.06 :
+      land ? 1 + land * 0.1 :
       1;
     const width = profile.w;
     const height = profile.h;
 
     ctx.save();
     ctx.translate(f.x + lean * (f.facing || 1), f.y + profile.y + bob + jumpLift);
-    if (action === "jump") ctx.rotate(clamp(f.vy / 180, -0.08, 0.1) * (f.facing || 1));
+    if (action === "jump") ctx.rotate(clamp(f.vy / 150, -0.13, 0.16) * (f.facing || 1));
+    if (action === "run") ctx.rotate((0.012 + runCycle * 0.004) * (f.facing || 1));
+    if (action === "retreat") ctx.rotate((-0.012 + retreatCycle * 0.003) * (f.facing || 1));
     ctx.scale((f.facing || 1) * scaleX, scaleY);
+    if (skew) ctx.transform(1, 0, skew * (f.facing || 1), 1, 0, 0);
     ctx.globalAlpha = alpha;
     ctx.shadowColor = f.energy >= 100 && !isGhost
       ? (f.id === 2 ? "rgba(255, 74, 74, 0.9)" : "rgba(116, 255, 197, 0.85)")
@@ -710,8 +764,13 @@
 
     if (!isGhost && f.block) drawShardShield(f);
 
-    if (!isGhost && action === "walk") drawMotionDust(-48 - Math.abs(stride) * 8, -10, f.palette.light);
-    if (!isGhost && action === "jump") drawJumpTrail(-22, -16, f.palette.light);
+    if (!isGhost && action === "run") {
+      drawMotionDust(-58 - Math.abs(runCycle) * 6, -8, f.palette.light, runCycle);
+    }
+    if (!isGhost && action === "retreat") {
+      drawRetreatDust(-40 - Math.abs(retreatCycle) * 8, -8, f.palette.trim, retreatCycle);
+    }
+    if (!isGhost && action === "jump") drawJumpTrail(-22, -16, f.palette.light, jumpPose);
     if (!isGhost && action === "punch") drawAttackArc(116, -160, 34, f.palette.light);
     if (!isGhost && action === "kick") drawAttackArc(118, -132, 50, f.palette.trim);
     ctx.restore();
@@ -725,41 +784,67 @@
     if (f.action === "punch") return "punch";
     if (f.block || f.state === "block") return "block";
     if (f.grounded === false || f.state === "jump") return "jump";
+    if (f.state === "run") return "run";
+    if (f.state === "retreat") return "retreat";
     if (f.state === "walk") return "walk";
     return "idle";
   }
 
-  function drawMotionDust(x, y, color) {
+  function drawMotionDust(x, y, color, cycle = 0) {
     ctx.save();
-    ctx.globalAlpha = 0.36;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 4;
-    ctx.lineCap = "round";
+    ctx.globalAlpha = 0.18 + Math.abs(cycle) * 0.1;
+    ctx.fillStyle = color;
     ctx.shadowColor = color;
-    ctx.shadowBlur = 4;
-    ctx.beginPath();
-    ctx.moveTo(x - 28, y);
-    ctx.lineTo(x + 16, y - 4);
-    ctx.moveTo(x - 16, y + 12);
-    ctx.lineTo(x + 22, y + 8);
-    ctx.stroke();
+    ctx.shadowBlur = 3;
+    for (let i = 0; i < 3; i += 1) {
+      const puff = 7 - i * 1.4;
+      const px = x - i * 18 + Math.sin(cycle + i) * 3;
+      const py = y + i * 3;
+      ctx.beginPath();
+      ctx.ellipse(px, py, puff * 1.35, puff * 0.58, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
 
-  function drawJumpTrail(x, y, color) {
+  function drawRetreatDust(x, y, color, cycle) {
     ctx.save();
-    ctx.globalAlpha = 0.32;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 5;
-    ctx.lineCap = "round";
+    ctx.globalAlpha = 0.12 + Math.abs(cycle) * 0.08;
+    ctx.fillStyle = color;
     ctx.shadowColor = color;
-    ctx.shadowBlur = 5;
-    ctx.beginPath();
-    ctx.moveTo(x - 28, y + 12);
-    ctx.lineTo(x + 18, y + 38);
-    ctx.moveTo(x + 8, y + 6);
-    ctx.lineTo(x + 42, y + 32);
-    ctx.stroke();
+    ctx.shadowBlur = 3;
+    for (let i = 0; i < 2; i += 1) {
+      const puff = 5 - i;
+      ctx.beginPath();
+      ctx.ellipse(x - i * 14, y + i * 5, puff * 1.2, puff * 0.52, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawJumpTrail(x, y, color, pose) {
+    ctx.save();
+    ctx.globalAlpha = pose === "takeoff" ? 0.28 : pose === "fall" ? 0.18 : 0.14;
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 4;
+    if (pose === "takeoff") {
+      for (let i = 0; i < 4; i += 1) {
+        ctx.beginPath();
+        ctx.ellipse(x - 24 + i * 18, y + 42 + i * 3, 9 - i, 4.5 - i * 0.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (pose === "fall") {
+      for (let i = 0; i < 3; i += 1) {
+        ctx.beginPath();
+        ctx.ellipse(x - 12 + i * 16, y + 28 + i * 5, 6 - i, 3.4 - i * 0.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else {
+      ctx.beginPath();
+      ctx.ellipse(x + 8, y + 34, 9, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.restore();
   }
 
