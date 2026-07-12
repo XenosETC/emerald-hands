@@ -10,6 +10,7 @@
       galaxy: { score: 0, rank: "Cadet", wave: 1, weapon: "Mk I" },
       rumble: { wins: 0, rank: "Unranked", rounds: 0 },
       pepeRun: { score: 0, rank: "Fresh Frog", shards: 0, combo: 1 },
+      spaceUnchained: { score: 0, rank: "Fresh Pilot", wave: 1, shards: 0, kills: 0 },
     },
     badges: [],
   };
@@ -69,6 +70,12 @@
       description: "Score 4.5K+ in PepeCoin Emerald Run.",
       icon: "assets/pepecoin-run/pepecoin-classic.png",
     },
+    {
+      slug: "space-unchained",
+      name: "Space Unchained",
+      description: "Reach Wave 3 in Pepe: Space Unchained.",
+      icon: "assets/pepe-space-unchained/pepe-ship.png",
+    },
   ];
 
   const legacyBadgeMap = {
@@ -116,6 +123,7 @@
           galaxy: { ...defaults.best.galaxy, ...saved?.best?.galaxy },
           rumble: { ...defaults.best.rumble, ...saved?.best?.rumble },
           pepeRun: { ...defaults.best.pepeRun, ...saved?.best?.pepeRun },
+          spaceUnchained: { ...defaults.best.spaceUnchained, ...saved?.best?.spaceUnchained },
         },
         badges: Array.isArray(saved?.badges) ? [...new Set(saved.badges.map(normalizeBadge).filter(Boolean))] : [],
       };
@@ -176,6 +184,12 @@
       if ((payload.score || 0) >= 4500) uniquePush(data.badges, "chart-surfer");
     }
 
+    if (game === "spaceUnchained") {
+      if ((payload.score || 0) > data.best.spaceUnchained.score) data.best.spaceUnchained = { ...data.best.spaceUnchained, ...payload };
+      data.xp += Math.floor((payload.score || 0) / 90) + (payload.wave || 1) * 80 + (payload.shards || 0) * 3;
+      if ((payload.wave || 0) >= 3) uniquePush(data.badges, "space-unchained");
+    }
+
     save(data);
     return {
       ...data,
@@ -202,6 +216,7 @@
       { game: "Galactic Heroes", task: "Reach Wave 3 or trigger a weapon upgrade." },
       { game: "Pepe Relic Rumble", task: "Win a best-of-five vault fight." },
       { game: "PepeCoin Emerald Run", task: "Collect 15 emeralds in one market run." },
+      { game: "Pepe: Space Unchained", task: "Reach Wave 3 and collect 20 shards." },
     ];
     return options[day % options.length];
   }

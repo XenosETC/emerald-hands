@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Pepe: Space Unchained - a horizontal blockchain space shooter.">
+    <meta name="theme-color" content="#020806">
+    <title>Pepe: Space Unchained</title>
+    <link rel="preload" href="assets/pepe-space-unchained/space-bg.jpg" as="image">
+    <link rel="preload" href="assets/pepe-space-unchained/pepe-ship.png" as="image">
+    <link rel="preload" href="assets/pepe-space-unchained/corrupt-ship.png" as="image">
+    <link rel="stylesheet" href="pepe-space-unchained.css?v=1">
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a class="back" href="index.html" aria-label="Return to Emerald Arcade">Arcade</a>
+        <div class="brand">
+          <span>Pepe Legends</span>
+          <strong>Pepe: Space Unchained</strong>
+        </div>
+        <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true">Sound: on</button>
+      </header>
+
+      <section class="stage-wrap" aria-label="Pepe Space Unchained game stage">
+        <canvas id="gameCanvas" width="1280" height="720" aria-label="Fly through blockchain space and shoot corrupt ships"></canvas>
+
+        <section class="hud" aria-label="Mission statistics">
+          <div><span id="scoreLabel">0</span><small>score</small></div>
+          <div><span id="shardLabel">0</span><small>shards</small></div>
+          <div><span id="waveLabel">1</span><small>wave</small></div>
+          <div><span id="shieldLabel">100</span><small>shield</small></div>
+          <div><span id="bestLabel">0</span><small>best</small></div>
+        </section>
+
+        <div class="mission-pill" id="missionPill">
+          <span class="mission-dot"></span>
+          <strong id="missionLabel">Explore the chain</strong>
+          <small id="missionMeta">auto-fire online</small>
+        </div>
+
+        <section class="overlay" id="gameOverlay">
+          <p class="eyebrow">Horizontal blockchain shooter</p>
+          <h1 id="overlayTitle">Pepe: Space Unchained</h1>
+          <p id="overlayText">Fly through emerald chain-space, shoot corrupt block ships, collect ETC shards, and survive vault-node waves.</p>
+          <button id="startButton" type="button">Launch Fighter</button>
+          <small>WASD / arrows to fly - Space to burst shot - auto-fire enabled</small>
+        </section>
+      </section>
+    </main>
+
+    <script src="arcade.js"></script>
+    <script src="pepe-space-unchained.js?v=1"></script>
+  </body>
+</html>
