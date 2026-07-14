@@ -118,8 +118,11 @@ for (const contract of ["Bamboo Mountains", "beginTaunt", "You'll never get Pepi
   const source = contract === "rage-bait-survivor" ? arcadeSource : paradoxSource;
   check(source.includes(contract), `Pepe's Paradox contract is missing ${contract}`);
 }
-for (const asset of ["crown-platformer-sheet.png", "paradox-collectibles.png", "bamboo-mountains-loop.png"]) {
+for (const asset of ["crown-platformer-sheet.png", "paradox-collectibles.png", "bamboo-mountains-loop.png", "bamboo-distant.png", "bamboo-temple-path.png", "bamboo-foreground.png"]) {
   check(existsSync(resolve(root, `assets/pepes-paradox/${asset}`)), `Pepe's Paradox generated asset is missing ${asset}`);
+}
+for (const parallaxContract of ["parallaxRates", "drawLoopLayer", "drawForeground"]) {
+  check(paradoxSource.includes(parallaxContract), `Pepe's Paradox parallax contract is missing ${parallaxContract}`);
 }
 for (const domainUpgrade of ["domainCeremony", "showDomainCeremony", "1000 / 60", "buildKekDomainFxCache"]) {
   check(rumbleSource.includes(domainUpgrade) || rumbleHtml.includes(domainUpgrade), `Relic Rumble premium KEK upgrade is missing ${domainUpgrade}`);

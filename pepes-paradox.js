@@ -10,7 +10,15 @@
     shards: document.querySelector("#shardCount"), relics: document.querySelector("#relicCount"), frogs: document.querySelector("#frogCount"),
   };
   const loadImage = (src) => { const image = new Image(); image.src = src; return image; };
-  const sprites = { sheet:loadImage("assets/pepes-paradox/crown-platformer-sheet.png"), collectibles:loadImage("assets/pepes-paradox/paradox-collectibles.png"), bamboo:loadImage("assets/pepes-paradox/bamboo-mountains-loop.png"), fallen:loadImage("assets/pepe-relic-rumble/fallen-idle.png") };
+  const sprites = {
+    sheet:loadImage("assets/pepes-paradox/crown-platformer-sheet.png"),
+    collectibles:loadImage("assets/pepes-paradox/paradox-collectibles.png"),
+    bambooDistant:loadImage("assets/pepes-paradox/bamboo-distant.png"),
+    bambooTemple:loadImage("assets/pepes-paradox/bamboo-temple-path.png"),
+    bambooForeground:loadImage("assets/pepes-paradox/bamboo-foreground.png"),
+    fallen:loadImage("assets/pepe-relic-rumble/fallen-idle.png")
+  };
+  const parallaxRates = { distant:.055, temple:.16, foreground:.32 };
   const spriteAtlas = { idle:[0,0],runA:[1,0],runB:[2,0],rise:[0,1],apex:[1,1],fall:[2,1],dash:[0,2],hurt:[1,2],victory:[2,2] };
   const keys = new Set();
   const state = { mode:"ready", time:0, camera:0, sound:true, cutsceneStep:0, cutsceneClock:0, tauntDone:false, finished:false };
@@ -71,9 +79,11 @@
   }
   function collect(item,px,py,r,key){if(item.got||Math.hypot(px-item.x,py-item.y)>r+42)return;item.got=true;player[key]++;burst(item.x,item.y,key==="relics"?"#ffd86c":"#72ff9b",18);tone(key==="relics"?760:620,.1,"sine");syncHud();}
   function burst(x,y,color,count){for(let i=0;i<count;i++)particles.push({x,y,vx:(Math.random()-.5)*260,vy:-Math.random()*260,life:.45+Math.random()*.5,color});}
-  function syncHud(){ui.shards.textContent=`${player.shards} / ${shards.length}`;ui.relics.textContent=`${player.relics} / ${relics.length}`;ui.frogs.textContent=`${player.frogs} / ${frogs.length}`;canvas.dataset.debugState=JSON.stringify({mode:state.mode,x:Math.round(player.x),y:Math.round(player.y),camera:Math.round(state.camera),tauntDone:state.tauntDone,shards:player.shards,relics:player.relics,frogs:player.frogs,movingPlatforms:platforms.filter(p=>p.moving).map(p=>({x:Math.round(p.x),y:p.y}))});}
-  function draw(){ctx.clearRect(0,0,W,H);drawSky();ctx.save();ctx.translate(-state.camera,0);drawWorld();drawItems();drawWisps();drawRival();drawPlayer();drawParticles();ctx.restore();drawProgress();syncHud();}
-  function drawSky(){if(sprites.bamboo.complete&&sprites.bamboo.naturalWidth){const dw=H*(sprites.bamboo.naturalWidth/sprites.bamboo.naturalHeight),offset=-((state.camera*.18)%dw);for(let x=offset-dw;x<W+dw;x+=dw)ctx.drawImage(sprites.bamboo,x,0,dw,H);}else{ctx.fillStyle="#062018";ctx.fillRect(0,0,W,H);}const mist=ctx.createLinearGradient(0,200,0,H);mist.addColorStop(0,"rgba(3,28,24,.05)");mist.addColorStop(1,"rgba(0,7,4,.5)");ctx.fillStyle=mist;ctx.fillRect(0,0,W,H);}
+  function syncHud(){ui.shards.textContent=`${player.shards} / ${shards.length}`;ui.relics.textContent=`${player.relics} / ${relics.length}`;ui.frogs.textContent=`${player.frogs} / ${frogs.length}`;canvas.dataset.debugState=JSON.stringify({mode:state.mode,x:Math.round(player.x),y:Math.round(player.y),camera:Math.round(state.camera),tauntDone:state.tauntDone,shards:player.shards,relics:player.relics,frogs:player.frogs,parallax:{distant:Math.round(state.camera*parallaxRates.distant),temple:Math.round(state.camera*parallaxRates.temple),foreground:Math.round(state.camera*parallaxRates.foreground)},movingPlatforms:platforms.filter(p=>p.moving).map(p=>({x:Math.round(p.x),y:p.y}))});}
+  function draw(){ctx.clearRect(0,0,W,H);drawSky();ctx.save();ctx.translate(-state.camera,0);drawWorld();drawItems();drawWisps();drawRival();drawPlayer();drawParticles();ctx.restore();drawForeground();drawProgress();syncHud();}
+  function drawLoopLayer(image,rate,alpha=1){if(!image.complete||!image.naturalWidth)return false;const dw=H*(image.naturalWidth/image.naturalHeight);const travel=state.camera*rate;const offset=-((travel%dw)+dw)%dw;ctx.save();ctx.globalAlpha=alpha;for(let x=offset-dw;x<W+dw;x+=dw)ctx.drawImage(image,x,0,dw,H);ctx.restore();return true;}
+  function drawSky(){ctx.fillStyle="#062018";ctx.fillRect(0,0,W,H);drawLoopLayer(sprites.bambooDistant,parallaxRates.distant,1);drawLoopLayer(sprites.bambooTemple,parallaxRates.temple,.58);const mist=ctx.createLinearGradient(0,180,0,H);mist.addColorStop(0,"rgba(8,40,34,.03)");mist.addColorStop(1,"rgba(0,7,4,.34)");ctx.fillStyle=mist;ctx.fillRect(0,0,W,H);}
+  function drawForeground(){drawLoopLayer(sprites.bambooForeground,parallaxRates.foreground,.3);}
   function drawWorld(){for(const p of platforms){const g=ctx.createLinearGradient(0,p.y,0,p.y+Math.min(p.h,70));g.addColorStop(0,p.moving?"#90f18a":"#5dd879");g.addColorStop(.12,"#245c39");g.addColorStop(1,"#08170f");ctx.fillStyle=g;ctx.fillRect(p.x,p.y,p.w,p.h);ctx.strokeStyle=p.moving?"rgba(224,207,107,.8)":"rgba(117,255,137,.45)";ctx.lineWidth=p.moving?4:2;ctx.strokeRect(p.x,p.y,p.w,p.h);for(let x=p.x+18;x<p.x+p.w-18;x+=48){ctx.strokeStyle="rgba(189,255,164,.18)";ctx.strokeRect(x,p.y+12,27,20);}if(p.moving){ctx.fillStyle="rgba(229,204,99,.85)";ctx.fillRect(p.x+12,p.y+7,p.w-24,3);}}ctx.fillStyle="#b2ff8d";ctx.fillRect(5240,310,18,300);ctx.shadowColor="#82ff91";ctx.shadowBlur=25;ctx.strokeStyle="#82ff91";ctx.lineWidth=7;ctx.strokeRect(5178,300,145,310);ctx.shadowBlur=0;}
   function diamond(x,y,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4+state.time);ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=16;ctx.fillRect(-size/2,-size/2,size,size);ctx.restore();}
   function drawAtlasItem(cellX,cellY,x,y,size){if(!sprites.collectibles.complete)return;const cw=sprites.collectibles.naturalWidth/3,ch=sprites.collectibles.naturalHeight/2;ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(state.time*2+x)*.05);ctx.shadowColor="#74ff9d";ctx.shadowBlur=16;ctx.drawImage(sprites.collectibles,cellX*cw,cellY*ch,cw,ch,-size/2,-size/2,size,size);ctx.restore();}
