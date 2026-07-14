@@ -50,6 +50,7 @@ const state = {
 };
 
 function startGame() {
+  window.EmeraldArcade?.beginSession("rush", "shard-rush.html");
   drops.length = 0;
   Object.assign(state, {
     running: true,

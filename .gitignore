@@ -1,0 +1,8 @@
+# Generated working files are retained locally but are not production assets.
+hatch-pet-runs/
+
+# Local tooling and OS noise.
+node_modules/
+.DS_Store
+Thumbs.db
+*.log

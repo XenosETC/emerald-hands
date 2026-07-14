@@ -105,7 +105,7 @@ h1 {
 
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
   margin-top: 14px;
 }
@@ -134,9 +134,45 @@ h1 {
 }
 
 .arcade-status small,
+.arcade-insights small,
 .badge-panel span,
 .game-stat {
   color: var(--muted);
+}
+
+.arcade-insights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 0.55fr)) minmax(260px, 1.8fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.arcade-insights > div,
+.arcade-insights > p {
+  min-width: 0;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(117, 255, 189, 0.18);
+  border-radius: 8px;
+  background: rgba(2, 9, 6, 0.72);
+}
+
+.arcade-insights span,
+.arcade-insights strong,
+.arcade-insights small {
+  display: block;
+}
+
+.arcade-insights span,
+.arcade-insights strong {
+  color: var(--text);
+  font-weight: 950;
+}
+
+.arcade-insights small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.72rem;
 }
 
 .game-card {
@@ -191,6 +227,25 @@ h1 {
     linear-gradient(155deg, #12041f, #040807 68%);
 }
 
+.game-card--paradox .game-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 70% 22%, rgba(145, 255, 121, 0.4), transparent 11rem),
+    linear-gradient(155deg, #123c22, #020705 72%);
+}
+
+.game-card--paradox .game-art img {
+  position: relative;
+  z-index: 1;
+  width: 250px;
+  height: 250px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.66));
+}
+
 .game-card--pepe-run .game-art::before {
   content: "";
   position: absolute;
@@ -209,6 +264,94 @@ h1 {
   border-radius: 50%;
   object-fit: cover;
   filter: drop-shadow(0 0 24px rgba(82, 255, 155, .45));
+}
+
+.game-card--tower-defense .game-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 72% 38%, rgba(216, 180, 95, 0.28), transparent 24%),
+    linear-gradient(135deg, rgba(3, 21, 16, 0.96), rgba(1, 7, 5, 0.98)),
+    repeating-linear-gradient(90deg, rgba(116, 255, 197, 0.12) 0 1px, transparent 1px 52px);
+}
+
+.game-card--tower-defense .game-art::before,
+.game-card--tower-defense .game-art::after {
+  content: "";
+  position: absolute;
+  inset: auto -12% 18% -12%;
+  height: 42px;
+  border: 3px solid rgba(116, 255, 197, 0.46);
+  border-left: 0;
+  border-right: 0;
+  transform: rotate(-5deg);
+  box-shadow: 0 0 28px rgba(57, 255, 154, 0.22);
+}
+
+.game-card--tower-defense .game-art::after {
+  inset: 18% 12% auto auto;
+  width: 58px;
+  height: 76px;
+  border: 2px solid rgba(216, 180, 95, 0.58);
+  border-radius: 8px;
+  transform: none;
+  background: rgba(2, 8, 6, 0.72);
+}
+
+.game-card--tower-defense .game-art img {
+  position: relative;
+  z-index: 1;
+  width: 168px;
+  height: 168px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 28px rgba(57, 255, 154, 0.34));
+}
+
+.game-card--pepe-wars .game-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(3, 21, 16, 0.26), rgba(11, 3, 9, 0.34)),
+    url("assets/pepe-wars/pepe-wars-arena.png") center / cover;
+}
+
+.game-card--pepe-wars .game-art::before {
+  content: "";
+  position: absolute;
+  inset: auto -8% 22% -8%;
+  height: 48px;
+  border-top: 3px solid rgba(116, 255, 197, 0.42);
+  border-bottom: 3px solid rgba(255, 77, 109, 0.32);
+  transform: perspective(420px) rotateX(58deg);
+  background:
+    repeating-linear-gradient(90deg, rgba(216, 180, 95, 0.22) 0 2px, transparent 2px 38px),
+    rgba(2, 8, 6, 0.74);
+  box-shadow: 0 0 30px rgba(57, 255, 154, 0.16);
+}
+
+.game-card--pepe-wars .game-art::after {
+  content: "";
+  position: absolute;
+  right: 30px;
+  bottom: 60px;
+  width: 50px;
+  height: 86px;
+  border: 2px solid rgba(255, 77, 109, 0.58);
+  background: rgba(18, 5, 13, 0.72);
+  box-shadow: 0 0 24px rgba(255, 77, 109, 0.2);
+}
+
+.game-card--pepe-wars .game-art img {
+  position: relative;
+  z-index: 1;
+  width: 170px;
+  height: 170px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 26px rgba(57, 255, 154, 0.52));
 }
 
 .game-card--space-unchained .game-art {
@@ -382,6 +525,10 @@ h1 {
 
   .arcade-status {
     grid-template-columns: 1fr;
+  }
+
+  .arcade-insights {
+    grid-template-columns: 1fr 1fr;
   }
 
   .badge-panel__header {

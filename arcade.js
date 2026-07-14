@@ -1,9 +1,23 @@
 (function () {
   const STORAGE_KEY = "emerald-arcade-v1";
+  const SESSION_PREFIX = "emerald-arcade-session:";
+  const gamePaths = {
+    hands: "emerald-hands.html",
+    rush: "shard-rush.html",
+    galaxy: "emerald-galactic-heroes.html",
+    rumble: "pepe-relic-rumble.html",
+    pepeRun: "pepecoin-run.html",
+    spaceUnchained: "pepe-space-unchained.html",
+    towerDefense: "pepe-tower-defense.html",
+    pepeWars: "pepe-wars.html",
+    paradox: "pepes-paradox.html",
+  };
 
   const defaults = {
     xp: 0,
     gamesPlayed: 0,
+    lastPlayed: null,
+    analytics: {},
     best: {
       hands: { prestigeRank: "Retail Ghost", ogPoints: 0, empireValue: 0, totalEarned: 0 },
       rush: { score: 0, rank: "Unranked", combo: 1 },
@@ -11,6 +25,9 @@
       rumble: { wins: 0, rank: "Unranked", rounds: 0 },
       pepeRun: { score: 0, rank: "Fresh Frog", shards: 0, combo: 1 },
       spaceUnchained: { score: 0, rank: "Fresh Pilot", wave: 1, shards: 0, kills: 0 },
+      towerDefense: { score: 0, rank: "Fresh Defender", wave: 1, shards: 0 },
+      pepeWars: { score: 0, rank: "Fresh Recruit", wins: 0, time: 0 },
+      paradox: { score: 0, rank: "Trail Seeker", stage: 0, shards: 0, relics: 0, frogs: 0 },
     },
     badges: [],
   };
@@ -76,6 +93,30 @@
       description: "Reach Wave 3 in Pepe: Space Unchained.",
       icon: "assets/pepe-space-unchained/pepe-ship.png",
     },
+    {
+      slug: "vault-defender",
+      name: "Vault Defender",
+      description: "Survive Wave 5 in Pepe Tower Defense.",
+      icon: "assets/pepecoin-run/pepecoin-classic.png",
+    },
+    {
+      slug: "pepe-warlord",
+      name: "Pepe Warlord",
+      description: "Win a Pepe Wars shard siege.",
+      icon: "assets/pepe-wars/brawler-pepe.png",
+    },
+    {
+      slug: "vault-champion",
+      name: "Vault Champion",
+      description: "Break the KEK Domain, win the Relic Rumble tournament, and unlock Berserk Pepe.",
+      icon: "assets/pepe-relic-rumble/berserk-idle.png",
+    },
+    {
+      slug: "rage-bait-survivor",
+      name: "Rage-Bait Survivor",
+      description: "Clear Bamboo Mountains after Fallen Pepe's Pepina taunt.",
+      icon: "assets/pepe-relic-rumble/fallen-idle.png",
+    },
   ];
 
   const legacyBadgeMap = {
@@ -124,8 +165,12 @@
           rumble: { ...defaults.best.rumble, ...saved?.best?.rumble },
           pepeRun: { ...defaults.best.pepeRun, ...saved?.best?.pepeRun },
           spaceUnchained: { ...defaults.best.spaceUnchained, ...saved?.best?.spaceUnchained },
+          towerDefense: { ...defaults.best.towerDefense, ...saved?.best?.towerDefense },
+          pepeWars: { ...defaults.best.pepeWars, ...saved?.best?.pepeWars },
+          paradox: { ...defaults.best.paradox, ...saved?.best?.paradox },
         },
         badges: Array.isArray(saved?.badges) ? [...new Set(saved.badges.map(normalizeBadge).filter(Boolean))] : [],
+        analytics: saved?.analytics && typeof saved.analytics === "object" ? saved.analytics : {},
       };
     } catch {
       return JSON.parse(JSON.stringify(defaults));
@@ -139,6 +184,59 @@
   function uniquePush(list, value) {
     const badge = normalizeBadge(value);
     if (badge && !list.includes(badge)) list.push(badge);
+  }
+
+  function analyticsFor(data, game) {
+    data.analytics ||= {};
+    data.analytics[game] ||= { starts: 0, completes: 0, retries: 0, totalSeconds: 0, lastStartedAt: null, lastCompletedAt: null };
+    return data.analytics[game];
+  }
+
+  function beginSession(game, path = gamePaths[game]) {
+    const data = load();
+    const analytics = analyticsFor(data, game);
+    const sessionKey = `${SESSION_PREFIX}${game}`;
+    let active = null;
+    try {
+      active = JSON.parse(sessionStorage.getItem(sessionKey));
+    } catch {
+      active = null;
+    }
+    if (active?.startedAt) analytics.retries += 1;
+    const startedAt = Date.now();
+    analytics.starts += 1;
+    analytics.lastStartedAt = startedAt;
+    data.lastPlayed = { game, path: path || gamePaths[game], at: startedAt };
+    try {
+      sessionStorage.setItem(sessionKey, JSON.stringify({ startedAt }));
+    } catch {
+      // Analytics are best-effort and never block a game.
+    }
+    save(data);
+    return data;
+  }
+
+  function completeSession(data, game) {
+    const analytics = analyticsFor(data, game);
+    const completedAt = Date.now();
+    let active = null;
+    try {
+      active = JSON.parse(sessionStorage.getItem(`${SESSION_PREFIX}${game}`));
+      sessionStorage.removeItem(`${SESSION_PREFIX}${game}`);
+    } catch {
+      active = null;
+    }
+    analytics.completes += 1;
+    analytics.lastCompletedAt = completedAt;
+    if (active?.startedAt) analytics.totalSeconds += Math.max(0, Math.round((completedAt - active.startedAt) / 1000));
+    data.lastPlayed = { game, path: gamePaths[game], at: completedAt };
+  }
+
+  function continueTarget() {
+    const data = load();
+    return data.lastPlayed?.path
+      ? data.lastPlayed
+      : { game: "hands", path: gamePaths.hands, at: null };
   }
 
   function record(game, payload) {
@@ -176,6 +274,7 @@
     if (game === "rumble") {
       if ((payload.wins || 0) >= data.best.rumble.wins) data.best.rumble = { ...data.best.rumble, ...payload };
       data.xp += (payload.wins || 0) * 180 + Math.max(0, 4 - (payload.rounds || 4)) * 120;
+      if (payload.tournamentWon) uniquePush(data.badges, "vault-champion");
     }
 
     if (game === "pepeRun") {
@@ -189,6 +288,26 @@
       data.xp += Math.floor((payload.score || 0) / 90) + (payload.wave || 1) * 80 + (payload.shards || 0) * 3;
       if ((payload.wave || 0) >= 3) uniquePush(data.badges, "space-unchained");
     }
+
+    if (game === "towerDefense") {
+      if ((payload.score || 0) > data.best.towerDefense.score) data.best.towerDefense = { ...data.best.towerDefense, ...payload };
+      data.xp += Math.floor((payload.score || 0) / 90) + (payload.wave || 1) * 95 + (payload.shards || 0) * 2;
+      if ((payload.wave || 0) >= 5) uniquePush(data.badges, "vault-defender");
+    }
+
+    if (game === "pepeWars") {
+      if ((payload.score || 0) > data.best.pepeWars.score) data.best.pepeWars = { ...data.best.pepeWars, ...payload };
+      data.xp += Math.floor((payload.score || 0) / 95) + (payload.wins || 0) * 500;
+      if ((payload.wins || 0) >= 1) uniquePush(data.badges, "pepe-warlord");
+    }
+
+    if (game === "paradox") {
+      if ((payload.score || 0) >= data.best.paradox.score) data.best.paradox = { ...data.best.paradox, ...payload };
+      data.xp += (payload.shards || 0) * 20 + (payload.relics || 0) * 200 + (payload.frogs || 0) * 350 + (payload.stage || 0) * 500;
+      if ((payload.stage || 0) >= 1) uniquePush(data.badges, "rage-bait-survivor");
+    }
+
+    if (payload?.played) completeSession(data, game);
 
     save(data);
     return {
@@ -217,6 +336,9 @@
       { game: "Pepe Relic Rumble", task: "Win a best-of-five vault fight." },
       { game: "PepeCoin Emerald Run", task: "Collect 15 emeralds in one market run." },
       { game: "Pepe: Space Unchained", task: "Reach Wave 3 and collect 20 shards." },
+      { game: "Pepe Tower Defense", task: "Survive Wave 5 with at least 8 vault integrity." },
+      { game: "Pepe Wars", task: "Win a shard siege with your relic base alive." },
+      { game: "Pepe's Paradox", task: "Clear Emerald Forest and find its hidden frog." },
     ];
     return options[day % options.length];
   }
@@ -336,6 +458,8 @@
     save,
     record,
     recordAndNotify,
+    beginSession,
+    continueTarget,
     toast,
     rankForXp,
     nextRankForXp,

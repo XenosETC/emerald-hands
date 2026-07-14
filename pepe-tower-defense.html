@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Pepe Tower Defense - defend the emerald vault from corrupt shard creeps.">
+    <meta name="theme-color" content="#020806">
+    <title>Pepe Tower Defense</title>
+    <link rel="preload" href="assets/pepecoin-run/pepecoin-classic.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/origin-flame.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/pepe-blaster-sprite.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/shard-slow-sprite.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/relic-cannon-sprite.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/pepe-mage-sprite.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-sprite.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/pepe-blaster-evolved-sprite.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/shard-slow-evolved-sprite.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/relic-cannon-evolved-sprite.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/pepe-mage-evolved-sprite.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
+    <link rel="stylesheet" href="pepe-tower-defense.css?v=1">
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a class="back" href="index.html" aria-label="Return to Emerald Arcade">Arcade</a>
+        <div class="brand">
+          <span>Pepe Legends</span>
+          <strong>Pepe Tower Defense</strong>
+        </div>
+        <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true">Sound: on</button>
+      </header>
+
+      <section class="stage-wrap" aria-label="Pepe Tower Defense game stage">
+        <div class="playfield">
+          <canvas id="gameCanvas" width="1280" height="720" aria-label="Place Pepe towers and defend the emerald vault"></canvas>
+
+          <section class="hud" aria-label="Defense statistics">
+            <div><span id="scoreLabel">0</span><small>score</small></div>
+            <div><span id="shardLabel">180</span><small>shards</small></div>
+            <div><span id="waveLabel">1</span><small>wave</small></div>
+            <div><span id="vaultLabel">20</span><small>vault</small></div>
+            <div><span id="bestLabel">0</span><small>best</small></div>
+          </section>
+
+          <div class="status-pill" id="statusPill">
+            <span class="status-dot"></span>
+            <strong id="statusLabel">Place defenders on empty pads</strong>
+            <small id="statusMeta">1/2/3 select towers - click or drag a tower to build</small>
+          </div>
+
+          <section class="overlay" id="gameOverlay">
+            <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="Pepe Blaster tower">
+            <p class="eyebrow">Blockchain tower defense</p>
+            <h1 id="overlayTitle">Defend the Emerald Vault.</h1>
+            <p id="overlayText">Place Pepe defenders on vault pads, stop corrupt shard creeps, upgrade your defense, and survive deeper chain waves.</p>
+            <button id="startButton" type="button">Start Defense</button>
+            <small>Click or drag towers from the right dock - click your tower to upgrade</small>
+          </section>
+        </div>
+
+        <aside class="tower-dock" aria-label="Tower shop">
+          <div class="tower-dock__header">
+            <span>Defender Bay</span>
+            <strong>Tower Loadout</strong>
+          </div>
+          <button class="tower-button is-selected" type="button" data-tower="pepe" draggable="true">
+            <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="">
+            <span>
+              <strong>Pepe Blaster</strong>
+              <small>75 shards - beam DPS</small>
+            </span>
+          </button>
+          <button class="tower-button" type="button" data-tower="shard" draggable="true">
+            <img src="assets/pepe-tower-defense/shard-slow-sprite.png" alt="">
+            <span>
+              <strong>Shard Slow</strong>
+              <small>95 shards - control field</small>
+            </span>
+          </button>
+          <button class="tower-button" type="button" data-tower="relic" draggable="true">
+            <img src="assets/pepe-tower-defense/relic-cannon-sprite.png" alt="">
+            <span>
+              <strong>Relic Cannon</strong>
+              <small>140 shards - splash burst</small>
+            </span>
+          </button>
+          <button class="tower-button" type="button" data-tower="mage" draggable="true">
+            <img src="assets/pepe-tower-defense/pepe-mage-sprite.png" alt="">
+            <span>
+              <strong>Pepe Mage</strong>
+              <small>125 shards - shard volley</small>
+            </span>
+          </button>
+          <button class="tower-button" type="button" data-tower="archer" draggable="true">
+            <img src="assets/pepe-tower-defense/pepe-archer-sprite.png" alt="">
+            <span>
+              <strong>Pepe Archer</strong>
+              <small>105 shards - emerald arrows</small>
+            </span>
+          </button>
+          <button class="wave-button" id="waveButton" type="button">Start Wave</button>
+          <p class="tower-dock__hint">Drag a tower onto a glowing pad, or select one and click a pad.</p>
+        </aside>
+      </section>
+    </main>
+
+    <script src="arcade.js?v=2"></script>
+    <script src="pepe-tower-defense.js?v=1"></script>
+  </body>
+</html>

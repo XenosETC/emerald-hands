@@ -688,6 +688,7 @@ function loop(now) {
 els.shardButton.addEventListener("click", (event) => {
   if (!handsPlayRecorded) {
     handsPlayRecorded = true;
+    window.EmeraldArcade?.beginSession("hands", "emerald-hands.html");
     recordArcadeProgress(true, true);
   }
   const amount = perClick();

@@ -1,14 +1,14 @@
 # Emerald Arcade
 
-Premium ETC-inspired mini games hub.
+Premium ETC-inspired eight-game arcade hub.
 
 Open `index.html` for the ETC Mini Games Lab hub. `emerald-hands.html` opens the idle/clicker game directly.
 
-The hub reads local arcade progress from `localStorage`: arcade XP, badges, best runs, and a rotating daily challenge. This is cosmetic/local only.
+The hub reads local arcade progress from `localStorage`: arcade XP, badges, best runs, a rotating daily challenge, the last-played game, and privacy-friendly session signals. This is cosmetic/local only; nothing is transmitted.
 
 ## Arcade Badges
 
-The hub includes an eight-badge cosmetic trophy cabinet with generated emerald/gold medallion art under `assets/badges/`.
+The hub includes a twelve-badge cosmetic trophy cabinet with generated emerald/gold medallion art under `assets/badges/` and selected game art.
 
 Current badge unlocks:
 
@@ -20,26 +20,48 @@ Current badge unlocks:
 6. `Gasbreaker`: finish Galactic Heroes with Gasbreaker rank.
 7. `Market Sage`: reach 7 OG points in Emerald Hands.
 8. `Emerald Ace`: finish Galactic Heroes with Emerald Ace rank.
+9. `Chart Surfer`: score 4.5K+ in PepeCoin Emerald Run.
+10. `Space Unchained`: reach Wave 3 in Pepe: Space Unchained.
+11. `Vault Defender`: survive Wave 5 in Pepe Tower Defense.
+12. `Pepe Warlord`: win a Pepe Wars shard siege.
 
 ## Pepe Relic Rumble
 
-`pepe-relic-rumble.html` is a local two-player chunky Pepe stick-fighting prototype.
+`pepe-relic-rumble.html` is a selectable-roster chunky Pepe fighting prototype with local PvP and a CPU tournament mode.
 
 The fighter art uses generated transparent sprites under `assets/pepe-relic-rumble/`, derived from the user's chunky Pepe brawler reference. Chroma-key sources are kept beside the final PNGs for regeneration/audit.
 The stage uses a generated side-view Pepe arena background at `assets/pepe-relic-rumble/pepe-arena.png`.
 
 Core loop:
 
-1. Start a best-of-five vault fight.
-2. Move, jump, punch, kick, and block with thick green Pepe brawlers.
-3. Charge energy through time, blocking, and clean hits.
+1. Choose from Crown, Corrupt, Fallen, Emerald, Bandit, Ninja, Mecha, or Berserk Pepe for each side.
+2. Launch local PvP (first to three) or Tournament Rumble (two CPU bouts, first to two each).
+3. Move, jump, punch, kick, block, and charge relic energy.
 4. Spend full energy on a short-range relic burst.
-5. Win three rounds to record a local arcade result.
+5. Win the match or clear the tournament roster to record a local arcade result.
 
 Controls:
 
 - Player 1: `WASD` move, `F` punch, `G` kick, `H` block or relic burst.
 - Player 2: arrow keys move, `J` punch, `K` kick, `L` block or relic burst.
+- Tournament: Player 1 uses the normal controls while the CPU controls each rival.
+
+Fallen Pepe's supplied reference, generated chroma-key source, and transparent game asset are retained together under `assets/pepe-relic-rumble/` for auditability.
+Emerald Pepe's generated chroma-key source and transparent game asset are retained in the same folder.
+Bandit, Ninja, Mecha, and Berserk Pepe follow the same auditable source-plus-transparent-asset convention.
+
+Current roster identities:
+
+- `Crown Pepe`: original vault champion.
+- `Corrupt Pepe`: red-energy rival.
+- `Fallen Pepe`: red-crystal fallen warrior.
+- `Emerald Pepe`: gold-trimmed emerald guardian.
+- `Bandit Pepe`: shard outlaw with a holstered relic blaster.
+- `Ninja Pepe`: emerald-shadow fighter with forearm shard blades.
+- `Mecha Pepe`: reactor-powered vault defense unit.
+- `Berserk Pepe`: unchained emerald-fury bruiser.
+
+All fighters currently share the same combat statistics. Character-specific move balance remains gated on real playtesting.
 
 ## Concept
 
@@ -85,7 +107,7 @@ Cadence target: standard market signals should be the usual rhythm, `Emerald Flu
 
 ## Emerald Galactic Heroes
 
-`emerald-galactic-heroes.html` is the third mini game: an arcade shooter where players defend the emerald sector from fictional rival gas empire ships.
+`emerald-galactic-heroes.html` is an arcade shooter where players defend the emerald sector from fictional rival gas empire ships.
 
 Core loop:
 
@@ -106,6 +128,8 @@ The shooter now includes boss warnings, weapon-upgrade popups, pickup text, hit 
 Open `index.html` in a browser for the full arcade hub, or `emerald-hands.html` to jump straight into Emerald Hands.
 
 No build step is required.
+
+Run `npm test` for the dependency-free smoke suite. It verifies all eight pages, local asset references, shared arcade contracts, hub-return navigation, and JavaScript syntax.
 
 ## Deploy To Render
 
@@ -129,11 +153,14 @@ Render should create one static web service:
 - All shard balances are local browser state in `localStorage`.
 - `OG Points` are also fictional local progress and do not represent ownership, tokens, or yield.
 - Arcade XP, badges, daily challenges, and best scores are local cosmetic progress only.
+- Session analytics are stored locally and track starts, completions, retries, total play seconds, and the last-played game. They are not network analytics.
+- Tower mastery is persistent but cosmetic: placement and upgrade counts produce Recruit, Operator, Veteran, and Legend labels without changing combat balance.
 - Real wallet integration, real token rewards, staking, yield, sweepstakes, or gambling-style mechanics would require legal and security review.
 - The generated art is project-local under `assets/` and should be replaced or licensed intentionally before commercial distribution.
 
 ## Next Steps
 
-- Add mobile haptics and richer sound design.
-- Add ETCScreener embeds for the hub only after the screener surface is stable.
-- Add a leaderboard only after spam, auth, and abuse risks are scoped.
+- Run five-to-ten-player replay testing and compare the local starts/completions/retries signals before adding a ninth game.
+- Balance Tournament Rumble only after observing human play; the three fighters intentionally share the same combat stats today.
+- Add mobile fighting controls and richer sound design.
+- Add a leaderboard only after spam, authentication, privacy, and abuse risks are scoped.

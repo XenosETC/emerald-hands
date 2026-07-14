@@ -141,6 +141,7 @@ function updateMarketPlayback(dt, force = false) {
 }
 
 function startGame() {
+  window.EmeraldArcade?.beginSession("pepeRun", "pepecoin-run.html");
   Object.assign(state, { mode: "running", elapsed: 0, distance: 0, speed: 310, score: 0, shards: 0, combo: 1, comboClock: 0, shake: 0, flash: 0, lastFrame: performance.now() });
   hazards.length = 0;
   emeralds.length = 0;

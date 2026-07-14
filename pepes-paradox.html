@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Pepe's Paradox: a premium emerald platforming adventure to rescue Pepina.">
+    <meta name="theme-color" content="#020806">
+    <title>Pepe's Paradox</title>
+    <link rel="preload" href="assets/pepes-paradox/crown-platformer-sheet.png" as="image">
+    <link rel="preload" href="assets/pepes-paradox/paradox-collectibles.png" as="image">
+    <link rel="preload" href="assets/pepes-paradox/bamboo-mountains-loop.png" as="image">
+    <link rel="stylesheet" href="pepes-paradox.css?v=2">
+  </head>
+  <body>
+    <main class="paradox-shell">
+      <header class="paradox-topbar">
+        <a href="index.html">← Emerald Arcade</a>
+        <div><span>PEPE LEGENDS</span><strong>Pepe's Paradox</strong></div>
+        <button id="soundToggle" type="button" aria-pressed="true">Sound: on</button>
+      </header>
+      <section class="paradox-stage" aria-label="Pepe's Paradox Bamboo Mountains stage">
+        <canvas id="paradoxCanvas" width="1280" height="720" aria-label="Run, jump, dash, collect relics, and rescue Pepina"></canvas>
+        <section class="paradox-hud" aria-label="Stage progress">
+          <div><small>Stage 2</small><strong>Bamboo Mountains</strong></div>
+          <div><small>Shards</small><strong id="shardCount">0 / 12</strong></div>
+          <div><small>Relics</small><strong id="relicCount">0 / 2</strong></div>
+          <div><small>Hidden Frogs</small><strong id="frogCount">0 / 1</strong></div>
+        </section>
+        <section class="paradox-overlay" id="startOverlay">
+          <p>Chapter II · The Mountain Bait</p>
+          <h1>Ascend Bamboo Mountains.</h1>
+          <p>Fallen Pepe fled into the moonlit mountain pass. Cross the moving jade shrines, recover the Origin Relics, and keep Pepina's trail alive.</p>
+          <button id="startButton" type="button">Begin the Pursuit</button>
+          <small>A/D or arrows move · Space jump · Shift dash · Enter advances dialogue</small>
+        </section>
+        <section class="dialogue" id="dialogue" hidden aria-live="polite">
+          <img id="speakerPortrait" src="assets/pepe-relic-rumble/fallen-idle.png" alt="">
+          <div><span id="speakerName">Fallen Pepe</span><p id="dialogueText"></p></div>
+          <button id="dialogueNext" type="button">Continue</button>
+        </section>
+      </section>
+    </main>
+    <script src="arcade.js?v=3"></script>
+    <script src="pepes-paradox.js?v=2"></script>
+  </body>
+</html>

@@ -100,6 +100,7 @@ function tone(freq, duration = 0.08, type = "sine", gain = 0.03) {
 }
 
 function startGame() {
+  window.EmeraldArcade?.beginSession("spaceUnchained", "pepe-space-unchained.html");
   Object.assign(state, {
     mode: "playing",
     elapsed: 0,

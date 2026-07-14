@@ -7,6 +7,21 @@ function format(value) {
 }
 
 if (arcade) {
+  const continueTarget = window.EmeraldArcade.continueTarget();
+  const continueGame = document.querySelector("#continueGame");
+  const continueNames = {
+    hands: "Emerald Hands",
+    rush: "Shard Rush",
+    galaxy: "Galactic Heroes",
+    rumble: "Relic Rumble",
+    pepeRun: "Emerald Run",
+    spaceUnchained: "Space Unchained",
+    towerDefense: "Tower Defense",
+    pepeWars: "Pepe Wars",
+    paradox: "Pepe's Paradox",
+  };
+  continueGame.href = continueTarget.path;
+  continueGame.textContent = `Continue ${continueNames[continueTarget.game] || "Last Game"}`;
   const challenge = window.EmeraldArcade.todayChallenge();
   const badgeCatalog = window.EmeraldArcade.badges || [];
   const nextRank = window.EmeraldArcade.nextRankForXp(arcade.xp);
@@ -16,6 +31,19 @@ if (arcade) {
   document.querySelector("#arcadeXp").textContent = format(arcade.xp);
   document.querySelector("#arcadeBadges").textContent = arcade.badges.length || 0;
   document.querySelector("#dailyChallenge").textContent = `${challenge.game}: ${challenge.task}`;
+  const signals = Object.entries(arcade.analytics || {});
+  const totals = signals.reduce((sum, [, value]) => ({
+    starts: sum.starts + Number(value.starts || 0),
+    completes: sum.completes + Number(value.completes || 0),
+    retries: sum.retries + Number(value.retries || 0),
+  }), { starts: 0, completes: 0, retries: 0 });
+  const topSignal = signals.sort((a, b) => Number(b[1].starts || 0) - Number(a[1].starts || 0))[0];
+  document.querySelector("#arcadeStarts").textContent = format(totals.starts);
+  document.querySelector("#arcadeCompletes").textContent = format(totals.completes);
+  document.querySelector("#arcadeRetries").textContent = format(totals.retries);
+  document.querySelector("#arcadeTopGame").textContent = topSignal
+    ? `Most started: ${continueNames[topSignal[0]] || topSignal[0]}`
+    : "No sessions yet";
 
   document.querySelector("[data-stat='hands']").textContent =
     `${arcade.best.hands.prestigeRank} | ${format(arcade.best.hands.empireValue)} empire`;
@@ -29,6 +57,12 @@ if (arcade) {
     `${format(arcade.best.pepeRun.score)} best | ${arcade.best.pepeRun.rank}`;
   document.querySelector("[data-stat='spaceUnchained']").textContent =
     `${format(arcade.best.spaceUnchained.score)} best | ${arcade.best.spaceUnchained.rank}`;
+  document.querySelector("[data-stat='towerDefense']").textContent =
+    `${format(arcade.best.towerDefense.score)} best | ${arcade.best.towerDefense.rank}`;
+  document.querySelector("[data-stat='pepeWars']").textContent =
+    `${format(arcade.best.pepeWars.score)} best | ${arcade.best.pepeWars.rank}`;
+  document.querySelector("[data-stat='paradox']").textContent =
+    `${format(arcade.best.paradox.score)} best | Stage ${arcade.best.paradox.stage || 0}`;
 
   document.querySelector("#badgeSummary").textContent =
     arcade.badges.length ? `${arcade.badges.length} / ${badgeCatalog.length} unlocked` : "Start any game to unlock your first badge.";

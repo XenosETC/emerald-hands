@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Pepe Wars: Shard Siege - a side-scrolling lane war mini game.">
+    <meta name="theme-color" content="#020806">
+    <title>Pepe Wars: Shard Siege</title>
+    <link rel="preload" href="assets/pepe-wars/pepe-wars-arena.png" as="image">
+    <link rel="preload" href="assets/pepe-wars/brawler-pepe.png" as="image">
+    <link rel="preload" href="assets/pepe-wars/archer-pepe.png" as="image">
+    <link rel="preload" href="assets/pepe-wars/mage-pepe.png" as="image">
+    <link rel="preload" href="assets/pepe-wars/shard-deposit-large.png" as="image">
+    <link rel="stylesheet" href="pepe-wars.css?v=3">
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <a class="back" href="index.html" aria-label="Return to Emerald Arcade">Arcade</a>
+        <div class="brand">
+          <span>Pepe Legends</span>
+          <strong>Pepe Wars: Shard Siege</strong>
+        </div>
+        <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true">Sound: on</button>
+      </header>
+
+      <section class="stage-wrap" aria-label="Pepe Wars battlefield">
+        <canvas id="gameCanvas" width="1280" height="720" aria-label="Train Pepe units and destroy the corrupt relic base"></canvas>
+
+        <section class="hud" aria-label="War statistics">
+          <div><span id="shardLabel">120</span><small>shards</small></div>
+          <div><span id="incomeLabel">8/s</span><small>income</small></div>
+          <div><span id="scoreLabel">0</span><small>score</small></div>
+          <div><span id="timeLabel">0:00</span><small>time</small></div>
+          <div><span id="bestLabel">0</span><small>best</small></div>
+        </section>
+
+        <aside class="command-panel" aria-label="Pepe war command panel">
+          <div class="command-panel__header">
+            <span>War Camp</span>
+            <strong>Train Legion</strong>
+          </div>
+          <button class="unit-card" type="button" data-unit="miner">
+            <img src="assets/pepe-wars/miner-pepe.png" alt="">
+            <span><strong>Miner Pepe</strong><small>50 shards - income</small></span>
+          </button>
+          <button class="unit-card" type="button" data-unit="brawler">
+            <img src="assets/pepe-wars/brawler-pepe.png" alt="">
+            <span><strong>Brawler Pepe</strong><small>75 shards - frontline</small></span>
+          </button>
+          <button class="unit-card" type="button" data-unit="archer">
+            <img src="assets/pepe-wars/archer-pepe.png" alt="">
+            <span><strong>Archer Pepe</strong><small>110 shards - range</small></span>
+          </button>
+          <button class="unit-card" type="button" data-unit="mage">
+            <img src="assets/pepe-wars/mage-pepe.png" alt="">
+            <span><strong>Mage Pepe</strong><small>145 shards - splash</small></span>
+          </button>
+          <div class="stance-row" aria-label="Army stance">
+            <button class="stance-button is-selected" type="button" data-stance="attack">Attack</button>
+            <button class="stance-button" type="button" data-stance="hold">Hold</button>
+            <button class="stance-button" type="button" data-stance="defend">Defend</button>
+          </div>
+        </aside>
+
+        <div class="status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <strong id="statusLabel">Train miners, then send fighters.</strong>
+          <small id="statusMeta">Destroy the corrupt relic base before yours falls.</small>
+        </div>
+
+        <section class="overlay" id="gameOverlay">
+          <img src="assets/pepe-wars/brawler-pepe.png" alt="Pepe brawler">
+          <p class="eyebrow">Side-scrolling lane war</p>
+          <h1 id="overlayTitle">Pepe Wars</h1>
+          <p id="overlayText">Send miners to emerald deposits, train Pepe units, push the lane, and crack the corrupt relic base.</p>
+          <button id="startButton" type="button">Start Siege</button>
+          <small>Miners auto-claim deposits - stance controls your fighting line</small>
+        </section>
+      </section>
+    </main>
+
+    <script src="arcade.js?v=2"></script>
+    <script src="pepe-wars.js?v=3"></script>
+  </body>
+</html>

@@ -6,6 +6,7 @@
     <meta name="description" content="Pepe Relic Rumble: a chunky green Pepe stick-fighting mini game.">
     <title>Pepe Relic Rumble</title>
     <link rel="preload" href="assets/pepe-relic-rumble/pepe-arena.png" as="image">
+    <link rel="preload" href="assets/pepe-relic-rumble/kek-domain-arena.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/pepe-brawler.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/pepe-punch.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/pepe-kick.png" as="image">
@@ -15,7 +16,7 @@
     <link rel="preload" href="assets/pepe-relic-rumble/pepe-ko.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/shard-shield-green.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/shard-shield-red.png" as="image">
-    <link rel="stylesheet" href="pepe-relic-rumble.css">
+    <link rel="stylesheet" href="pepe-relic-rumble.css?v=8">
   </head>
   <body>
     <main class="rumble-shell">
@@ -29,7 +30,7 @@
             <a href="index.html">Arcade Hub</a>
             <a href="shard-rush.html">Shard Rush</a>
             <a href="emerald-galactic-heroes.html">Galactic Heroes</a>
-            <button id="startButton" type="button">Start Fight</button>
+            <button id="startButton" type="button">Choose Fighters</button>
           </nav>
         </div>
 
@@ -41,7 +42,7 @@
               <span id="p1Name">Crown Pepe</span>
               <strong id="p1Health">100</strong>
               <meter id="p1Meter" min="0" max="100" value="100"></meter>
-              <small>WASD move | S charge | F punch | G kick | H shield/special</small>
+              <small id="p1Controls">WASD move | S charge | F punch | G kick | H shield/special</small>
             </div>
             <div class="round-panel">
               <span id="roundLabel">Round 1</span>
@@ -52,20 +53,94 @@
               <span id="p2Name">Corrupt Pepe</span>
               <strong id="p2Health">100</strong>
               <meter id="p2Meter" min="0" max="100" value="100"></meter>
-              <small>Arrows move | Down charge | J punch | K kick | L shield/special</small>
+              <small id="p2Controls">Arrows move | Down charge | J punch | K kick | L shield/special</small>
             </div>
           </section>
 
+          <section class="domain-ceremony" id="domainCeremony" hidden aria-live="polite">
+            <div class="domain-ceremony__sigil" aria-hidden="true"><span>KEK</span></div>
+            <p class="eyebrow" id="domainCeremonyKicker">Championship Threshold</p>
+            <h2 id="domainCeremonyTitle">The Domain answers.</h2>
+            <p id="domainCeremonyLore">The last champion has invoked the Origin Sigil. Beyond this gate, the arena itself judges the challenger.</p>
+            <div class="domain-ceremony__oath" id="domainCeremonyOath">BREAK THE DOMAIN · CLAIM THE CROWN · RETURN WITH THE SIGIL</div>
+            <button id="domainCeremonyButton" type="button">Enter KEK Domain</button>
+          </section>
+
           <section class="rumble-overlay" id="rumbleOverlay">
-            <p class="eyebrow">Chunky Stick Fighter</p>
-            <h2 id="overlayTitle">Two green Pepes enter the vault.</h2>
-            <p id="overlayText">Win three rounds with thick-limbed punches, kicks, blocks, and one charged relic burst per fighter.</p>
+            <p class="eyebrow">Relic Rumble Fight Card</p>
+            <h2 id="overlayTitle">Choose the next vault legend.</h2>
+            <p id="overlayText">Choose a fight format, then draft your legend from the relic table.</p>
+            <div class="rumble-setup" id="rumbleSetup">
+              <div class="setup-step mode-step" id="modeStep">
+                <div class="mode-picker" role="group" aria-label="Rumble mode">
+                <button class="mode-card" type="button" data-mode="pvp" aria-pressed="false">
+                  <span class="mode-kicker">Versus</span>
+                  <strong>1v1 Fight</strong>
+                  <span>Draft Player 1 and Player 2 from the tabletop roster.</span>
+                </button>
+                <button class="mode-card mode-card--tournament" type="button" data-mode="tournament" aria-pressed="false">
+                  <span class="mode-kicker">Arcade Ladder</span>
+                  <strong>Tournament</strong>
+                  <span>Choose one legend, survive the AI bracket, and challenge its champion.</span>
+                </button>
+                </div>
+                <p class="unlock-callout"><strong>KEK Domain Final:</strong> survive the transformed championship realm to unlock Berserk Pepe and earn the Vault Champion badge.</p>
+              </div>
+
+              <div class="setup-step roster-step" id="rosterStep" hidden>
+                <div class="roster-toolbar">
+                  <button id="backToModes" type="button">← Fight formats</button>
+                  <div>
+                    <span class="mode-kicker" id="draftModeKicker">Versus Draft</span>
+                    <strong id="draftInstruction">Choose Player 1</strong>
+                  </div>
+                </div>
+                <div class="draft-table">
+                  <button class="draft-slot is-active" id="p1DraftSlot" type="button" data-draft-slot="p1">
+                    <span>Player 1</span>
+                    <img id="p1PreviewImage" src="assets/pepe-relic-rumble/pepe-brawler.png" alt="">
+                    <strong id="p1PreviewName">Crown Pepe</strong>
+                    <small>WASD controls</small>
+                  </button>
+                  <div class="character-card-grid" id="characterCards" aria-label="Character roster"></div>
+                  <button class="draft-slot" id="p2DraftSlot" type="button" data-draft-slot="p2">
+                    <span id="p2DraftLabel">Player 2</span>
+                    <img id="p2PreviewImage" src="assets/pepe-relic-rumble/pepe-brawler.png" alt="">
+                    <strong id="p2PreviewName">Corrupt Pepe</strong>
+                    <small id="p2PreviewMeta">Arrow controls</small>
+                  </button>
+                </div>
+                <select id="p1Character" hidden aria-label="Player 1 character">
+                    <option value="crown">Crown Pepe</option>
+                    <option value="corrupt">Corrupt Pepe</option>
+                    <option value="fallen">Fallen Pepe</option>
+                    <option value="emerald">Emerald Pepe</option>
+                    <option value="bandit">Bandit Pepe</option>
+                    <option value="ninja">Ninja Pepe</option>
+                    <option value="mecha">Mecha Pepe</option>
+                    <option value="berserk">Berserk Pepe</option>
+                </select>
+                <select id="p2Character" hidden aria-label="Player 2 character">
+                    <option value="corrupt">Corrupt Pepe</option>
+                    <option value="fallen">Fallen Pepe</option>
+                    <option value="crown">Crown Pepe</option>
+                    <option value="emerald">Emerald Pepe</option>
+                    <option value="bandit">Bandit Pepe</option>
+                    <option value="ninja">Ninja Pepe</option>
+                    <option value="mecha">Mecha Pepe</option>
+                    <option value="berserk">Berserk Pepe</option>
+                </select>
+                <p class="tournament-status" id="tournamentStatus" hidden>The bracket simulates the other AI fights. The championship tears open the KEK Domain with its own arena, music, and empowered champion.</p>
+                <button class="launch-fight" id="launchButton" type="button">Launch 1v1 Fight</button>
+              </div>
+            </div>
+            <section class="tournament-board" id="tournamentBoard" aria-label="Tournament bracket" hidden></section>
             <div class="control-grid" aria-label="Controls">
               <div>
                 <strong>Player 1</strong>
                 <span>WASD, F punch, G kick, H block or special</span>
               </div>
-              <div>
+              <div id="p2ControlCard">
                 <strong>Player 2</strong>
                 <span>Arrow keys, J punch, K kick, L block or special</span>
               </div>
@@ -75,7 +150,7 @@
       </section>
     </main>
 
-    <script src="arcade.js"></script>
-    <script src="pepe-relic-rumble.js"></script>
+    <script src="arcade.js?v=3"></script>
+    <script src="pepe-relic-rumble.js?v=21"></script>
   </body>
 </html>

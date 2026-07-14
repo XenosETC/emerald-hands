@@ -9,6 +9,8 @@
     <link rel="preload" href="assets/shard-rush/arena-background.png" as="image">
     <link rel="preload" href="assets/emerald-galactic-heroes/space-background.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/origin-flame.png" as="image">
+    <link rel="preload" href="assets/pepe-wars/brawler-pepe.png" as="image">
+    <link rel="preload" href="assets/pepe-tower-defense/pepe-blaster-sprite.png" as="image">
     <link rel="stylesheet" href="mini-games.css?v=pepe-origin-flame-v2">
   </head>
   <body>
@@ -17,9 +19,9 @@
         <div class="hub-copy">
           <p class="eyebrow">ETC Mini Games Lab</p>
           <h1 id="hub-title">Emerald Arcade</h1>
-          <p>Six small premium ETC-inspired games built for fast sessions, clean vibes, and arcade-style progression.</p>
+          <p>Nine premium ETC-inspired games and Pepe Legends prototypes built for fast sessions, clean vibes, and arcade-style progression.</p>
         </div>
-        <a class="hub-action" href="emerald-hands.html">Continue Emerald Hands</a>
+        <a class="hub-action" id="continueGame" href="emerald-hands.html">Continue Emerald Hands</a>
       </section>
 
       <section class="arcade-status" aria-label="Arcade progress">
@@ -41,7 +43,37 @@
         </div>
       </section>
 
+      <section class="arcade-insights" aria-label="Local play signals">
+        <div>
+          <span id="arcadeStarts">0</span>
+          <small>local starts</small>
+        </div>
+        <div>
+          <span id="arcadeCompletes">0</span>
+          <small>completed runs</small>
+        </div>
+        <div>
+          <span id="arcadeRetries">0</span>
+          <small>quick retries</small>
+        </div>
+        <p><strong id="arcadeTopGame">No sessions yet</strong><small>Private device-only signals; nothing is transmitted.</small></p>
+      </section>
+
       <section class="game-grid" aria-label="Available mini games">
+        <article class="game-card game-card--paradox">
+          <div class="game-art" aria-hidden="true">
+            <img src="assets/pepes-paradox/crown-platformer-idle.png" alt="" loading="eager">
+          </div>
+          <div class="game-body">
+            <p class="eyebrow">Pepe Legends Platformer</p>
+            <h2>Pepe's Paradox</h2>
+            <p>Chase Pepina's trail through Emerald Forest, master jumps and dashes, find relics, and survive Fallen Pepe's elite rage bait.</p>
+            <div class="game-meta"><span>Platformer</span><span>Cutscenes</span><span>Hidden Frogs</span></div>
+            <p class="game-stat" data-stat="paradox">0 best | Stage 0</p>
+            <a href="pepes-paradox.html">Play Pepe's Paradox</a>
+          </div>
+        </article>
+
         <article class="game-card game-card--pepe-run">
           <div class="game-art" aria-hidden="true">
             <img src="assets/pepecoin-run/pepecoin-classic.png" alt="" loading="eager">
@@ -57,6 +89,42 @@
             </div>
             <p class="game-stat" data-stat="pepeRun">0 best | Fresh Frog</p>
             <a href="pepecoin-run.html">Play Emerald Run</a>
+          </div>
+        </article>
+
+        <article class="game-card game-card--tower-defense">
+          <div class="game-art" aria-hidden="true">
+            <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="" loading="lazy">
+          </div>
+          <div class="game-body">
+            <p class="eyebrow">Blockchain Tower Defense</p>
+            <h2>Pepe Tower Defense</h2>
+            <p>Place Pepe defenders on vault pads, stop corrupt shard creeps, upgrade towers, and protect the emerald vault.</p>
+            <div class="game-meta">
+              <span>Defense</span>
+              <span>Wave Clear</span>
+              <span>Tower Upgrades</span>
+            </div>
+            <p class="game-stat" data-stat="towerDefense">0 best | Fresh Defender</p>
+            <a href="pepe-tower-defense.html">Play Tower Defense</a>
+          </div>
+        </article>
+
+        <article class="game-card game-card--pepe-wars">
+          <div class="game-art" aria-hidden="true">
+            <img src="assets/pepe-wars/brawler-pepe.png" alt="" loading="lazy">
+          </div>
+          <div class="game-body">
+            <p class="eyebrow">Lane War</p>
+            <h2>Pepe Wars</h2>
+            <p>Mine emerald shards, train Pepe units, hold lanes, and crack the corrupt relic base before yours falls.</p>
+            <div class="game-meta">
+              <span>Train Units</span>
+              <span>Auto Battle</span>
+              <span>Base Siege</span>
+            </div>
+            <p class="game-stat" data-stat="pepeWars">0 best | Fresh Recruit</p>
+            <a href="pepe-wars.html">Play Pepe Wars</a>
           </div>
         </article>
 
@@ -133,10 +201,10 @@
           <div class="game-body">
             <p class="eyebrow">Pepe Legends</p>
             <h2>Pepe Relic Rumble</h2>
-            <p>Fight local 1v1 rounds with chunky green Pepe brawlers, thick limbs, blocks, kicks, and charged relic bursts.</p>
+            <p>Choose from eight vault legends—including Bandit, Ninja, Mecha, and Berserk Pepe—for PvP or Tournament Rumble.</p>
             <div class="game-meta">
               <span>Fighter</span>
-              <span>Local 1v1</span>
+              <span>PvP + Tournament</span>
               <span>Relic Burst</span>
             </div>
             <p class="game-stat" data-stat="rumble">0 wins | Unranked</p>
@@ -156,7 +224,7 @@
         <div class="badge-list" id="badgeList"></div>
       </section>
     </main>
-    <script src="arcade.js"></script>
-    <script src="mini-games.js"></script>
+    <script src="arcade.js?v=2"></script>
+    <script src="mini-games.js?v=2"></script>
   </body>
 </html>

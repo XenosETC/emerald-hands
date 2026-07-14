@@ -1,0 +1,10 @@
+{
+  "name": "emerald-arcade",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Static ETC-inspired mini-game arcade",
+  "scripts": {
+    "test": "node scripts/smoke.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  }
+}

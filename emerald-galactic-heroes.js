@@ -67,6 +67,7 @@ const state = {
 };
 
 function startGame() {
+  window.EmeraldArcade?.beginSession("galaxy", "emerald-galactic-heroes.html");
   enemies.length = 0;
   heroShots.length = 0;
   enemyShots.length = 0;
