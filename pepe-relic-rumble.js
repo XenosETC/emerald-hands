@@ -1,5 +1,7 @@
 (function () {
-  const auraQaMode = new URLSearchParams(location.search).has("auraqa");
+  const queryParams = new URLSearchParams(location.search);
+  const auraQaMode = queryParams.has("auraqa");
+  const energyQaValue = Number(queryParams.get("energyqa") || 0);
   const canvas = document.querySelector("#rumbleCanvas");
   const ctx = canvas.getContext("2d");
   const startButton = document.querySelector("#startButton");
@@ -296,6 +298,21 @@
     mecha: { cell: 3, width: 1.4, height: 1.5, baseline: 15, orbitX: 0.57, orbitY: 0.59, alpha: 0.88 },
     berserk: { cell: 3, width: 1.55, height: 1.58, baseline: 18, orbitX: 0.64, orbitY: 0.64, alpha: 1 },
   };
+  const combatProfiles = {
+    crown: { hurtWidth: 142, hurtHeight: 190, reach: 1, damage: 1 },
+    corrupt: { hurtWidth: 150, hurtHeight: 196, reach: 1.02, damage: 1.02 },
+    fallen: { hurtWidth: 146, hurtHeight: 194, reach: 1, damage: 1.08 },
+    emerald: { hurtWidth: 144, hurtHeight: 192, reach: 0.98, damage: 0.98 },
+    bandit: { hurtWidth: 138, hurtHeight: 188, reach: 1.05, damage: 0.95 },
+    ninja: { hurtWidth: 126, hurtHeight: 184, reach: 1.08, damage: 0.9 },
+    mecha: { hurtWidth: 158, hurtHeight: 204, reach: 0.97, damage: 1.08 },
+    berserk: { hurtWidth: 178, hurtHeight: 226, reach: 1.08, damage: 1.18 },
+  };
+  const attackDefinitions = {
+    punch: { start: 0.23, end: 0.68, reach: 0.51, width: 0.61, height: 0.35, y: 0.54, damage: 10 },
+    kick: { start: 0.27, end: 0.79, reach: 0.61, width: 0.69, height: 0.54, y: 0.51, damage: 15 },
+    special: { start: 0.2, end: 0.84, reach: 1.38, width: 2.39, height: 0.69, y: 0.6, damage: 24 },
+  };
 
   const VAULT_CHAMPION_BADGE = "vault-champion";
   const characterRoles = {
@@ -565,6 +582,7 @@
       isAI: false,
       domainEmpowered: false,
       ai: { think: 0, action: null, move: 0, block: false, charge: false },
+      inputBuffer: { action: null, ttl: 0 },
       hitIds: new Set(),
     };
   }
@@ -792,6 +810,7 @@
       f.facing = index === 0 ? 1 : -1;
       f.health = 100;
       f.energy = Math.max(35, f.energy);
+      if (energyQaValue >= 75 && energyQaValue <= 100) f.energy = energyQaValue;
       f.grounded = true;
       f.state = "idle";
       f.action = null;
@@ -815,6 +834,7 @@
       f.specialReady = true;
       f.domainEmpowered = kekDomainActive && f.id === 2;
       f.ai = { think: 0, action: null, move: 0, block: false, charge: false };
+      f.inputBuffer = { action: null, ttl: 0 };
       f.hitIds.clear();
     });
     sparks.length = 0;
@@ -884,7 +904,8 @@
   }
 
   function beginAction(f, action) {
-    if (f.cooldown > 0 || f.action) return;
+    if (f.cooldown > 0 || f.action) return false;
+    if (action === "special" && f.energy < 100) return false;
     f.action = action;
     f.actionTime = 0;
     f.visualState = action;
@@ -899,6 +920,25 @@
       burst(f.x + f.facing * 62, f.y - 76, 34, f.palette.light);
       shardBlast(f, f.x + f.facing * 96, f.y - 134);
     }
+    return true;
+  }
+
+  function canStartAction(f, opponent, action) {
+    if (f.cooldown > 0 || f.action) return false;
+    if (action === "special") {
+      return f.energy >= 100 && Math.abs(opponent.x - f.x) < 380;
+    }
+    return action === "punch" || action === "kick";
+  }
+
+  function queueOrStartAction(f, opponent, action) {
+    if (!action) return false;
+    if (canStartAction(f, opponent, action) && beginAction(f, action)) {
+      f.inputBuffer = { action: null, ttl: 0 };
+      return true;
+    }
+    if (!f.isAI) f.inputBuffer = { action, ttl: 0.13 };
+    return false;
   }
 
   function inputForFighter(f, opponent, dt) {
@@ -961,6 +1001,8 @@
     f.afterimageCooldown = Math.max(0, (f.afterimageCooldown || 0) - dt);
     f.energy = clamp(f.energy + dt * (f.domainEmpowered ? 8.5 : 5.5), 0, 100);
     if (f.energy >= 100) f.specialReady = true;
+    f.inputBuffer.ttl = Math.max(0, f.inputBuffer.ttl - dt);
+    if (f.inputBuffer.ttl === 0) f.inputBuffer.action = null;
     f.moveDir = move;
     f.moveMode = move
       ? (Math.sign(move) === f.facing ? "run" : "retreat")
@@ -984,9 +1026,8 @@
       burst(f.x - f.facing * 24, f.y - 8, 8, "rgba(116, 255, 197, 0.85)");
     }
 
-    if (input.punch) beginAction(f, "punch");
-    if (input.kick) beginAction(f, "kick");
-    if (input.special && f.energy >= 100 && Math.abs(opponent.x - f.x) < 380) beginAction(f, "special");
+    const requestedAction = input.special ? "special" : input.kick ? "kick" : input.punch ? "punch" : null;
+    if (requestedAction) queueOrStartAction(f, opponent, requestedAction);
 
     f.charging = wantsCharge && !f.action && f.grounded && !wantsBlock;
     f.chargeTime = f.charging ? Math.min(1.5, (f.chargeTime || 0) + dt) : Math.max(0, (f.chargeTime || 0) - dt * 4);
@@ -1018,6 +1059,12 @@
       f.actionTime += dt;
       f.state = f.action;
       if (f.actionTime >= actionDurations[f.action]) f.action = null;
+    }
+    if (!requestedAction && f.inputBuffer.action && f.inputBuffer.ttl > 0) {
+      const bufferedAction = f.inputBuffer.action;
+      if (canStartAction(f, opponent, bufferedAction) && beginAction(f, bufferedAction)) {
+        f.inputBuffer = { action: null, ttl: 0 };
+      }
     }
 
     f.vy += gravity;
@@ -1063,21 +1110,38 @@
       f.afterimageCooldown = animation.trail;
     }
 
-    if (f.action === "punch" && f.actionTime > 0.07 && f.actionTime < 0.22) {
-      tryHit(f, opponent, "punch", f.x + f.facing * 112, f.y - 118, 132, 76, 10);
-    }
-    if (f.action === "kick" && f.actionTime > 0.12 && f.actionTime < 0.34) {
-      tryHit(f, opponent, "kick", f.x + f.facing * 132, f.y - 112, 150, 118, 15);
-    }
-    if (f.action === "special" && f.actionTime > 0.12 && f.actionTime < 0.48) {
-      tryHit(f, opponent, "special", f.x + f.facing * 300, f.y - 130, 520, 150, 24);
-    }
+    if (f.action in attackDefinitions) tryActionHit(f, opponent, f.action);
+  }
+
+  function tryActionHit(attacker, defender, attack) {
+    const definition = attackDefinitions[attack];
+    const duration = actionDurations[attack];
+    const progress = clamp(attacker.actionTime / duration, 0, 1);
+    if (progress < definition.start || progress > definition.end) return;
+    const combat = combatProfiles[attacker.characterId] || combatProfiles.crown;
+    const visualHeight = fighterVisualHeight(attacker);
+    tryHit(
+      attacker,
+      defender,
+      attack,
+      attacker.x + attacker.facing * visualHeight * definition.reach * combat.reach,
+      attacker.y - visualHeight * definition.y,
+      visualHeight * definition.width * combat.reach,
+      visualHeight * definition.height,
+      definition.damage * combat.damage
+    );
   }
 
   function tryHit(attacker, defender, attack, hx, hy, hw, hh, damage) {
     const hitKey = `${attack}-${defender.id}`;
     if (attacker.hitIds.has(hitKey) || defender.invuln > 0) return;
-    const defenderBox = { x: defender.x - 82, y: defender.y - 222, w: 164, h: 222 };
+    const defenderCombat = combatProfiles[defender.characterId] || combatProfiles.crown;
+    const defenderBox = {
+      x: defender.x - defenderCombat.hurtWidth / 2,
+      y: defender.y - defenderCombat.hurtHeight,
+      w: defenderCombat.hurtWidth,
+      h: defenderCombat.hurtHeight,
+    };
     const hitBox = { x: hx - hw / 2, y: hy - hh / 2, w: hw, h: hh };
     const overlaps =
       hitBox.x < defenderBox.x + defenderBox.w &&
@@ -1088,7 +1152,8 @@
 
     attacker.hitIds.add(hitKey);
     const blocked = defender.block && Math.sign(attacker.x - defender.x) === defender.facing;
-    const empoweredDamage = attacker.domainEmpowered ? Math.ceil(damage * 1.12) : damage;
+    const scaledDamage = Math.max(1, Math.round(damage));
+    const empoweredDamage = attacker.domainEmpowered ? Math.ceil(scaledDamage * 1.12) : scaledDamage;
     const finalDamage = blocked ? Math.ceil(empoweredDamage * 0.28) : empoweredDamage;
     defender.health = clamp(defender.health - finalDamage, 0, 100);
     defender.invuln = 0.18;
@@ -1646,7 +1711,7 @@
       ? (darkEffect ? "rgba(255, 74, 74, 0.9)" : "rgba(116, 255, 197, 0.85)")
       : (darkEffect ? "rgba(255, 74, 74, 0.42)" : "rgba(35, 240, 156, 0.35)");
     ctx.shadowBlur = f.energy >= 100 && !isGhost ? 8 : 0;
-    if (!isGhost && (auraQaMode || f.charging || action === "special" || f.domainEmpowered)) drawShardAura(f, action);
+    if (!isGhost && (auraQaMode || f.energy >= 75 || f.charging || action === "special" || f.domainEmpowered)) drawShardAura(f, action);
     ctx.drawImage(sprite, -width / 2, -height, width, height);
 
     if (!isGhost && f.block && !customSprite) drawShardShield(f);
@@ -1811,8 +1876,13 @@
   }
 
   function drawShardAura(f, action) {
-    const charge = auraQaMode ? 1 : clamp(f.energy / 100, 0, 1);
-    if (!auraQaMode && !f.charging && action !== "special" && !f.domainEmpowered) return;
+    const storedEnergyAura = f.energy >= 75 ? 0.18 + clamp((f.energy - 75) / 25, 0, 1) * 0.82 : 0;
+    const charge = auraQaMode || f.domainEmpowered
+      ? 1
+      : f.charging || action === "special"
+        ? Math.max(0.35, clamp(f.energy / 100, 0, 1))
+        : storedEnergyAura;
+    if (!auraQaMode && f.energy < 75 && !f.charging && action !== "special" && !f.domainEmpowered) return;
     const now = performance.now();
     const pulse = 0.72 + Math.sin(now / 115) * 0.28;
     const darkEffect = effectVariant(f) === 2;
@@ -2404,11 +2474,14 @@
         characterId: fighter.characterId,
         x: Math.round(fighter.x),
         facing: fighter.facing,
+        energy: Number(fighter.energy.toFixed(1)),
+        auraActive: auraQaMode || fighter.energy >= 75 || fighter.charging || fighter.action === "special" || fighter.domainEmpowered,
         state: fighter.state,
         action: fighter.action,
         visualState: fighter.visualState,
         visualStateTime: Number((fighter.visualStateTime || 0).toFixed(2)),
         renderHeight: fighterVisualHeight(fighter),
+        hurtbox: combatProfiles[fighter.characterId] || combatProfiles.crown,
       })),
       activeBlasts: shardBlasts.map((blast) => ({ characterId: blast.characterId, facing: blast.facing })),
       afterimages: afterImages.length,

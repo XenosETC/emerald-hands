@@ -150,6 +150,9 @@ for (const fighter of ["crown", "corrupt", ...premiumFighters]) {
 }
 for (const animationContract of [
   "actionDurations",
+  "attackDefinitions",
+  "combatProfiles",
+  "inputBuffer",
   "visualStateTime",
   "afterImages.push",
   "drawActionAccent",
@@ -157,6 +160,8 @@ for (const animationContract of [
 ]) {
   check(rumbleSource.includes(animationContract), `Relic Rumble animation contract is missing ${animationContract}`);
 }
+check(rumbleSource.includes("f.energy >= 75"), "Relic Rumble lasting 75-energy aura contract is missing");
+check(rumbleSource.includes("storedEnergyAura"), "Relic Rumble graduated stored-energy aura contract is missing");
 check(rumbleSource.includes('renderHeight: 248'), "Berserk Pepe heavyweight size contract is missing");
 for (const fighter of ["crown", "corrupt", "fallen", "emerald", "bandit", "ninja", "mecha", "berserk"]) {
   const optionCount = [...rumbleHtml.matchAll(new RegExp(`<option value="${fighter}">`, "g"))].length;
