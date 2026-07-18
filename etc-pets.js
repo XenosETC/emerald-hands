@@ -71,7 +71,8 @@ function act(action) {
   clearTimeout(celebrationTimer);
   render(true);
   celebrationTimer = setTimeout(() => render(false), 950);
-  window.EmeraldArcade?.record("pets", {
+  const recordPetProgress = window.EmeraldArcade?.recordAndNotify || window.EmeraldArcade?.record;
+  recordPetProgress?.("pets", {
     score: stats.aura,
     rank: rankForAura(stats.aura),
     aura: stats.aura,

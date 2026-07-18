@@ -203,6 +203,12 @@
       description: "Raise an ETC pet to 200 aura.",
       icon: "assets/etc-pets/meme-pets.png",
     },
+    {
+      slug: "bamboo-disciple",
+      name: "Bamboo Disciple",
+      description: "Train an ETC pet to Strength Level 2.",
+      icon: "assets/etc-pets/pepe-variants.png",
+    },
   ];
 
   const legacyBadgeMap = {
@@ -244,9 +250,14 @@
       return {
         muted: Boolean(saved?.muted),
         reducedMotion: Boolean(saved?.reducedMotion),
+        dock: {
+          x: Number.isFinite(saved?.dock?.x) ? saved.dock.x : null,
+          y: Number.isFinite(saved?.dock?.y) ? saved.dock.y : null,
+          collapsed: Boolean(saved?.dock?.collapsed),
+        },
       };
     } catch {
-      return { muted: false, reducedMotion: false };
+      return { muted: false, reducedMotion: false, dock: { x: null, y: null, collapsed: false } };
     }
   }
 
@@ -485,6 +496,7 @@
       if ((payload.aura || 0) >= data.best.pets.aura) data.best.pets = { ...data.best.pets, ...payload };
       data.xp += Math.floor((payload.aura || 0) / 8) + Math.max(0, (payload.trained || 1) - 1) * 3;
       if ((payload.aura || 0) >= 200) uniquePush(data.badges, "aura-farmer");
+      if ((payload.trained || 1) >= 2) uniquePush(data.badges, "bamboo-disciple");
     }
 
     if (arcadeShardReward) {
@@ -629,7 +641,11 @@
         box-shadow: 0 14px 44px rgba(0, 0, 0, .58);
         backdrop-filter: blur(14px);
         font-family: Inter, system-ui, sans-serif;
+        touch-action: none;
       }
+      .arcade-runtime-dock.is-dragging { cursor: grabbing; user-select: none; }
+      .arcade-runtime-dock.is-collapsed { gap: 0; padding: 4px; }
+      .arcade-runtime-dock.is-collapsed > :not([data-arcade-command="collapse"]) { display: none; }
       .arcade-runtime-dock button {
         min-width: 64px;
         min-height: 44px;
@@ -643,6 +659,9 @@
       }
       .arcade-runtime-dock button:hover,
       .arcade-runtime-dock button:focus-visible { border-color: #74ffc5; outline: 2px solid rgba(116,255,197,.24); outline-offset: 2px; }
+      .arcade-runtime-dock .arcade-runtime-grip { min-width: 54px; cursor: grab; color:#9affd6; touch-action:none; }
+      .arcade-runtime-dock.is-dragging .arcade-runtime-grip { cursor: grabbing; }
+      .arcade-runtime-dock [data-arcade-command="collapse"] { min-width: 54px; }
       .arcade-runtime-pause {
         position: fixed;
         inset: 0;
@@ -705,11 +724,49 @@
     dock.className = "arcade-runtime-dock";
     dock.setAttribute("aria-label", "Arcade commands");
     dock.innerHTML = `
+      <button type="button" class="arcade-runtime-grip" data-arcade-drag-handle aria-label="Drag arcade menu">Move</button>
       ${isGamePage ? `<button type="button" data-arcade-command="pause" aria-pressed="false">Pause</button>` : ""}
       <button type="button" data-arcade-command="mute" aria-pressed="${runtime.muted}">${runtime.muted ? "Sound off" : "Sound on"}</button>
       ${isGamePage ? `<button type="button" data-arcade-command="restart">Restart</button>` : ""}
       <button type="button" data-arcade-command="controls">${isGamePage ? "Controls" : "Settings"}</button>
+      <button type="button" data-arcade-command="collapse" aria-expanded="true">Hide</button>
     `;
+    const dockToggle = dock.querySelector("[data-arcade-command='collapse']");
+    const dockHandle = dock.querySelector("[data-arcade-drag-handle]");
+    const savedDock = loadSettings().dock;
+    const dockState = {
+      x: savedDock?.x ?? null,
+      y: savedDock?.y ?? null,
+      collapsed: Boolean(savedDock?.collapsed),
+    };
+
+    function constrainDock(x, y) {
+      const rect = dock.getBoundingClientRect();
+      return {
+        x: Math.max(8, Math.min(x, window.innerWidth - rect.width - 8)),
+        y: Math.max(8, Math.min(y, window.innerHeight - rect.height - 8)),
+      };
+    }
+
+    function applyDockState() {
+      dock.classList.toggle("is-collapsed", dockState.collapsed);
+      dockToggle.textContent = dockState.collapsed ? "Menu" : "Hide";
+      dockToggle.setAttribute("aria-expanded", String(!dockState.collapsed));
+      dockToggle.setAttribute("aria-label", dockState.collapsed ? "Show arcade menu" : "Hide arcade menu");
+      if (!Number.isFinite(dockState.x) || !Number.isFinite(dockState.y)) return;
+      const position = constrainDock(dockState.x, dockState.y);
+      dockState.x = position.x;
+      dockState.y = position.y;
+      dock.style.left = `${position.x}px`;
+      dock.style.top = `${position.y}px`;
+      dock.style.right = "auto";
+      dock.style.bottom = "auto";
+    }
+
+    function saveDockState() {
+      const settings = loadSettings();
+      saveSettings({ ...settings, dock: { ...dockState } });
+    }
 
     const pauseOverlay = document.createElement("aside");
     pauseOverlay.className = "arcade-runtime-pause";
@@ -759,6 +816,43 @@
       if (command === "mute") setMuted(!runtime.muted);
       if (command === "restart") location.reload();
       if (command === "controls") openModal();
+      if (command === "collapse") {
+        dockState.collapsed = !dockState.collapsed;
+        applyDockState();
+        saveDockState();
+      }
+    });
+    dockHandle.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      const startRect = dock.getBoundingClientRect();
+      const startX = event.clientX;
+      const startY = event.clientY;
+      dock.classList.add("is-dragging");
+      dock.style.left = `${startRect.left}px`;
+      dock.style.top = `${startRect.top}px`;
+      dock.style.right = "auto";
+      dock.style.bottom = "auto";
+
+      function moveDock(moveEvent) {
+        const position = constrainDock(startRect.left + moveEvent.clientX - startX, startRect.top + moveEvent.clientY - startY);
+        dockState.x = position.x;
+        dockState.y = position.y;
+        dock.style.left = `${position.x}px`;
+        dock.style.top = `${position.y}px`;
+      }
+
+      function finishDockMove() {
+        dock.classList.remove("is-dragging");
+        window.removeEventListener("pointermove", moveDock);
+        window.removeEventListener("pointerup", finishDockMove);
+        window.removeEventListener("pointercancel", finishDockMove);
+        saveDockState();
+      }
+
+      window.addEventListener("pointermove", moveDock);
+      window.addEventListener("pointerup", finishDockMove);
+      window.addEventListener("pointercancel", finishDockMove);
     });
     modal.addEventListener("click", (event) => {
       if (event.target === modal || event.target.closest(".arcade-runtime-close")) closeModal();
@@ -804,6 +898,12 @@
       if (isGamePage && document.hidden && !runtime.paused) setPaused(true);
     });
     document.body.append(pauseOverlay, dock, modal);
+    requestAnimationFrame(applyDockState);
+    window.addEventListener("resize", () => {
+      if (!Number.isFinite(dockState.x) || !Number.isFinite(dockState.y)) return;
+      applyDockState();
+      saveDockState();
+    });
     syncAudioState();
   }
 

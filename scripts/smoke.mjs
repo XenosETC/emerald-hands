@@ -62,6 +62,9 @@ for (const contract of [
   "TrackedAudioContext",
   "arcade-runtime-dock",
   "arcade-runtime-modal",
+  "data-arcade-drag-handle",
+  'data-arcade-command="collapse"',
+  "saveDockState",
 ]) {
   check(arcadeSource.includes(contract), `Phase 1 shared runtime contract is missing ${contract}`);
 }
@@ -123,6 +126,8 @@ for (const page of ["index.html", ...gamePages.filter((page) => page !== "etc-pe
   check(html.includes("arcade-pet.js"), `${page} does not load the shared arcade pet companion`);
 }
 check(arcadeSource.includes('slug: "aura-farmer"'), "Arcade Aura Farmer badge is missing");
+check(arcadeSource.includes('slug: "bamboo-disciple"'), "Arcade Bamboo Disciple badge is missing");
+check(petGameSource.includes("recordAndNotify"), "ETC Pets badge notification contract is missing");
 
 const rumbleSource = readFileSync(resolve(root, "pepe-relic-rumble.js"), "utf8");
 const rumbleHtml = readFileSync(resolve(root, "pepe-relic-rumble.html"), "utf8");
