@@ -1,24 +1,39 @@
 (function () {
+  const SCHEMA_VERSION = 2;
   const STORAGE_KEY = "emerald-arcade-pets-v1";
   const SPRITES = "assets/etc-pets/meme-pets.png";
   const PEPE_VARIANTS = "assets/etc-pets/pepe-variants.png";
   const pets = [
-    { id: "pepe", name: "Emerald Pepe", title: "Shard Sniffer", col: 0, sheet: SPRITES },
-    { id: "wojak", name: "Pocket Wojak", title: "Anxiety Sensor", col: 1, sheet: SPRITES },
-    { id: "chad", name: "Mini Chad", title: "Aura Coach", col: 2, sheet: SPRITES },
-    { id: "bogdanoff", name: "Cosmic Bog", title: "Market Oracle", col: 3, sheet: SPRITES },
-    { id: "big-chain-pepe", name: "Big Chain Pepe", title: "Vault Heavyweight", col: 0, sheet: PEPE_VARIANTS },
-    { id: "mecha-pepe", name: "Mini Mecha Pepe", title: "Reactor Buddy", col: 1, sheet: PEPE_VARIANTS },
-    { id: "berserk-tadpole", name: "Berserk Tadpole", title: "Tiny Rage Engine", col: 2, sheet: PEPE_VARIANTS },
-    { id: "fallen-crystal", name: "Fallen Crystal Pepe", title: "Red Shard Summoner", col: 3, sheet: PEPE_VARIANTS },
+    { id: "pepe", name: "Emerald Pepe", title: "Shard Sniffer", col: 0, sheet: SPRITES, unlockCost: 0 },
+    { id: "wojak", name: "Pocket Wojak", title: "Anxiety Sensor", col: 1, sheet: SPRITES, unlockCost: 90 },
+    { id: "chad", name: "Mini Chad", title: "Aura Coach", col: 2, sheet: SPRITES, unlockCost: 160 },
+    { id: "bogdanoff", name: "Cosmic Bog", title: "Market Oracle", col: 3, sheet: SPRITES, unlockCost: 260 },
+    { id: "big-chain-pepe", name: "Big Chain Pepe", title: "Vault Heavyweight", col: 0, sheet: PEPE_VARIANTS, unlockCost: 400 },
+    { id: "mecha-pepe", name: "Mini Mecha Pepe", title: "Reactor Buddy", col: 1, sheet: PEPE_VARIANTS, unlockCost: 560 },
+    { id: "berserk-tadpole", name: "Berserk Tadpole", title: "Tiny Rage Engine", col: 2, sheet: PEPE_VARIANTS, unlockCost: 760 },
+    { id: "fallen-crystal", name: "Fallen Crystal Pepe", title: "Red Shard Summoner", col: 3, sheet: PEPE_VARIANTS, unlockCost: 1000 },
   ];
+  const supplyPacks = {
+    shoot: { name: "Bamboo Shoot", shoots: 1, sticks: 0, cost: 8 },
+    "shoot-bundle": { name: "Bamboo Basket", shoots: 5, sticks: 0, cost: 35 },
+    stick: { name: "Training Stick", shoots: 0, sticks: 1, cost: 18 },
+  };
 
   function defaults() {
     return {
+      schemaVersion: SCHEMA_VERSION,
       selected: "pepe",
-      unlocked: pets.map((pet) => pet.id),
+      unlocked: ["pepe"],
       x: 76,
-      stats: Object.fromEntries(pets.map((pet) => [pet.id, { aura: 0, hunger: 78, joy: 72, training: 1 }])),
+      inventory: { bambooShoots: 2, bambooSticks: 1 },
+      stats: Object.fromEntries(pets.map((pet) => [pet.id, {
+        aura: 0,
+        hunger: 78,
+        joy: 72,
+        training: 1,
+        strength: 1,
+        strengthXp: 0,
+      }])),
     };
   }
 
@@ -26,12 +41,26 @@
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
       const base = defaults();
-      return {
+      const migrated = {
         ...base,
         ...saved,
-        unlocked: [...new Set([...base.unlocked, ...(saved?.unlocked || [])])],
-        stats: Object.fromEntries(pets.map((pet) => [pet.id, { ...base.stats[pet.id], ...saved?.stats?.[pet.id] }])),
+        schemaVersion: SCHEMA_VERSION,
+        inventory: { ...base.inventory, ...(saved?.inventory || {}) },
+        unlocked: [...new Set([...base.unlocked, ...(Array.isArray(saved?.unlocked) ? saved.unlocked : [])])],
+        stats: Object.fromEntries(pets.map((pet) => {
+          const previous = saved?.stats?.[pet.id] || {};
+          const strengthXp = Math.max(0, Number(previous.strengthXp ?? Math.max(0, Number(previous.training || 1) - 1) * 10));
+          return [pet.id, {
+            ...base.stats[pet.id],
+            ...previous,
+            strengthXp,
+            strength: strengthForXp(strengthXp),
+          }];
+        })),
       };
+      if (!migrated.unlocked.includes(migrated.selected)) migrated.selected = "pepe";
+      if (saved?.schemaVersion !== SCHEMA_VERSION) localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
     } catch {
       return defaults();
     }
@@ -45,6 +74,7 @@
   let excitedTimer;
 
   function save() {
+    data.schemaVersion = SCHEMA_VERSION;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     window.dispatchEvent(new CustomEvent("arcadepet:change", { detail: load() }));
   }
@@ -95,11 +125,13 @@
       .arcade-pet-picker header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:9px; }
       .arcade-pet-picker header strong { font-size:14px; }
       .arcade-pet-picker header a { color:#8dffd1; font-size:11px; }
+      .arcade-pet-picker .arcade-pet-balance { margin:-2px 0 9px; color:#e2bd6a; font-size:10px; font-weight:800; }
       .arcade-pet-options { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
       .arcade-pet-option { border:1px solid rgba(122,255,202,.2); border-radius:8px; color:#effff7; background:rgba(16,53,37,.58); cursor:pointer; padding:5px; }
       .arcade-pet-option.is-selected { border-color:#8dffd1; box-shadow:inset 0 0 14px rgba(44,255,157,.16); }
       .arcade-pet-option i { display:block; width:58px; max-width:100%; aspect-ratio:1; margin:auto; background-image:url("${SPRITES}"); background-size:400% 200%; background-repeat:no-repeat; }
-      .arcade-pet-option span { display:block; overflow:hidden; font-size:9px; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
+      .arcade-pet-option span,.arcade-pet-option small { display:block; overflow:hidden; font-size:9px; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
+      .arcade-pet-option small { margin-top:2px; color:#93b8a7; font-size:8px; }
       @keyframes arcade-pet-bob { to { transform:translateY(-5px) rotate(1deg); } }
       @keyframes arcade-pet-aura { 50% { transform:scale(1.08); border-color:rgba(75,255,172,.5); box-shadow:0 0 18px rgba(75,255,172,.2); } }
       @media(max-width:680px){ .arcade-pet-companion{width:76px;height:94px}.arcade-pet-sprite{width:66px;height:66px}.arcade-pet-picker{bottom:116px} }
@@ -113,9 +145,11 @@
       .filter((pet) => data.unlocked.includes(pet.id))
       .map((pet) => `
         <button class="arcade-pet-option${pet.id === data.selected ? " is-selected" : ""}" data-pet="${pet.id}" type="button">
-          <i style="background-image:url('${pet.sheet}');background-position:${spritePosition(pet.id)}"></i><span>${pet.name}</span>
+          <i style="background-image:url('${pet.sheet}');background-position:${spritePosition(pet.id)}"></i><span>${pet.name}</span><small>Strength ${data.stats[pet.id].strength}</small>
         </button>
       `).join("");
+    const balance = picker.querySelector(".arcade-pet-balance");
+    if (balance) balance.textContent = `${window.EmeraldArcade?.arcadeShardBalance?.() || 0} Arcade Shards · ${data.inventory.bambooShoots} shoots · ${data.inventory.bambooSticks} sticks`;
   }
 
   function mount() {
@@ -128,7 +162,7 @@
     sprite = companion.querySelector(".arcade-pet-sprite");
     picker = document.createElement("section");
     picker.className = "arcade-pet-picker";
-    picker.innerHTML = `<header><strong>Arcade Pet Dock</strong><a href="etc-pets.html">Open sanctuary</a></header><div class="arcade-pet-options"></div>`;
+    picker.innerHTML = `<header><strong>Arcade Pet Dock</strong><a href="etc-pets.html">Open sanctuary</a></header><div class="arcade-pet-balance"></div><div class="arcade-pet-options"></div>`;
     dockToggle = document.createElement("button");
     dockToggle.className = "arcade-pet-dock-toggle";
     dockToggle.type = "button";
@@ -191,6 +225,8 @@
     data = load();
     const stats = data.stats[data.selected];
     if (action === "feed") {
+      if (data.inventory.bambooShoots < 1) return { ok: false, stats, message: "Buy a bamboo shoot before feeding." };
+      data.inventory.bambooShoots -= 1;
       stats.hunger = clamp(stats.hunger + 22, 0, 100);
       stats.joy = clamp(stats.joy + 2, 0, 100);
     }
@@ -199,7 +235,12 @@
       stats.hunger = clamp(stats.hunger - 4, 0, 100);
     }
     if (action === "train") {
+      if (data.inventory.bambooSticks < 1) return { ok: false, stats, message: "Training needs one bamboo stick." };
+      if (stats.hunger < 20) return { ok: false, stats, message: "Feed your pet before training again." };
+      data.inventory.bambooSticks -= 1;
       stats.training += 1;
+      stats.strengthXp += 10;
+      stats.strength = strengthForXp(stats.strengthXp);
       stats.hunger = clamp(stats.hunger - 8, 0, 100);
       stats.joy = clamp(stats.joy - 3, 0, 100);
     }
@@ -207,7 +248,59 @@
     data.stats[data.selected] = stats;
     save();
     celebrate();
-    return stats;
+    return { ok: true, stats, message: action === "train" ? `Strength reached Level ${stats.strength}.` : "" };
+  }
+
+  function purchaseSupply(packId) {
+    const pack = supplyPacks[packId];
+    if (!pack) return { ok: false, message: "Unknown bamboo supply." };
+    if (!window.EmeraldArcade?.spendArcadeShards(pack.cost)) {
+      return { ok: false, message: `You need ${pack.cost} Arcade Shards.` };
+    }
+    data = load();
+    data.inventory.bambooShoots += pack.shoots;
+    data.inventory.bambooSticks += pack.sticks;
+    save();
+    celebrate();
+    return { ok: true, message: `${pack.name} added to your sanctuary.` };
+  }
+
+  function unlock(id) {
+    data = load();
+    const pet = petById(id);
+    if (data.unlocked.includes(pet.id)) return { ok: true, message: `${pet.name} is already unlocked.` };
+    if (!window.EmeraldArcade?.spendArcadeShards(pet.unlockCost)) {
+      return { ok: false, message: `You need ${pet.unlockCost} Arcade Shards to unlock ${pet.name}.` };
+    }
+    data.unlocked.push(pet.id);
+    data.selected = pet.id;
+    save();
+    refresh();
+    celebrate();
+    return { ok: true, message: `${pet.name} joined your arcade roster.` };
+  }
+
+  function strengthForXp(xp) {
+    return Math.min(25, 1 + Math.floor(Math.sqrt(Math.max(0, Number(xp || 0)) / 10)));
+  }
+
+  function activeBonus(game) {
+    data = load();
+    const stats = data.stats[data.selected];
+    const careFactor = stats.hunger < 20 || stats.joy < 20 ? 0.5 : 1;
+    const trainedPower = Math.max(0, stats.strength - 1) * careFactor;
+    const bonuses = {
+      rush: { magnetRadius: Math.min(24, trainedPower * 2), label: "Shard magnet" },
+      rocketSimulator: { salvageMultiplier: 1 + Math.min(0.15, trainedPower * 0.01), label: "Salvage assist" },
+      paradox: { collectibleRadius: Math.min(24, trainedPower * 2), label: "Relic instinct" },
+    };
+    return {
+      petId: data.selected,
+      petName: petById(data.selected).name,
+      strength: stats.strength,
+      careFactor,
+      ...(bonuses[game] || { label: "Companion aura" }),
+    };
   }
 
   function addAura(amount) {
@@ -219,7 +312,23 @@
 
   function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 
-  window.ArcadePet = { pets, load, select, updatePet, addAura, celebrate, mount, spritePosition };
+  window.ArcadePet = {
+    schemaVersion: SCHEMA_VERSION,
+    pets,
+    supplyPacks,
+    load,
+    select,
+    unlock,
+    updatePet,
+    purchaseSupply,
+    activeBonus,
+    strengthForXp,
+    addAura,
+    celebrate,
+    mount,
+    spritePosition,
+  };
+  window.addEventListener("emeraldarcade:wallet", refresh);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
   else mount();
 })();

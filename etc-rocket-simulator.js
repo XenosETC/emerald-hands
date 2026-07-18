@@ -191,7 +191,9 @@ function endFlight(reason) {
   save.bestDistance = Math.max(save.bestDistance, state.distance);
   save.runs += 1;
   const base = 35 + Math.sqrt(state.distance) * 3.5;
-  const reward = Math.max(25, Math.round(base * (1 + save.upgrades.magnet * 0.13)));
+  const petBonus = window.ArcadePet?.activeBonus("rocketSimulator");
+  const petMultiplier = Number(petBonus?.salvageMultiplier || 1);
+  const reward = Math.max(25, Math.round(base * (1 + save.upgrades.magnet * 0.13) * petMultiplier));
   save.shards += reward;
   persist();
   for (let i = 0; i < Math.min(42, 12 + Math.floor(Math.sqrt(reward))); i += 1) rewardDrops.push(makeRewardDrop(i));
@@ -209,6 +211,7 @@ function endFlight(reason) {
     <div><strong>+${reward} ◆</strong><small>salvaged</small></div>
     <div><strong>${rank}</strong><small>expedition rank</small></div>
     <div><strong>${zoneFor(state.distance)}</strong><small>furthest sector</small></div>
+    ${petMultiplier > 1 ? `<div><strong>+${Math.round((petMultiplier - 1) * 100)}%</strong><small>${petBonus.petName} assist</small></div>` : ""}
   `;
   renderHangar();
   playTone(70, 0.8, "sawtooth", 0.11);

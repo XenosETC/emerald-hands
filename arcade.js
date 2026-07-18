@@ -1,5 +1,5 @@
 (function () {
-  const SCHEMA_VERSION = 2;
+  const SCHEMA_VERSION = 3;
   const STORAGE_KEY = "emerald-arcade-v1";
   const SETTINGS_KEY = "emerald-arcade-settings-v1";
   const SESSION_PREFIX = "emerald-arcade-session:";
@@ -23,6 +23,7 @@
     pausedDuration: 0,
     audioContexts: new Set(),
     mediaVolumes: new WeakMap(),
+    session: null,
   };
   const currentPage = location.pathname.split("/").pop() || "index.html";
   const isGamePage = currentPage !== "index.html" && currentPage !== "mini-games.html";
@@ -77,6 +78,10 @@
     xp: 0,
     gamesPlayed: 0,
     lastPlayed: null,
+    wallet: {
+      arcadeShards: 60,
+      lifetimeShards: 60,
+    },
     analytics: {},
     best: {
       hands: { prestigeRank: "Retail Ghost", ogPoints: 0, empireValue: 0, totalEarned: 0 },
@@ -255,6 +260,10 @@
       ...defaults,
       ...source,
       schemaVersion: SCHEMA_VERSION,
+      wallet: {
+        ...defaults.wallet,
+        ...(source.wallet && typeof source.wallet === "object" ? source.wallet : {}),
+      },
       best: Object.fromEntries(
         Object.entries(defaults.best).map(([game, fallback]) => [
           game,
@@ -314,6 +323,9 @@
       // Analytics are best-effort and never block a game.
     }
     save(data);
+    runtime.session = { game, path: path || gamePaths[game], startedAt, status: "running" };
+    if (document.body) document.body.dataset.arcadeSession = "running";
+    window.dispatchEvent(new CustomEvent("emeraldarcade:sessionstart", { detail: { ...runtime.session } }));
     return data;
   }
 
@@ -331,6 +343,9 @@
     analytics.lastCompletedAt = completedAt;
     if (active?.startedAt) analytics.totalSeconds += Math.max(0, Math.round((completedAt - active.startedAt) / 1000));
     data.lastPlayed = { game, path: gamePaths[game], at: completedAt };
+    runtime.session = { game, path: gamePaths[game], startedAt: active?.startedAt || null, completedAt, status: "completed" };
+    if (document.body) document.body.dataset.arcadeSession = "completed";
+    window.dispatchEvent(new CustomEvent("emeraldarcade:sessioncomplete", { detail: { ...runtime.session } }));
   }
 
   function continueTarget() {
@@ -340,10 +355,51 @@
       : { game: "hands", path: gamePaths.hands, at: null };
   }
 
+  function sessionShardReward(game, payload = {}) {
+    if (!payload.played || game === "pets") return 0;
+    const score = Math.max(0, Number(payload.score || 0));
+    const rewards = {
+      hands: 8 + Math.min(24, Math.floor(Number(payload.ogPoints || 0) * 4)),
+      rush: 10 + Math.min(30, Math.floor(score / 3000)),
+      galaxy: 10 + Math.min(24, Math.floor(Number(payload.wave || 1) * 4)),
+      rumble: 14 + Math.min(30, Math.floor(Number(payload.wins || 0) * 8)) + (payload.tournamentWon ? 50 : 0),
+      pepeRun: 8 + Math.min(28, Math.floor(Number(payload.shards || 0))),
+      spaceUnchained: 10 + Math.min(30, Math.floor(Number(payload.wave || 1) * 4 + Number(payload.shards || 0) / 5)),
+      towerDefense: 10 + Math.min(30, Math.floor(Number(payload.wave || 1) * 4)),
+      pepeWars: 10 + Math.min(28, Math.floor(Number(payload.wins || 0) * 14)),
+      paradox: 14 + Math.min(46, Math.floor(Number(payload.shards || 0) * 2 + Number(payload.relics || 0) * 8 + Number(payload.frogs || 0) * 12)),
+      unstableLaunch: 8 + Math.min(32, Math.floor(Math.log10(Math.max(10, Number(payload.peakPrice || 10))) * 5)),
+      rocketSimulator: 10 + Math.min(40, Math.floor(Math.sqrt(Math.max(0, Number(payload.distance || 0))) / 18)),
+    };
+    return Math.max(0, Math.round(rewards[game] || 8));
+  }
+
+  function awardArcadeShards(amount) {
+    const reward = Math.max(0, Math.floor(Number(amount || 0)));
+    if (!reward) return load().wallet.arcadeShards;
+    const data = load();
+    data.wallet.arcadeShards += reward;
+    data.wallet.lifetimeShards += reward;
+    save(data);
+    window.dispatchEvent(new CustomEvent("emeraldarcade:wallet", { detail: { ...data.wallet } }));
+    return data.wallet.arcadeShards;
+  }
+
+  function spendArcadeShards(amount) {
+    const cost = Math.max(0, Math.floor(Number(amount || 0)));
+    const data = load();
+    if (!cost || data.wallet.arcadeShards < cost) return false;
+    data.wallet.arcadeShards -= cost;
+    save(data);
+    window.dispatchEvent(new CustomEvent("emeraldarcade:wallet", { detail: { ...data.wallet } }));
+    return true;
+  }
+
   function record(game, payload) {
     const data = load();
     const previousBadges = [...data.badges];
     const previousRank = rankForXp(data.xp);
+    const arcadeShardReward = sessionShardReward(game, payload);
     data.gamesPlayed += payload?.played ? 1 : 0;
     if (payload?.played) uniquePush(data.badges, "emerald-pilot");
 
@@ -431,6 +487,10 @@
       if ((payload.aura || 0) >= 200) uniquePush(data.badges, "aura-farmer");
     }
 
+    if (arcadeShardReward) {
+      data.wallet.arcadeShards += arcadeShardReward;
+      data.wallet.lifetimeShards += arcadeShardReward;
+    }
     if (payload?.played) completeSession(data, game);
 
     save(data);
@@ -438,6 +498,7 @@
       ...data,
       unlockedBadges: data.badges.filter((badge) => !previousBadges.includes(badge)),
       rankChanged: previousRank !== rankForXp(data.xp),
+      arcadeShardReward,
     };
   }
 
@@ -746,6 +807,62 @@
     syncAudioState();
   }
 
+  function diagnosticsSnapshot(fps = 0) {
+    const arcade = load();
+    const petData = window.ArcadePet?.load?.();
+    const petStats = petData?.stats?.[petData.selected];
+    return {
+      page: currentPage,
+      fps: Math.round(fps),
+      paused: runtime.paused,
+      muted: runtime.muted,
+      session: runtime.session?.status || "idle",
+      arcadeShards: arcade.wallet.arcadeShards,
+      pet: petData?.selected || "none",
+      petStrength: petStats?.strength || 0,
+    };
+  }
+
+  function mountDiagnostics() {
+    if (!new URLSearchParams(location.search).has("debug") || document.querySelector(".arcade-diagnostics")) return;
+    const panel = document.createElement("output");
+    panel.className = "arcade-diagnostics";
+    panel.setAttribute("aria-label", "Arcade developer diagnostics");
+    Object.assign(panel.style, {
+      position: "fixed",
+      top: "10px",
+      left: "10px",
+      zIndex: "2147483006",
+      padding: "8px 10px",
+      border: "1px solid rgba(116,255,197,.55)",
+      borderRadius: "8px",
+      color: "#dffff1",
+      background: "rgba(0,8,5,.9)",
+      font: "700 11px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace",
+      pointerEvents: "none",
+      whiteSpace: "pre",
+    });
+    document.body.append(panel);
+    let frames = 0;
+    let lastSample = performance.now();
+    let fps = 0;
+    function countFrame(now) {
+      frames += 1;
+      if (now - lastSample >= 500) {
+        fps = frames * 1000 / (now - lastSample);
+        frames = 0;
+        lastSample = now;
+      }
+      nativeRequestAnimationFrame?.(countFrame);
+    }
+    nativeRequestAnimationFrame?.(countFrame);
+    window.setInterval(() => {
+      const snapshot = diagnosticsSnapshot(fps);
+      panel.textContent = Object.entries(snapshot).map(([key, value]) => `${key}: ${value}`).join("\n");
+      document.body.dataset.arcadeDebugState = JSON.stringify(snapshot);
+    }, 400);
+  }
+
   function ensureToastStyles() {
     if (document.querySelector("#emerald-arcade-toast-styles")) return;
     const style = document.createElement("style");
@@ -846,6 +963,10 @@
 
   function recordAndNotify(game, payload) {
     const result = record(game, payload);
+    if (result.arcadeShardReward) {
+      toast("Arcade Shards", `+${result.arcadeShardReward} banked`, "assets/etc-rocket-simulator/salvage.png");
+      window.dispatchEvent(new CustomEvent("emeraldarcade:wallet", { detail: { ...result.wallet } }));
+    }
     for (const slug of result.unlockedBadges) {
       const badge = badgeBySlug[slug];
       if (badge) toast("Badge Unlocked", badge.name, badge.icon);
@@ -869,14 +990,22 @@
     rankForXp,
     nextRankForXp,
     todayChallenge,
+    awardArcadeShards,
+    spendArcadeShards,
+    arcadeShardBalance: () => load().wallet.arcadeShards,
     isPaused: () => runtime.paused,
     isMuted: () => runtime.muted,
     setPaused,
     setMuted,
     resetLocalProgress,
+    diagnosticsSnapshot,
     badges: badgeCatalog,
   };
   runtime.muted = loadSettings().muted;
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountRuntimeControls);
-  else mountRuntimeControls();
+  function mountSharedRuntime() {
+    mountRuntimeControls();
+    mountDiagnostics();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mountSharedRuntime);
+  else mountSharedRuntime();
 })();

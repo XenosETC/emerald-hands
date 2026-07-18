@@ -51,11 +51,14 @@ for (const file of readdirSync(root).filter((name) => extname(name) === ".js")) 
 
 const arcadeSource = readFileSync(resolve(root, "arcade.js"), "utf8");
 for (const contract of [
-  "SCHEMA_VERSION = 2",
+  "SCHEMA_VERSION = 3",
   "function migrate",
   "function resetLocalProgress",
   "function setPaused",
   "function setMuted",
+  "sessionShardReward",
+  "spendArcadeShards",
+  "mountDiagnostics",
   "TrackedAudioContext",
   "arcade-runtime-dock",
   "arcade-runtime-modal",
@@ -97,6 +100,11 @@ for (const asset of ["meme-pets.png", "pepe-variants.png", "pet-sanctuary.png"])
 for (const contract of ["Arcade Pet Dock", "setInterval(wander", "spritePosition", "selected", "addAura"]) {
   check(petSource.includes(contract), `Cross-arcade pet contract is missing ${contract}`);
 }
+for (const contract of ["supplyPacks", "purchaseSupply", "function unlock", "strengthForXp", "activeBonus"]) {
+  check(petSource.includes(contract), `ETC Pets Phase 2 economy is missing ${contract}`);
+}
+check(readFileSync(resolve(root, "shard-rush.js"), "utf8").includes("petMagnet"), "Shard Rush pet strength bonus is missing");
+check(rocketSimSource.includes('activeBonus("rocketSimulator")'), "Rocket Simulator pet strength bonus is missing");
 for (const pet of ["big-chain-pepe", "mecha-pepe", "berserk-tadpole", "fallen-crystal"]) {
   check(petSource.includes(`id: "${pet}"`), `ETC Pets roster is missing ${pet}`);
 }
@@ -179,6 +187,7 @@ check(arcadeSource.includes('slug: "vault-champion"'), "Arcade Vault Champion ba
 check(arcadeSource.includes('payload.tournamentWon'), "Arcade tournament badge award contract is missing");
 
 const paradoxSource = readFileSync(resolve(root, "pepes-paradox.js"), "utf8");
+check(paradoxSource.includes("petCollectRadius"), "Pepe's Paradox pet strength bonus is missing");
 for (const contract of ["Bamboo Mountains", "beginTaunt", "You'll never get Pepina back", "advanceDialogue", "taunt-preview", "spriteAtlas", "carried", "rage-bait-survivor"]) {
   const source = contract === "rage-bait-survivor" ? arcadeSource : paradoxSource;
   check(source.includes(contract), `Pepe's Paradox contract is missing ${contract}`);

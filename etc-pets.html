@@ -38,32 +38,50 @@
               <span><small>Fed</small><i><b id="hungerBar"></b></i><strong id="hungerLabel">78%</strong></span>
               <span><small>Joy</small><i><b id="joyBar"></b></i><strong id="joyLabel">72%</strong></span>
               <span><small>Aura</small><i><b id="auraBar"></b></i><strong id="auraLabel">0</strong></span>
+              <span><small>Power</small><i><b id="strengthBar"></b></i><strong id="strengthLabel">Lv. 1</strong></span>
             </div>
           </section>
 
           <aside class="pet-console">
+            <section class="pet-wallet" aria-label="Pet supplies and Arcade Shards">
+              <p class="eyebrow">Sanctuary Inventory</p>
+              <div>
+                <span><small>Arcade Shards</small><strong id="arcadeShardBalance">60</strong></span>
+                <span><small>Bamboo Shoots</small><strong id="bambooShootBalance">2</strong></span>
+                <span><small>Training Sticks</small><strong id="bambooStickBalance">1</strong></span>
+              </div>
+              <p id="petActionStatus" aria-live="polite">Finish arcade runs to earn shards for supplies and new pets.</p>
+            </section>
             <section>
               <p class="eyebrow">Care Actions</p>
               <div class="pet-actions">
-                <button type="button" data-action="feed"><strong>Feed</strong><small>+22 fed · +4 aura</small></button>
-                <button type="button" data-action="play"><strong>Play</strong><small>+20 joy · +4 aura</small></button>
-                <button type="button" data-action="train"><strong>Train</strong><small>+1 training · +8 aura</small></button>
+                <button type="button" data-action="feed"><strong>Feed Shoot</strong><small>Costs 1 shoot · +22 fed</small></button>
+                <button type="button" data-action="play"><strong>Play</strong><small>Free · +20 joy</small></button>
+                <button type="button" data-action="train"><strong>Train</strong><small>Costs 1 stick · raises Strength</small></button>
               </div>
             </section>
             <section>
-              <p class="eyebrow">Pet Switching</p>
+              <p class="eyebrow">Bamboo Supply Shop</p>
+              <div class="supply-shop">
+                <button type="button" data-supply="shoot"><strong>1 Shoot</strong><small>8 shards</small></button>
+                <button type="button" data-supply="shoot-bundle"><strong>5 Shoots</strong><small>35 shards</small></button>
+                <button type="button" data-supply="stick"><strong>1 Training Stick</strong><small>18 shards</small></button>
+              </div>
+            </section>
+            <section>
+              <p class="eyebrow">Pet Roster & Unlocks</p>
               <div class="pet-roster" id="petRoster"></div>
             </section>
             <div class="companion-note">
-              <strong>Your selected pet travels with you.</strong>
-              <p>Open the Pet Dock from any arcade game to switch instantly. Pet choice, stats, aura, and screen position persist locally.</p>
+              <strong>Strength has controlled game effects.</strong>
+              <p>Trained pets currently help collect rewards in Shard Rush, Pepe's Paradox, and ETC Rocket Simulator. Low food or joy reduces their assist.</p>
             </div>
           </aside>
         </div>
       </section>
     </main>
-    <script src="arcade.js?v=4"></script>
-    <script src="arcade-pet.js?v=1"></script>
-    <script src="etc-pets.js"></script>
+    <script src="arcade.js?v=5"></script>
+    <script src="arcade-pet.js?v=2"></script>
+    <script src="etc-pets.js?v=3"></script>
   </body>
 </html>

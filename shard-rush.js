@@ -39,6 +39,7 @@ const state = {
   score: 0,
   combo: 1,
   maxCombo: 1,
+  petMagnet: 0,
   streak: 0,
   cleanCatches: 0,
   hazardsHit: 0,
@@ -51,12 +52,14 @@ const state = {
 
 function startGame() {
   window.EmeraldArcade?.beginSession("rush", "shard-rush.html");
+  const petBonus = window.ArcadePet?.activeBonus("rush");
   drops.length = 0;
   Object.assign(state, {
     running: true,
     score: 0,
     combo: 1,
     maxCombo: 1,
+    petMagnet: Number(petBonus?.magnetRadius || 0),
     streak: 0,
     cleanCatches: 0,
     hazardsHit: 0,
@@ -147,7 +150,8 @@ function update(delta) {
 
     const dx = Math.abs(drop.x - state.collectorX);
     const dy = Math.abs(drop.y - collectorY);
-    if (dx < 78 && dy < 58) {
+    const catchRadius = 78 + (isHazard(drop.type) ? 0 : state.petMagnet);
+    if (dx < catchRadius && dy < 58 + (isHazard(drop.type) ? 0 : state.petMagnet * 0.35)) {
       collect(drop);
       drops.splice(i, 1);
     } else if (drop.y > canvas.height + 90) {

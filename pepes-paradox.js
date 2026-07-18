@@ -21,7 +21,7 @@
   const parallaxRates = { distant:.055, temple:.16, foreground:.32 };
   const spriteAtlas = { idle:[0,0],runA:[1,0],runB:[2,0],rise:[0,1],apex:[1,1],fall:[2,1],dash:[0,2],hurt:[1,2],victory:[2,2] };
   const keys = new Set();
-  const state = { mode:"ready", time:0, camera:0, sound:true, cutsceneStep:0, cutsceneClock:0, tauntDone:false, finished:false };
+  const state = { mode:"ready", time:0, camera:0, sound:true, cutsceneStep:0, cutsceneClock:0, tauntDone:false, finished:false, petCollectRadius:0 };
   const player = { x:180, y:FLOOR-154, w:104, h:154, vx:0, vy:0, grounded:true, facing:1, shards:0, relics:0, frogs:0, dash:0 };
   const rival = { x:2740, y:FLOOR-165, w:112, h:165, facing:-1, alpha:0 };
   const platforms = [
@@ -47,8 +47,9 @@
   }
   function start(){
     window.EmeraldArcade?.beginSession("paradox","pepes-paradox.html");
+    const petBonus=window.ArcadePet?.activeBonus("paradox");
     Object.assign(player,{x:180,y:FLOOR-154,vx:0,vy:0,grounded:true,shards:0,relics:0,frogs:0,dash:0});
-    Object.assign(state,{mode:"playing",time:0,camera:0,cutsceneStep:0,tauntDone:false,finished:false});
+    Object.assign(state,{mode:"playing",time:0,camera:0,cutsceneStep:0,tauntDone:false,finished:false,petCollectRadius:Number(petBonus?.collectibleRadius||0)});
     [...shards,...relics,...frogs].forEach(o=>o.got=false); ui.overlay.classList.add("is-hidden"); ui.dialogue.hidden=true; syncHud(); tone(220,.15,"triangle");
   }
   function jump(){ if(state.mode==="playing"&&player.grounded){player.vy=-740;player.grounded=false;tone(440,.08,"triangle");} }
@@ -77,7 +78,7 @@
     state.camera=Math.max(0,Math.min(WORLD_W-W,player.x-W*.36));
     for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt;if(p.life<=0)particles.splice(i,1);}
   }
-  function collect(item,px,py,r,key){if(item.got||Math.hypot(px-item.x,py-item.y)>r+42)return;item.got=true;player[key]++;burst(item.x,item.y,key==="relics"?"#ffd86c":"#72ff9b",18);tone(key==="relics"?760:620,.1,"sine");syncHud();}
+  function collect(item,px,py,r,key){if(item.got||Math.hypot(px-item.x,py-item.y)>r+42+state.petCollectRadius)return;item.got=true;player[key]++;burst(item.x,item.y,key==="relics"?"#ffd86c":"#72ff9b",18);tone(key==="relics"?760:620,.1,"sine");syncHud();}
   function burst(x,y,color,count){for(let i=0;i<count;i++)particles.push({x,y,vx:(Math.random()-.5)*260,vy:-Math.random()*260,life:.45+Math.random()*.5,color});}
   function syncHud(){ui.shards.textContent=`${player.shards} / ${shards.length}`;ui.relics.textContent=`${player.relics} / ${relics.length}`;ui.frogs.textContent=`${player.frogs} / ${frogs.length}`;canvas.dataset.debugState=JSON.stringify({mode:state.mode,x:Math.round(player.x),y:Math.round(player.y),camera:Math.round(state.camera),tauntDone:state.tauntDone,shards:player.shards,relics:player.relics,frogs:player.frogs,parallax:{distant:Math.round(state.camera*parallaxRates.distant),temple:Math.round(state.camera*parallaxRates.temple),foreground:Math.round(state.camera*parallaxRates.foreground)},movingPlatforms:platforms.filter(p=>p.moving).map(p=>({x:Math.round(p.x),y:p.y}))});}
   function draw(){ctx.clearRect(0,0,W,H);drawSky();ctx.save();ctx.translate(-state.camera,0);drawWorld();drawItems();drawWisps();drawRival();drawPlayer();drawParticles();ctx.restore();drawForeground();drawProgress();syncHud();}

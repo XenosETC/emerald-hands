@@ -33,6 +33,7 @@ if (arcade) {
     nextRank.remaining > 0 ? `${nextRank.label} in ${format(nextRank.remaining)} XP` : nextRank.label;
   document.querySelector("#arcadeXp").textContent = format(arcade.xp);
   document.querySelector("#arcadeBadges").textContent = arcade.badges.length || 0;
+  document.querySelector("#arcadeShards").textContent = format(arcade.wallet.arcadeShards);
   document.querySelector("#dailyChallenge").textContent = `${challenge.game}: ${challenge.task}`;
   const signals = Object.entries(arcade.analytics || {});
   const totals = signals.reduce((sum, [, value]) => ({
