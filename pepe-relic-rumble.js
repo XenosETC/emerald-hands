@@ -1,4 +1,5 @@
 (function () {
+  const auraQaMode = new URLSearchParams(location.search).has("auraqa");
   const canvas = document.querySelector("#rumbleCanvas");
   const ctx = canvas.getContext("2d");
   const startButton = document.querySelector("#startButton");
@@ -101,6 +102,8 @@
   Object.values(auraSprites).forEach((image) => {
     image.addEventListener("load", () => buildAuraDrawCache());
   });
+  const premiumAuraAtlas = new Image();
+  premiumAuraAtlas.src = "assets/pepe-relic-rumble/premium-aura-atlas-v2-alpha.png";
   let auraDrawCache = {};
   const spriteSources = {
     idle: "assets/pepe-relic-rumble/pepe-brawler.png",
@@ -283,6 +286,16 @@
       palette: { body: "#418d32", light: "#55ffad", dark: "#171b17", trim: "#9fb8aa" },
     },
   };
+  const auraProfiles = {
+    crown: { cell: 0, width: 1.35, height: 1.56, baseline: 15, orbitX: 0.55, orbitY: 0.62, alpha: 0.9 },
+    corrupt: { cell: 1, width: 1.4, height: 1.54, baseline: 15, orbitX: 0.57, orbitY: 0.62, alpha: 0.94 },
+    fallen: { cell: 1, width: 1.25, height: 1.48, baseline: 13, orbitX: 0.51, orbitY: 0.59, alpha: 0.82 },
+    emerald: { cell: 0, width: 1.3, height: 1.52, baseline: 14, orbitX: 0.53, orbitY: 0.6, alpha: 0.86 },
+    bandit: { cell: 0, width: 1.2, height: 1.46, baseline: 12, orbitX: 0.49, orbitY: 0.57, alpha: 0.8 },
+    ninja: { cell: 2, width: 1.05, height: 1.4, baseline: 10, orbitX: 0.43, orbitY: 0.54, alpha: 0.78 },
+    mecha: { cell: 3, width: 1.4, height: 1.5, baseline: 15, orbitX: 0.57, orbitY: 0.59, alpha: 0.88 },
+    berserk: { cell: 3, width: 1.55, height: 1.58, baseline: 18, orbitX: 0.64, orbitY: 0.64, alpha: 1 },
+  };
 
   const VAULT_CHAMPION_BADGE = "vault-champion";
   const characterRoles = {
@@ -303,7 +316,7 @@
   }
 
   function berserkUnlocked() {
-    return Boolean(window.EmeraldArcade?.load()?.badges?.includes(VAULT_CHAMPION_BADGE));
+    return auraQaMode || Boolean(window.EmeraldArcade?.load()?.badges?.includes(VAULT_CHAMPION_BADGE));
   }
 
   function shuffled(values) {
@@ -1633,7 +1646,7 @@
       ? (darkEffect ? "rgba(255, 74, 74, 0.9)" : "rgba(116, 255, 197, 0.85)")
       : (darkEffect ? "rgba(255, 74, 74, 0.42)" : "rgba(35, 240, 156, 0.35)");
     ctx.shadowBlur = f.energy >= 100 && !isGhost ? 8 : 0;
-    if (!isGhost && (f.charging || action === "special" || f.domainEmpowered)) drawShardAura(f, action);
+    if (!isGhost && (auraQaMode || f.charging || action === "special" || f.domainEmpowered)) drawShardAura(f, action);
     ctx.drawImage(sprite, -width / 2, -height, width, height);
 
     if (!isGhost && f.block && !customSprite) drawShardShield(f);
@@ -1798,19 +1811,19 @@
   }
 
   function drawShardAura(f, action) {
-    const charge = clamp(f.energy / 100, 0, 1);
-    if (!f.charging && action !== "special" && !f.domainEmpowered) return;
+    const charge = auraQaMode ? 1 : clamp(f.energy / 100, 0, 1);
+    if (!auraQaMode && !f.charging && action !== "special" && !f.domainEmpowered) return;
     const now = performance.now();
     const pulse = 0.72 + Math.sin(now / 115) * 0.28;
     const darkEffect = effectVariant(f) === 2;
     const flameColor = darkEffect ? "255, 74, 74" : "116, 255, 197";
     const lightningColor = darkEffect ? "196, 84, 255" : "116, 255, 197";
-    const isCharging = f.charging;
+    const isCharging = f.charging || auraQaMode;
     const auraAlpha = f.domainEmpowered ? 0.88 : isCharging || charge >= 1 ? 0.78 : 0.2 + charge * 0.34;
     const visualHeight = fighterVisualHeight(f);
-    const auraScale = visualHeight / 218;
-    const radiusX = (70 + charge * 34 + pulse * 8) * auraScale;
-    const radiusY = (112 + charge * 44 + pulse * 12) * auraScale;
+    const auraProfile = auraProfiles[f.characterId] || auraProfiles.crown;
+    const radiusX = visualHeight * auraProfile.orbitX * (0.82 + charge * 0.18) + pulse * 5;
+    const radiusY = visualHeight * auraProfile.orbitY * (0.82 + charge * 0.18) + pulse * 7;
 
     ctx.save();
     ctx.strokeStyle = `rgba(${flameColor}, ${auraAlpha})`;
@@ -1818,7 +1831,7 @@
     ctx.shadowColor = `rgba(${lightningColor}, 0.95)`;
     ctx.shadowBlur = isCharging ? 12 : 5 + charge * 7;
 
-    if (drawGeneratedShardAura(f, charge, now, auraAlpha, isCharging, auraScale)) {
+    if (drawGeneratedShardAura(f, charge, now, auraAlpha, isCharging, auraProfile)) {
       ctx.shadowBlur = 5;
     } else {
       drawShardKiFlame(flameColor, lightningColor, charge, now, isCharging);
@@ -1830,22 +1843,60 @@
       const angle = spin + (i / shardCount) * Math.PI * 2;
       const x = Math.cos(angle) * (radiusX * 0.84);
       const y = -visualHeight * 0.58 + Math.sin(angle) * (radiusY * 0.84);
-      drawMiniShard(x, y, (7 + charge * 6) * auraScale, f.palette.light, angle);
+      drawMiniShard(x, y, (7 + charge * 6) * (visualHeight / 218), f.palette.light, angle);
     }
     ctx.restore();
   }
 
-  function drawGeneratedShardAura(f, charge, now, auraAlpha, isCharging, auraScale = 1) {
+  function drawGeneratedShardAura(f, charge, now, auraAlpha, isCharging, auraProfile) {
+    const visualHeight = fighterVisualHeight(f);
+    const breathe = 1 + Math.sin(now / 105) * (isCharging ? 0.035 : 0.018);
+    const surge = isCharging ? 1 : 0.82 + charge * 0.18;
+    const chargeScale = 0.92 + charge * 0.08;
+    const width = visualHeight * auraProfile.width * breathe * chargeScale;
+    const height = visualHeight * auraProfile.height * breathe * chargeScale;
+    const alpha = clamp((isCharging ? auraProfile.alpha : auraProfile.alpha * (0.34 + charge * 0.34)) * surge, 0.12, 0.76);
+    const xJitter = Math.sin(now / 62) * (isCharging ? 2.5 : 1.2);
+    const yJitter = Math.cos(now / 78) * (isCharging ? 2.5 : 1.1);
+
+    if (premiumAuraAtlas.complete && premiumAuraAtlas.naturalWidth > 0) {
+      const cellWidth = premiumAuraAtlas.naturalWidth / 2;
+      const cellHeight = premiumAuraAtlas.naturalHeight / 2;
+      const sourceX = auraProfile.cell % 2 * cellWidth;
+      const sourceY = Math.floor(auraProfile.cell / 2) * cellHeight;
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(
+        premiumAuraAtlas,
+        sourceX,
+        sourceY,
+        cellWidth,
+        cellHeight,
+        -width / 2 + xJitter,
+        -height + auraProfile.baseline + yJitter,
+        width,
+        height
+      );
+      ctx.globalAlpha = alpha * 0.22;
+      ctx.drawImage(
+        premiumAuraAtlas,
+        sourceX,
+        sourceY,
+        cellWidth,
+        cellHeight,
+        -width * 0.46 - xJitter,
+        -height * 0.96 + auraProfile.baseline - yJitter,
+        width * 0.92,
+        height * 0.96
+      );
+      ctx.restore();
+      return true;
+    }
+
     const variant = effectVariant(f);
     const aura = auraDrawCache[variant] || auraSprites[variant];
     if (!aura || !aura.complete && !aura.width) return false;
-    const breathe = 1 + Math.sin(now / 105) * (isCharging ? 0.035 : 0.018);
-    const surge = isCharging ? 1 : 0.82 + charge * 0.18;
-    const width = (156 + charge * 48) * breathe * auraScale;
-    const height = (236 + charge * 72) * breathe * auraScale;
-    const alpha = clamp((isCharging ? 0.42 : 0.12 + charge * 0.2) * surge, 0.1, 0.5);
-    const xJitter = Math.sin(now / 62) * (isCharging ? 2.5 : 1.2);
-    const yJitter = Math.cos(now / 78) * (isCharging ? 2.5 : 1.1);
 
     ctx.save();
     ctx.globalCompositeOperation = "screen";

@@ -172,6 +172,19 @@ check(
   existsSync(resolve(root, "assets/pepe-relic-rumble/kek-domain-arena.png")),
   "Relic Rumble KEK Domain arena is missing"
 );
+check(
+  existsSync(resolve(root, "assets/pepe-relic-rumble/premium-aura-atlas-v2-alpha.png")),
+  "Relic Rumble premium aura atlas is missing"
+);
+for (const fighter of ["crown", "corrupt", "fallen", "emerald", "bandit", "ninja", "mecha", "berserk"]) {
+  check(
+    new RegExp(`\\n\\s*${fighter}: \\{ cell:`).test(rumbleSource),
+    `Relic Rumble is missing the ${fighter} aura fit profile`
+  );
+}
+for (const auraContract of ["premiumAuraAtlas", "auraProfiles", "auraProfile.orbitX", "auraProfile.width"]) {
+  check(rumbleSource.includes(auraContract), `Relic Rumble premium aura contract is missing ${auraContract}`);
+}
 for (const domainContract of [
   "activateKekDomainFinal",
   'gameState = "domain-intro"',
