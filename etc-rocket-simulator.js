@@ -21,6 +21,8 @@ const els = {
   missionTitle: document.querySelector("#missionTitle"),
   missionText: document.querySelector("#missionText"),
   missionReward: document.querySelector("#missionReward"),
+  sectorTransition: document.querySelector("#sectorTransition"),
+  sectorTransitionName: document.querySelector("#sectorTransitionName"),
 };
 
 const upgradeDefs = {
@@ -33,19 +35,25 @@ const upgradeDefs = {
 };
 
 const zones = [
-  [0, "Low Orbit"],
-  [800, "Emerald Belt"],
-  [3000, "Ancient Satellite Field"],
-  [9000, "Crystal Moon"],
-  [22000, "Chain Nebula"],
-  [50000, "KEK Constellation"],
-  [100000, "Origin Flame Star"],
-  [250000, "Emerald Singularity"],
-  [750000, "Beyond Canon"],
+  { at: 0, name: "Low Orbit", asset: "sector-low-orbit.webp" },
+  { at: 800, name: "Emerald Belt", asset: "sector-emerald-belt.webp" },
+  { at: 3000, name: "Ancient Satellite Field", asset: "sector-ancient-satellite-field.webp" },
+  { at: 9000, name: "Crystal Moon", asset: "sector-crystal-moon.webp" },
+  { at: 22000, name: "Chain Nebula", asset: "sector-chain-nebula.webp" },
+  { at: 50000, name: "KEK Constellation", asset: "sector-kek-constellation.webp" },
+  { at: 100000, name: "Origin Flame Star", asset: "sector-origin-flame-star.webp" },
+  { at: 250000, name: "Emerald Singularity", asset: "sector-emerald-singularity.webp" },
+  { at: 750000, name: "Beyond Canon", asset: "sector-beyond-canon.webp" },
 ];
 
 const background = new Image();
 background.src = "assets/etc-rocket-simulator/deep-space.png";
+const sectorBackgrounds = Array(zones.length).fill(null);
+const requestedSectorQa = Number(new URLSearchParams(location.search).get("sectorqa"));
+const sectorQaIndex = Number.isInteger(requestedSectorQa) && requestedSectorQa >= 0 && requestedSectorQa < zones.length
+  ? requestedSectorQa
+  : -1;
+let sectorTransitionTimer;
 const rockets = new Image();
 rockets.src = "assets/etc-rocket-simulator/rocket-tiers.png";
 const salvage = new Image();
@@ -67,8 +75,23 @@ const state = {
   scroll: 0,
   failureTime: 0,
   failureReason: "",
+  zoneIndex: 0,
   lastFrame: performance.now(),
 };
+
+function ensureSectorBackground(index) {
+  if (index < 0 || index >= zones.length) return null;
+  if (!sectorBackgrounds[index]) {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = `assets/etc-rocket-simulator/${zones[index].asset}`;
+    sectorBackgrounds[index] = image;
+  }
+  return sectorBackgrounds[index];
+}
+
+ensureSectorBackground(0);
+ensureSectorBackground(1);
 
 function loadSave() {
   try {
@@ -148,6 +171,7 @@ function launch() {
     elapsed: 0,
     failureTime: 0,
     failureReason: "",
+    zoneIndex: 0,
   });
   rewardDrops.length = 0;
   els.launch.disabled = true;
@@ -172,6 +196,12 @@ function updateFlight(delta) {
   state.velocity += (thrust / 85) * delta;
   state.velocity = Math.min(state.velocity, 65 + u.engine * 38);
   state.distance += state.velocity * efficiency * delta * 10;
+  const reachedZone = zoneIndexFor(state.distance);
+  if (reachedZone !== state.zoneIndex) {
+    state.zoneIndex = reachedZone;
+    ensureSectorBackground(reachedZone + 1);
+    showSectorTransition(zones[reachedZone].name);
+  }
   state.fuel -= (100 / capacity) * delta;
   state.heat += Math.max(0.1, state.velocity / (75 + cooling * 4)) * delta * 5.2;
   state.heat = Math.max(0, state.heat - cooling * delta * 0.24);
@@ -201,6 +231,7 @@ function endFlight(reason) {
   const score = Math.round(state.distance);
   window.EmeraldArcade?.recordAndNotify("rocketSimulator", { score, rank, distance: state.distance, shards: reward, played: true });
   window.ArcadePet?.addAura(Math.max(1, Math.floor(Math.log10(Math.max(10, state.distance)) * 2)));
+  if (petMultiplier > 1) window.ArcadePet?.showAssist("rocketSimulator", true);
   els.launch.disabled = false;
   els.launch.innerHTML = "<span>LAUNCH UPGRADED ROCKET</span><small>Spend salvage, then go farther</small>";
   els.missionEyebrow.textContent = newRecord ? "New Expedition Record" : "Salvage Secured";
@@ -255,14 +286,42 @@ function draw() {
 }
 
 function drawSpace() {
-  if (!background.complete || !background.naturalWidth) {
+  const visualDistance = sectorQaIndex >= 0 ? zones[sectorQaIndex].at : state.distance;
+  const currentIndex = sectorQaIndex >= 0 ? sectorQaIndex : zoneIndexFor(visualDistance);
+  const currentBackground = ensureSectorBackground(currentIndex);
+  const nextBackground = ensureSectorBackground(currentIndex + 1);
+  const currentReady = currentBackground?.complete && currentBackground.naturalWidth;
+  const fallbackReady = background.complete && background.naturalWidth;
+  if (!currentReady && !fallbackReady) {
     ctx.fillStyle = "#010806";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     return;
   }
-  for (let i = -1; i <= 1; i += 1) drawCover(background, 0, i * canvas.height + state.scroll, canvas.width, canvas.height);
+  drawScrollingBackground(currentReady ? currentBackground : background, 1);
+  const blend = sectorBlendFor(visualDistance, currentIndex);
+  if (blend > 0 && nextBackground?.complete && nextBackground.naturalWidth) {
+    drawScrollingBackground(nextBackground, blend);
+  }
   ctx.fillStyle = "rgba(0,8,5,.22)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function drawScrollingBackground(image, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  for (let i = -1; i <= 1; i += 1) {
+    drawCover(image, 0, i * canvas.height + state.scroll, canvas.width, canvas.height);
+  }
+  ctx.restore();
+}
+
+function sectorBlendFor(distance, index) {
+  const current = zones[index];
+  const next = zones[index + 1];
+  if (!current || !next) return 0;
+  const progress = clamp((distance - current.at) / Math.max(1, next.at - current.at), 0, 1);
+  const transition = clamp((progress - 0.72) / 0.28, 0, 1);
+  return transition * transition * (3 - 2 * transition);
 }
 
 function drawRocket() {
@@ -345,7 +404,21 @@ function drawVignette() {
 }
 
 function zoneFor(distance) {
-  return zones.reduce((current, zone) => distance >= zone[0] ? zone[1] : current, zones[0][1]);
+  return zones[zoneIndexFor(distance)].name;
+}
+
+function zoneIndexFor(distance) {
+  return zones.reduce((current, zone, index) => distance >= zone.at ? index : current, 0);
+}
+
+function showSectorTransition(name) {
+  if (!els.sectorTransition) return;
+  els.sectorTransitionName.textContent = name;
+  els.sectorTransition.classList.remove("is-visible");
+  void els.sectorTransition.offsetWidth;
+  els.sectorTransition.classList.add("is-visible");
+  clearTimeout(sectorTransitionTimer);
+  sectorTransitionTimer = setTimeout(() => els.sectorTransition.classList.remove("is-visible"), 2100);
 }
 
 function rankForDistance(distance) {

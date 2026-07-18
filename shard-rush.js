@@ -73,6 +73,7 @@ function startGame() {
   els.runStats.hidden = true;
   els.runStats.innerHTML = "";
   updateHud();
+  window.ArcadePet?.showAssist("rush");
 }
 
 function endGame() {
@@ -152,6 +153,9 @@ function update(delta) {
     const dy = Math.abs(drop.y - collectorY);
     const catchRadius = 78 + (isHazard(drop.type) ? 0 : state.petMagnet);
     if (dx < catchRadius && dy < 58 + (isHazard(drop.type) ? 0 : state.petMagnet * 0.35)) {
+      if (!isHazard(drop.type) && state.petMagnet > 0 && (dx >= 78 || dy >= 58)) {
+        window.ArcadePet?.showAssist("rush", true);
+      }
       collect(drop);
       drops.splice(i, 1);
     } else if (drop.y > canvas.height + 90) {

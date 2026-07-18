@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="ETC Rocket Simulator, a forgiving launch, salvage, and upgrade game.">
     <title>ETC Rocket Simulator</title>
-    <link rel="preload" href="assets/etc-rocket-simulator/deep-space.png" as="image">
+    <link rel="preload" href="assets/etc-rocket-simulator/sector-low-orbit.webp" as="image">
     <link rel="preload" href="assets/etc-rocket-simulator/rocket-tiers.png" as="image">
     <link rel="preload" href="assets/etc-rocket-simulator/salvage.png" as="image">
-    <link rel="stylesheet" href="etc-rocket-simulator.css">
+    <link rel="stylesheet" href="etc-rocket-simulator.css?v=2">
   </head>
   <body>
     <main class="sim-shell">
@@ -39,6 +39,10 @@
               <span><small>Heat</small><i><b id="heatBar"></b></i><strong id="heatLabel">0%</strong></span>
               <span><small>Hull</small><i><b id="hullBar"></b></i><strong id="hullLabel">100%</strong></span>
             </div>
+            <div class="sector-transition" id="sectorTransition" aria-live="polite">
+              <small>Sector Reached</small>
+              <strong id="sectorTransitionName">Low Orbit</strong>
+            </div>
             <div class="mission-card" id="missionCard">
               <p class="eyebrow" id="missionEyebrow">Expedition Ready</p>
               <h2 id="missionTitle">Every wreck makes the next rocket stronger.</h2>
@@ -63,7 +67,7 @@
       </section>
     </main>
     <script src="arcade.js?v=6"></script>
-    <script src="arcade-pet.js?v=3"></script>
-    <script src="etc-rocket-simulator.js?v=2"></script>
+    <script src="arcade-pet.js?v=4"></script>
+    <script src="etc-rocket-simulator.js?v=3"></script>
   </body>
 </html>

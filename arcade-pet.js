@@ -71,6 +71,8 @@
   let sprite;
   let picker;
   let dockToggle;
+  let assistNode;
+  let assistTimer;
   let excitedTimer;
 
   function save() {
@@ -132,6 +134,22 @@
       .arcade-pet-option i { display:block; width:58px; max-width:100%; aspect-ratio:1; margin:auto; background-image:url("${SPRITES}"); background-size:400% 200%; background-repeat:no-repeat; }
       .arcade-pet-option span,.arcade-pet-option small { display:block; overflow:hidden; font-size:9px; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
       .arcade-pet-option small { margin-top:2px; color:#93b8a7; font-size:8px; }
+      .arcade-pet-assist {
+        position:absolute; top:92px; right:14px; z-index:14; display:grid; grid-template-columns:auto 1fr; column-gap:8px;
+        min-width:190px; max-width:min(290px,calc(100% - 28px)); padding:8px 10px;
+        border:1px solid rgba(122,255,202,.34); border-radius:10px; color:#effff7;
+        background:linear-gradient(110deg,rgba(0,10,6,.9),rgba(15,54,36,.84)); box-shadow:0 12px 34px rgba(0,0,0,.46);
+        backdrop-filter:blur(12px); pointer-events:none; font-family:Inter,system-ui,sans-serif;
+        transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+      }
+      .arcade-pet-assist::before { content:"PET"; grid-row:1/4; align-self:center; padding:7px 5px; border:1px solid rgba(226,189,106,.34); border-radius:7px; color:#ffe3a0; font-size:8px; font-weight:950; letter-spacing:.1em; }
+      .arcade-pet-assist span,.arcade-pet-assist strong,.arcade-pet-assist small { grid-column:2; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .arcade-pet-assist span { color:#8dffd1; font-size:8px; font-weight:950; letter-spacing:.12em; text-transform:uppercase; }
+      .arcade-pet-assist strong { font-size:11px; }
+      .arcade-pet-assist small { color:#b8d4c7; font-size:9px; }
+      .arcade-pet-assist.is-active { border-color:#ffe09a; box-shadow:0 0 34px rgba(77,255,174,.34); transform:scale(1.05); }
+      .arcade-pet-assist[data-game="rocketSimulator"] { top:155px; }
+      .arcade-pet-assist[data-game="paradox"] { top:78px; }
       @keyframes arcade-pet-bob { to { transform:translateY(-5px) rotate(1deg); } }
       @keyframes arcade-pet-aura { 50% { transform:scale(1.08); border-color:rgba(75,255,172,.5); box-shadow:0 0 18px rgba(75,255,172,.2); } }
       @media(max-width:680px){
@@ -140,6 +158,9 @@
         .arcade-pet-dock-toggle{right:max(10px,env(safe-area-inset-right));width:66px}
         .arcade-pet-picker{right:max(10px,env(safe-area-inset-right));left:max(10px,env(safe-area-inset-left));width:auto;max-height:calc(100dvh - 148px)}
         .arcade-pet-options{grid-template-columns:repeat(4,minmax(0,1fr))}
+        .arcade-pet-assist{top:150px;right:8px;min-width:170px;max-width:calc(100% - 16px)}
+        .arcade-pet-assist[data-game="rocketSimulator"]{top:248px}
+        .arcade-pet-assist[data-game="paradox"]{top:100px}
       }
     `;
     document.head.appendChild(style);
@@ -176,6 +197,7 @@
     dockToggle.setAttribute("aria-label", "Open pet switcher");
     dockToggle.setAttribute("aria-expanded", "false");
     document.body.append(companion, picker, dockToggle);
+    mountAssistIndicator();
     dockToggle.addEventListener("click", () => {
       celebrate();
       picker.classList.toggle("is-open");
@@ -309,6 +331,64 @@
     };
   }
 
+  function assistGameForPage() {
+    const page = location.pathname.split("/").pop();
+    if (page === "shard-rush.html") return "rush";
+    if (page === "etc-rocket-simulator.html") return "rocketSimulator";
+    if (page === "pepes-paradox.html") return "paradox";
+    return null;
+  }
+
+  function assistValue(game, bonus) {
+    if (game === "rush") return bonus.magnetRadius > 0 ? `+${Math.round(bonus.magnetRadius)}px pickup range` : "Train to widen pickup range";
+    if (game === "rocketSimulator") {
+      const percent = Math.round((bonus.salvageMultiplier - 1) * 100);
+      return percent > 0 ? `+${percent}% recovered salvage` : "Train to boost recovered salvage";
+    }
+    if (game === "paradox") return bonus.collectibleRadius > 0 ? `+${Math.round(bonus.collectibleRadius)}px relic instinct` : "Train to extend relic instinct";
+    return "Companion ready";
+  }
+
+  function renderAssistIndicator() {
+    if (!assistNode) return;
+    const game = assistNode.dataset.game;
+    const bonus = activeBonus(game);
+    assistNode.querySelector("strong").textContent = bonus.petName;
+    assistNode.querySelector("small").textContent = assistValue(game, bonus);
+    assistNode.querySelector("span").textContent = bonus.careFactor < 1 ? `${bonus.label} · low care` : bonus.label;
+  }
+
+  function mountAssistIndicator() {
+    const game = assistGameForPage();
+    const target = game === "rush"
+      ? document.querySelector(".rush-stage")
+      : game === "rocketSimulator"
+        ? document.querySelector(".flight-stage")
+        : game === "paradox"
+          ? document.querySelector(".paradox-stage")
+          : null;
+    if (!game || !target || assistNode) return;
+    assistNode = document.createElement("aside");
+    assistNode.className = "arcade-pet-assist";
+    assistNode.dataset.game = game;
+    assistNode.setAttribute("aria-label", "Active pet assist");
+    assistNode.innerHTML = "<span>Pet Assist</span><strong></strong><small></small>";
+    target.appendChild(assistNode);
+    renderAssistIndicator();
+  }
+
+  function showAssist(game, activated = false) {
+    if (!assistNode || assistNode.dataset.game !== game) return;
+    renderAssistIndicator();
+    if (!activated) return;
+    clearTimeout(assistTimer);
+    assistNode.classList.remove("is-active");
+    void assistNode.offsetWidth;
+    assistNode.classList.add("is-active");
+    celebrate();
+    assistTimer = setTimeout(() => assistNode?.classList.remove("is-active"), 900);
+  }
+
   function addAura(amount) {
     data = load();
     data.stats[data.selected].aura += Math.max(0, Number(amount || 0));
@@ -328,6 +408,7 @@
     updatePet,
     purchaseSupply,
     activeBonus,
+    showAssist,
     strengthForXp,
     addAura,
     celebrate,
@@ -335,6 +416,7 @@
     spritePosition,
   };
   window.addEventListener("emeraldarcade:wallet", refresh);
+  window.addEventListener("arcadepet:change", renderAssistIndicator);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
   else mount();
 })();

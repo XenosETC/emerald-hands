@@ -35,6 +35,11 @@ canvas { display: block; width: 100%; height: 100%; min-height: 720px; }
 .systems i { height: 7px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.09); }
 .systems b { display: block; width: 100%; height: 100%; transform-origin: left; background: linear-gradient(90deg,var(--danger),var(--gold),var(--green)); }
 .systems strong { font-size: .72rem; text-align: right; }
+.sector-transition { position:absolute; top:190px; left:50%; z-index:7; min-width:min(360px,calc(100% - 40px)); padding:11px 18px; border:1px solid rgba(225,187,103,.55); border-radius:999px; text-align:center; background:linear-gradient(90deg,rgba(0,9,6,.12),rgba(4,29,18,.9),rgba(0,9,6,.12)); box-shadow:0 0 42px rgba(53,244,162,.18); opacity:0; pointer-events:none; transform:translate(-50%,-12px) scale(.96); transition:opacity .35s ease,transform .35s ease; }
+.sector-transition.is-visible { opacity:1; transform:translate(-50%,0) scale(1); }
+.sector-transition small,.sector-transition strong { display:block; }
+.sector-transition small { color:var(--gold); font-size:.58rem; font-weight:900; letter-spacing:.18em; text-transform:uppercase; }
+.sector-transition strong { margin-top:2px; color:var(--green-soft); font-size:clamp(1rem,2vw,1.35rem); letter-spacing:.04em; }
 .mission-card { position: absolute; left: 18px; bottom: 18px; width: min(440px,calc(100% - 36px)); padding: 17px; }
 .mission-card h2 { margin-bottom: 8px; font-size: clamp(1.4rem,2.5vw,2.5rem); line-height: 1; }
 .mission-card > p:last-of-type { margin-bottom: 0; color: #c6e2d5; line-height: 1.42; }
@@ -68,5 +73,6 @@ canvas { display: block; width: 100%; height: 100%; min-height: 720px; }
   .sim-topbar nav { align-items: stretch; }
   .flight-readout { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .systems { top: 138px; }
+  .sector-transition { top:250px; }
   .upgrade-list { grid-template-columns: 1fr; }
 }

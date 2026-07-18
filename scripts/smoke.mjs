@@ -85,10 +85,23 @@ check(launchHtml.includes("No wallet, wagering, money, price feed, or financial 
 check(arcadeSource.includes('slug: "emerald-singularity"'), "Arcade Emerald Singularity badge is missing");
 
 const rocketSimSource = readFileSync(resolve(root, "etc-rocket-simulator.js"), "utf8");
-for (const asset of ["deep-space.png", "rocket-tiers.png", "salvage.png"]) {
+for (const asset of [
+  "deep-space.png",
+  "rocket-tiers.png",
+  "salvage.png",
+  "sector-low-orbit.webp",
+  "sector-emerald-belt.webp",
+  "sector-ancient-satellite-field.webp",
+  "sector-crystal-moon.webp",
+  "sector-chain-nebula.webp",
+  "sector-kek-constellation.webp",
+  "sector-origin-flame-star.webp",
+  "sector-emerald-singularity.webp",
+  "sector-beyond-canon.webp",
+]) {
   check(existsSync(resolve(root, `assets/etc-rocket-simulator/${asset}`)), `Rocket Simulator generated asset is missing ${asset}`);
 }
-for (const contract of ["upgradeDefs", "Fuel lattice exhausted", "banked every shard", "buyUpgrade", "zoneFor", "rocketTier"]) {
+for (const contract of ["upgradeDefs", "Fuel lattice exhausted", "banked every shard", "buyUpgrade", "zoneFor", "rocketTier", "sectorBlendFor", "showSectorTransition"]) {
   check(rocketSimSource.includes(contract), `Rocket Simulator contract is missing ${contract}`);
 }
 check(arcadeSource.includes('slug: "origin-voyager"'), "Arcade Origin Voyager badge is missing");
@@ -107,6 +120,9 @@ for (const asset of ["meme-pets.png", "pepe-variants.png", "pet-sanctuary.png"])
 }
 for (const contract of ["Arcade Pet Dock", "setInterval(wander", "spritePosition", "selected", "addAura"]) {
   check(petSource.includes(contract), `Cross-arcade pet contract is missing ${contract}`);
+}
+for (const contract of ["arcade-pet-assist", "showAssist", "assistValue", "renderAssistIndicator"]) {
+  check(petSource.includes(contract), `Cross-game pet assist UI is missing ${contract}`);
 }
 for (const contract of ["supplyPacks", "purchaseSupply", "function unlock", "strengthForXp", "activeBonus"]) {
   check(petSource.includes(contract), `ETC Pets Phase 2 economy is missing ${contract}`);
