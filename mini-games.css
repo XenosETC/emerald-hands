@@ -368,6 +368,75 @@ h1 {
   object-position: center;
 }
 
+.game-card--unstable-launch .game-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 70%, rgba(42, 255, 157, 0.38), transparent 24%),
+    linear-gradient(rgba(0, 0, 0, 0.08), rgba(0, 7, 4, 0.22)),
+    url("assets/etc-unstable-launch/emerald-space.png") center / cover;
+}
+
+.game-card--unstable-launch .game-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(128, 255, 209, 0.18) 50%, transparent 65%);
+  animation: launch-card-scan 3.8s linear infinite;
+}
+
+.game-card--unstable-launch .game-art img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 200%;
+  height: 200%;
+  object-fit: fill;
+  filter: drop-shadow(0 0 18px rgba(42, 255, 157, 0.78));
+}
+
+@keyframes launch-card-scan {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.game-card--rocket-simulator .game-art {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 65%, rgba(53, 244, 162, .28), transparent 25%),
+    url("assets/etc-rocket-simulator/deep-space.png") center / cover;
+}
+
+.game-card--rocket-simulator .game-art img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  object-fit: fill;
+  filter: drop-shadow(0 0 22px rgba(53, 244, 162, .68));
+}
+
+.game-card--pets .game-art {
+  position: relative;
+  overflow: hidden;
+  background: url("assets/etc-pets/pet-sanctuary.png") center / cover;
+}
+
+.game-card--pets .game-art img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400%;
+  height: 200%;
+  object-fit: fill;
+  filter: drop-shadow(0 10px 12px rgba(0, 0, 0, .65));
+}
+
 .game-body {
   display: grid;
   grid-template-rows: auto minmax(72px, auto) minmax(72px, auto) minmax(48px, auto) 24px 48px;

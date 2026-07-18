@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="ETC Pets: Meme Edition, the companion sanctuary for Emerald Arcade.">
+    <title>ETC Pets: Meme Edition</title>
+    <link rel="preload" href="assets/etc-pets/pet-sanctuary.png" as="image">
+    <link rel="preload" href="assets/etc-pets/meme-pets.png" as="image">
+    <link rel="preload" href="assets/etc-pets/pepe-variants.png" as="image">
+    <link rel="stylesheet" href="etc-pets.css">
+  </head>
+  <body data-no-arcade-pet="true">
+    <main class="pets-shell">
+      <section class="pets-game">
+        <header class="pets-topbar">
+          <div>
+            <p class="eyebrow">Arcade Companion Network // Game 12</p>
+            <h1>ETC Pets: Meme Edition</h1>
+            <p>Raise the aura. Switch companions. Bring your pet into every corner of the Emerald Arcade.</p>
+          </div>
+          <nav><a href="index.html">Arcade Hub</a><a href="etc-rocket-simulator.html">Rocket Simulator</a></nav>
+        </header>
+
+        <div class="pets-layout">
+          <section class="sanctuary">
+            <div class="pet-stage">
+              <div class="pet-aura-ring"></div>
+              <div class="hero-pet" id="heroPet" aria-label="Selected arcade pet"></div>
+              <div class="pet-shadow"></div>
+            </div>
+            <div class="pet-identity">
+              <p class="eyebrow" id="petTitle">Shard Sniffer</p>
+              <h2 id="petName">Emerald Pepe</h2>
+              <p id="petMood">Ready to farm aura across the arcade.</p>
+            </div>
+            <div class="pet-meters">
+              <span><small>Fed</small><i><b id="hungerBar"></b></i><strong id="hungerLabel">78%</strong></span>
+              <span><small>Joy</small><i><b id="joyBar"></b></i><strong id="joyLabel">72%</strong></span>
+              <span><small>Aura</small><i><b id="auraBar"></b></i><strong id="auraLabel">0</strong></span>
+            </div>
+          </section>
+
+          <aside class="pet-console">
+            <section>
+              <p class="eyebrow">Care Actions</p>
+              <div class="pet-actions">
+                <button type="button" data-action="feed"><strong>Feed</strong><small>+22 fed · +4 aura</small></button>
+                <button type="button" data-action="play"><strong>Play</strong><small>+20 joy · +4 aura</small></button>
+                <button type="button" data-action="train"><strong>Train</strong><small>+1 training · +8 aura</small></button>
+              </div>
+            </section>
+            <section>
+              <p class="eyebrow">Pet Switching</p>
+              <div class="pet-roster" id="petRoster"></div>
+            </section>
+            <div class="companion-note">
+              <strong>Your selected pet travels with you.</strong>
+              <p>Open the Pet Dock from any arcade game to switch instantly. Pet choice, stats, aura, and screen position persist locally.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+    <script src="arcade.js?v=4"></script>
+    <script src="arcade-pet.js?v=1"></script>
+    <script src="etc-pets.js"></script>
+  </body>
+</html>

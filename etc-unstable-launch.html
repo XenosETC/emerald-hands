@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="ETC: Unstable Launch, a fictional one-tap Emerald Arcade price-flight game.">
+    <title>ETC: Unstable Launch</title>
+    <link rel="preload" href="assets/etc-unstable-launch/emerald-space.png" as="image">
+    <link rel="preload" href="assets/etc-unstable-launch/etc-rocket-sheet.png" as="image">
+    <link rel="preload" href="assets/etc-unstable-launch/emerald-explosion-sheet.png" as="image">
+    <link rel="stylesheet" href="etc-unstable-launch.css">
+  </head>
+  <body>
+    <main class="launch-shell">
+      <section class="launch-game" aria-label="ETC Unstable Launch game">
+        <header class="launch-topbar">
+          <div>
+            <p class="eyebrow">Emerald Arcade // Lore Flight 10</p>
+            <h1>ETC: Unstable Launch</h1>
+            <p class="subtitle">Launch the reactor. Lock the price before velocity tears the rocket apart.</p>
+          </div>
+          <nav aria-label="Mini game navigation">
+            <a href="index.html">Arcade Hub</a>
+            <a href="pepe-space-unchained.html">Space Unchained</a>
+          </nav>
+        </header>
+
+        <div class="launch-layout">
+          <section class="flight-deck">
+            <canvas id="launchCanvas" width="1280" height="720" aria-label="Rocket flying through animated emerald space"></canvas>
+
+            <div class="flight-hud" aria-live="polite">
+              <div class="price-block">
+                <small>simulated ETC lore price</small>
+                <strong id="priceLabel">$22.50</strong>
+                <span id="velocityLabel">0.00x launch velocity</span>
+              </div>
+              <div class="integrity-block">
+                <span><small>reactor stability</small><strong id="stabilityLabel">100%</strong></span>
+                <div class="integrity-track"><i id="stabilityBar"></i></div>
+                <p id="flightStatus">Reactor standing by.</p>
+              </div>
+            </div>
+
+            <div class="flight-result" id="resultPanel">
+              <p class="eyebrow" id="resultEyebrow">Emerald Launch Protocol</p>
+              <h2 id="resultTitle">How high does the lore go?</h2>
+              <p id="resultText">Tap launch, then tap again to lock your simulated ETC price before the reactor becomes unstable.</p>
+              <div class="result-stats" id="resultStats" hidden></div>
+            </div>
+          </section>
+
+          <aside class="timeline-panel" aria-label="Price flight timeline">
+            <div class="timeline-heading">
+              <p class="eyebrow">Flight Timeline</p>
+              <h2>Emerald price strata</h2>
+              <p>Every marker is fictional arcade lore—not a market forecast.</p>
+            </div>
+            <div class="timeline" id="timeline">
+              <i class="timeline-progress" id="timelineProgress"></i>
+            </div>
+            <div class="run-log">
+              <span>Personal best</span>
+              <strong id="bestPrice">$0.00</strong>
+              <small id="bestRank">Ground Crew</small>
+            </div>
+          </aside>
+        </div>
+
+        <footer class="launch-controls">
+          <button id="launchButton" type="button"><span>IGNITE REACTOR</span><small>Tap or press Space</small></button>
+          <p><strong>Points-only arcade simulation.</strong> No wallet, wagering, money, price feed, or financial prediction.</p>
+        </footer>
+      </section>
+    </main>
+
+    <script src="arcade.js?v=3"></script>
+    <script src="arcade-pet.js?v=1"></script>
+    <script src="etc-unstable-launch.js"></script>
+  </body>
+</html>

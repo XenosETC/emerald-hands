@@ -11,6 +11,9 @@
     <link rel="preload" href="assets/pepe-relic-rumble/origin-flame.png" as="image">
     <link rel="preload" href="assets/pepe-wars/brawler-pepe.png" as="image">
     <link rel="preload" href="assets/pepe-tower-defense/pepe-blaster-sprite.png" as="image">
+    <link rel="preload" href="assets/etc-unstable-launch/emerald-space.png" as="image">
+    <link rel="preload" href="assets/etc-rocket-simulator/deep-space.png" as="image">
+    <link rel="preload" href="assets/etc-pets/meme-pets.png" as="image">
     <link rel="stylesheet" href="mini-games.css?v=pepe-origin-flame-v2">
   </head>
   <body>
@@ -19,7 +22,7 @@
         <div class="hub-copy">
           <p class="eyebrow">ETC Mini Games Lab</p>
           <h1 id="hub-title">Emerald Arcade</h1>
-          <p>Nine premium ETC-inspired games and Pepe Legends prototypes built for fast sessions, clean vibes, and arcade-style progression.</p>
+          <p>Twelve premium ETC-inspired games and Pepe Legends prototypes built for fast sessions, clean vibes, and arcade-style progression.</p>
         </div>
         <a class="hub-action" id="continueGame" href="emerald-hands.html">Continue Emerald Hands</a>
       </section>
@@ -60,6 +63,48 @@
       </section>
 
       <section class="game-grid" aria-label="Available mini games">
+        <article class="game-card game-card--unstable-launch">
+          <div class="game-art" aria-hidden="true">
+            <img src="assets/etc-unstable-launch/etc-rocket-sheet.png" alt="" loading="eager">
+          </div>
+          <div class="game-body">
+            <p class="eyebrow">One-Tap Lore Flight</p>
+            <h2>ETC: Unstable Launch</h2>
+            <p>Ignite an emerald reactor, ride a fictional ETC price through deep space, and lock before unstable velocity blows the rocket apart.</p>
+            <div class="game-meta"><span>One Tap</span><span>$30K+ Lore</span><span>Infinite Space</span></div>
+            <p class="game-stat" data-stat="unstableLaunch">$0 locked | Ground Crew</p>
+            <a href="etc-unstable-launch.html">Launch ETC</a>
+          </div>
+        </article>
+
+        <article class="game-card game-card--rocket-simulator">
+          <div class="game-art" aria-hidden="true">
+            <img src="assets/etc-rocket-simulator/rocket-tiers.png" alt="" loading="eager">
+          </div>
+          <div class="game-body">
+            <p class="eyebrow">Launch · Salvage · Upgrade</p>
+            <h2>ETC Rocket Simulator</h2>
+            <p>Travel until fuel or structural support fails, recover every expedition shard, upgrade six rocket systems, and push deeper into the stars.</p>
+            <div class="game-meta"><span>Forgiving Progression</span><span>Rocket Upgrades</span><span>Deep Space</span></div>
+            <p class="game-stat" data-stat="rocketSimulator">0 km best | Launch Engineer</p>
+            <a href="etc-rocket-simulator.html">Enter Rocket Hangar</a>
+          </div>
+        </article>
+
+        <article class="game-card game-card--pets">
+          <div class="game-art" aria-hidden="true">
+            <img src="assets/etc-pets/meme-pets.png" alt="" loading="eager">
+          </div>
+          <div class="game-body">
+            <p class="eyebrow">Arcade Companion Network</p>
+            <h2>ETC Pets: Meme Edition</h2>
+            <p>Feed, play, train, and switch meme companions that follow you between the Arcade Hub and every ETC game.</p>
+            <div class="game-meta"><span>Virtual Pets</span><span>Pet Switching</span><span>Cross-Game</span></div>
+            <p class="game-stat" data-stat="pets">0 aura | Pocket Meme</p>
+            <a href="etc-pets.html">Open Pet Sanctuary</a>
+          </div>
+        </article>
+
         <article class="game-card game-card--paradox">
           <div class="game-art" aria-hidden="true">
             <img src="assets/pepes-paradox/crown-platformer-idle.png" alt="" loading="eager">
@@ -225,6 +270,7 @@
       </section>
     </main>
     <script src="arcade.js?v=2"></script>
+    <script src="arcade-pet.js?v=1"></script>
     <script src="mini-games.js?v=2"></script>
   </body>
 </html>

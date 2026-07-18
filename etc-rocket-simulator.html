@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="ETC Rocket Simulator, a forgiving launch, salvage, and upgrade game.">
+    <title>ETC Rocket Simulator</title>
+    <link rel="preload" href="assets/etc-rocket-simulator/deep-space.png" as="image">
+    <link rel="preload" href="assets/etc-rocket-simulator/rocket-tiers.png" as="image">
+    <link rel="preload" href="assets/etc-rocket-simulator/salvage.png" as="image">
+    <link rel="stylesheet" href="etc-rocket-simulator.css">
+  </head>
+  <body>
+    <main class="sim-shell">
+      <section class="sim-game">
+        <header class="sim-topbar">
+          <div>
+            <p class="eyebrow">Emerald Expedition Program // Game 11</p>
+            <h1>ETC Rocket Simulator</h1>
+            <p>Push deeper into the stars. Salvage every shard. Build the rocket that reaches Beyond Canon.</p>
+          </div>
+          <nav aria-label="Arcade navigation">
+            <a href="index.html">Arcade Hub</a>
+            <a href="etc-unstable-launch.html">Unstable Launch</a>
+          </nav>
+        </header>
+
+        <div class="sim-layout">
+          <section class="flight-stage">
+            <canvas id="rocketCanvas" width="1280" height="720" aria-label="Rocket expedition through emerald space"></canvas>
+            <div class="flight-readout">
+              <div><small>distance</small><strong id="distanceLabel">0 km</strong></div>
+              <div><small>sector</small><strong id="zoneLabel">Launch Complex</strong></div>
+              <div><small>velocity</small><strong id="speedLabel">0 km/s</strong></div>
+              <div><small>record</small><strong id="recordLabel">0 km</strong></div>
+            </div>
+            <div class="systems">
+              <span><small>Fuel</small><i><b id="fuelBar"></b></i><strong id="fuelLabel">100%</strong></span>
+              <span><small>Heat</small><i><b id="heatBar"></b></i><strong id="heatLabel">0%</strong></span>
+              <span><small>Hull</small><i><b id="hullBar"></b></i><strong id="hullLabel">100%</strong></span>
+            </div>
+            <div class="mission-card" id="missionCard">
+              <p class="eyebrow" id="missionEyebrow">Expedition Ready</p>
+              <h2 id="missionTitle">Every wreck makes the next rocket stronger.</h2>
+              <p id="missionText">Launch automatically. Your current build travels until fuel, heat, or structural support reaches its limit.</p>
+              <div class="mission-reward" id="missionReward" hidden></div>
+            </div>
+          </section>
+
+          <aside class="hangar">
+            <div class="hangar-wallet">
+              <span><small>salvaged shards</small><strong id="shardBalance">0</strong></span>
+              <span><small>rocket class</small><strong id="rocketClass">Pathfinder I</strong></span>
+            </div>
+            <div class="upgrade-list" id="upgradeList"></div>
+            <button class="launch-button" id="launchButton" type="button">
+              <span>BEGIN EXPEDITION</span>
+              <small>Automatic flight · all salvage recovered</small>
+            </button>
+            <p class="forgiving-note">Destruction ends the expedition, not your progress. Every run banks its salvage automatically.</p>
+          </aside>
+        </div>
+      </section>
+    </main>
+    <script src="arcade.js?v=4"></script>
+    <script src="arcade-pet.js?v=1"></script>
+    <script src="etc-rocket-simulator.js"></script>
+  </body>
+</html>

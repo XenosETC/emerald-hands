@@ -19,6 +19,9 @@ if (arcade) {
     towerDefense: "Tower Defense",
     pepeWars: "Pepe Wars",
     paradox: "Pepe's Paradox",
+    unstableLaunch: "Unstable Launch",
+    rocketSimulator: "Rocket Simulator",
+    pets: "ETC Pets",
   };
   continueGame.href = continueTarget.path;
   continueGame.textContent = `Continue ${continueNames[continueTarget.game] || "Last Game"}`;
@@ -63,6 +66,12 @@ if (arcade) {
     `${format(arcade.best.pepeWars.score)} best | ${arcade.best.pepeWars.rank}`;
   document.querySelector("[data-stat='paradox']").textContent =
     `${format(arcade.best.paradox.score)} best | Stage ${arcade.best.paradox.stage || 0}`;
+  document.querySelector("[data-stat='unstableLaunch']").textContent =
+    `${formatPrice(arcade.best.unstableLaunch.lockedPrice)} locked | ${arcade.best.unstableLaunch.rank}`;
+  document.querySelector("[data-stat='rocketSimulator']").textContent =
+    `${formatDistance(arcade.best.rocketSimulator.distance)} best | ${arcade.best.rocketSimulator.rank}`;
+  document.querySelector("[data-stat='pets']").textContent =
+    `${format(arcade.best.pets.aura)} aura | ${arcade.best.pets.rank}`;
 
   document.querySelector("#badgeSummary").textContent =
     arcade.badges.length ? `${arcade.badges.length} / ${badgeCatalog.length} unlocked` : "Start any game to unlock your first badge.";
@@ -83,4 +92,18 @@ if (arcade) {
     `;
     badgeList.appendChild(tile);
   });
+}
+
+function formatPrice(value) {
+  if (!value) return "$0";
+  if (value < 1000) return `$${value.toFixed(2)}`;
+  if (value < 1000000) return `$${(value / 1000).toFixed(value < 10000 ? 2 : 1)}K`;
+  return `$${(value / 1000000).toFixed(2)}M`;
+}
+
+function formatDistance(value) {
+  if (!value) return "0 km";
+  if (value < 1000) return `${Math.round(value)} km`;
+  if (value < 1000000) return `${(value / 1000).toFixed(value < 10000 ? 2 : 1)}K km`;
+  return `${(value / 1000000).toFixed(2)}M km`;
 }
