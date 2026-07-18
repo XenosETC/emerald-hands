@@ -94,7 +94,7 @@
     style.id = "arcade-pet-styles";
     style.textContent = `
       .arcade-pet-companion {
-        position: fixed; left: 76%; bottom: 12px; z-index: 80;
+        position:fixed; left:clamp(60px,var(--pet-x,76%),calc(100vw - 60px)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:80;
         width: 96px; height: 118px; transform: translateX(-50%);
         border: 1px solid rgba(122,255,202,.38); border-radius: 48px 48px 15px 15px;
         background: radial-gradient(circle at 50% 74%,rgba(44,255,157,.24),rgba(0,9,5,.88) 70%);
@@ -109,17 +109,17 @@
       .arcade-pet-name { position:absolute; left:50%; bottom:4px; width:max-content; max-width:130px; transform:translateX(-50%); color:#dffff1; font:800 9px/1.1 Inter,system-ui,sans-serif; letter-spacing:.04em; text-shadow:0 2px 4px #000; }
       .arcade-pet-aura { position:absolute; inset:-10px; border:1px solid rgba(75,255,172,.2); border-radius:50%; animation:arcade-pet-aura 2.2s ease-in-out infinite; pointer-events:none; }
       .arcade-pet-picker {
-        position:fixed; right:14px; bottom:142px; z-index:81; display:none; width:min(340px,calc(100vw - 28px));
+        position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(58px,calc(env(safe-area-inset-bottom) + 46px)); z-index:81; display:none; width:min(340px,calc(100vw - 24px));
+        max-height:calc(100dvh - 76px); overflow:auto; overscroll-behavior:contain;
         padding:12px; border:1px solid rgba(122,255,202,.38); border-radius:12px; color:#effff7;
         background:rgba(0,10,6,.94); box-shadow:0 20px 60px rgba(0,0,0,.7); backdrop-filter:blur(15px);
         font-family:Inter,system-ui,sans-serif;
       }
       .arcade-pet-dock-toggle {
-        position:fixed; right:0; top:54%; z-index:82; width:30px; height:66px;
-        border:1px solid rgba(122,255,202,.48); border-right:0; border-radius:10px 0 0 10px; color:#dffff1;
+        position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(14px,env(safe-area-inset-bottom)); z-index:82; width:72px; height:34px;
+        border:1px solid rgba(122,255,202,.48); border-radius:999px; color:#dffff1;
         background:rgba(0,18,11,.92); box-shadow:0 10px 28px rgba(0,0,0,.55);
         cursor:pointer; touch-action:manipulation; font:900 9px/1 Inter,system-ui,sans-serif; letter-spacing:.08em;
-        writing-mode:vertical-rl; text-orientation:mixed;
       }
       .arcade-pet-picker.is-open { display:block; }
       .arcade-pet-picker header { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:9px; }
@@ -134,7 +134,13 @@
       .arcade-pet-option small { margin-top:2px; color:#93b8a7; font-size:8px; }
       @keyframes arcade-pet-bob { to { transform:translateY(-5px) rotate(1deg); } }
       @keyframes arcade-pet-aura { 50% { transform:scale(1.08); border-color:rgba(75,255,172,.5); box-shadow:0 0 18px rgba(75,255,172,.2); } }
-      @media(max-width:680px){ .arcade-pet-companion{width:76px;height:94px}.arcade-pet-sprite{width:66px;height:66px}.arcade-pet-picker{bottom:116px} }
+      @media(max-width:680px){
+        .arcade-pet-companion{left:clamp(48px,var(--pet-x,76%),calc(100vw - 48px));bottom:max(84px,calc(env(safe-area-inset-bottom) + 74px));width:76px;height:94px}
+        .arcade-pet-sprite{width:66px;height:66px}
+        .arcade-pet-dock-toggle{right:max(10px,env(safe-area-inset-right));width:66px}
+        .arcade-pet-picker{right:max(10px,env(safe-area-inset-right));left:max(10px,env(safe-area-inset-left));width:auto;max-height:calc(100dvh - 148px)}
+        .arcade-pet-options{grid-template-columns:repeat(4,minmax(0,1fr))}
+      }
     `;
     document.head.appendChild(style);
   }
@@ -192,7 +198,7 @@
     data = load();
     if (!companion) return;
     const pet = petById(data.selected);
-    companion.style.left = `${clamp(data.x, 8, 92)}%`;
+    companion.style.setProperty("--pet-x", `${clamp(data.x, 8, 92)}%`);
     sprite.style.backgroundImage = `url("${pet.sheet}")`;
     sprite.style.backgroundPosition = spritePosition(pet.id);
     companion.querySelector(".arcade-pet-name").textContent = pet.name;
@@ -211,7 +217,7 @@
     if (!companion) return;
     data.x = 12 + Math.random() * 76;
     save();
-    companion.style.left = `${data.x}%`;
+    companion.style.setProperty("--pet-x", `${data.x}%`);
   }
 
   function celebrate() {

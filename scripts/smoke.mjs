@@ -93,7 +93,12 @@ check(arcadeSource.includes('slug: "origin-voyager"'), "Arcade Origin Voyager ba
 const petSource = readFileSync(resolve(root, "arcade-pet.js"), "utf8");
 check(petSource.includes("pointer-events:none"), "Arcade pet companion can intercept gameplay input");
 check(petSource.includes('aria-expanded'), "Arcade pet switcher accessibility state is missing");
+check(petSource.includes("left:clamp(60px,var(--pet-x"), "Arcade pet roaming bounds are not viewport-safe");
+check(petSource.includes("left:max(10px,env(safe-area-inset-left))"), "Arcade pet picker can clip on narrow screens");
 const petGameSource = readFileSync(resolve(root, "etc-pets.js"), "utf8");
+const petGameCss = readFileSync(resolve(root, "etc-pets.css"), "utf8");
+check(petGameCss.includes("height:100dvh"), "ETC Pets sanctuary is not viewport-fitted");
+check(petGameCss.includes("grid-template-columns:repeat(4,minmax(0,1fr))"), "ETC Pets compact roster contract is missing");
 for (const asset of ["meme-pets.png", "pepe-variants.png", "pet-sanctuary.png"]) {
   check(existsSync(resolve(root, `assets/etc-pets/${asset}`)), `ETC Pets generated asset is missing ${asset}`);
 }

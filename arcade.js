@@ -690,7 +690,7 @@
         .arcade-runtime-dock { right:max(10px,env(safe-area-inset-right)); left:max(10px,env(safe-area-inset-left)); justify-content:center; }
         .arcade-runtime-dock button { flex:1 1 70px; }
         .arcade-runtime-settings { grid-template-columns:1fr; }
-        .arcade-pet-dock-toggle { top:auto!important; bottom:82px!important; }
+        .arcade-pet-dock-toggle { top:auto!important; bottom:max(82px,calc(env(safe-area-inset-bottom) + 72px))!important; }
         .arcade-pet-picker { bottom:134px!important; max-height:56vh; overflow:auto; }
       }
     `;
