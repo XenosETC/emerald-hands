@@ -104,6 +104,10 @@ for (const asset of [
 for (const contract of ["upgradeDefs", "Fuel lattice exhausted", "banked every shard", "buyUpgrade", "zoneFor", "rocketTier", "sectorBlendFor", "showSectorTransition"]) {
   check(rocketSimSource.includes(contract), `Rocket Simulator contract is missing ${contract}`);
 }
+check(
+  rocketSimSource.includes('requestedSectorQa === null ? -1 : Number(requestedSectorQa)'),
+  "Rocket Simulator must not pin normal expeditions to the Low Orbit QA background",
+);
 check(arcadeSource.includes('slug: "origin-voyager"'), "Arcade Origin Voyager badge is missing");
 
 const petSource = readFileSync(resolve(root, "arcade-pet.js"), "utf8");

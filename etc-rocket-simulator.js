@@ -49,9 +49,10 @@ const zones = [
 const background = new Image();
 background.src = "assets/etc-rocket-simulator/deep-space.png";
 const sectorBackgrounds = Array(zones.length).fill(null);
-const requestedSectorQa = Number(new URLSearchParams(location.search).get("sectorqa"));
-const sectorQaIndex = Number.isInteger(requestedSectorQa) && requestedSectorQa >= 0 && requestedSectorQa < zones.length
-  ? requestedSectorQa
+const requestedSectorQa = new URLSearchParams(location.search).get("sectorqa");
+const requestedSectorQaIndex = requestedSectorQa === null ? -1 : Number(requestedSectorQa);
+const sectorQaIndex = Number.isInteger(requestedSectorQaIndex) && requestedSectorQaIndex >= 0 && requestedSectorQaIndex < zones.length
+  ? requestedSectorQaIndex
   : -1;
 let sectorTransitionTimer;
 const rockets = new Image();
