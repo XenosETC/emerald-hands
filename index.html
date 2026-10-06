@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#0a1110">
     <title>Emerald Arcade — Small games. Big adventures.</title>
     <link rel="preload" href="assets/pepes-paradox/bamboo-temple-path.png" as="image">
-    <link rel="stylesheet" href="mini-games.css?v=arcade-polish-1">
+    <link rel="stylesheet" href="mini-games.css?v=library-1">
   </head>
   <body>
     <a class="skip-link" href="#games">Skip to games</a>
@@ -51,6 +51,7 @@
         </div>
       </section>
 
+      <section class="recent-section" id="recentSection" aria-labelledby="recentTitle" hidden><div class="library-heading"><div><p class="eyebrow">BACK TO YOUR WORLDS</p><h2 id="recentTitle">Recently opened</h2></div><p>Saved on this device</p></div><div class="recent-games" id="recentGames"></div></section>
       <section class="library-section" id="games" aria-labelledby="library-title">
         <div class="library-heading"><div><p class="eyebrow">PICK YOUR NEXT ADVENTURE</p><h2 id="library-title">The game collection<span id="gameCount">16</span></h2></div><p>Quick thrills. Long quests. Your call.</p></div>
         <div class="library-controls">
@@ -63,8 +64,10 @@
           </div>
           <label class="game-search"><span class="visually-hidden">Search games</span><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="gameSearch" type="search" placeholder="Find a game…" autocomplete="off"></label>
         </div>
-        <p class="filter-result visually-hidden" id="filterResult" role="status" aria-live="polite"></p>
-        <div class="empty-library" id="emptyLibrary" hidden><strong>No games found.</strong><p>Try a different name or explore the full collection.</p><button id="resetFilters" type="button">Show all games</button></div>
+        <div class="library-options"><label><input type="checkbox" id="favoritesOnly"> Favorites <span id="favoriteCount">0</span></label><label><input type="checkbox" id="touchOnly"> Touch controls</label><label class="sort-games">Sort <select id="gameSort" aria-label="Sort games"><option value="featured">Featured</option><option value="recent">Recently opened</option><option value="title">Title A–Z</option></select></label><button type="button" id="pickGame">Pick a game ↗</button></div>
+        <p id="libraryNotice" class="library-notice" role="status">Your favorites stay on this device.</p>
+        <p class="filter-result" id="filterResult" role="status" aria-live="polite"></p>
+        <div class="empty-library" id="emptyLibrary" hidden><strong>No games found.</strong><p id="emptyMessage">Try a different name or explore the full collection.</p><button id="resetFilters" type="button">Show all games</button></div>
 
       <section class="game-grid" aria-label="Available mini games">
         <article class="game-card" data-category="strategy adventure">
@@ -314,6 +317,7 @@
     </main>
     <script src="arcade.js?v=6"></script>
     <script src="arcade-pet.js?v=4"></script>
-    <script src="mini-games.js?v=arcade-polish-1"></script>
+    <script src="mini-games.js?v=library-1"></script>
+  <script src="arcade-library.js?v=library-1"></script><script src="arcade-library-ui.js?v=library-1"></script>
   </body>
 </html>

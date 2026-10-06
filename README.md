@@ -10,6 +10,14 @@ The sixteen-game hub includes four new browser prototypes: Satoshi System, Pepe 
 
 Temple Run ships its Crown runner model, environment assets, and local Three.js dependency with the vendor license. Serve the site over HTTP for module-based games; no build is required. Test the collection with `npm test`, Soul World with `npm test --prefix pepe-soul-world`, Feudalism with `npm test --prefix pepe-feudalism`, and Temple Run with `node --test pepe-temple-run/*-test.mjs`.
 
+## Personal arcade library
+
+Save any game with its star button, then use Favorites to see your collection. Recently opened lists the last four games you visited, including the independent Pepe games, and the hero's Return link follows your latest game. Openings are navigation history; they do not claim completed runs or change game rewards.
+
+All sixteen games share one navigation catalog with genre and control metadata. Search supports titles, descriptions and controls; genre, favorites and touch filters combine. Sort by featured order, title or recently opened. Pick a game chooses only from the visible results. Filters are preserved in the page URL for reload and browser Back.
+
+Favorites and recent openings use only `emerald-library-v1`. Existing game saves, currencies and shared arcade progress stay separate. Library preferences are device/browser-local and are not a cloud backup. If browser storage is blocked or full, browsing still works and favorite changes display an unsaved notice. `npm test` covers catalog/page integration, history, favorites, filter intersections, invalid storage, and save isolation.
+
 ## Satoshi System
 
 `satoshi-system.html` is a flagship one-click guest Monetary Systems Lab game with an Emerald Hands-inspired click-buy-grow rhythm and completely separate state and semantics. Each click advances a saved fictional clock, routes integer simulated sats, and moves a transparent Bull, Balanced, or Bear market-weather model. Players keep sats liquid or deploy them into repeatable Routing Efficiency and Productive World levels, two resilience upgrades, and one expansion gate. Six derived system ranks make long-run progress visible without adding prestige or another currency.
