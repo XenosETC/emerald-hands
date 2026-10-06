@@ -1,0 +1,40 @@
+[
+  {
+    "frame": 0,
+    "source": {
+      "id": 1,
+      "count": 259784,
+      "minX": 153,
+      "minY": 107,
+      "maxX": 795,
+      "maxY": 822,
+      "cx": 484.21550595879654,
+      "cy": 488.2947602623718
+    },
+    "anchorX": 546,
+    "soleMin": 298,
+    "soleMax": 794,
+    "baseline": 504,
+    "scale": 0.48,
+    "renderSize": 300
+  },
+  {
+    "frame": 1,
+    "source": {
+      "id": 2,
+      "count": 271855,
+      "minX": 981,
+      "minY": 113,
+      "maxX": 1609,
+      "maxY": 823,
+      "cx": 1296.2289713266264,
+      "cy": 480.89995034117453
+    },
+    "anchorX": 1349,
+    "soleMin": 1108,
+    "soleMax": 1590,
+    "baseline": 504,
+    "scale": 0.48,
+    "renderSize": 300
+  }
+]

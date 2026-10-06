@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {armySummary} from '../army-summary.js';
+test('army summary includes rank health and healer as ranged without double counting',()=>{const s=armySummary({army:['frogGuardian','holyMage','shadowMage'],armyXp:[2,1,0]});assert.equal(s.frontline,1);assert.equal(s.ranged,2);assert.equal(s.healers,1);assert.equal(s.health,388);assert.equal(s.experienced,2);assert.deepEqual(s.notes,[]);assert.equal(armySummary({army:[]}).notes.length,1);});

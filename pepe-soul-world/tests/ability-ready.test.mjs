@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {createState,abilityReady,act} from '../core.js';
+const unlocked=()=>createState({version:1,xp:600,seals:['frozen'],oath:true});
+test('touch ability readiness matches actual combat acceptance',()=>{for(const key of ['dash','wave','release'])for(const patch of [{},{hurt:.1},{attack:.3},{dash:.2},{sp:10},{dashCooldown:1,waveCooldown:1,releaseCooldown:1}]){const s=unlocked();Object.assign(s.player,patch);const ready=abilityReady(s,key);assert.equal(act(s,key),ready,key+JSON.stringify(patch));}});
+test('locked awakening and Domain casts block touch abilities',()=>{const s=createState();assert.equal(abilityReady(s,'release'),false);const u=unlocked();u.player.domain={elapsed:.5};for(const key of ['dash','wave','release'])assert.equal(abilityReady(u,key),false);});

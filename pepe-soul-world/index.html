@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1118">
+  <meta name="description" content="Train at Kek Academy. Master your soul blade. Cross three haunted realms in an animated 2D action RPG.">
+  <title>Pepe Soul World · Kek Academy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="masthead"><a href="../index.html">✦ EMERALD ARCADE</a><span class="edition">A NEW CHAPTER / 2D ACTION RPG</span><button id="sound" aria-pressed="false">Sound off</button></header>
+  <main>
+    <section class="titlebar"><div><p class="eyebrow">DEATH IS JUST ANOTHER BEGINNING</p><h1>PEPE <em>SOUL WORLD</em></h1></div><div class="chapter"><span>CHAPTER 01</span><strong>The academy beyond life.</strong><small>Different realm. Same Pepe.</small></div></section>
+    <div class="layout">
+      <section class="stage-shell" aria-label="Game">
+        <div class="stage-top"><span id="world-label">KEK ACADEMY</span><span id="rank">INITIATE / LV. 1</span><button id="pause" aria-pressed="false">Pause</button></div>
+        <div class="viewport">
+          <canvas id="game" width="1280" height="720" tabindex="0" aria-label="Pepe Soul World. Move with A and D, jump with Space, slash with J, Warp Step with K, spirit wave with L, interact with E."></canvas>
+          <div class="hud"><div class="portrait"><img src="assets/crown-face.png" alt="Crown Pepe"></div><div class="vitals"><strong>CROWN PEPE <span id="weapon">Ribbit Fang</span></strong><label>HP <progress id="health" max="100" value="100"></progress><span id="health-number">100</span></label><label>SP <progress id="spirit" max="100" value="100"></progress><span id="spirit-number">100</span></label></div></div>
+          <div id="toast" role="status" aria-live="polite">Welcome to Kek Academy.</div>
+          <div class="interaction" id="interaction"></div>
+          <div class="veil" id="intro"><p class="eyebrow">THE FIRST OATH</p><h2>Your story<br>survives you.</h2><p>Enter Kek Academy. Train your blade.<br>Bring three lost seals home.</p><button id="begin">Enter Kek Academy <span>→</span></button><small>Headphones recommended · Progress saves on this device</small></div>
+          <div class="veil" id="pause-screen" hidden><p class="eyebrow">TAKE A BREATH</p><h2>Between worlds.</h2><button id="resume">Return to your journey →</button></div>
+          <div class="veil" id="death-screen" hidden><p class="eyebrow">YOUR OATH REMAINS</p><h2>Rise again.</h2><p>Your training and recovered seals are safe.</p><button id="revive">Return to Kek Academy →</button></div>
+        </div>
+        <div class="controls"><span><kbd>A</kbd><kbd>D</kbd> Move</span><span><kbd>SPACE</kbd> Jump</span><span><kbd>J</kbd> Slash / combo</span><span><kbd>K</kbd> Warp Step</span><span><kbd>L</kbd> Kek Wave / airborne Rift</span><span><kbd>E</kbd> Mentor / gate</span><span><kbd>R</kbd> Release</span><span><kbd>F</kbd> Kek Domain</span><span><kbd>1</kbd> Heal</span><span><kbd>2</kbd> Spirit</span></div>
+        <div class="touch" aria-label="Touch controls"><button data-key="KeyA" aria-label="Move left">←</button><button data-key="KeyD" aria-label="Move right">→</button><button data-key="Space">Jump</button><button data-key="KeyJ">Slash</button><button data-key="KeyK">Warp Step</button><button data-key="KeyL">Kek Wave</button><button data-key="KeyE">Talk</button><button data-key="KeyR">Release</button><button data-key="KeyF">Domain</button><button data-item="healthFlask">Heal</button><button data-item="spiritFlask">Spirit</button></div>
+      </section>
+      <aside>
+        <section class="quest"><p class="eyebrow">YOUR FIRST OATH</p><h2>The lost seals</h2><p id="quest-copy">Meet Master Goribbit beside the academy lantern. Learn to channel your Soul Croak.</p><div id="seals"><span>❄ Frost</span><span>✧ Ember</span><span>◈ Void</span></div><div class="xp"><span id="xp-label">0 / 60 XP</span><progress id="xp" max="60" value="0"></progress></div></section>
+        <section class="worlds"><p class="eyebrow">CROSS THE VEIL</p><h2>Realms</h2><div id="realm-list"></div><p class="world-note">Choose a realm at the academy gate.<br>Return to the academy from any realm.</p></section>
+        <section class="blade"><p class="eyebrow">YOUR SOUL CROAK</p><h2>Ribbit Fang</h2><p id="blade-copy">A quiet blade. A promise yet to wake.</p><div class="blade-track"><span class="active">SEALED</span><i></i><span id="release-label">AWAKENED</span></div></section>
+      </aside>
+    </div>
+    <footer><span>HAND-PAINTED WORLDS / FRAME-ANIMATED COMBAT</span><button id="motion" aria-pressed="false">Reduce effects</button><a href="animation.html">Animation studio ↗</a><span id="save-state">Local save ready</span></footer>
+  </main>
+  <script type="module" src="game.js"></script>
+</body>
+</html>

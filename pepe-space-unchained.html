@@ -10,10 +10,11 @@
     <link rel="preload" href="assets/pepe-space-unchained/pepe-ship.png" as="image">
     <link rel="preload" href="assets/pepe-space-unchained/corrupt-ship.png" as="image">
     <link rel="stylesheet" href="pepe-space-unchained.css?v=1">
+    <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
-  <body>
+  <body class="arcade-game" data-game="space">
     <main class="game-shell">
-      <header class="topbar">
+      <header class="topbar arcade-topbar">
         <a class="back" href="index.html" aria-label="Return to Emerald Arcade">Arcade</a>
         <div class="brand">
           <span>Pepe Legends</span>
@@ -23,7 +24,7 @@
       </header>
 
       <section class="stage-wrap" aria-label="Pepe Space Unchained game stage">
-        <canvas id="gameCanvas" width="1280" height="720" aria-label="Fly through blockchain space and shoot corrupt ships"></canvas>
+        <canvas id="gameCanvas" width="1280" height="720" aria-label="Fly through blockchain space and shoot corrupt ships" tabindex="0" aria-describedby="game-controls"></canvas>
 
         <section class="hud" aria-label="Mission statistics">
           <div><span id="scoreLabel">0</span><small>score</small></div>
@@ -48,6 +49,12 @@
         </section>
       </section>
     </main>
+
+    <footer class="game-guide" aria-label="How to play">
+      <div><span class="game-guide__label">Horizontal shooter</span><p><strong>Fly the chain-space frontier.</strong> Clear corrupt ships and survive each vault-node wave.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Drag to fly or use <kbd>WASD</kbd> / arrows. <kbd>Space</kbd> fires a burst; your main gun fires automatically.</p></div>
+      <div><span class="game-guide__label">Keep moving</span><p>Leave yourself room to dodge. A wide screen makes enemy formations easier to read.</p></div>
+    </footer>
 
     <script src="arcade.js?v=6"></script>
     <script src="arcade-pet.js?v=4"></script>

@@ -26,6 +26,7 @@
     session: null,
   };
   const currentPage = location.pathname.split("/").pop() || "index.html";
+  const isSatoshiPage = currentPage === "satoshi-system.html";
   const isGamePage = currentPage !== "index.html" && currentPage !== "mini-games.html";
 
   if (nativeRequestAnimationFrame) {
@@ -60,6 +61,7 @@
 
   const gamePaths = {
     hands: "emerald-hands.html",
+    satoshiSystem: "satoshi-system.html",
     rush: "shard-rush.html",
     galaxy: "emerald-galactic-heroes.html",
     rumble: "pepe-relic-rumble.html",
@@ -85,6 +87,7 @@
     analytics: {},
     best: {
       hands: { prestigeRank: "Retail Ghost", ogPoints: 0, empireValue: 0, totalEarned: 0 },
+      satoshiSystem: { score: 0, rank: "Genesis Observer", ticks: 0, connectedPlanets: 0, treasurySats: 0, epoch: 1 },
       rush: { score: 0, rank: "Unranked", combo: 1 },
       galaxy: { score: 0, rank: "Cadet", wave: 1, weapon: "Mk I" },
       rumble: { wins: 0, rank: "Unranked", rounds: 0 },
@@ -367,7 +370,7 @@
   }
 
   function sessionShardReward(game, payload = {}) {
-    if (!payload.played || game === "pets") return 0;
+    if (!payload.played || game === "pets" || game === "satoshiSystem") return 0;
     const score = Math.max(0, Number(payload.score || 0));
     const rewards = {
       hands: 8 + Math.min(24, Math.floor(Number(payload.ogPoints || 0) * 4)),
@@ -412,7 +415,7 @@
     const previousRank = rankForXp(data.xp);
     const arcadeShardReward = sessionShardReward(game, payload);
     data.gamesPlayed += payload?.played ? 1 : 0;
-    if (payload?.played) uniquePush(data.badges, "emerald-pilot");
+    if (payload?.played && game !== "satoshiSystem") uniquePush(data.badges, "emerald-pilot");
 
     if (game === "hands") {
       const current = data.best.hands;
@@ -422,6 +425,14 @@
       data.xp = Math.max(data.xp, Math.floor((payload.empireValue || 0) / 1000) + (payload.ogPoints || 0) * 250);
       if ((payload.ogPoints || 0) >= 1) uniquePush(data.badges, "lp-reviver");
       if ((payload.ogPoints || 0) >= 7) uniquePush(data.badges, "market-sage");
+    }
+
+    // Guest results support navigation and records only, with no arcade currency or XP.
+    if (game === "satoshiSystem") {
+      const current = data.best.satoshiSystem;
+      if ((payload.connectedPlanets || 0) > current.connectedPlanets || (payload.score || 0) > current.score) {
+        data.best.satoshiSystem = { ...current, ...payload };
+      }
     }
 
     if (game === "rush") {
@@ -528,6 +539,7 @@
     const day = Math.floor(Date.now() / 86400000);
     const options = [
       { game: "Emerald Hands", task: "Reach a new prestige or push empire value higher." },
+      { game: "Satoshi System", task: "Pass the first contraction while keeping three operating cycles in reserve." },
       { game: "Shard Rush", task: "Score 9K+ without dropping your combo below x2." },
       { game: "Galactic Heroes", task: "Reach Wave 3 or trigger a weapon upgrade." },
       { game: "Pepe Relic Rumble", task: "Win a best-of-five vault fight." },
@@ -544,6 +556,7 @@
   }
 
   const controlsByPage = {
+    "satoshi-system.html": ["Click the Genesis Star or press Space to route fictional sats and advance one simulated tick.", "Build worlds, preserve reserves, and open supported expansion. Your save is separate from the ETC arcade economy.", "Press P to pause, M to mute, or R to reload your save. Use Reset Simulation on the game page to start over."],
     "emerald-hands.html": ["Tap or click shards to earn ETC.", "Use the shop buttons to buy infrastructure and upgrades.", "Press P to pause, M to mute, or R to restart."],
     "shard-rush.html": ["Move with mouse, touch, arrow keys, or WASD.", "Collect green rewards and avoid hazards.", "Press P to pause, M to mute, or R to restart."],
     "emerald-galactic-heroes.html": ["Move with mouse, touch, arrow keys, or WASD.", "Weapons auto-fire; collect upgrades and shield cells.", "Press P to pause, M to mute, or R to restart."],
@@ -608,6 +621,7 @@
   }
 
   function resetLocalProgress() {
+    if (isSatoshiPage) return;
     for (const key of LOCAL_SAVE_KEYS) localStorage.removeItem(key);
     for (let index = localStorage.length - 1; index >= 0; index -= 1) {
       const key = localStorage.key(index);
@@ -708,6 +722,8 @@
       @media (max-width: 680px) {
         .arcade-runtime-dock { right:max(10px,env(safe-area-inset-right)); left:max(10px,env(safe-area-inset-left)); justify-content:center; }
         .arcade-runtime-dock button { flex:1 1 70px; }
+        .arcade-runtime-dock.is-collapsed { right:auto; width:max-content; }
+        .arcade-runtime-dock.is-collapsed button { flex:0 0 auto; }
         .arcade-runtime-settings { grid-template-columns:1fr; }
         .arcade-pet-dock-toggle { top:auto!important; bottom:max(82px,calc(env(safe-area-inset-bottom) + 72px))!important; }
         .arcade-pet-picker { bottom:134px!important; max-height:56vh; overflow:auto; }
@@ -727,7 +743,7 @@
       <button type="button" class="arcade-runtime-grip" data-arcade-drag-handle aria-label="Drag arcade menu">Move</button>
       ${isGamePage ? `<button type="button" data-arcade-command="pause" aria-pressed="false">Pause</button>` : ""}
       <button type="button" data-arcade-command="mute" aria-pressed="${runtime.muted}">${runtime.muted ? "Sound off" : "Sound on"}</button>
-      ${isGamePage ? `<button type="button" data-arcade-command="restart">Restart</button>` : ""}
+      ${isGamePage ? `<button type="button" data-arcade-command="restart">${isSatoshiPage ? "Reload" : "Restart"}</button>` : ""}
       <button type="button" data-arcade-command="controls">${isGamePage ? "Controls" : "Settings"}</button>
       <button type="button" data-arcade-command="collapse" aria-expanded="true">Hide</button>
     `;
@@ -788,11 +804,12 @@
         <h3>Local settings</h3>
         <div class="arcade-runtime-settings">
           <button type="button" data-arcade-setting="sound">${runtime.muted ? "Turn sound on" : "Turn sound off"}</button>
-          <button type="button" class="arcade-runtime-reset" data-arcade-setting="reset">Reset local data</button>
+          ${isSatoshiPage ? "" : '<button type="button" class="arcade-runtime-reset" data-arcade-setting="reset">Reset local data</button>'}
         </div>
+        ${isSatoshiPage ? '<p>Satoshi System has a separate save. Use Reset Simulation on its game page to clear only this simulation.</p>' : ""}
         <div class="arcade-runtime-confirm" hidden>
-          <p>This clears arcade progress, game records, upgrades, and pets stored on this device. This cannot be undone.</p>
-          <div><button type="button" data-arcade-setting="cancel-reset">Keep my data</button><button type="button" class="arcade-runtime-reset" data-arcade-setting="confirm-reset">Clear everything</button></div>
+          <p>This clears arcade progress, game records, upgrades, and pets stored on this device. The separate Satoshi System simulation save is preserved. This cannot be undone.</p>
+          <div><button type="button" data-arcade-setting="cancel-reset">Keep my data</button><button type="button" class="arcade-runtime-reset" data-arcade-setting="confirm-reset">Clear arcade data</button></div>
         </div>
       </article>
     `;

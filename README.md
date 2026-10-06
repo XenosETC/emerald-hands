@@ -1,14 +1,36 @@
 # Emerald Arcade
 
-Premium ETC-inspired eight-game arcade hub.
+Local-first sixteen-game arcade portfolio with ETC-inspired games, Pepe Legends prototypes, and one institutionally separate Bitcoin-themed guest simulation.
 
 Open `index.html` for the ETC Mini Games Lab hub. `emerald-hands.html` opens the idle/clicker game directly.
+
+## Browser game release — October 5, 2026
+
+The sixteen-game hub includes four new browser prototypes: Satoshi System, Pepe Soul World (`pepe-soul-world/index.html`), Pepe Temple Run (`pepe-temple-run/index.html`), and Pepe Feudalism (`pepe-feudalism/index.html`). The three independent Pepe games preserve their own gameplay and saves without shared arcade rewards. Native Unreal/Godot projects, local galleries, and historical screenshots are outside this web release.
+
+Temple Run ships its Crown runner model, environment assets, and local Three.js dependency with the vendor license. Serve the site over HTTP for module-based games; no build is required. Test the collection with `npm test`, Soul World with `npm test --prefix pepe-soul-world`, Feudalism with `npm test --prefix pepe-feudalism`, and Temple Run with `node --test pepe-temple-run/*-test.mjs`.
+
+## Satoshi System
+
+`satoshi-system.html` is a flagship one-click guest Monetary Systems Lab game with an Emerald Hands-inspired click-buy-grow rhythm and completely separate state and semantics. Each click advances a saved fictional clock, routes integer simulated sats, and moves a transparent Bull, Balanced, or Bear market-weather model. Players keep sats liquid or deploy them into repeatable Routing Efficiency and Productive World levels, two resilience upgrades, and one expansion gate. Six derived system ranks make long-run progress visible without adding prestige or another currency.
+
+Its fixed-supply ledger is closed-loop and local: global issued supply always equals circulation plus the player treasury. Business income transfers already-issued sats; purchases return sats to circulation; and an accelerated first emission epoch contracts the click reward from 8 to 4 sats.
+
+The visible fictional `Network Maturity` curve is independent of price weather. At tick 60 with Relay Moon connected, the next Merchant Planet level costs 10% fewer sats; after Epoch II with Merchant Planet connected, the next Forge World level costs 15% fewer sats. Level costs still grow exponentially, availability gates remain, and operating load rises with every productive level. These are game-balancing unlocks, not purchasing-power forecasts.
+
+`Return on Satoshis (ROS)` is intentionally deferred beyond this first slice. If added later, it should appear only as separate cycle-based capacity, commerce, resilience, and optionality signals—never as ROI, expected performance, or one optimization score.
+
+Satoshi System has its own save, branding, currency semantics, and disclosures. It has no wallet, custody, trading, live data, real money, offline income, financial advice, or exchange with ETC or other arcade currencies.
+
+The shared runtime records guest sessions and best results for navigation only: Satoshi System awards no arcade shards, XP, or ETC badges, and receives no pet assists. Its Reset Simulation action clears only its own save; the arcade-wide reset preserves that save. Press `Space` to route sats, `P` to pause, `M` to mute, or `R` to reload the saved simulation.
+
+Every build is an outright closed-loop spend of fictional sats from the player Treasury back into the Circulation Belt. The MVP has no Bitcoin collateral, borrowing, loan, liquidation, leverage, margin, interest, loan-to-value, or real financing analogue.
 
 The hub reads local arcade progress from `localStorage`: arcade XP, badges, best runs, a rotating daily challenge, the last-played game, and privacy-friendly session signals. This is cosmetic/local only; nothing is transmitted.
 
 ## Arcade Badges
 
-The hub includes a twelve-badge cosmetic trophy cabinet with generated emerald/gold medallion art under `assets/badges/` and selected game art.
+The hub includes an eighteen-badge cosmetic trophy cabinet with generated emerald/gold medallion art under `assets/badges/` and selected game art.
 
 Current badge unlocks:
 
@@ -24,6 +46,12 @@ Current badge unlocks:
 10. `Space Unchained`: reach Wave 3 in Pepe: Space Unchained.
 11. `Vault Defender`: survive Wave 5 in Pepe Tower Defense.
 12. `Pepe Warlord`: win a Pepe Wars shard siege.
+13. `Vault Champion`: win the Relic Rumble tournament and its KEK Domain final.
+14. `Rage-Bait Survivor`: clear Bamboo Mountains.
+15. `Emerald Singularity`: lock a fictional $30K+ lore price in Unstable Launch.
+16. `Origin Voyager`: reach 100K km in Rocket Simulator.
+17. `Aura Farmer`: raise an arcade pet to 200 aura.
+18. `Bamboo Disciple`: train a pet to Strength Level 2.
 
 ## Pepe Relic Rumble
 
@@ -129,7 +157,15 @@ Open `index.html` in a browser for the full arcade hub, or `emerald-hands.html` 
 
 No build step is required.
 
-Run `npm test` for the dependency-free smoke suite. It verifies all eight pages, local asset references, shared arcade contracts, hub-return navigation, and JavaScript syntax.
+Run `npm test` for the dependency-free smoke suite. It verifies all sixteen game pages, local asset references, shared arcade contracts, hub-return navigation, JavaScript syntax, and Satoshi progression and save isolation.
+
+## Design polish — September 2026
+
+The hub includes title search, five genre filters, a separate Satoshi guest card, and expandable trophies and play history. Existing artwork is reused; the Satoshi cosmos image was copied from its earlier working copy.
+
+All twelve Emerald games share `game-polish.css` for readable controls, focus states, play guides, and responsive presentation. Mobile HUDs and long introductions flow outside the proportionally scaled playfields. Rumble and Paradox still require a keyboard. Satoshi has a separate copper observatory design, a mobile-first upgrade order, and expandable system records.
+
+See `DESIGN_POLISH.md` for scope, verification and the next playtest.
 
 ## Deploy To Render
 
@@ -160,7 +196,7 @@ Render should create one static web service:
 
 ## Next Steps
 
-- Run five-to-ten-player replay testing and compare the local starts/completions/retries signals before adding a ninth game.
-- Balance Tournament Rumble only after observing human play; the three fighters intentionally share the same combat stats today.
+- Run five-to-ten-player replay testing and compare the local starts/completions/retries signals before expanding the collection.
+- Balance Tournament Rumble only after observing human play; the eight fighters currently share baseline combat statistics.
 - Add mobile fighting controls and richer sound design.
 - Add a leaderboard only after spam, authentication, privacy, and abuse risks are scoped.

@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createState,revive,step,GROUND} from '../core.js';
+const realm=()=>createState({version:1,world:'frozen',zone:'arena',approachCleared:[1,2,3,5,6,7],oath:true,training:3,discoveries:['frozen']});
+test('shrine retry resets guardian attack cycle and player cooldowns',()=>{const s=realm(),b=s.enemies[0];s.dead=true;s.player.hp=0;s.player.dashCooldown=4;s.player.waveCooldown=4;s.player.releaseCooldown=10;b.attackCount=3;b.x=1800;b.hp=10;revive(s);assert.equal(s.player.x,1360);assert.equal(s.zone,'approach2');assert.equal(s.enemies.filter(e=>!e.dead).length,0);for(const key of ['dashCooldown','waveCooldown','releaseCooldown'])assert.equal(s.player[key],0);});
+test('second guardian strike emits a realm-identified wave',()=>{const s=realm(),b=s.enemies[0];s.enemies=[b];s.player.x=1900;b.x=2000;b.mode='windup';b.timer=0;b.attackCount=1;step(s,{},1/60);assert.equal(s.projectiles.length,1);assert.equal(s.projectiles[0].world,'frozen');assert.ok(s.events.some(e=>e.type==='enemyWave'&&e.world==='frozen'));});
+test('jumping over a ground wave avoids damage while a grounded hit connects',()=>{for(const airborne of [true,false]){const s=realm();s.enemies=[];s.player.x=1000;s.player.y=airborne?GROUND-150:GROUND;s.projectiles=[{x:994,y:GROUND-40,vx:360,life:1,friendly:false,world:'frozen'}];step(s,{},1/60);assert.equal(s.player.hp,airborne?100:84);}});

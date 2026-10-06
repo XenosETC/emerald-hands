@@ -1,0 +1,21 @@
+[
+  {
+    "frame": 0,
+    "source": {
+      "id": 1,
+      "count": 415904,
+      "minX": 181,
+      "minY": 195,
+      "maxX": 1009,
+      "maxY": 1086,
+      "cx": 638.84483919366,
+      "cy": 674.5567102023543
+    },
+    "anchorX": 674,
+    "soleMin": 349,
+    "soleMax": 999,
+    "baseline": 504,
+    "scale": 0.37,
+    "renderSize": 300
+  }
+]

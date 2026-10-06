@@ -10,6 +10,7 @@ if (arcade) {
   const continueTarget = window.EmeraldArcade.continueTarget();
   const continueGame = document.querySelector("#continueGame");
   const continueNames = {
+    satoshiSystem: "Satoshi System",
     hands: "Emerald Hands",
     rush: "Shard Rush",
     galaxy: "Galactic Heroes",
@@ -74,6 +75,14 @@ if (arcade) {
   document.querySelector("[data-stat='pets']").textContent =
     `${format(arcade.best.pets.aura)} aura | ${arcade.best.pets.rank}`;
 
+  const satoshiStat = document.querySelector("[data-stat='satoshiSystem']");
+  if (satoshiStat) {
+    const best = arcade.best.satoshiSystem;
+    satoshiStat.textContent = best?.ticks
+      ? `${format(best.ticks)} ticks | ${best.rank}`
+      : "A new cosmos awaits | Separate local save";
+  }
+
   document.querySelector("#badgeSummary").textContent =
     arcade.badges.length ? `${arcade.badges.length} / ${badgeCatalog.length} unlocked` : "Start any game to unlock your first badge.";
 
@@ -108,3 +117,60 @@ function formatDistance(value) {
   if (value < 1000000) return `${(value / 1000).toFixed(value < 10000 ? 2 : 1)}K km`;
   return `${(value / 1000000).toFixed(2)}M km`;
 }
+
+// Browse by title and genre without touching saved gameplay or arcade progress.
+const gameCards = [...document.querySelectorAll(".game-card")];
+const gameSearch = document.querySelector("#gameSearch");
+const filterButtons = [...document.querySelectorAll("[data-filter]")];
+const genres = {
+  "satoshi-system.html": "idle",
+  "emerald-hands.html": "idle",
+  "etc-pets.html": "idle",
+  "shard-rush.html": "arcade",
+  "pepecoin-run.html": "arcade",
+  "etc-unstable-launch.html": "arcade",
+  "pepe-relic-rumble.html": "arcade",
+  "emerald-galactic-heroes.html": "arcade",
+  "pepe-space-unchained.html": "arcade",
+  "etc-rocket-simulator.html": "adventure",
+  "pepes-paradox.html": "adventure",
+  "pepe-tower-defense.html": "strategy",
+  "pepe-wars.html": "strategy",
+};
+let selectedGenre = "all";
+function filterGames() {
+  const query = (gameSearch?.value || "").trim().toLocaleLowerCase();
+  let visible = 0;
+  for (const card of gameCards) {
+    const genre = genres[card.querySelector("a")?.getAttribute("href")];
+    const title = card.querySelector("h2")?.textContent || "";
+    const description = card.querySelector(".game-body > p:not(.eyebrow)")?.textContent || "";
+    const matches = (selectedGenre === "all" || genre === selectedGenre)
+      && `${title} ${description} ${genre}`.toLocaleLowerCase().includes(query);
+    card.hidden = !matches;
+    if (matches) visible += 1;
+  }
+  for (const button of filterButtons) {
+    const active = button.dataset.filter === selectedGenre;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  const count = document.querySelector("#gameCount");
+  if (count) count.textContent = String(visible);
+  const results = document.querySelector("#filterResult");
+  if (results) results.textContent = `${visible} of ${gameCards.length} games shown`;
+  const empty = document.querySelector("#emptyLibrary");
+  if (empty) empty.hidden = visible > 0;
+}
+gameSearch?.addEventListener("input", filterGames);
+for (const button of filterButtons) button.addEventListener("click", () => {
+  selectedGenre = button.dataset.filter;
+  filterGames();
+});
+document.querySelector("#resetFilters")?.addEventListener("click", () => {
+  selectedGenre = "all";
+  if (gameSearch) gameSearch.value = "";
+  filterGames();
+  gameSearch?.focus();
+});
+filterGames();

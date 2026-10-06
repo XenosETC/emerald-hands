@@ -9,11 +9,12 @@
     <link rel="preload" href="assets/etc-unstable-launch/etc-rocket-sheet.png" as="image">
     <link rel="preload" href="assets/etc-unstable-launch/emerald-explosion-sheet.png" as="image">
     <link rel="stylesheet" href="etc-unstable-launch.css">
+    <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
-  <body>
+  <body class="arcade-game" data-game="launch">
     <main class="launch-shell">
       <section class="launch-game" aria-label="ETC Unstable Launch game">
-        <header class="launch-topbar">
+        <header class="launch-topbar arcade-topbar">
           <div>
             <p class="eyebrow">Emerald Arcade // Lore Flight 10</p>
             <h1>ETC: Unstable Launch</h1>
@@ -25,9 +26,14 @@
           </nav>
         </header>
 
+        <footer class="launch-controls">
+          <button id="launchButton" type="button"><span>IGNITE REACTOR</span><small>Tap or press Space</small></button>
+          <p><strong>Points-only arcade simulation.</strong> No wallet, wagering, money, price feed, or financial prediction.</p>
+        </footer>
+
         <div class="launch-layout">
           <section class="flight-deck">
-            <canvas id="launchCanvas" width="1280" height="720" aria-label="Rocket flying through animated emerald space"></canvas>
+            <canvas id="launchCanvas" width="1280" height="720" aria-label="Rocket flying through animated emerald space" tabindex="0" aria-describedby="game-controls"></canvas>
 
             <div class="flight-hud" aria-live="polite">
               <div class="price-block">
@@ -67,12 +73,14 @@
           </aside>
         </div>
 
-        <footer class="launch-controls">
-          <button id="launchButton" type="button"><span>IGNITE REACTOR</span><small>Tap or press Space</small></button>
-          <p><strong>Points-only arcade simulation.</strong> No wallet, wagering, money, price feed, or financial prediction.</p>
-        </footer>
       </section>
     </main>
+
+    <footer class="game-guide" aria-label="How to play">
+      <div><span class="game-guide__label">One-tap timing</span><p><strong>Launch. Watch stability. Lock the run.</strong> Bank a fictional lore price before the reactor fails.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Click the reactor button or press <kbd>Space</kbd> to launch; use it again to lock the price.</p></div>
+      <div><span class="game-guide__label">Fictional flight</span><p>All prices and milestones are arcade lore. This game uses no live price feed, wallet, or real money.</p></div>
+    </footer>
 
     <script src="arcade.js?v=6"></script>
     <script src="arcade-pet.js?v=4"></script>

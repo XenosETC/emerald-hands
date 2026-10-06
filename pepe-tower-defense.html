@@ -19,10 +19,11 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-mage-evolved-sprite.png" as="image">
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=1">
+    <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
-  <body>
+  <body class="arcade-game" data-game="tower">
     <main class="game-shell">
-      <header class="topbar">
+      <header class="topbar arcade-topbar">
         <a class="back" href="index.html" aria-label="Return to Emerald Arcade">Arcade</a>
         <div class="brand">
           <span>Pepe Legends</span>
@@ -33,7 +34,7 @@
 
       <section class="stage-wrap" aria-label="Pepe Tower Defense game stage">
         <div class="playfield">
-          <canvas id="gameCanvas" width="1280" height="720" aria-label="Place Pepe towers and defend the emerald vault"></canvas>
+          <canvas id="gameCanvas" width="1280" height="720" aria-label="Place Pepe towers and defend the emerald vault" tabindex="0" aria-describedby="game-controls"></canvas>
 
           <section class="hud" aria-label="Defense statistics">
             <div><span id="scoreLabel">0</span><small>score</small></div>
@@ -104,6 +105,12 @@
         </aside>
       </section>
     </main>
+
+    <footer class="game-guide" aria-label="How to play">
+      <div><span class="game-guide__label">Build & defend</span><p><strong>Protect the vault.</strong> Place defenders on glowing pads, then send the next wave.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Select a defender and tap a pad, or drag a tower onto it. Click a placed tower to upgrade.</p></div>
+      <div><span class="game-guide__label">Plan the next wave</span><p>Mix damage and slowing towers. The highlighted card is your selected defender; each purchase uses in-game shards.</p></div>
+    </footer>
 
     <script src="arcade.js?v=6"></script>
     <script src="arcade-pet.js?v=4"></script>

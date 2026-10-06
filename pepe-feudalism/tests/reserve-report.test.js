@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {battleRoll} from '../battle-roll.js';
+test('battle report distinguishes deployed survivors, casualties and untouched reserves',()=>{const rows=battleRoll([{team:0,type:'spearman',hp:80,xp:0},{team:0,type:'spearman',hp:0,xp:1},{team:0,type:'spearman',hp:80,xp:0,reserve:true}],true);assert.equal(rows[0].deployed,2);assert.equal(rows[0].reserve,1);assert.equal(rows[0].promoted,1);assert.equal(rows[0].lost,1);assert.deepEqual(rows[0].ranks,[{name:'Recruit',count:1},{name:'Seasoned',count:1}]);});

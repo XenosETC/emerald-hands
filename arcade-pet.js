@@ -153,7 +153,10 @@
       @keyframes arcade-pet-bob { to { transform:translateY(-5px) rotate(1deg); } }
       @keyframes arcade-pet-aura { 50% { transform:scale(1.08); border-color:rgba(75,255,172,.5); box-shadow:0 0 18px rgba(75,255,172,.2); } }
       @media(max-width:680px){
-        .arcade-pet-companion{left:clamp(48px,var(--pet-x,76%),calc(100vw - 48px));bottom:max(84px,calc(env(safe-area-inset-bottom) + 74px));width:76px;height:94px}
+        .arcade-pet-companion{left:auto;right:86px;bottom:max(10px,env(safe-area-inset-bottom));width:60px;height:76px;transform:none}
+        .arcade-pet-companion .arcade-pet-sprite{left:2px;top:2px;width:54px;height:54px}
+        .arcade-pet-companion .arcade-pet-name{max-width:68px;font-size:8px;text-align:center}
+        .arcade-pet-companion .arcade-pet-aura{inset:-3px}
         .arcade-pet-sprite{width:66px;height:66px}
         .arcade-pet-dock-toggle{right:max(10px,env(safe-area-inset-right));width:66px}
         .arcade-pet-picker{right:max(10px,env(safe-area-inset-right));left:max(10px,env(safe-area-inset-left));width:auto;max-height:calc(100dvh - 148px)}

@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {reinforcementStatus} from '../reinforcement-view.js';
+test('reinforcement indicators distinguish full deployment, countdown and exhausted reserves',()=>{const b={units:Array.from({length:12},()=>({team:0,hp:1})),reserves:[{}],reinforcementCd:2.4,enemyReserves:[]};assert.equal(reinforcementStatus(b,0).message,'Frontline full');b.units[0].hp=0;assert.equal(reinforcementStatus(b,0).message,'Next arrival: 3s');assert.equal(reinforcementStatus(b,1).message,'No reserves');});

@@ -1,0 +1,11 @@
+const {chromium}=require('C:/Users/Phantom Assassin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+(async()=>{
+ const browser=await chromium.launch({channel:'msedge',headless:true}),page=await browser.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:4173/pepe-feudalism/index.html');await page.evaluate(()=>{localStorage.removeItem('pepe-feudalism-campaign-v1');localStorage.removeItem('pepe-feudalism-sound-v1');});await page.reload();await page.waitForFunction(()=>window.feudalismDiagnostics?.().artLoaded);
+ const read=()=>page.evaluate(()=>window.feudalismDiagnostics().audio);
+ assert.equal((await read()).state,'locked');await page.getByRole('button',{name:'Guide',exact:true}).click();await page.waitForFunction(()=>window.feudalismDiagnostics().audio.state==='running');assert.ok((await read()).played>0);
+ await page.getByRole('button',{name:'Sound: On',exact:true}).click();assert.equal((await read()).enabled,false);const count=(await read()).played;await page.keyboard.press('Escape');await page.getByRole('button',{name:'Forge',exact:true}).click();assert.equal((await read()).played,count);
+ await page.reload();await page.waitForFunction(()=>window.feudalismDiagnostics?.().artLoaded);assert.equal((await read()).enabled,false);assert.equal((await read()).state,'locked');await page.getByRole('button',{name:'Guide',exact:true}).click();await page.getByRole('button',{name:'Sound: Off',exact:true}).click();await page.waitForFunction(()=>window.feudalismDiagnostics().audio.state==='running');await page.keyboard.press('Escape');await page.getByRole('button',{name:'Forge',exact:true}).click();assert.ok((await read()).played>0);assert.deepEqual(errors,[]);
+ fs.writeFileSync(path.join(__dirname,'../docs/audio-verification-v10.json'),JSON.stringify({result:'PASS',checks:['gesture unlock','cue scheduling','mute suppresses cues','mute persists reload','unmute resumes','no browser errors'],audio:await read(),errors},null,2));console.log('AUDIO QA PASS');await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

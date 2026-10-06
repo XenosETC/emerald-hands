@@ -8,11 +8,12 @@
     <link rel="preload" href="assets/emerald-galactic-heroes/space-background.png" as="image">
     <link rel="preload" href="assets/emerald-galactic-heroes/sprite-sheet.png" as="image">
     <link rel="stylesheet" href="emerald-galactic-heroes.css">
+    <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
-  <body>
+  <body class="arcade-game" data-game="galaxy">
     <main class="galaxy-shell">
       <section class="galaxy-game" aria-label="Emerald Galactic Heroes game">
-        <div class="galaxy-topbar">
+        <div class="galaxy-topbar arcade-topbar">
           <div>
             <p class="eyebrow">ETC Mini Games Lab</p>
             <h1>Emerald Galactic Heroes</h1>
@@ -26,7 +27,7 @@
         </div>
 
         <div class="galaxy-stage">
-          <canvas id="galaxyCanvas" width="1280" height="720" aria-label="Emerald Galactic Heroes playfield"></canvas>
+          <canvas id="galaxyCanvas" width="1280" height="720" aria-label="Emerald Galactic Heroes playfield" tabindex="0" aria-describedby="game-controls"></canvas>
           <section class="galaxy-hud" aria-label="Battle status">
             <div>
               <span id="scoreLabel">0</span>
@@ -69,7 +70,7 @@
       <section class="asset-guide" aria-labelledby="asset-guide-title">
         <div class="asset-guide__header">
           <p class="eyebrow">Flight Manual</p>
-          <h2 id="asset-guide-title">Assets On Screen</h2>
+          <h2 id="asset-guide-title">Know Your Sector</h2>
         </div>
         <div class="asset-grid">
           <article class="asset-card">
@@ -138,6 +139,12 @@
         </div>
       </section>
     </main>
+
+    <footer class="game-guide" aria-label="How to play">
+      <div><span class="game-guide__label">Survival shooter</span><p><strong>Protect the Emerald Sector.</strong> Dodge incoming fire while your weapons shoot automatically.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Drag to fly, or use <kbd>WASD</kbd> / arrow keys. Touch is supported.</p></div>
+      <div><span class="game-guide__label">Read the battlefield</span><p>Shield pickups restore protection. Collect wingmen for temporary backup. The flight manual identifies each pickup.</p></div>
+    </footer>
 
     <script src="arcade.js?v=6"></script>
     <script src="arcade-pet.js?v=4"></script>

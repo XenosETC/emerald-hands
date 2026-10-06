@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Satoshi System: a fictional, local-only monetary systems clicker with no live data or financial activity.">
+    <title>Satoshi System</title>
+    <link rel="preload" href="assets/satoshi-system/monetary-cosmos.png" as="image">
+    <link rel="stylesheet" href="satoshi-system.css?v=design-3">
+  </head>
+  <body data-regime="balanced">
+    <a class="skip-link" href="#genesisStar">Skip to the Genesis Star</a>
+    <main class="system-shell">
+      <header class="system-header">
+        <div class="brand-lockup">
+          <span class="special-mark">GUEST GAME · 13</span>
+          <div>
+            <p class="eyebrow">A small universe. Built one sat at a time.</p>
+            <h1>Satoshi System</h1>
+            <p class="system-intro">Wake the Genesis Star. Connect distant worlds. Find your rhythm in a changing cosmos.</p>
+          </div>
+        </div>
+        <nav class="system-nav" aria-label="Game navigation">
+          <a href="index.html">Arcade Hub</a>
+          <button id="resetButton" type="button">Reset Simulation</button>
+        </nav>
+      </header>
+
+      <aside class="boundary-notice" aria-label="Simulation disclosure">
+        <strong>Fictional closed-loop simulation</strong>
+        <span>Local save · No real Bitcoin, wallets, trading, or live prices.</span>
+        <details class="simulation-rules"><summary>About the simulation</summary><p>Every in-game purchase spends fictional sats from the player Treasury outright. No live data, Bitcoin collateral, wallet, custody, borrowing, loans, liquidation, leverage, margin, interest, loan-to-value, real money, trading, prediction, or financial advice. Costs never use simulated price. Satoshi saves and sats stay separate from Emerald Arcade progress.</p></details>
+      </aside>
+
+      <nav class="flight-guide" aria-label="How to play"><span><b>01</b> Tap the star to collect sats</span><a href="#build-title"><b>02</b> Upgrade and connect worlds <span aria-hidden="true">↗</span></a><a href="#cosmos-title"><b>03</b> Keep reserves. Grow your orbit.</a></nav>
+
+      <section class="hero-grid">
+        <section class="click-card" aria-labelledby="click-title">
+          <div class="rank-strip"><span id="rankLabel">Genesis Observer</span><span id="nextRankLabel">Next: Sat Router</span></div>
+          <h2 id="click-title" class="sr-only">Genesis Star satoshi router</h2>
+          <div class="click-stage">
+            <div class="star-corona" aria-hidden="true"></div>
+            <button class="genesis-star" id="genesisStar" type="button" aria-label="Advance one fictional time tick and route satoshis">
+              <span class="bitcoin-mark" aria-hidden="true">₿</span><strong>ROUTE SATS</strong><small>Click · tap · Space</small>
+            </button>
+            <div class="sat-particles" id="satParticles" aria-hidden="true"></div>
+          </div>
+          <div class="primary-balance" aria-live="polite" aria-atomic="true"><span id="treasuryBalance">0</span><small>fictional sats in Treasury Reserve</small></div>
+          <div class="quick-stats">
+            <div><strong id="perClickStat">8</strong><small>sats / click</small></div>
+            <div><strong id="commerceStat">0</strong><small>commerce / cycle</small></div>
+            <div><strong id="loadStat">0</strong><small>operating load</small></div>
+            <div><strong id="coverageStat">No load</strong><small>reserve coverage</small></div>
+            <div><strong id="epochStat">I</strong><small>emission epoch</small></div>
+          </div>
+          <div class="epoch-progress" aria-label="Emission epoch progress">
+            <div class="epoch-progress__labels"><span id="epochProgressLabel">120 ticks until the first contraction</span><strong id="remainingSupplyShort">600T sats remain unissued</strong></div>
+            <div class="epoch-progress__track"><span id="epochProgressBar"></span></div>
+          </div>
+        </section>
+
+        <section class="cosmos-card" aria-labelledby="cosmos-title">
+          <div class="cosmos-copy"><div><p class="eyebrow">Your Living Cosmos</p><h2 id="cosmos-title">From a spark to a system.</h2></div><span class="epoch-badge" id="epochBadge">Epoch I · 8 sats/click</span></div>
+          <div class="monetary-system" id="monetarySystem">
+            <div class="supply-halo" id="supplyHalo" aria-hidden="true"></div>
+            <div class="orbit orbit--outer" aria-hidden="true"></div><div class="orbit orbit--middle" aria-hidden="true"></div><div class="orbit orbit--inner" aria-hidden="true"></div>
+            <span class="commerce-route commerce-route--one" aria-hidden="true"></span><span class="commerce-route commerce-route--two" aria-hidden="true"></span><span class="commerce-route commerce-route--three" aria-hidden="true"></span>
+            <div class="system-core" aria-hidden="true"><span>₿</span><small>GENESIS</small></div>
+            <div class="world-node world-node--relay" data-world-node="relay"><b data-world-level="relay">L0</b><span>Relay</span><small>Moon</small></div>
+            <div class="world-node world-node--merchant" data-world-node="merchant"><b data-world-level="merchant">L0</b><span>Merchant</span><small>Planet</small></div>
+            <div class="world-node world-node--forge" data-world-node="forge"><b data-world-level="forge">L0</b><span>Forge</span><small>World</small></div>
+            <div class="gate-node" id="gateNode"><span>Expansion</span><small>Gate</small></div>
+            <div class="allocation-ring" id="allocationRing" aria-hidden="true"></div>
+          </div>
+            <div class="market-oracle">
+              <div class="market-oracle__top"><span>SIMULATED BTC PRICE</span><i>FICTIONAL · NO LIVE DATA</i></div>
+              <div class="price-line"><strong id="simulatedPrice">$40,000</strong><span id="priceMove">Clock not started</span></div>
+              <div class="regime-line"><span id="regimeName">Balanced</span><small id="regimeMeta">0.00% drift · ±0.15% noise</small></div>
+              <div class="sparkline" id="sparkline" aria-label="Recent fictional simulated price movement"></div><p id="regimeOdds">Review in 60 ticks · 40% Bull / 20% Balanced / 40% Bear</p>
+            </div>
+          <div class="event-card" id="statusCard" aria-live="polite"><div><span>NETWORK SIGNAL</span><strong id="statusTitle">Genesis system ready</strong></div><p id="statusText">Route the first sats, then decide what to hold and what to deploy.</p></div>
+          <div class="goal-row">
+            <div class="goal-card"><span>GENESIS ORBIT GOAL</span><strong id="goalTitle">Connect 0 / 3 productive worlds</strong><small id="goalText">Pass the first contraction and support expansion.</small></div>
+            <div class="posture-card"><span>SYSTEM POSTURE</span><strong id="postureLabel">Liquid Observer</strong></div>
+          </div>
+        </section>
+      <section class="build-panel" aria-labelledby="build-title">
+        <div class="build-panel__heading"><div><p class="eyebrow">The next connection</p><h2 id="build-title">Make your sats work.</h2></div><p>Start with Routing Efficiency or Relay Moon. Every upgrade spends fictional sats outright. Keep a reserve for operating costs.</p></div>
+        <div class="build-grid" id="buildGrid">
+          <article class="build-card build-card--routing" data-build-card="routing"><div class="build-icon">R</div><div class="build-copy"><p>Click Power</p><h3>Routing Efficiency</h3><span>Increase sats routed by every Genesis Star click.</span></div><div class="level-chip" data-level-chip="routing">Level 0</div><button type="button" data-buy="routing">Upgrade · 40 sats</button></article>
+          <article class="build-card" data-build-card="relay"><div class="build-icon">M</div><div class="build-copy"><p>Productive World</p><h3>Relay Moon</h3><span>Transfers sats from circulation every four ticks.</span></div><div class="level-chip" data-level-chip="relay">Level 0</div><button type="button" data-buy="relay">Build · 64 sats</button></article>
+          <article class="build-card" data-build-card="merchant"><div class="build-icon">P</div><div class="build-copy"><p>Commerce World</p><h3>Merchant Planet</h3><span>Faster productive transfers. Requires Relay Moon.</span></div><div class="level-chip" data-level-chip="merchant">Level 0</div><button type="button" data-buy="merchant">Build · 240 sats</button></article>
+          <article class="build-card build-card--shield" data-build-card="resilience"><div class="build-icon">S</div><div class="build-copy"><p>Risk Management</p><h3>Resilience Grid</h3><span>Softens Bear drag and supports expansion. Two levels.</span></div><div class="level-chip" data-level-chip="resilience">Level 0 / 2</div><button type="button" data-buy="resilience">Reinforce · 160 sats</button></article>
+          <article class="build-card build-card--gate" data-build-card="expansion"><div class="build-icon">G</div><div class="build-copy"><p>Growth Capacity</p><h3>Expansion Gate</h3><span>Opens Forge World and adds operating load.</span></div><div class="level-chip" data-level-chip="expansion">Locked</div><button type="button" data-buy="expansion">Open · 420 sats</button></article>
+          <article class="build-card build-card--forge" data-build-card="forge"><div class="build-icon">F</div><div class="build-copy"><p>Advanced Production</p><h3>Forge World</h3><span>High-output productive cycles beyond the gate.</span></div><div class="level-chip" data-level-chip="forge">Level 0</div><button type="button" data-buy="forge">Build · 720 sats</button></article>
+        </div>
+      </section>
+      </section>
+
+      <details class="system-notebook"><summary><span>Inside your system</span><small>Supply, maturity &amp; allocation</small></summary>
+      <section class="intelligence-grid" aria-label="System intelligence">
+        <article class="intelligence-card ledger-card" aria-labelledby="ledger-title">
+          <div class="card-heading"><div><p class="eyebrow">Fixed-Supply Ledger</p><h2 id="ledger-title">Three ledgers, one invariant</h2></div><span id="ledgerCheck">Balanced</span></div>
+          <div class="ledger-grid"><div><span id="issuedLedger">1.50Q</span><small>globally issued</small></div><div><span id="circulationLedger">1.50Q</span><small>circulation belt</small></div><div><span id="treasuryLedger">0</span><small>player treasury</small></div></div>
+          <p>Businesses transfer issued sats. Purchases return sats to circulation. Only scaled emissions increase global supply.</p>
+        </article>
+        <article class="intelligence-card maturity-card" aria-labelledby="maturity-title">
+          <div class="card-heading"><div><p class="eyebrow">Fictional Affordability</p><h2 id="maturity-title">Network Maturity</h2></div><span id="maturityLevel">Foundation</span></div>
+          <div class="maturity-track"><span id="maturityProgress"></span></div><strong id="maturityNext">Networked at tick 60 with Relay Moon</strong><p id="maturityRules">Networked lowers Merchant costs 10%. Mature lowers Forge costs 15%.</p><small>Game balancing only—not a purchasing-power forecast. Simulated price never sets costs.</small>
+        </article>
+        <article class="intelligence-card allocation-card" aria-labelledby="allocation-title">
+          <div class="card-heading"><div><p class="eyebrow">Capital Allocation</p><h2 id="allocation-title">Where the sats went</h2></div></div>
+          <div class="allocation-list"><div><i class="key key--reserve"></i><span>Reserve</span><strong id="reserveAllocation">0 sats</strong></div><div><i class="key key--productive"></i><span>Productive</span><strong id="productiveAllocation">0 sats</strong></div><div><i class="key key--resilience"></i><span>Resilience</span><strong id="resilienceAllocation">0 sats</strong></div><div><i class="key key--growth"></i><span>Expansion</span><strong id="growthAllocation">0 sats</strong></div></div>
+        </article>
+      </section>
+      </details>
+
+      <footer class="system-footer"><p><strong>Gameplay model only.</strong> The supply cap, emissions, price paths, businesses, affordability curve, and outcomes are simplified fictional mechanics.</p><span>Local save only · no offline income · no network connection</span></footer>
+    </main>
+    <script src="arcade.js?v=7"></script><script src="satoshi-system.js?v=2"></script>
+  </body>
+</html>

@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {PointerControls} from '../pointer-controls.js';
+test('releasing one touch does not cancel another held control',()=>{const p=new PointerControls();p.hold(1,'KeyD');p.hold(2,'KeyJ');p.release(2);assert.equal(p.has('KeyD'),true);assert.equal(p.has('KeyJ'),false);p.hold(3,'KeyD');p.release(1);assert.equal(p.has('KeyD'),true);p.release(3);assert.equal(p.has('KeyD'),false);});
+test('pause clearing cancels every touch and stale releases are harmless',()=>{const p=new PointerControls();p.hold(1,'KeyA');p.hold(2,'KeyD');p.clear();p.release(1);assert.equal(p.has('KeyA'),false);assert.equal(p.has('KeyD'),false);});

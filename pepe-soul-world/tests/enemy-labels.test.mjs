@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {enemyLabelLayout} from '../enemy-labels.js';
+test('crowded labels occupy separate lanes with guardian priority',()=>{const enemies=[{id:1,x:1000},{id:2,x:1010},{id:3,x:1020,boss:true},{id:4,x:1030}];const boxes=[...enemyLabelLayout(enemies,590).values()];assert.equal(boxes[0].y,275);for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++)assert.ok(Math.abs(boxes[i].y-boxes[j].y)>=60||Math.abs(boxes[i].x-boxes[j].x)>=(boxes[i].width+boxes[j].width)/2+10);assert.deepEqual([...enemyLabelLayout(enemies.reverse(),590)],[...enemyLabelLayout(enemies,590)]);});
+test('separated labels retain their natural height and dead enemies reserve no lane',()=>{const boxes=enemyLabelLayout([{id:1,x:100},{id:2,x:600},{id:3,x:100,dead:true}],590);assert.equal(boxes.size,2);assert.equal(boxes.get(1).y,345);assert.equal(boxes.get(2).y,345);});
+
+test('crowds spread sideways before labels climb into the upper HUD',()=>{const boxes=[...enemyLabelLayout(Array.from({length:8},(_,id)=>({id,x:1000,boss:id===0})),590).values()];for(const b of boxes)assert.ok(b.y>=230);assert.ok(boxes.some(b=>b.x<1000));});

@@ -1,0 +1,8 @@
+import * as THREE from '../crown-pepe-3d/vendor/three.module.js';
+import {createContactShadow} from './contact-shadow.js';
+import assert from 'node:assert/strict';
+const shadow=createContactShadow(THREE),reference=new THREE.CircleGeometry(.65,24),texture=shadow.material.map;
+assert.equal(shadow.geometry.attributes.position.count,reference.attributes.position.count);assert.equal(shadow.geometry.index.count,reference.index.count);assert.equal(shadow.geometry.parameters.radius,.65);assert.equal(shadow.material.color.getHexString(),'061c13');assert.equal(shadow.material.opacity,.35);assert.equal(shadow.material.depthWrite,false);assert.equal(shadow.rotation.x,-Math.PI/2);assert.equal(shadow.position.y,.08);
+assert.equal(texture.image.width,64);assert.equal(texture.image.height,64);assert.equal(texture.image.data.length,64*64*4);assert.equal(texture.minFilter,THREE.LinearFilter);assert.equal(texture.magFilter,THREE.LinearFilter);assert.equal(texture.generateMipmaps,false);
+const alpha=(x,y)=>texture.image.data[(y*64+x)*4+3];assert.equal(alpha(31,31),255);assert.ok(alpha(63,31)<=1);assert.equal(alpha(0,0),0);let previous=alpha(32,31);for(let x=33;x<64;x++){assert.ok(alpha(x,31)<=previous,'Contact shadow opacity increases toward rim');previous=alpha(x,31);}assert.ok(alpha(48,31)>40&&alpha(48,31)<180,'Shadow lacks soft intermediate falloff');const second=createContactShadow(THREE);assert.deepEqual(second.material.map.image.data,texture.image.data,'Contact falloff is nondeterministic');
+console.log('CONTACT SHADOW PASS: actual unchanged circle topology, deterministic64px radial alpha, transparent rim, linear filters, no DOM');

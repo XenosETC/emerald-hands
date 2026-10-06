@@ -18,11 +18,12 @@
     <link rel="preload" href="assets/pepe-relic-rumble/shard-shield-red.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/premium-aura-atlas-v2-alpha.png" as="image">
     <link rel="stylesheet" href="pepe-relic-rumble.css?v=8">
+    <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
-  <body>
+  <body class="arcade-game" data-game="rumble">
     <main class="rumble-shell">
       <section class="rumble-game" aria-label="Pepe Relic Rumble game">
-        <div class="rumble-topbar">
+        <div class="rumble-topbar arcade-topbar">
           <div>
             <p class="eyebrow">Pepe Legends</p>
             <h1>Relic Rumble</h1>
@@ -36,7 +37,7 @@
         </div>
 
         <div class="rumble-stage">
-          <canvas id="rumbleCanvas" width="1280" height="720" aria-label="Pepe Relic Rumble playfield"></canvas>
+          <canvas id="rumbleCanvas" width="1280" height="720" aria-label="Pepe Relic Rumble playfield" tabindex="0" aria-describedby="game-controls"></canvas>
 
           <section class="rumble-hud" aria-label="Fight status">
             <div class="fighter-panel">
@@ -150,6 +151,12 @@
         </div>
       </section>
     </main>
+
+    <footer class="game-guide" aria-label="How to play">
+      <div><span class="game-guide__label">Versus & tournament</span><p><strong>Choose a legend. Claim the arena.</strong> Play a local duel or climb the AI tournament.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Keyboard required. P1: <kbd>WASD</kbd> move, <kbd>F</kbd> punch, <kbd>G</kbd> kick, <kbd>H</kbd> shield / special.</p></div>
+      <div><span class="game-guide__label">Player two</span><p>P2: arrow keys move, <kbd>J</kbd> punch, <kbd>K</kbd> kick, <kbd>L</kbd> shield / special. Hold down to charge.</p></div>
+    </footer>
 
     <script src="arcade.js?v=6"></script>
     <script src="arcade-pet.js?v=4"></script>

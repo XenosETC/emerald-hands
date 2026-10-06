@@ -1,0 +1,18 @@
+{
+  "method": "built-in image_gen",
+  "date": "2026-10-04",
+  "assets": [
+    {
+      "file": "world-v1.png",
+      "prompt": "High quality hand-painted fantasy strategy RPG world map background, wide landscape, elevated top-down cartographic view. A large single connected continent in an emerald kingdom, detailed rolling grassy plains, dense forest belts in southwest and east, central winding river flowing to ocean at south coast, beautiful bays, sandy southern coast, northern snowy mountain range, rocky eastern volcanic hills, islands offshore purely scenery. No towns, buildings, markers, icons, letters, labels, border or UI because interactive landmark sprites will be overlaid. All main land regions are connected on foot with visible natural land passes around mountains and rivers. Broad open grassy areas at 15% x 60% y, 40% x 55% y, 70% x 35% y, 85% x 20% y, 30% x 80% y, 70% x 75% y for landmarks. Rich natural texture, painterly shaded terrain, crisp outlined fantasy illustration, emerald/gold palette. Full image map, no perspective horizon, no people. Attractive illustrated game map designed for panning and zooming."
+    },
+    {
+      "file": "landmarks-v1.png",
+      "prompt": "Transparent 2D strategy game landmark sprite atlas, strict 3 columns by 2 rows equal cells, exactly six isolated isometric miniatures. Generous transparent margins and fully separate sprites centered in cells. No text, no grid, no backdrop, actual transparent alpha. Detailed polished hand-painted fantasy storybook art with dark clean outlines, emerald green and gold kingdom heraldry. Top left: friendly medieval town cluster with timber cottages and green roofs, market and small walls. Top middle: impressive stone castle with emerald banners and gold-capped towers. Top right: coastal port with a stone lighthouse, timber jetty, warehouse and two sailing boats, a tiny localized water base only. Bottom left: beautiful dense enchanted forest grove, ancient giant trees, mossy roots, winding path, jade-lit clearing with standing stone. Bottom middle: ruined ancient stone shrine with fallen pillars and ivy. Bottom right: hostile dark iron fortress with red banners and jagged towers. Full objects contained in their cells, same apparent map-marker scale. Transparent between every landmark. Designed as quality large-map assets rendered about 130 pixels wide. No people and no lettering."
+    },
+    {
+      "file": "forest-v1.png",
+      "prompt": "Painted 2D fantasy RPG forest encounter background, landscape. Beautiful ancient emerald forest with towering oak trees, hanging moss, fern-covered roots, sunbeams and a mysterious jade-lit standing stone deep in the distance. Upper third detailed trees and atmospheric depth, lower two thirds broad clear earthy forest clearing for moving army sprites, unobstructed horizontal and vertical ground. Dark green and warm gold palette, clean ink outlines and detailed hand-painted textures matching a medieval frog kingdom game. No characters, monsters, words, UI or quest marker baked into the image. Not top-down: side-facing battlefield view with slight elevation. Strong visual quality, readable playable clearing."
+    }
+  ]
+}

@@ -1,10 +1,12 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { extname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { createContext, runInContext } from "node:vm";
 
 const root = resolve(import.meta.dirname, "..");
 const gamePages = [
   "emerald-hands.html",
+  "satoshi-system.html",
   "shard-rush.html",
   "emerald-galactic-heroes.html",
   "pepe-relic-rumble.html",
@@ -18,9 +20,30 @@ const gamePages = [
   "etc-pets.html",
 ];
 const failures = [];
+const independentGamePages = [
+  "pepe-soul-world/index.html",
+  "pepe-temple-run/index.html",
+  "pepe-feudalism/index.html",
+];
 
 function check(condition, message) {
   if (!condition) failures.push(message);
+}
+
+const hubHtml = readFileSync(resolve(root, "index.html"), "utf8");
+check((hubHtml.match(/class="game-card(?:\s|")/g) || []).length === gamePages.length + independentGamePages.length, "Hub card count must match the released game collection");
+for (const page of independentGamePages) {
+  const path = resolve(root, page);
+  check(existsSync(path), `Missing independent game: ${page}`);
+  if (!existsSync(path)) continue;
+  const html = readFileSync(path, "utf8");
+  check(hubHtml.includes(`href="${page}"`), `Hub does not link to ${page}`);
+  check(html.includes('../index.html'), `${page} has no Arcade Hub return link`);
+  for (const match of html.matchAll(/(?:src|href)="([^"#?]+)"/g)) {
+    const target = match[1];
+    if (/^(?:https?:|data:|mailto:)/.test(target)) continue;
+    check(existsSync(resolve(path, "..", target)), `${page} references missing file: ${target}`);
+  }
 }
 
 for (const page of ["index.html", ...gamePages]) {
@@ -68,8 +91,137 @@ for (const contract of [
 ]) {
   check(arcadeSource.includes(contract), `Phase 1 shared runtime contract is missing ${contract}`);
 }
-for (const game of ["hands", "rush", "galaxy", "rumble", "pepeRun", "spaceUnchained", "towerDefense", "pepeWars", "paradox", "unstableLaunch", "rocketSimulator", "pets"]) {
+for (const game of ["hands", "satoshiSystem", "rush", "galaxy", "rumble", "pepeRun", "spaceUnchained", "towerDefense", "pepeWars", "paradox", "unstableLaunch", "rocketSimulator", "pets"]) {
   check(arcadeSource.includes(`${game}:`), `Shared arcade registry is missing ${game}`);
+}
+
+const satoshiSource = readFileSync(resolve(root, "satoshi-system.js"), "utf8");
+const satoshiHtml = readFileSync(resolve(root, "satoshi-system.html"), "utf8");
+for (const contract of [
+  "satoshi-system-save-v1",
+  "MAX_SUPPLY = 2_100_000_000_000_000",
+  "FIRST_CONTRACTION_TICK = 120",
+  "reward: 8",
+  "reward: 4",
+  "MARKET_REGIMES",
+  "REGIME_TRANSITIONS",
+  "Relay Moon",
+  "Merchant Planet",
+  "Forge World",
+  "Resilience Grid",
+  "Expansion Gate",
+  "reserveCoverage",
+  "operatingLoad",
+  "networkMaturity",
+  "effectiveWorldCost",
+  "baseCost * 0.9",
+  "baseCost * 0.85",
+  "ROUTING_DEF",
+  "SYSTEM_RANKS",
+  "clickReward",
+  "world.growth ** state.worlds[key]",
+  "state.globalIssued === state.circulation + state.treasury",
+]) {
+  check(satoshiSource.includes(contract) || satoshiHtml.includes(contract), `Satoshi System contract is missing ${contract}`);
+}
+for (const disclosure of ["Fictional closed-loop simulation", "Every in-game purchase spends fictional sats from the player Treasury", "No live data", "no offline income", "Bitcoin collateral", "wallet", "borrowing", "loans", "liquidation", "leverage", "margin", "interest", "loan-to-value", "financial advice", "Costs never use simulated price"]) {
+  check(satoshiHtml.toLowerCase().includes(disclosure.toLowerCase()), `Satoshi System disclosure is missing: ${disclosure}`);
+}
+check(!satoshiHtml.includes("arcade-pet.js"), "Satoshi System must not load the ETC pet economy");
+check(!/\bfetch\s*\(|\bWebSocket\b/.test(satoshiSource), "Satoshi System must not access live network data");
+check(existsSync(resolve(root, "assets/satoshi-system/monetary-cosmos.png")), "Satoshi System cosmic background is missing");
+
+// Exercise the actual game and shared runtime with a minimal DOM, without a browser dependency.
+function memoryStorage(initial = {}) {
+  const values = new Map(Object.entries(initial));
+  return {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, String(value)),
+    removeItem: (key) => values.delete(key),
+    key: (index) => [...values.keys()][index] ?? null,
+    get length() { return values.size; },
+  };
+}
+
+function simulationHarness({ storage = memoryStorage(), page = "satoshi-system.html" } = {}) {
+  const nodes = new Map();
+  const makeNode = () => ({
+    dataset: {}, style: { setProperty() {} }, listeners: {},
+    classList: { add() {}, remove() {}, toggle() {} },
+    setAttribute() {},
+    addEventListener(type, callback) { this.listeners[type] = callback; },
+    getBoundingClientRect: () => ({ left: 0, top: 0, width: 100, height: 100 }),
+    appendChild() {}, remove() {},
+  });
+  const document = {
+    body: makeNode(), readyState: "loading", activeElement: null,
+    querySelector(selector) {
+      if (!nodes.has(selector)) nodes.set(selector, makeNode());
+      return nodes.get(selector);
+    },
+    querySelectorAll: () => [], createElement: makeNode, addEventListener() {},
+  };
+  const window = { addEventListener() {}, dispatchEvent() {}, setTimeout() {} };
+  const context = createContext({
+    document, window, localStorage: storage, sessionStorage: memoryStorage(),
+    location: { pathname: `/${page}`, search: "", reload() {} },
+    CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options?.detail; } },
+    performance: { now: () => 0 }, confirm: () => true,
+  });
+  runInContext(arcadeSource, context);
+  return {
+    context, storage, nodes,
+    evaluate: (source) => runInContext(source, context),
+    startGame() { runInContext(satoshiSource, context); },
+  };
+}
+
+try {
+  const game = simulationHarness();
+  game.startGame();
+  const validLedger = () => game.evaluate("window.__satoshiSystemDebug.invariantHolds() && Number.isSafeInteger(state.treasury) && state.treasury >= 0");
+  check(validLedger(), "Satoshi System must begin with a balanced integer ledger");
+  game.evaluate("for (let tick = 0; tick < 8; tick += 1) advanceTick();");
+  check(game.evaluate("state.treasury === 64 && state.ticks === 8"), "Eight starter clicks must route 64 fictional sats");
+  game.evaluate("buy('relay');");
+  check(game.evaluate("state.worlds.relay === 1 && state.treasury === 0 && state.totalSpent === 64") && validLedger(), "Buying Relay Moon must spend treasury into circulation without creating supply");
+  game.evaluate("buy('forge');");
+  check(game.evaluate("state.worlds.forge === 0"), "Forge World must stay locked before expansion");
+  game.evaluate("for (let tick = state.ticks; tick < 60; tick += 1) advanceTick();");
+  check(game.evaluate("networkMaturity().level === 1 && costFor('merchant') === 216") && validLedger(), "Tick 60 with Relay Moon must unlock the price-independent Merchant discount");
+  game.evaluate("buy('merchant'); const savedMerchantPrice = costFor('merchant'); state.price = PRICE_ANCHOR * 4;");
+  check(game.evaluate("costFor('merchant') === savedMerchantPrice"), "Simulated price must not alter build prices");
+  game.evaluate("for (let tick = state.ticks; tick < 120; tick += 1) advanceTick();");
+  check(game.evaluate("epochForTick().reward === 4 && costFor('forge') === 612") && validLedger(), "The contraction must halve base rewards and mature the Forge discount");
+  game.evaluate("window.EmeraldArcade.setPaused(true); const pausedTicks = state.ticks; const pausedTreasury = state.treasury; advanceTick(); buy('routing');");
+  check(game.evaluate("state.ticks === pausedTicks && state.treasury === pausedTreasury && state.routing === 0"), "Paused Satoshi input must not advance or spend");
+  game.evaluate("window.EmeraldArcade.setPaused(false); const marketSeed = state.rng; spawnSatParticle(1);");
+  check(game.evaluate("state.rng === marketSeed"), "Cosmetic particles must not change the saved market RNG");
+  game.evaluate("for (let tick = 0; tick < 350; tick += 1) advanceTick(); buy('resilience'); buy('expansion'); buy('forge');");
+  check(game.evaluate("state.goalComplete && state.arcadeRecorded && connectedWorlds() === 3") && validLedger(), "The playable first orbit must complete with three worlds and supported expansion");
+  check(game.evaluate("window.EmeraldArcade.load().best.satoshiSystem.connectedPlanets === 3 && window.EmeraldArcade.load().lastPlayed.path === 'satoshi-system.html'"), "Guest completion must record its best result and continue destination");
+  check(game.evaluate("window.EmeraldArcade.load().wallet.arcadeShards === 60 && window.EmeraldArcade.load().xp === 0 && window.EmeraldArcade.load().badges.length === 0"), "Guest completion must not create shared currency, XP, or ETC badges");
+  const resumed = simulationHarness({ storage: game.storage });
+  resumed.startGame();
+  game.evaluate("advanceTick();");
+  resumed.evaluate("advanceTick();");
+  check(game.evaluate("JSON.stringify(state)") === resumed.evaluate("JSON.stringify(state)"), "Reloading a Satoshi save must preserve deterministic state and market continuation");
+  game.evaluate("state.globalIssued = MAX_SUPPLY; state.circulation = MAX_SUPPLY - state.treasury; const treasuryBeforeCap = state.treasury; routeIssuance();");
+  check(game.evaluate("state.globalIssued === MAX_SUPPLY && state.treasury === treasuryBeforeCap + 1 && clickReward() === 1") && validLedger(), "At the supply cap, routing must transfer one existing sat and display that reward");
+  const arcadeBeforeReset = game.storage.getItem("emerald-arcade-v1");
+  game.nodes.get("#resetButton").listeners.click();
+  check(game.evaluate("state.ticks === 0 && state.treasury === 0") && game.storage.getItem("emerald-arcade-v1") === arcadeBeforeReset, "Reset Simulation must clear only the Satoshi simulation");
+  game.evaluate("window.EmeraldArcade.resetLocalProgress();");
+  check(game.storage.getItem("emerald-arcade-v1") === arcadeBeforeReset, "A guest-page call must not clear ETC arcade progress");
+  const satoshiSave = game.storage.getItem("satoshi-system-save-v1");
+  const hub = simulationHarness({ storage: game.storage, page: "index.html" });
+  hub.evaluate("window.EmeraldArcade.resetLocalProgress();");
+  check(game.storage.getItem("satoshi-system-save-v1") === satoshiSave && game.storage.getItem("emerald-arcade-v1") === null, "Arcade reset must preserve the separate Satoshi simulation save");
+  const corrupt = simulationHarness({ storage: memoryStorage({ "satoshi-system-save-v1": "invalid-json" }) });
+  corrupt.startGame();
+  check(corrupt.evaluate("state.ticks === 0 && window.__satoshiSystemDebug.invariantHolds()"), "A corrupt local save must recover to a playable balanced simulation");
+} catch (error) {
+  check(false, `Satoshi behavior checks failed: ${error.stack || error.message}`);
 }
 
 const launchSource = readFileSync(resolve(root, "etc-unstable-launch.js"), "utf8");
@@ -141,7 +293,7 @@ for (const contract of ["data-action", "rankForAura", "ArcadePet.select"]) {
   const source = contract === "data-action" ? readFileSync(resolve(root, "etc-pets.html"), "utf8") : petGameSource;
   check(source.includes(contract), `ETC Pets game contract is missing ${contract}`);
 }
-for (const page of ["index.html", ...gamePages.filter((page) => page !== "etc-pets.html")]) {
+for (const page of ["index.html", ...gamePages.filter((page) => !["etc-pets.html", "satoshi-system.html"].includes(page))]) {
   const html = readFileSync(resolve(root, page), "utf8");
   check(html.includes("arcade-pet.js"), `${page} does not load the shared arcade pet companion`);
 }
@@ -256,4 +408,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Smoke check passed: ${gamePages.length} games, shared progress, local assets, and JavaScript syntax.`);
+console.log(`Smoke check passed: ${gamePages.length + independentGamePages.length} games, shared progress, independent game links, local assets, JavaScript syntax, and Satoshi progression/save isolation.`);

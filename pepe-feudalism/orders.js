@@ -1,0 +1,2 @@
+export const ORDER_TEXT={follow:'Follow Crown’s march; fight nearby and regroup.',hold:'Defend assigned posts; return when enemies pull away.',attack:'Advance and attack; stay on a target until it falls or escapes.',retreat:'Fall back into spaced ranks without attacking.'};
+export function drawOrder(g,b){g.save();g.textAlign='center';g.font='13px Georgia';const text=ORDER_TEXT[b.order],width=g.measureText(text).width+24,y=b.targetId!==null?92:28;g.fillStyle='#163027cf';g.fillRect(600-width/2,y-15,width,24);g.fillStyle='#f2dda8';g.fillText(text,600,y+2);g.restore();}

@@ -1,0 +1,9 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,"><title>Pepe Feudalism - Emerald Marches</title><link rel="stylesheet" href="style.css"></head><body>
+<main id="stage"><canvas id="game" width="1200" height="640" tabindex="0" aria-label="World, town and battlefield"></canvas>
+<header class="hud"><div><small>PEPE FEUDALISM</small><strong id="location">Crownhaven</strong></div><span id="status"></span><span id="treasury"></span></header>
+<nav class="left-tools"><a href="../index.html" style="color:#f2dfad;font:12px system-ui;padding:8px">↖ Arcade</a><button id="character-toggle">Crown <kbd>C</kbd></button><button id="quests-toggle">Quests <kbd>J</kbd></button><button id="army-toggle">Warband</button></nav>
+<nav class="right-tools"><button id="inventory-toggle" aria-label="Inventory">Inventory <kbd>I</kbd></button><button id="map-toggle" aria-label="World map">World map <kbd>M</kbd></button><button id="settings-toggle">Guide</button></nav>
+<div id="controls" class="bottom-tools"></div><div id="map-tools"><button id="zoom-out" aria-label="Zoom out">−</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="overview">Overview</button><button id="follow">Find Crown</button></div>
+<div id="battle-report" class="battle-report" role="status" hidden></div>
+<div id="shade" hidden></div><section id="scroll-panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" hidden><button id="close-scroll" aria-label="Close scroll">×</button><small id="scroll-label">PARCHMENT</small><h2 id="panel-title"></h2><p id="description"></p><div id="actions"></div><div id="panel-body"></div></section>
+<div id="toast" role="status"></div></main><script type="module" src="main.js"></script></body></html>

@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {CLIPS,clipFrame,heroFrame} from '../render.js';
+import {createState,act,step,enterWorld} from '../core.js';
+const root=fileURLToPath(new URL('../',import.meta.url));
+test('every game and animation studio local reference exists',()=>{for(const page of ['index.html','animation.html']){const html=readFileSync(resolve(root,page),'utf8');for(const [,target] of html.matchAll(/(?:src|href)="([^"#]+)"/g)){if(!target.startsWith('http'))assert.ok(existsSync(resolve(root,target)),`${page}: ${target}`);}}for(const asset of ['crown-atlas','crown-run','crown-attack','enemy-atlas','mentor','effigy'])assert.ok(existsSync(resolve(root,`assets/${asset}.png`)));for(const world of ['academy','frozen','crimson','void'])assert.ok(existsSync(resolve(root,`assets/${world}.webp`)));});
+test('every hero clip addresses a valid equal-sized atlas cell',()=>{for(const [clip,c] of Object.entries(CLIPS)){for(let i=0;i<c.frames;i++){const f=clipFrame(clip,i),bytes=readFileSync(resolve(root,`assets/${f.sheet}.png`));assert.equal(bytes.readUInt32BE(16)%f.cols,0);assert.equal(bytes.readUInt32BE(20)%f.rows,0);assert.ok(f.col>=0&&f.col<f.cols);assert.ok(f.row>=0&&f.row<f.rows);assert.ok(f.size>0);}}assert.equal(CLIPS.run.frames,8);});
+test('damage connects during the extended fourth cut frame',()=>{const s=createState({version:1,oath:true,training:3});s.player.x=2250;enterWorld(s,'frozen');s.player.x=700;act(s,'attack');let hit=false;for(let i=0;i<30;i++){step(s,{},1/60);if(s.events.some(e=>e.type==='hit')){assert.deepEqual(heroFrame(s.player,s.time),clipFrame('attack',3));hit=true;break;}}assert.ok(hit);});
+test('attack exports contain six complete anchored sprites',()=>{const layout=JSON.parse(readFileSync(resolve(root,'docs/attack-atlas-layout.json'),'utf8'));assert.equal(layout.length,6);assert.ok(layout.every(f=>f.baseline===504&&f.source.count>1000));});

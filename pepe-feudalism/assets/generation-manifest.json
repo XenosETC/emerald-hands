@@ -1,0 +1,37 @@
+{
+  "method": "built-in image_gen",
+  "created": "2026-10-04",
+  "assets": [
+    {
+      "file": "soldiers-v2.png",
+      "status": "superseded candidate",
+      "prompt": "Create a production 2D game character atlas for Pepe Feudalism. Transparent background. Exactly six equally sized cells in a strict 3 column by 2 row grid, generous empty gutters, every character fully inside its cell with feet at same baseline. No text or borders. Stylized hand-painted fantasy frog soldiers with expressive recognizable Pepe-like frog faces, thick clean dark outlines, high quality shading, chunky readable silhouettes. Every soldier facing RIGHT in three-quarter side view, full body, same scale. Top row left: emerald Reed Spearman wearing green padded tunic, bronze kettle helmet and leather boots holding long leaf-bladed spear and small round wooden shield. Top row middle: Marsh Archer wearing moss hood, layered leather armor, quiver and curved bow. Top row right: elite Crown Guard in emerald and gold plate armor, closed brow helmet with frog eyes visible, broad ornate kite shield and longsword. Bottom row left: enemy Ashfang axeman in rust-red leather and dark iron helmet, ragged fur, heavy battleaxe. Bottom row middle: enemy Ashfang bowman, red hood, dark leather, jagged bow. Bottom row right: enemy Ashfang heavy in black iron plate with red cloth, hornless angular helmet, huge cleaver and battered iron shield. No crowns on ordinary soldiers. Frame contents should be centered at x=1/6, 1/2, 5/6 and y=1/4, 3/4. Crisp detailed illustrations intended for rendering at 100 pixels high. Actual transparent alpha."
+    },
+    {
+      "file": "soldiers-v3.png",
+      "status": "runtime transparent atlas",
+      "prompt": "Edit this exact six-character game atlas: remove the entire dark brown/green gradient background and all floor/background shadows to true transparent alpha. Preserve all six soldiers, weapons, faces, armor, positions, proportions, colors and details exactly. Keep image dimensions and strict 3 columns / 2 rows layout. No new elements. This is a background extraction for runtime sprites. The spaces between characters must be completely transparent, not black or a checkerboard.",
+      "input": "soldiers-v2.png"
+    },
+    {
+      "file": "crownhaven-v2.png",
+      "status": "runtime town background",
+      "prompt": "Use case: stylized-concept. Production background for a 2D fantasy frog kingdom town map called Crownhaven. Landscape 3:2 composition. High quality hand-painted game art with crisp ink outlines, warm afternoon light, emerald green and antique gold palette, cozy medieval stone and timber buildings, banners with simple crown insignia, winding cobbled streets, village houses, river waterfront and dock, enclosing palisade, distant lush hills. Elevated isometric illustration covering the whole image, no UI, no text, no characters. Five visually distinct landmark buildings precisely arranged: grand stone castle at 50% width 23% height; long green-banner barracks with training yard at 25% width 49% height; blacksmith forge with glowing orange furnace and chimney at 72% width 50% height; striped market stalls with crates at 47% width 72% height; large gatehouse in the town walls at 83% width 83% height. Leave open courtyard paths around these five landmarks so clickable labels can be overlaid. Rich detail but landmarks readable. Attractive polished illustrated strategy RPG village screen. No writing anywhere."
+    },
+    {
+      "file": "battlefield-v2.png",
+      "status": "runtime battlefield background",
+      "prompt": "Production environment background for 2D side-facing fantasy frog army battle, landscape 3:2. Rich hand-painted illustrated strategy RPG aesthetic, emerald moss, weathered stone, warm medieval gold. No people, creatures, text or UI. Upper 35 percent of image contains a distant ruined stone gatehouse with red enemy banners, misty layered forested hills, trees and cloudy sky. Lower 65 percent is a spacious, almost flat open cobbled dirt battlefield, slightly elevated view allowing horizontal AND vertical movement, subtle stones and grass tufts only, no large foreground obstacles. Camera remains side-facing, NOT overhead map. Crisp outlines and painterly textured shading, matching a fantasy frog kingdom. Soldiers will be overlaid on lower field. Entire battlefield playable ground must be clean and unobstructed, horizon at 35% height."
+    },
+    {
+      "file": "crown-armored-v1.png",
+      "status": "runtime four-pose armored Crown atlas",
+      "method": "built-in image_gen",
+      "references": [
+        "crown-platformer-sheet.png",
+        "soldiers-v3.png"
+      ],
+      "notes": "Identity preserved from existing Crown; frame bounds adjusted from actual alpha. Pose animation remains a prototype."
+    }
+  ]
+}

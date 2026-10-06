@@ -1,0 +1,11 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {equipShield,hydrateEquipment} from '../equipment.js';import {newCampaign} from '../campaign.js';import {heroStats} from '../hero-stats.js';
+test('shield purchases require forge, charge once and alter next battle health',()=>{const s=hydrateEquipment(newCampaign());assert.equal(equipShield(s,'jade'),false);assert.ok(equipShield(s,'jade',true));assert.equal(s.gold,50);assert.equal(heroStats(s).max,330);equipShield(s,null);assert.equal(heroStats(s).max,280);assert.ok(equipShield(s,'jade'));assert.equal(s.gold,50);assert.equal(hydrateEquipment(JSON.parse(JSON.stringify(s))).shield,'jade');});
+
+import {awardEquipment} from '../equipment.js';
+test('equipment rewards follow battle tier without duplicates or automatic equipping',()=>{const s=hydrateEquipment(newCampaign());assert.deepEqual(awardEquipment(s,'hunt'),['oak']);assert.deepEqual(awardEquipment(s,'hunt'),[]);assert.deepEqual(awardEquipment(s,'outpost'),['jade']);assert.deepEqual(awardEquipment(s,'keep'),['holy']);assert.equal(s.shield,null);assert.equal(hydrateEquipment(JSON.parse(JSON.stringify(s))).shields.length,3);});
+
+import {equipArmor} from '../equipment.js';import {createBattle,stepBattle} from '../combat.js';
+test('armor persists and reduces actual incoming combat damage',()=>{const s=hydrateEquipment(newCampaign());s.gold=500;assert.ok(equipArmor(s,'basalt',true));assert.equal(s.gold,320);const b=createBattle(s,'hunt'),enemy=b.units.find(u=>u.team===1);for(const u of b.units)if(u!==b.hero&&u!==enemy)u.hp=0;enemy.x=b.hero.x+10;enemy.y=b.hero.y;const before=b.hero.hp;stepBattle(b,.01);assert.equal(before-b.hero.hp,7);assert.equal(hydrateEquipment(JSON.parse(JSON.stringify(s))).armor,'basalt');});
+
+import {awardArmor} from '../equipment.js';
+test('armor battle drops persist, avoid duplicates and leave equipped choice unchanged',()=>{const s=hydrateEquipment(newCampaign());assert.deepEqual(awardArmor(s,'hunt'),['leather']);assert.deepEqual(awardArmor(s,'hunt'),[]);assert.deepEqual(awardArmor(s,'outpost'),['jade']);assert.deepEqual(awardArmor(s,'keep'),['basalt']);assert.equal(s.armor,null);assert.equal(hydrateEquipment(JSON.parse(JSON.stringify(s))).armors.length,3);});

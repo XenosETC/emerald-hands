@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {combatFocus} from '../combat-focus.js';
+const tad=(x,extra={})=>({x,world:'frozen',dead:false,boss:false,...extra});
+test('nearby guardian warnings keep focus over closer tads',()=>{const boss=tad(1300,{boss:true}),near=tad(1005);const focus=combatFocus([near,boss],{x:1000},'frozen');assert.equal(focus.foe,boss);assert.equal(focus.others,1);});
+test('combat focus excludes dead, distant and other-realm enemies and falls back to nearest',()=>{const nearest=tad(1020),list=[tad(1001,{dead:true}),tad(1000,{world:'void',boss:true}),tad(1430,{boss:true}),tad(1100),nearest];assert.equal(combatFocus(list,{x:1000},'frozen').foe,nearest);assert.equal(combatFocus(list,{x:1000},'frozen').others,1);assert.equal(combatFocus(list,{x:1000},'academy').foe,null);});

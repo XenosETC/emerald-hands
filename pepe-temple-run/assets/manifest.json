@@ -1,0 +1,48 @@
+{
+  "generationTool": "Built-in image_gen",
+  "style": "Emerald frog civilization / jade stone / bronze / warm amber / mist",
+  "prompts": {
+    "emerald-frog-temple-v1.png": "Stylized 3D game-art matte painting of a lost emerald frog civilization: monumental frog guardians, frog-face shrine, weathered jade columns, moss, vines, lotus ponds, emerald crystal lanterns, waterfall mist and warm amber light. Symmetric frontal runner view, open central causeway, no characters, text, UI, logos or lane obstacles. Deep teal and jade with gold highlights.",
+    "frog-guardian-v1.png": "Single solitary squat carved frog guardian idol on square plinth; front view with slightly elevated chase-camera perspective. Weathered dark jade stone, huge frog eyes and broad mouth, old bronze bands, emerald inlay, moss. Wide waist-high dodge obstacle, full object with padding, no scenery, floor, text or external cast shadow. True transparent alpha background.",
+    "frog-lintel-v1.png": "Single ancient emerald frog temple low arch obstacle; front view with slight raised camera. Two jade pillars, broad low lintel carved as frog face, glowing jade eyes, bronze borders, moss and vines. Wider than tall, open transparent interior, unobstructed slide opening. No door, floor, scene, text, characters or external shadow. True transparent alpha background.",
+    "sunken-sanctum-v1.png": "The Sunken Sanctum: nocturnal emerald frog civilization; symmetrical chase-camera composition, clear dry stone causeway toward a centered frog-face portal at 43 percent image height. Frog guardians, flooded jungle canals, lotus leaves, waterfalls, turquoise mist, glowing emerald crystals, warm amber flames, moon shafts and fireflies. Rich jade stone and bronze stylized 3D game art. No characters, monsters, path obstacles, text, logos or UI.",
+    "jade-boulder-v1.png": "One transparent spherical jade-stone runner obstacle with incised frog-face carvings, bronze spiral bands, moss in grooves and glowing emerald veins. Nearly round, slightly elevated frontal view, polished stylized 3D adventure art, dark teal shadows and warm amber edge light. One centered fully visible object with padding. No platform, ground, scene, text, motion lines or external shadow. True alpha transparency.",
+    "temple-stone-floor-v1.png": "Seamless square top-down 3D temple floor texture: uneven dark jade rectangular slabs, nearly-black recessed grout, chipped bevels, damp stone grain, moss at seams, sparse old bronze rune inlay. Muted teal/moss, flat ambient light, no shadows, perspective, scenery, text or objects. Tileable all edges, low contrast readable gameplay floor."
+  },
+  "files": [
+    {
+      "file": "emerald-frog-temple-v1.png",
+      "bytes": 3119718,
+      "sha256": "f1cc2fef361100b514d397928f7ca1fbfdb8559e07ab919a7826dc7924a4239e"
+    },
+    {
+      "file": "frog-guardian-v1.png",
+      "bytes": 2770112,
+      "sha256": "2a1042575ebec29c51386db4ef43127317a27b793a73e3f2ef819172f595ad0c"
+    },
+    {
+      "file": "frog-lintel-v1.png",
+      "bytes": 2589905,
+      "sha256": "fb42f0389c9661fbfde2cc8164242b6a4d15065e1b5e5b0b4d3e6e2921818744"
+    },
+    {
+      "file": "jade-boulder-v1.png",
+      "bytes": 2948551,
+      "sha256": "d80154f4dae689a743866636d1ebe9534e8dbbcd98dffc3cf4e2c6868621cdfc"
+    },
+    {
+      "file": "sunken-sanctum-v1.png",
+      "bytes": 3337941,
+      "sha256": "edb29621e233d912a2a49450d3b827b401abe59fa7399322d5763d066948dd8e"
+    },
+    {
+      "file": "temple-stone-floor-v1.png",
+      "bytes": 3303202,
+      "sha256": "938e91cf1771a03d68434c4a67567615f7fd3b4054a3f77e11b034f5dad41f71"
+    }
+  ],
+  "notes": [
+    "Backdrop is opaque; guardian and lintel have verified transparent alpha.",
+    "These are generated 2D scenery assets integrated with the rebuilt 3D Crown character."
+  ]
+}

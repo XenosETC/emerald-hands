@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {selectedEnemyInfo} from '../battle-markers.js';
+test('selected enemy readout names local troops and clears on death',()=>{const u={id:2,team:1,hp:42.1,max:58,type:'shadowMage',origin:'keep',damage:24},b={units:[u],targetId:2};assert.equal(selectedEnemyInfo(b).name,'Shadow Mage');assert.equal(selectedEnemyInfo(b).hp,43);u.captain='Lord Ashfang';assert.equal(selectedEnemyInfo(b).name,'Lord Ashfang');u.hp=0;assert.equal(selectedEnemyInfo(b),null);});

@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {availableContracts} from '../quest-map.js';
+test('available map contracts disappear after acceptance and stay hidden at hostile castles',()=>{const s={owned:['home'],quests:{}};assert.equal(availableContracts(s,{id:'greenmere'}),1);s.quests.greenroad='active';assert.equal(availableContracts(s,{id:'greenmere'}),0);assert.equal(availableContracts(s,{id:'keep',battle:'keep'}),0);s.owned.push('keep');assert.equal(availableContracts(s,{id:'keep',battle:'keep'}),1);});

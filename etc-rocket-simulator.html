@@ -9,11 +9,12 @@
     <link rel="preload" href="assets/etc-rocket-simulator/rocket-tiers.png" as="image">
     <link rel="preload" href="assets/etc-rocket-simulator/salvage.png" as="image">
     <link rel="stylesheet" href="etc-rocket-simulator.css?v=2">
+    <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
-  <body>
+  <body class="arcade-game" data-game="rocket">
     <main class="sim-shell">
       <section class="sim-game">
-        <header class="sim-topbar">
+        <header class="sim-topbar arcade-topbar">
           <div>
             <p class="eyebrow">Emerald Expedition Program // Game 11</p>
             <h1>ETC Rocket Simulator</h1>
@@ -27,7 +28,7 @@
 
         <div class="sim-layout">
           <section class="flight-stage">
-            <canvas id="rocketCanvas" width="1280" height="720" aria-label="Rocket expedition through emerald space"></canvas>
+            <canvas id="rocketCanvas" width="1280" height="720" aria-label="Rocket expedition through emerald space" tabindex="0" aria-describedby="game-controls"></canvas>
             <div class="flight-readout">
               <div><small>distance</small><strong id="distanceLabel">0 km</strong></div>
               <div><small>sector</small><strong id="zoneLabel">Launch Complex</strong></div>
@@ -66,6 +67,12 @@
         </div>
       </section>
     </main>
+
+    <footer class="game-guide" aria-label="How to play">
+      <div><span class="game-guide__label">Launch · salvage · upgrade</span><p><strong>Every expedition builds the next.</strong> Recover shards and improve the rocket in your hangar.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Choose upgrades, then <strong>Begin Expedition</strong>. Flight runs automatically; watch fuel, heat, and hull.</p></div>
+      <div><span class="game-guide__label">Progress survives the wreck</span><p>Each expedition banks its salvage. Buy a stronger build and push toward the next sector.</p></div>
+    </footer>
     <script src="arcade.js?v=6"></script>
     <script src="arcade-pet.js?v=4"></script>
     <script src="etc-rocket-simulator.js?v=4"></script>

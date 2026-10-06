@@ -1,0 +1,3 @@
+import {QUESTS} from './adventure.js';
+export function availableContracts(state,node){if(node.battle&&!state.owned.includes(node.id))return 0;return QUESTS.filter(q=>q.board===node.id&&!state.quests[q.id]).length;}
+export function drawContractMarker(g,node,count){if(!count)return;const x=node.x-83,y=node.y-104;g.save();g.translate(x,y);g.fillStyle='#f0d6a0';g.strokeStyle='#72522c';g.lineWidth=2;g.fillRect(-13,-18,26,34);g.strokeRect(-13,-18,26,34);for(const offset of [-18,16]){g.beginPath();g.ellipse(0,offset,16,4,0,0,Math.PI*2);g.fill();g.stroke();}g.strokeStyle='#745731';g.lineWidth=2;for(let i=0;i<3;i++){g.beginPath();g.moveTo(-7,-8+i*7);g.lineTo(7,-8+i*7);g.stroke();}g.restore();}
