@@ -38,7 +38,7 @@ const state = {
   shake: 0,
   flash: 0,
   sound: true,
-  lastFrame: performance.now(),
+  lastFrame: null,
 };
 
 let audioContext;
@@ -142,7 +142,7 @@ function updateMarketPlayback(dt, force = false) {
 
 function startGame() {
   window.EmeraldArcade?.beginSession("pepeRun", "pepecoin-run.html");
-  Object.assign(state, { mode: "running", elapsed: 0, distance: 0, speed: 310, score: 0, shards: 0, combo: 1, comboClock: 0, shake: 0, flash: 0, lastFrame: performance.now() });
+  Object.assign(state, { mode: "running", elapsed: 0, distance: 0, speed: 310, score: 0, shards: 0, combo: 1, comboClock: 0, shake: 0, flash: 0, lastFrame: null });
   hazards.length = 0;
   emeralds.length = 0;
   particles.length = 0;
@@ -467,7 +467,8 @@ function action(event) {
 }
 
 function loop(now) {
-  const dt = Math.min(.032, (now - state.lastFrame) / 1000);
+  // Use the pause-adjusted RAF clock for both the baseline and later frames.
+  const dt = state.lastFrame === null ? 0 : Math.max(0, Math.min(.032, (now - state.lastFrame) / 1000));
   state.lastFrame = now;
   update(dt);
   draw();

@@ -67,7 +67,7 @@ const state = {
   flash: 0,
   boss: null,
   sound: true,
-  lastFrame: performance.now(),
+  lastFrame: null,
 };
 
 let audioContext;
@@ -113,7 +113,7 @@ function startGame() {
     shake: 0,
     flash: 0,
     boss: null,
-    lastFrame: performance.now(),
+    lastFrame: null,
   });
   Object.assign(player, { x: 190, y: H / 2, vx: 0, vy: 0, shield: 100, invuln: 0, fireClock: 0, burstClock: 0 });
   bullets.length = 0;
@@ -542,7 +542,8 @@ function updateHud() {
 }
 
 function loop(now) {
-  const dt = Math.min(0.033, (now - state.lastFrame) / 1000 || 0);
+  // Use the pause-adjusted RAF clock for both the baseline and later frames.
+  const dt = state.lastFrame === null ? 0 : Math.max(0, Math.min(0.033, (now - state.lastFrame) / 1000));
   state.lastFrame = now;
   update(dt);
   draw();

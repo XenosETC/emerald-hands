@@ -6,53 +6,38 @@
     <meta name="description" content="Explore Emerald Arcade: quick challenges, deep-space expeditions, Pepe adventures, and idle empires. Play in your browser and keep your progress on this device.">
     <meta name="theme-color" content="#0a1110">
     <title>Emerald Arcade — Small games. Big adventures.</title>
-    <link rel="preload" href="assets/pepes-paradox/bamboo-temple-path.png" as="image">
-    <link rel="stylesheet" href="mini-games.css?v=library-1">
+    <link rel="preload" href="pepe-temple-run/assets/emerald-frog-temple-v1.png" as="image">
+    <link rel="stylesheet" href="mini-games.css?v=arcade-refresh-3">
   </head>
   <body>
     <a class="skip-link" href="#games">Skip to games</a>
     <main class="hub-shell">
       <header class="hub-nav">
         <a class="hub-brand" href="index.html" aria-label="Emerald Arcade home"><span class="brand-mark" aria-hidden="true">✦</span><span>EMERALD<span class="brand-subtitle">ARCADE / MINI GAMES LAB</span></span></a>
-        <nav aria-label="Main navigation"><a class="is-current" href="#games">The games</a><a href="#progress">Your progress</a></nav>
+        <nav aria-label="Main navigation"><a class="is-current" href="#games">The games</a><a href="#updates">What’s new</a><a href="#progress">Your progress</a></nav>
         <span class="hub-mode"><i aria-hidden="true"></i> Just open &amp; play</span>
       </header>
       <section class="hub-hero" aria-labelledby="hub-title">
         <div class="hub-copy">
-          <p class="eyebrow"><span aria-hidden="true">✦</span> A little escape. A new high score.</p>
-          <h1 id="hub-title">Small games.<br><em>Big adventures.</em></h1>
-          <p>One more run. One more upgrade. A whole new world.<br class="desktop-break"> Find your next favorite in the Emerald Arcade.</p>
-          <div class="hero-actions"><a class="hub-action hub-action--primary" href="#games">Explore the games <span aria-hidden="true">↗</span></a><a class="hub-action hub-action--secondary" id="continueGame" href="emerald-hands.html">Continue Emerald Hands</a></div>
+          <p class="eyebrow"><span aria-hidden="true">✦</span> Sixteen games. Countless little escapes.</p>
+          <h1 id="hub-title">One more run.<br><em>A new adventure.</em></h1>
+          <p>Chase a high score. Raise a kingdom. Get lost in an emerald world. Pick a game and make it yours.</p>
+          <div class="hero-actions"><a class="hub-action hub-action--primary" href="#games">Find your game <span aria-hidden="true">↗</span></a><a class="hub-action hub-action--secondary" id="continueGame" href="emerald-hands.html">Play Emerald Hands</a></div>
           <span class="hero-note">Browser games <span aria-hidden="true">/</span> Local saves <span aria-hidden="true">/</span> No account needed</span>
         </div>
-        <a class="hero-spotlight" href="pepes-paradox.html"><span class="spotlight-index">WORLD 01 <span aria-hidden="true">↗</span></span><span><small>STEP INTO THE EMERALD FOREST</small><strong>Pepe's Paradox</strong><span class="spotlight-description">A forest full of secrets. A frog with a mission.</span></span></a>
+        <a class="hero-spotlight" href="pepe-temple-run/index.html" aria-label="Play Pepe Temple Run — keyboard or swipe"><span class="spotlight-index">IN THE SPOTLIGHT <span aria-hidden="true">↗</span></span><span><small>THREE LANES. KEEP THE CROWN.</small><strong>Pepe Temple Run</strong><span class="spotlight-description">Leap the ruins. Escape the jade temple.</span><span class="spotlight-play">Play now <span aria-hidden="true">→</span></span></span></a>
       </section>
 
-      <section class="arcade-status" aria-label="Arcade progress">
-        <div>
-          <span id="arcadeRank">Retail Pilot</span>
-          <small id="arcadeRankMeta">arcade rank</small>
-        </div>
-        <div>
-          <span id="arcadeXp">0</span>
-          <small>local XP</small>
-        </div>
-        <div>
-          <span id="arcadeBadges">0</span>
-          <small>badges</small>
-        </div>
-        <div>
-          <span id="arcadeShards">60</span>
-          <small>fictional Arcade Shards</small>
-        </div>
-        <div class="arcade-status__wide">
-          <span id="dailyChallenge">Loading daily challenge</span>
-          <small>daily challenge</small>
-        </div>
-      </section>
+      <nav class="collection-shortcuts" aria-label="Choose your next game">
+        <a href="index.html?genre=arcade#games" data-collection="arcade"><span class="collection-symbol" aria-hidden="true">↯</span><span><strong>A quick escape</strong><small>Runners, shooters &amp; high scores</small></span><span class="collection-arrow" aria-hidden="true">↗</span></a>
+        <a href="index.html?genre=adventure#games" data-collection="adventure"><span class="collection-symbol" aria-hidden="true">◇</span><span><strong>A world to explore</strong><small>Quests, kingdoms &amp; distant stars</small></span><span class="collection-arrow" aria-hidden="true">↗</span></a>
+        <a href="index.html?genre=idle#games" data-collection="idle"><span class="collection-symbol" aria-hidden="true">✳</span><span><strong>A slower pace</strong><small>Little upgrades. Growing empires.</small></span><span class="collection-arrow" aria-hidden="true">↗</span></a>
+      </nav>
+
+
 
       <section class="recent-section" id="recentSection" aria-labelledby="recentTitle" hidden><div class="library-heading"><div><p class="eyebrow">BACK TO YOUR WORLDS</p><h2 id="recentTitle">Recently opened</h2></div><p>Saved on this device</p></div><div class="recent-games" id="recentGames"></div></section>
-      <section class="library-section" id="games" aria-labelledby="library-title">
+      <section class="library-section" id="games" aria-labelledby="library-title" tabindex="-1">
         <div class="library-heading"><div><p class="eyebrow">PICK YOUR NEXT ADVENTURE</p><h2 id="library-title">The game collection<span id="gameCount">16</span></h2></div><p>Quick thrills. Long quests. Your call.</p></div>
         <div class="library-controls">
           <div class="game-filters" role="group" aria-label="Filter games by category">
@@ -70,16 +55,16 @@
         <div class="empty-library" id="emptyLibrary" hidden><strong>No games found.</strong><p id="emptyMessage">Try a different name or explore the full collection.</p><button id="resetFilters" type="button">Show all games</button></div>
 
       <section class="game-grid" aria-label="Available mini games">
-        <article class="game-card" data-category="strategy adventure">
-          <div class="game-art" aria-hidden="true"><img src="assets/pepes-paradox/crown-platformer-idle.png" alt="" loading="lazy" style="height:100%;object-fit:contain"></div>
+        <article class="game-card game-card--feudalism" data-category="strategy adventure">
+          <div class="game-art" aria-hidden="true"><span class="game-feature-label">BUILD YOUR WARBAND</span></div>
           <div class="game-body"><p class="eyebrow">Emerald Marches · Campaign RPG</p><h2>Pepe Feudalism</h2><p>Explore the marches, recruit a warband, equip Crown, and lead your troops through quests and conquest.</p><div class="game-meta"><span>Army combat</span><span>Independent save</span></div><a href="pepe-feudalism/index.html">Enter the Emerald Marches</a></div>
         </article>
-        <article class="game-card" data-category="adventure arcade">
-          <div class="game-art" aria-hidden="true" style="background:linear-gradient(0deg,#06141c55,#06141c00),url('pepe-soul-world/assets/academy.webp') center/cover"><img src="pepe-soul-world/assets/crown-portrait.png" alt="" loading="lazy" style="height:100%;width:100%;object-fit:contain"></div>
-          <div class="game-body"><p class="eyebrow">Kek Academy · 2D action RPG</p><h2>Pepe Soul World</h2><p>Train your soul blade at Kek Academy. Cross three haunted realms, defeat their guardians, and awaken Ribbit Fang.</p><div class="game-meta"><span>Animated sword combat</span><span>Independent save</span></div><a href="pepe-soul-world/index.html">Enter Kek Academy</a></div>
+        <article class="game-card game-card--soul-world" data-category="adventure arcade">
+          <div class="game-art" aria-hidden="true"><img src="pepe-soul-world/assets/crown-portrait.png" alt="" loading="lazy"></div>
+          <div class="game-body"><p class="eyebrow">Kek Academy · 2D action RPG</p><h2>Pepe Soul World</h2><p>Raise your sword guard, block a strike, and answer with a cut. Train at Kek Academy and cross haunted realms to awaken Ribbit Fang.</p><div class="game-meta"><span>Guard &amp; counter</span><span>Independent save</span></div><a href="pepe-soul-world/index.html">Enter Kek Academy</a></div>
         </article>
-        <article class="game-card" data-category="arcade adventure">
-          <div class="game-art" aria-hidden="true" style="background:linear-gradient(135deg,#173e30,#758351);display:flex;justify-content:center"><img src="assets/pepes-paradox/crown-platformer-idle.png" alt="" style="height:100%;object-fit:contain"></div>
+        <article class="game-card game-card--temple-run" data-category="arcade adventure">
+          <div class="game-art" aria-hidden="true"><span class="game-feature-label">KEEP THE CROWN</span></div>
           <div class="game-body"><p class="eyebrow">Crown Pepe · Endless runner</p><h2>Pepe Temple Run</h2><p>Keep the crown. Dodge idols, jump broken bridges, and slide beneath ancient gates in a jade-fueled temple escape.</p><div class="game-meta"><span>Three lanes</span><span>Keyboard &amp; touch</span></div><a href="pepe-temple-run/index.html">Play Pepe Temple Run</a></div>
         </article>
         <article class="game-card game-card--satoshi" data-category="idle">
@@ -290,8 +275,39 @@
 
       </section>
 
+      <section class="updates-section" id="updates" aria-labelledby="updates-title" tabindex="-1">
+        <div class="library-heading"><div><p class="eyebrow">FRESH FROM THE LAB</p><h2 id="updates-title">A reason to play again.</h2></div><p><time datetime="2026-10-07">October 7, 2026</time> · Latest update</p></div>
+        <div class="update-grid">
+          <article class="update-card"><span class="update-kicker">PEPE SOUL WORLD</span><h3>Hold your ground.</h3><p>New sword guard poses and a quick transition into your next cut. Hold S or ↓ to block frontal strikes, release, then press J to counter.</p><a href="pepe-soul-world/index.html">Try Soul World’s sword guard <span aria-hidden="true">↗</span></a></article>
+          <article class="update-card"><span class="update-kicker">SHARD RUSH</span><h3>Chase the next rank.</h3><p>See every catch, combo, and hazard on the playfield. Follow your next rank target and jump straight into another 60-second sprint.</p><a href="shard-rush.html">Start a Shard Rush sprint <span aria-hidden="true">↗</span></a></article>
+          <article class="update-card"><span class="update-kicker">AROUND THE ARCADE</span><h3>Take a breather.</h3><p>Clearer pause controls and smoother retries in six arcade games. Jump back into Galactic Heroes and keep the emerald sector safe.</p><a href="emerald-galactic-heroes.html">Return to Galactic Heroes <span aria-hidden="true">↗</span></a></article>
+        </div>
+      </section>
+
       <section class="progress-section" id="progress" aria-labelledby="progress-title">
         <div class="library-heading"><div><p class="eyebrow">MAKE YOURSELF AT HOME</p><h2 id="progress-title">Your arcade record</h2></div><p>Every run is a little progress.</p></div>
+      <section class="arcade-status" aria-label="Arcade progress">
+        <div>
+          <span id="arcadeRank">Retail Pilot</span>
+          <small id="arcadeRankMeta">arcade rank</small>
+        </div>
+        <div>
+          <span id="arcadeXp">0</span>
+          <small>local XP</small>
+        </div>
+        <div>
+          <span id="arcadeBadges">0</span>
+          <small>badges</small>
+        </div>
+        <div>
+          <span id="arcadeShards">60</span>
+          <small>fictional Arcade Shards</small>
+        </div>
+        <div class="arcade-status__wide">
+          <span id="dailyChallenge">Loading daily challenge</span>
+          <small>daily challenge</small>
+        </div>
+      </section>
       <details class="badge-panel">
         <summary class="badge-panel__header">
           <div>
@@ -315,9 +331,9 @@
       </section>
       <footer class="hub-footer"><p><strong>EMERALD ARCADE</strong><span>A small collection of playable worlds.</span></p><p>Fictional games. No wallets or real-money rewards.<br>Satoshi System is an independent guest game with its own save and economy.</p><a href="#hub-title">Back to top ↑</a></footer>
     </main>
-    <script src="arcade.js?v=6"></script>
+    <script src="arcade.js?v=7"></script>
     <script src="arcade-pet.js?v=4"></script>
-    <script src="mini-games.js?v=library-1"></script>
-  <script src="arcade-library.js?v=library-1"></script><script src="arcade-library-ui.js?v=library-1"></script>
+    <script src="mini-games.js?v=arcade-refresh-2"></script>
+  <script src="arcade-library.js?v=library-1"></script><script src="arcade-library-ui.js?v=arcade-refresh-2"></script>
   </body>
 </html>

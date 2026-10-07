@@ -512,3 +512,113 @@ h1 em { font-weight: 600; color: #d2efa7; font-style: normal; }
   .sort-games { flex: 1; }
   #pickGame { flex: 1; }
 }
+
+/* October arcade refresh: a featured world, distinct covers and shorter routes to play. */
+.updates-section { padding-top: 38px; }
+.update-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.update-card { display: flex; flex-direction: column; padding: 25px; border: 1px solid var(--line); border-radius: 12px; background: #16221b; }
+.update-kicker { color: var(--emerald); font-size: .62rem; font-weight: 700; letter-spacing: .1em; }
+.update-card h3 { margin: 15px 0 11px; font-size: 1.28rem; font-weight: 600; }
+.update-card p { color: #bacbbc; font-size: .8rem; line-height: 1.7; }
+.update-card a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; margin-top: auto; border-top: 1px solid var(--line); padding-top: 12px; color: #dcebb0; font-size: .76rem; line-height: 1.6; text-decoration: none; }
+.update-card a:hover { text-decoration: underline; }
+@media (max-width: 720px) { .update-grid { grid-template-columns: 1fr; gap: 12px; } .update-card { padding: 21px; } }
+body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42rem), #0b1210; }
+.hub-shell { max-width: 1360px; }
+.hub-nav { min-height: 94px; }
+.brand-mark { color: #d9eaa9; }
+.hub-mode { color: #b2c3ad; }
+.hub-hero { grid-template-columns: 1fr 1.05fr; min-height: 418px; overflow: hidden; border-color: #c6dfb42b; border-radius: 18px; background: #142219; }
+.hub-copy { padding: 44px 30px 40px 38px; background: radial-gradient(ellipse at 5% 5%, #34523866, transparent 85%); }
+.hub-copy .eyebrow { font-size: .6rem; letter-spacing: .1em; color: #c1d99f; }
+.hub-copy h1 { font-size: clamp(2.55rem, 4.35vw, 4.65rem); letter-spacing: -.06em; line-height: 1.04; }
+.hub-copy h1 em { color: #dcebb0; }
+.hub-copy > p:not(.eyebrow) { max-width: 36ch; color: #bacbbc; font-size: .91rem; line-height: 1.7; }
+.hub-action { min-height: 46px; border-radius: 7px; }
+.hub-action--primary { background: #dcebb0; }
+.hero-note { gap: 10px; color: #9eb19a; }
+.hero-spotlight { position: relative; inset: auto; min-width: 0; align-items: stretch; text-align: left; padding: 24px; background: linear-gradient(180deg, #03130d25 25%, #03130ded 100%), url("pepe-temple-run/assets/emerald-frog-temple-v1.png") center 44% / cover; }
+.spotlight-index { display: flex; justify-content: space-between; font-weight: 750; text-shadow: 0 1px 8px #000; }
+.spotlight-index > span { background: #06120b80; }
+.hero-spotlight > span:last-child { padding: 0; border: 0; border-radius: 0; background: none; backdrop-filter: none; }
+.hero-spotlight small { max-width: none; color: #dcebb0; font-size: .59rem; font-weight: 700; }
+.hero-spotlight strong { font-size: clamp(1.6rem, 2.3vw, 2.35rem); margin: 9px 0 5px; }
+.spotlight-description { display: block; font-size: .79rem; color: #d0dcc9; }
+.spotlight-play { display: flex; justify-content: space-between; align-items: center; margin-top: 19px; padding-top: 14px; border-top: 1px solid #dcebb03b; color: #e9f3ca; font-size: .8rem; font-weight: 700; }
+.spotlight-play > span { font-size: 1.2rem; }
+.hero-spotlight:hover .spotlight-play { color: #fff; }
+.collection-shortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 17px; }
+.collection-shortcuts a { display: flex; align-items: center; gap: 14px; min-width: 0; padding: 19px 18px; border: 1px solid #bdd4a926; border-radius: 10px; background: #162219; text-decoration: none; transition: border-color 150ms ease, background 150ms ease; }
+.collection-shortcuts a:nth-child(2) { background: #182522; }
+.collection-shortcuts a:nth-child(3) { background: #24251b; }
+.collection-shortcuts a:hover { border-color: #c9f59670; background: #28372a; }
+.collection-symbol { font-size: 1.65rem; color: #d4eaa9; }
+.collection-shortcuts strong, .collection-shortcuts small { display: block; }
+.collection-shortcuts strong { font-size: .86rem; font-weight: 650; }
+.collection-shortcuts small { margin-top: 6px; font-size: .66rem; color: #9eb09e; line-height: 1.4; }
+.collection-arrow { margin-left: auto; color: #c8d8b6; }
+.library-section { padding-top: 37px; }
+.library-heading h2 { font-weight: 650; }
+.library-controls { margin-bottom: 13px; }
+.game-filters button { min-height: 44px; font-size: .77rem; }
+.game-search { min-height: 44px; width: 260px; }
+.game-search input { height: 42px; font-size: .77rem; }
+.library-options { gap: 8px 23px; padding: 8px 0; }
+.game-card { border-color: #c3d3ae21; border-radius: 12px; background: #142019; }
+.game-card:hover { border-color: #dcebb075; }
+.game-art { height: 218px; min-height: 218px; }
+.game-card--feudalism .game-art { background: linear-gradient(0deg, #10170c40, transparent 60%), url("pepe-feudalism/assets/crownhaven-v2.png") center 42% / cover; }
+.game-card--temple-run .game-art { background: linear-gradient(0deg, #04151144, transparent 65%), url("pepe-temple-run/assets/emerald-frog-temple-v1.png") center 38% / cover; }
+.game-card--soul-world .game-art { overflow: hidden; background: url("pepe-soul-world/assets/academy.webp") center / cover; }
+.game-card--soul-world .game-art img { display: block; height: 100%; width: 100%; object-fit: contain; filter: drop-shadow(0 10px 18px #021019c0); }
+.game-body h2 { font-size: 1.4rem; }
+.game-body > p:not(.eyebrow):not(.game-stat) { font-size: .82rem; line-height: 1.65; }
+.game-meta span { font-size: .61rem; }
+.game-feature-label { color: #e2efc8; background: #142217e8; border-color: #dcebb055; }
+.game-card--satoshi .game-feature-label { color: #ffdfa4; background: #211808e8; }
+.game-card a { min-height: 44px; font-size: .77rem; border-radius: 6px; }
+.game-body > .control-label { font-size: .7rem; color: #bdd39f; }
+.arcade-status { margin-bottom: 10px; padding-top: 9px; }
+@media (max-width: 1050px) {
+  .hub-copy { padding: 35px 26px; }
+  .hero-note { flex-wrap: wrap; line-height: 1.6; }
+  .collection-shortcuts a { padding: 16px 13px; gap: 10px; }
+  .collection-shortcuts small { font-size: .6rem; }
+}
+@media (max-width: 850px) {
+  .hub-hero { grid-template-columns: 1.15fr 1fr; min-height: 375px; }
+  .hub-copy { padding: 28px 22px; }
+  .hub-copy h1 { font-size: clamp(2rem, 4.9vw, 2.8rem); }
+  .hub-copy .eyebrow { font-size: .53rem; }
+  .hub-copy > p:not(.eyebrow) { font-size: .8rem; }
+  .hero-spotlight { padding: 18px; }
+  .hero-spotlight strong { font-size: 1.6rem; }
+  .collection-symbol { display: none; }
+  .collection-shortcuts strong { font-size: .76rem; }
+  .game-search { width: 100%; }
+}
+@media (max-width: 540px) {
+  .hub-nav { min-height: 74px; }
+  .hub-hero { grid-template-columns: 1fr; min-height: 0; border-radius: 12px; }
+  .hub-copy { padding: 24px 21px; }
+  .hub-copy h1 { font-size: clamp(2.1rem, 8.6vw, 2.8rem); margin-bottom: 14px; }
+  .hub-copy > p:not(.eyebrow) { display: none; }
+  .hub-copy .eyebrow { margin-bottom: 14px; }
+  .hero-note { margin-top: 14px; gap: 7px; font-size: .53rem; }
+  .hero-spotlight { min-height: 140px; padding: 16px 20px; background-position: center 40%; }
+  .spotlight-index { display: none; }
+  .hero-spotlight > span:last-child { margin-top: auto; }
+  .hero-spotlight strong { margin-top: 5px; font-size: 1.4rem; }
+  .spotlight-description { display: none; }
+  .spotlight-play { margin-top: 10px; padding-top: 9px; font-size: .74rem; }
+  .collection-shortcuts { gap: 7px; margin-top: 12px; }
+  .collection-shortcuts a { min-height: 58px; padding: 12px 9px; }
+  .collection-shortcuts strong { font-size: .69rem; line-height: 1.4; }
+  .collection-shortcuts small, .collection-arrow { display: none; }
+  .library-section { padding-top: 28px; }
+  .game-filters { gap: 2px; }
+  .game-filters button { padding: 8px 9px; font-size: .66rem; }
+  .library-controls { gap: 10px; }
+  .library-options { gap: 4px 16px; }
+  .game-art { height: 205px; min-height: 205px; }
+}

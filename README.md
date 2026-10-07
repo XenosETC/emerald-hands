@@ -12,6 +12,18 @@ Temple Run ships its Crown runner model, environment assets, and local Three.js 
 
 ## Personal arcade library
 
+### Arcade refresh — October 7, 2026
+
+The hub now features Temple Run, distinct covers for the three independent Pepe games, and quick routes into arcade, adventure, and idle collections. Visible game tags are searchable, and the return link follows actual play history. Phone layouts bring the collection closer to the top; local arcade records sit together below the games.
+
+Shard Rush has catch/combo/hazard feedback, a next-rank score meter, direct Start/Play again controls, reliable keyboard/drag handoff, and a laptop-sized playfield. Its existing scores, rewards, rank thresholds, and 60-second simulation remain unchanged. Shared controls release held input on pause, provide a visible Resume button, return keyboard focus to canvas games, and support keyboard navigation inside Controls. Replay clocks were repaired in Shard Rush, Galactic Heroes, PepeCoin Run, Space Unchained, Wars, and Tower Defense; canceled animation requests stay canceled after pausing.
+
+The “What’s new” section links directly to the refreshed games. Soul World now includes sword guard poses, Spirit-based frontal blocking, and immediate guard-to-counter input. Its game and save remain independent of shared arcade rewards.
+
+Run `npm test` for the sixteen-page smoke check and 37 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the verified scope, browser checks, and remaining playtest gates. Hosted deployment has not been verified.
+
+### Browsing your collection
+
 Save any game with its star button, then use Favorites to see your collection. Recently opened lists the last four games you visited, including the independent Pepe games, and the hero's Return link follows your latest game. Openings are navigation history; they do not claim completed runs or change game rewards.
 
 All sixteen games share one navigation catalog with genre and control metadata. Search supports titles, descriptions and controls; genre, favorites and touch filters combine. Sort by featured order, title or recently opened. Pick a game chooses only from the visible results. Filters are preserved in the page URL for reload and browser Back.

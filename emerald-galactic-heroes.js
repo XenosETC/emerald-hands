@@ -62,7 +62,7 @@ const state = {
   spawnTimer: 0,
   shotTimer: 0,
   bossSpawned: false,
-  lastFrame: performance.now(),
+  lastFrame: null,
   hero: { x: canvas.width / 2, y: canvas.height - 100, invuln: 0 },
 };
 
@@ -93,7 +93,7 @@ function startGame() {
     spawnTimer: 0,
     shotTimer: 0,
     bossSpawned: false,
-    lastFrame: performance.now(),
+    lastFrame: null,
   });
   Object.assign(state.hero, { x: canvas.width / 2, y: canvas.height - 100, invuln: 1.2 });
   els.overlay.classList.add("is-hidden");
@@ -603,7 +603,8 @@ function updateHud() {
 }
 
 function loop(now) {
-  const delta = Math.min(0.033, (now - state.lastFrame) / 1000);
+  // Use the pause-adjusted RAF clock for both the baseline and later frames.
+  const delta = state.lastFrame === null ? 0 : Math.max(0, Math.min(0.033, (now - state.lastFrame) / 1000));
   state.lastFrame = now;
   update(delta);
   draw();

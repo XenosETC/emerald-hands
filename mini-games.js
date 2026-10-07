@@ -25,7 +25,9 @@ if (arcade) {
     pets: "ETC Pets",
   };
   continueGame.href = continueTarget.path;
-  continueGame.textContent = `Continue ${continueNames[continueTarget.game] || "Last Game"}`;
+  continueGame.textContent = Number.isSafeInteger(continueTarget.at) && continueTarget.at > 0
+    ? `Return to ${continueNames[continueTarget.game] || "Last Game"}`
+    : "Play Emerald Hands";
   const challenge = window.EmeraldArcade.todayChallenge();
   const badgeCatalog = window.EmeraldArcade.badges || [];
   const nextRank = window.EmeraldArcade.nextRankForXp(arcade.xp);

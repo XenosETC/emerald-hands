@@ -16,6 +16,7 @@
     "pepecoin-emerald-run-v1",
   ];
   const nativeRequestAnimationFrame = window.requestAnimationFrame?.bind(window);
+  const nativeCancelAnimationFrame = window.cancelAnimationFrame?.bind(window);
   const runtime = {
     paused: false,
     muted: false,
@@ -23,6 +24,8 @@
     pausedDuration: 0,
     audioContexts: new Set(),
     mediaVolumes: new WeakMap(),
+    pressedKeys: new Map(),
+    pressedPointers: new Map(),
     session: null,
   };
   const currentPage = location.pathname.split("/").pop() || "index.html";
@@ -30,15 +33,30 @@
   const isGamePage = currentPage !== "index.html" && currentPage !== "mini-games.html";
 
   if (nativeRequestAnimationFrame) {
+    let nextRequestId = 0;
+    const pendingFrames = new Map();
     window.requestAnimationFrame = function arcadeRequestAnimationFrame(callback) {
+      // Keep the public handle stable when a paused request needs another frame.
+      const id = ++nextRequestId;
+      const request = { nativeId: null };
+      pendingFrames.set(id, request);
       function deliver(timestamp) {
+        if (pendingFrames.get(id) !== request) return;
         if (runtime.paused) {
-          nativeRequestAnimationFrame(deliver);
+          request.nativeId = nativeRequestAnimationFrame(deliver);
           return;
         }
+        pendingFrames.delete(id);
         callback(timestamp - runtime.pausedDuration);
       }
-      return nativeRequestAnimationFrame(deliver);
+      request.nativeId = nativeRequestAnimationFrame(deliver);
+      return id;
+    };
+    window.cancelAnimationFrame = function arcadeCancelAnimationFrame(id) {
+      const request = pendingFrames.get(id);
+      if (!request) return;
+      pendingFrames.delete(id);
+      nativeCancelAnimationFrame?.(request.nativeId);
     };
   }
 
@@ -593,6 +611,7 @@
       runtime.pausedDuration += performance.now() - runtime.pauseStartedAt;
     }
     runtime.paused = next;
+    if (next) releaseGameplayInput();
     document.body?.classList.toggle("arcade-runtime-paused", next);
     const pauseButton = document.querySelector("[data-arcade-command='pause']");
     if (pauseButton) {
@@ -601,9 +620,28 @@
     }
     const overlay = document.querySelector(".arcade-runtime-pause");
     if (overlay) overlay.hidden = !next;
+    if (!next && document.activeElement?.closest?.(".arcade-runtime-dock, .arcade-runtime-pause")) {
+      document.querySelector("canvas")?.focus({ preventScroll: true });
+    }
     syncAudioState();
     window.dispatchEvent(new CustomEvent("emeraldarcade:pause", { detail: { paused: next } }));
     return next;
+  }
+
+  function releaseGameplayInput() {
+    const heldKeys = [...runtime.pressedKeys.values()];
+    runtime.pressedKeys.clear();
+    // Older games keep their own key sets; release through their existing listeners.
+    for (const held of heldKeys) {
+      const target = held.target?.isConnected ? held.target : window;
+      target.dispatchEvent(new KeyboardEvent("keyup", { key: held.key, code: held.code, location: held.location, bubbles: true }));
+    }
+    const heldPointers = [...runtime.pressedPointers.values()];
+    runtime.pressedPointers.clear();
+    for (const held of heldPointers) {
+      if (held.target.hasPointerCapture?.(held.pointerId)) held.target.releasePointerCapture(held.pointerId);
+      held.target.dispatchEvent(new PointerEvent("pointerup", { pointerId: held.pointerId, pointerType: held.pointerType, bubbles: true }));
+    }
   }
 
   function setMuted(muted) {
@@ -685,13 +723,15 @@
         color: #effff7;
         background: radial-gradient(circle, rgba(20, 86, 56, .35), rgba(0, 5, 3, .84));
         backdrop-filter: blur(5px);
-        pointer-events: none;
+        pointer-events: auto;
         font-family: Inter, system-ui, sans-serif;
       }
       .arcade-runtime-pause[hidden] { display: none; }
       .arcade-runtime-pause div { padding: 22px 28px; border: 1px solid rgba(116,255,197,.52); border-radius: 14px; text-align: center; background: rgba(0,12,8,.88); box-shadow: 0 24px 80px rgba(0,0,0,.65); }
       .arcade-runtime-pause strong { display:block; color:#74ffc5; font-size:clamp(1.5rem,5vw,3rem); letter-spacing:.08em; text-transform:uppercase; }
       .arcade-runtime-pause span { display:block; margin-top:6px; color:#b8d6c9; }
+      .arcade-runtime-resume { margin-top:18px; min-height:48px; padding:10px 28px; border:1px solid #74ffc5; border-radius:8px; color:#001c10; background:#74ffc5; font:800 1rem Inter,system-ui,sans-serif; cursor:pointer; }
+      .arcade-runtime-resume:focus-visible { outline:3px solid #fff; outline-offset:4px; }
       .arcade-runtime-modal {
         position: fixed;
         inset: 0;
@@ -788,7 +828,8 @@
     pauseOverlay.className = "arcade-runtime-pause";
     pauseOverlay.hidden = true;
     pauseOverlay.setAttribute("aria-live", "polite");
-    pauseOverlay.innerHTML = `<div><strong>Paused</strong><span>Press P or choose Resume.</span></div>`;
+    pauseOverlay.innerHTML = `<div><strong>Paused</strong><span>Take your time. Your game will wait.</span><button type="button" class="arcade-runtime-resume">Resume game</button><span>or press P</span></div>`;
+    pauseOverlay.querySelector(".arcade-runtime-resume").addEventListener("click", () => setPaused(false));
 
     const modal = document.createElement("section");
     modal.className = "arcade-runtime-modal";
@@ -815,12 +856,17 @@
     `;
 
     let pausedBeforeModal = false;
+    let focusBeforeModal = null;
     function closeModal() {
       modal.hidden = true;
       modal.querySelector(".arcade-runtime-confirm").hidden = true;
       if (isGamePage && !pausedBeforeModal) setPaused(false);
+      const resumeTarget = isGamePage && !runtime.paused ? document.querySelector("canvas") : null;
+      (resumeTarget || focusBeforeModal)?.focus({ preventScroll: true });
     }
     function openModal() {
+      if (!modal.hidden) return;
+      focusBeforeModal = document.activeElement;
       pausedBeforeModal = runtime.paused;
       if (isGamePage) setPaused(true);
       modal.hidden = false;
@@ -883,36 +929,61 @@
       if (setting === "confirm-reset") resetLocalProgress();
     });
     window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !modal.hidden) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        closeModal();
-        return;
-      }
       if (!modal.hidden) {
-        event.preventDefault();
         event.stopImmediatePropagation();
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeModal();
+        } else if (event.key === "Tab") {
+          event.preventDefault();
+          const buttons = [...modal.querySelectorAll("button")].filter((button) => !button.disabled && !button.closest("[hidden]"));
+          const current = buttons.indexOf(document.activeElement);
+          const next = event.shiftKey ? (current <= 0 ? buttons.length - 1 : current - 1) : (current + 1) % buttons.length;
+          buttons[next]?.focus();
+        } else if (!modal.contains(event.target)) {
+          event.preventDefault();
+        }
         return;
       }
-      if (/^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName || "")) return;
-      if (event.key.toLowerCase() === "p" && isGamePage) {
+      const editingText = /^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName || "") || event.target?.isContentEditable;
+      if (event.defaultPrevented || event.isComposing || event.ctrlKey || event.metaKey || event.altKey || editingText) {
+        if (runtime.paused) event.stopImmediatePropagation();
+        return;
+      }
+      const key = event.key.toLowerCase();
+      if (key === "m" || (isGamePage && (key === "p" || key === "r"))) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        setPaused(!runtime.paused);
+        if (event.repeat) return;
+        if (key === "p") setPaused(!runtime.paused);
+        if (key === "m") setMuted(!runtime.muted);
+        if (key === "r") location.reload();
+        return;
       }
-      if (event.key.toLowerCase() === "m") {
-        event.preventDefault();
+      const isRuntimeControl = event.target?.closest?.(".arcade-runtime-dock, .arcade-runtime-pause");
+      if (runtime.paused || isRuntimeControl) {
         event.stopImmediatePropagation();
-        setMuted(!runtime.muted);
+        if (event.key !== "Tab" && !isRuntimeControl) event.preventDefault();
+        return;
       }
-      if (event.key.toLowerCase() === "r" && isGamePage && !event.ctrlKey && !event.metaKey) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        location.reload();
-      }
+      if (isGamePage) runtime.pressedKeys.set(event.code || event.key, { key: event.key, code: event.code, location: event.location, target: event.target });
     }, true);
+    window.addEventListener("keyup", (event) => runtime.pressedKeys.delete(event.code || event.key), true);
+    window.addEventListener("pointerdown", (event) => {
+      if (!isGamePage || runtime.paused || event.target?.closest?.(".arcade-runtime-dock, .arcade-runtime-modal")) return;
+      runtime.pressedPointers.set(event.pointerId, { pointerId: event.pointerId, pointerType: event.pointerType, target: event.target });
+    }, true);
+    for (const type of ["pointerup", "pointercancel"]) {
+      window.addEventListener(type, (event) => runtime.pressedPointers.delete(event.pointerId), true);
+    }
+    function pauseForFocusLoss() {
+      if (!isGamePage) return;
+      pausedBeforeModal = true;
+      setPaused(true);
+    }
+    window.addEventListener("blur", pauseForFocusLoss);
     document.addEventListener("visibilitychange", () => {
-      if (isGamePage && document.hidden && !runtime.paused) setPaused(true);
+      if (document.hidden) pauseForFocusLoss();
     });
     document.body.append(pauseOverlay, dock, modal);
     requestAnimationFrame(applyDockState);

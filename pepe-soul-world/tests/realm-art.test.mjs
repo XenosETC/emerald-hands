@@ -3,7 +3,7 @@ import {access,readFile} from 'node:fs/promises';
 import {APPROACH_ART,EXTRA_ART,sceneArt,sceneSurface,portalCell,riftCamera} from '../realm-art.js';
 test('every enemy realm has two distinct approach paintings and retains its guardian scene',async()=>{
  const keys=[];for(const world of ['frozen','crimson','void']){assert.equal(sceneArt(world,'arena'),world);for(const zone of ['approach','approach2']){const key=sceneArt(world,zone);keys.push(key);assert.equal(key,APPROACH_ART[world][zone]);assert.ok(sceneSurface(world,zone)>.6&&sceneSurface(world,zone)<.85);await access(new URL(`../assets/${key}.webp`,import.meta.url));}}
- assert.equal(new Set(keys).size,6);assert.equal(sceneArt('academy','approach'),'academy');assert.equal(EXTRA_ART.length,13);
+ assert.equal(new Set(keys).size,6);assert.equal(sceneArt('academy','approach'),'academy');assert.equal(EXTRA_ART.length,14);
 });
 test('all four realm portals map to unique atlas cells',()=>{assert.deepEqual(['academy','frozen','crimson','void'].map(portalCell),[0,1,2,3]);});
 test('painted portals and Rift eruptions ship equal-sized RGBA atlas cells',async()=>{

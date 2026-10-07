@@ -7,7 +7,7 @@
     <title>Shard Rush</title>
     <link rel="preload" href="assets/shard-rush/arena-background.png" as="image">
     <link rel="preload" href="assets/shard-rush/sprite-sheet.png" as="image">
-    <link rel="stylesheet" href="shard-rush.css">
+    <link rel="stylesheet" href="shard-rush.css?v=4">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="rush">
@@ -26,6 +26,7 @@
           </nav>
         </div>
 
+        <div class="rush-target"><span id="rankTarget">3,000 to Retail Sprinter</span><progress id="rankProgress" value="0" max="3000" aria-label="Score toward Retail Sprinter"></progress></div>
         <div class="rush-stage">
           <canvas id="rushCanvas" width="1280" height="720" aria-label="Shard Rush playfield" tabindex="0" aria-describedby="game-controls"></canvas>
           <section class="rush-hud" aria-label="Run status">
@@ -49,8 +50,10 @@
           <section class="rush-overlay" id="rushOverlay">
             <p class="eyebrow">Market Sprint</p>
             <h2 id="overlayTitle">Catch the green. Dodge the red.</h2>
-            <p id="overlayText">Move the vault with mouse, touch, or arrow keys. Build streaks with shards, liquidity orbs, dead LP fragments, and candle boosts.</p>
+            <p id="overlayText">Drag the vault or use arrow keys / A and D. Chain six catches to raise your combo. Candle and combo drops give an instant boost; missed catches and red hazards reset your streak.</p>
             <div class="run-stats" id="runStats" hidden></div>
+            <button id="overlayStartButton" class="rush-play-button" type="button">Start 60s Sprint</button>
+            <p class="rush-start-hint">Or press Space to start</p>
           </section>
         </div>
       </section>
@@ -58,13 +61,13 @@
 
     <footer class="game-guide" aria-label="How to play">
       <div><span class="game-guide__label">60-second sprint</span><p><strong>Catch green. Avoid red.</strong> Chain clean catches to raise your multiplier.</p></div>
-      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Drag the vault, or use <kbd>Left</kbd> <kbd>Right</kbd>. Touch and mouse are supported.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Drag the vault, or use <kbd>Left</kbd> <kbd>Right</kbd> / <kbd>A</kbd> <kbd>D</kbd>. Press <kbd>Space</kbd> to start a new sprint.</p></div>
       <div><span class="game-guide__label">Stay in the streak</span><p>Move early and keep the vault under the next drop. Red hazards break your momentum.</p></div>
     </footer>
 
-    <script src="arcade.js?v=6"></script>
+    <script src="arcade.js?v=7"></script>
     <script src="arcade-pet.js?v=4"></script>
-    <script src="shard-rush.js?v=3"></script>
+    <script src="shard-rush.js?v=4"></script>
   <script src="arcade-library.js?v=library-1"></script><script src="arcade-visit.js?v=library-1"></script>
 </body>
 </html>

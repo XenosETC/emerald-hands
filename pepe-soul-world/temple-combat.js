@@ -45,7 +45,7 @@ export function stepTempleEnemy(e,p,dt,ground){
   const a=templeAttack(e);e.mode='strike';e.timer=.2;e.poseTime=0;e.attackCount++;
   if(e.templeAttack==='lotus'){
    for(const x of e.marks)actions.push({type:'templeLotus',x,y:ground});
-   if(e.marks.some(x=>Math.abs(p.x-x)<76)&&p.y>ground-115)actions.push({type:'damage',amount:a.damage,face:p.x<e.x?-1:1});
+   if(e.marks.some(x=>Math.abs(p.x-x)<76)&&p.y>ground-115)actions.push({type:'damage',amount:a.damage,face:p.x<e.x?-1:1,unblockable:true});
   }else if(e.templeAttack==='wave')actions.push({type:'projectile',x:e.x+e.face*55,y:ground-40,vx:e.face*350,life:2.8,damage:a.damage,friendly:false,world:'temple',owner:e.id,hit:[]});
   else {
    actions.push({type:'templeCleave',x:e.x,y:ground,face:e.face,range:a.range});

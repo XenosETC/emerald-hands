@@ -70,7 +70,7 @@
   const floaters = [];
   const dust = [];
   let raf = 0;
-  let last = performance.now();
+  let last = null;
   let soundOn = true;
 
   function loadImage(src) {
@@ -132,7 +132,7 @@
     overlay.classList.add("is-hidden");
     statusLabel.textContent = "Train miners, then send fighters.";
     statusMeta.textContent = "Destroy the corrupt relic base before yours falls.";
-    last = performance.now();
+    last = null;
     raf = requestAnimationFrame(loop);
   }
 
@@ -693,7 +693,8 @@
   }
 
   function loop(now) {
-    const dt = Math.min(0.033, (now - last) / 1000 || 0);
+    // Use the pause-adjusted RAF clock for both the baseline and later frames.
+    const dt = last === null ? 0 : Math.max(0, Math.min(0.033, (now - last) / 1000));
     last = now;
     if (state.playing) update(dt);
     draw();

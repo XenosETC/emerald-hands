@@ -2,11 +2,15 @@ const canvas = document.querySelector("#rushCanvas");
 const ctx = canvas.getContext("2d");
 
 const els = {
+  playFrame: document.querySelector(".rush-game"),
   startButton: document.querySelector("#startButton"),
+  overlayStartButton: document.querySelector("#overlayStartButton"),
   score: document.querySelector("#scoreLabel"),
   time: document.querySelector("#timeLabel"),
   combo: document.querySelector("#comboLabel"),
   rank: document.querySelector("#rankLabel"),
+  rankTarget: document.querySelector("#rankTarget"),
+  rankProgress: document.querySelector("#rankProgress"),
   overlay: document.querySelector("#rushOverlay"),
   overlayTitle: document.querySelector("#overlayTitle"),
   overlayText: document.querySelector("#overlayText"),
@@ -31,8 +35,18 @@ const spriteMap = {
 };
 
 const drops = [];
+const feedback = [];
 const keys = new Set();
-const pointer = { active: false, x: canvas.width / 2 };
+const pointer = { active: false, id: null, x: canvas.width / 2 };
+const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+const scoreRanks = [
+  { at: 0, label: "Unranked" },
+  { at: 3000, label: "Retail Sprinter" },
+  { at: 9000, label: "Shard Stacker" },
+  { at: 18000, label: "Liquidity Runner" },
+  { at: 30000, label: "Market Sage" },
+  { at: 45000, label: "Emerald Storm" },
+];
 
 const state = {
   running: false,
@@ -46,14 +60,17 @@ const state = {
   timeLeft: 60,
   elapsed: 0,
   spawnTimer: 0,
-  lastFrame: performance.now(),
+  lastFrame: null,
   collectorX: canvas.width / 2,
 };
 
 function startGame() {
+  if (state.running) return;
   window.EmeraldArcade?.beginSession("rush", "shard-rush.html");
   const petBonus = window.ArcadePet?.activeBonus("rush");
+  resetInput();
   drops.length = 0;
+  feedback.length = 0;
   Object.assign(state, {
     running: true,
     score: 0,
@@ -66,18 +83,24 @@ function startGame() {
     timeLeft: 60,
     elapsed: 0,
     spawnTimer: 0,
-    lastFrame: performance.now(),
+    lastFrame: null,
     collectorX: canvas.width / 2,
   });
   els.overlay.classList.add("is-hidden");
   els.runStats.hidden = true;
   els.runStats.innerHTML = "";
+  els.startButton.disabled = true;
+  els.startButton.textContent = "Sprint in progress";
+  canvas.focus({ preventScroll: true });
+  els.playFrame.scrollIntoView({ block: "start", behavior: "auto" });
   updateHud();
   window.ArcadePet?.showAssist("rush");
 }
 
 function endGame() {
+  if (!state.running) return;
   state.running = false;
+  resetInput();
   const rank = rankForScore(state.score);
   els.overlayTitle.textContent = `${rank} Run`;
   els.overlayText.textContent = `Final score: ${format(state.score)}. Max combo x${state.maxCombo}. Clean catches beat hazard hits every time.`;
@@ -89,17 +112,20 @@ function endGame() {
     <div><span>${state.hazardsHit}</span><small>hazards hit</small></div>
   `;
   els.overlay.classList.remove("is-hidden");
+  els.overlayStartButton.textContent = "Play again";
+  els.startButton.disabled = false;
+  els.startButton.textContent = "Play again";
   window.EmeraldArcade?.recordAndNotify("rush", { score: state.score, rank, combo: state.maxCombo, played: true });
   updateHud();
 }
 
 function rankForScore(score) {
-  if (score >= 45000) return "Emerald Storm";
-  if (score >= 30000) return "Market Sage";
-  if (score >= 18000) return "Liquidity Runner";
-  if (score >= 9000) return "Shard Stacker";
-  if (score >= 3000) return "Retail Sprinter";
-  return "Unranked";
+  let label = scoreRanks[0].label;
+  for (const rank of scoreRanks) {
+    if (score < rank.at) break;
+    label = rank.label;
+  }
+  return label;
 }
 
 function spawnDrop() {
@@ -138,8 +164,8 @@ function update(delta) {
   }
 
   const moveSpeed = 760;
-  if (keys.has("ArrowLeft") || keys.has("a")) state.collectorX -= moveSpeed * delta;
-  if (keys.has("ArrowRight") || keys.has("d")) state.collectorX += moveSpeed * delta;
+  if (keys.has("arrowleft") || keys.has("a")) state.collectorX -= moveSpeed * delta;
+  if (keys.has("arrowright") || keys.has("d")) state.collectorX += moveSpeed * delta;
   if (pointer.active) state.collectorX += (pointer.x - state.collectorX) * Math.min(1, delta * 10);
   state.collectorX = clamp(state.collectorX, 105, canvas.width - 105);
 
@@ -160,7 +186,10 @@ function update(delta) {
       drops.splice(i, 1);
     } else if (drop.y > canvas.height + 90) {
       drops.splice(i, 1);
-      if (!isHazard(drop.type)) breakCombo();
+      if (!isHazard(drop.type)) {
+        if (state.combo > 1) addFeedback("MISSED · COMBO RESET", state.collectorX, "miss");
+        breakCombo();
+      }
     }
   }
 
@@ -170,19 +199,37 @@ function update(delta) {
 
 function collect(drop) {
   if (isHazard(drop.type)) {
+    const previousScore = state.score;
     state.score = Math.max(0, state.score - (drop.type === "bot" ? 900 : 650));
     state.hazardsHit += 1;
+    const loss = previousScore - state.score;
+    addFeedback(`${drop.type === "bot" ? "BOT" : "FUD"} HIT${loss ? ` −${loss}` : ""}`, drop.x, "hazard", "COMBO RESET");
     breakCombo();
     return;
   }
 
   const values = { shard: 120, liquidity: 360, candle: 520, deadlp: 440, combo: 250 };
-  state.score += Math.round(values[drop.type] * state.combo);
+  const gained = Math.round(values[drop.type] * state.combo);
+  const previousCombo = state.combo;
+  state.score += gained;
   state.streak += 1;
   state.cleanCatches += 1;
   if (drop.type === "combo" || drop.type === "candle" || state.streak % 6 === 0) {
     state.combo = Math.min(8, state.combo + 1);
     state.maxCombo = Math.max(state.maxCombo, state.combo);
+  }
+  addFeedback(`+${gained}`, drop.x, "catch", state.combo > previousCombo ? `COMBO x${state.combo}` : "");
+}
+
+function addFeedback(text, x, kind, detail = "") {
+  feedback.push({ text, x: clamp(x, 170, canvas.width - 170), kind, detail, age: 0, duration: 1.1 });
+  if (feedback.length > 12) feedback.shift();
+}
+
+function updateFeedback(delta) {
+  for (let i = feedback.length - 1; i >= 0; i -= 1) {
+    feedback[i].age += delta;
+    if (feedback[i].age >= feedback[i].duration) feedback.splice(i, 1);
   }
 }
 
@@ -205,6 +252,39 @@ function draw() {
   }
 
   drawSprite("collector", state.collectorX, canvas.height - 80, 126, 0);
+  drawFeedback();
+}
+
+function drawFeedback() {
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.lineJoin = "round";
+  for (const effect of feedback) {
+    const progress = effect.age / effect.duration;
+    const y = canvas.height - 175 - (motionPreference.matches ? 0 : progress * 52);
+    const color = effect.kind === "hazard" ? "#ffaaa0" : effect.kind === "miss" ? "#ffe0a1" : "#b5ffd8";
+    ctx.globalAlpha = motionPreference.matches ? 1 : Math.min(1, (1 - progress) * 3);
+    ctx.strokeStyle = "#03110d";
+    ctx.lineWidth = 6;
+    ctx.fillStyle = color;
+    ctx.font = "800 28px system-ui, sans-serif";
+    ctx.strokeText(effect.text, effect.x, y);
+    ctx.fillText(effect.text, effect.x, y);
+    if (effect.detail) {
+      ctx.font = "700 18px system-ui, sans-serif";
+      ctx.strokeText(effect.detail, effect.x, y + 25);
+      ctx.fillText(effect.detail, effect.x, y + 25);
+    }
+    if (!motionPreference.matches && effect.kind !== "miss" && progress < 0.45) {
+      ctx.globalAlpha *= 1 - progress / 0.45;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(effect.x, canvas.height - 88, 28 + progress * 100, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
 }
 
 function drawCover(img, x, y, w, h) {
@@ -239,7 +319,7 @@ function drawSprite(type, x, y, size, rotation) {
   const sprite = spriteMap[type];
   ctx.save();
   ctx.translate(x, y);
-  ctx.rotate(rotation * 0.08);
+  ctx.rotate(motionPreference.matches ? 0 : rotation * 0.08);
   ctx.drawImage(sprites, sprite.col * cellW, sprite.row * cellH, cellW, cellH, -size / 2, -size / 2, size, size);
   ctx.restore();
 }
@@ -249,11 +329,22 @@ function updateHud() {
   els.time.textContent = Math.ceil(state.timeLeft);
   els.combo.textContent = `x${state.combo}`;
   els.rank.textContent = rankForScore(state.score);
+  const next = scoreRanks.find(rank => rank.at > state.score);
+  const target = next || scoreRanks[scoreRanks.length - 1];
+  els.rankTarget.textContent = next
+    ? `${(next.at - state.score).toLocaleString()} to ${next.label}`
+    : "Top rank reached · Emerald Storm";
+  els.rankProgress.max = target.at;
+  els.rankProgress.value = Math.min(state.score, target.at);
+  els.rankProgress.setAttribute("aria-label", `Score toward ${target.label}`);
 }
 
 function loop(now) {
-  const delta = Math.min(0.033, (now - state.lastFrame) / 1000);
+  // Shared pause removes suspended time from RAF timestamps. Keep the baseline
+  // in that same clock, including when a new sprint starts after an earlier pause.
+  const delta = state.lastFrame === null ? 0 : Math.max(0, Math.min(0.033, (now - state.lastFrame) / 1000));
   state.lastFrame = now;
+  updateFeedback(delta);
   update(delta);
   draw();
   requestAnimationFrame(loop);
@@ -275,27 +366,65 @@ function format(value) {
 }
 
 els.startButton.addEventListener("click", startGame);
+els.overlayStartButton.addEventListener("click", startGame);
+
+function releasePointer() {
+  const id = pointer.id;
+  pointer.active = false;
+  pointer.id = null;
+  if (id !== null && canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+}
+
+function resetInput() {
+  keys.clear();
+  releasePointer();
+}
+
+function isInteractiveTarget(target) {
+  return target?.isContentEditable || target?.closest?.("button, a, input, textarea, select");
+}
 
 window.addEventListener("keydown", (event) => {
-  keys.add(event.key);
-  if (event.key === " " && !state.running) startGame();
+  if (isInteractiveTarget(event.target) || event.altKey || event.ctrlKey || event.metaKey) return;
+  const key = event.key.toLowerCase();
+  if (["arrowleft", "arrowright", "a", "d"].includes(key) && state.running) {
+    event.preventDefault();
+    releasePointer();
+    keys.add(key);
+  }
+  if (key === " " && !state.running && !event.repeat) {
+    event.preventDefault();
+    startGame();
+  }
 });
 
-window.addEventListener("keyup", (event) => keys.delete(event.key));
+window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
+window.addEventListener("blur", resetInput);
+window.addEventListener("emeraldarcade:pause", resetInput);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) resetInput();
+});
 
 canvas.addEventListener("pointerdown", (event) => {
+  if (!state.running || event.isPrimary === false || event.button !== 0) return;
+  event.preventDefault();
+  keys.clear();
+  canvas.focus({ preventScroll: true });
   pointer.active = true;
+  pointer.id = event.pointerId;
   pointer.x = canvasX(event.clientX);
   canvas.setPointerCapture(event.pointerId);
 });
 
 canvas.addEventListener("pointermove", (event) => {
-  if (pointer.active) pointer.x = canvasX(event.clientX);
+  if (pointer.active && event.pointerId === pointer.id) pointer.x = canvasX(event.clientX);
 });
 
-canvas.addEventListener("pointerup", () => {
-  pointer.active = false;
-});
+for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
+  canvas.addEventListener(type, (event) => {
+    if (event.pointerId === pointer.id) releasePointer();
+  });
+}
 
 background.addEventListener("load", draw);
 sprites.addEventListener("load", draw);

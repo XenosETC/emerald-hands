@@ -1,0 +1,24 @@
+{
+  "kind": "simulation/renderer fixture",
+  "seconds": 3.6,
+  "frames": 108,
+  "bytes": 4187767,
+  "receipt": [
+    {
+      "event": "guardBlock",
+      "at": 1.1166666666666676,
+      "cost": 20,
+      "hp": 190,
+      "sp": 80
+    },
+    {
+      "event": "counterAcceptedBeforeNextTick",
+      "at": 1.183333333333334,
+      "accepted": true
+    }
+  ],
+  "counter": true,
+  "playerHpBefore": 190,
+  "playerHpAfter": 190,
+  "enemyHp": 164
+}

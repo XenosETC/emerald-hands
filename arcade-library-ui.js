@@ -8,7 +8,9 @@
     const game = library.byPath(card.querySelector(".game-body > a").getAttribute("href"));
     return [game.id, card];
   }));
-  const descriptions = Object.fromEntries([...cards].map(([id, card]) => [id, card.querySelector(".game-body > p:not(.eyebrow)")?.textContent || ""]));
+  const descriptions = Object.fromEntries([...cards].map(([id, card]) => [id,
+    [...card.querySelectorAll(".game-body > p:not(.game-stat), .game-meta span")].map(node => node.textContent).join(" "),
+  ]));
   const search = document.querySelector("#gameSearch");
   const favorites = document.querySelector("#favoritesOnly");
   const touch = document.querySelector("#touchOnly");
@@ -103,18 +105,28 @@
     document.querySelector("#recentSection").hidden = !state.recent.length;
     const recent = state.recent[0];
     const old = window.EmeraldArcade?.load().lastPlayed;
-    const latest = recent && (!old?.at || recent.at >= old.at) ? library.byId(recent.id) : library.byPath(old?.path);
-    if (latest) {
-      const continueLink = document.querySelector("#continueGame");
-      continueLink.href = latest.path;
-      continueLink.textContent = `Return to ${latest.title}`;
-    }
+    const previous = Number.isSafeInteger(old?.at) && old.at > 0 ? library.byPath(old.path) : null;
+    const latest = recent && (!previous || recent.at >= old.at) ? library.byId(recent.id) : previous;
+    const continueLink = document.querySelector("#continueGame");
+    continueLink.href = latest?.path || library.byId("hands").path;
+    continueLink.textContent = latest ? `Return to ${latest.title}` : "Play Emerald Hands";
   }
 
   function change() { updateUrl(); render(); }
   search.addEventListener("input", change);
   for (const control of [favorites, touch, sort]) control.addEventListener("change", change);
   for (const button of genreButtons) button.addEventListener("click", () => { genre = button.dataset.filter; change(); });
+  for (const shortcut of document.querySelectorAll("[data-collection]")) shortcut.addEventListener("click", event => {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const collection = shortcut.dataset.collection;
+    if (!genreButtons.some(button => button.dataset.filter === collection)) return;
+    event.preventDefault();
+    genre = collection; search.value = ""; favorites.checked = false; touch.checked = false; sort.value = "featured";
+    change();
+    const collectionSection = document.querySelector("#games");
+    collectionSection.scrollIntoView({ block: "start" });
+    collectionSection.focus({ preventScroll: true });
+  });
   document.querySelector("#resetFilters").addEventListener("click", () => {
     genre = "all"; search.value = ""; favorites.checked = false; touch.checked = false; sort.value = "featured";
     change(); search.focus();

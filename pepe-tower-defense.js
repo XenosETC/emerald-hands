@@ -109,7 +109,7 @@
   }
 
   let raf = 0;
-  let last = performance.now();
+  let last = null;
   let selectedTower = "pepe";
   let soundOn = true;
   let screenShake = 0;
@@ -184,7 +184,7 @@
     statusLabel.textContent = "Place defenders on empty pads";
     statusMeta.textContent = "1/2/3 select towers - click a pad to build";
     updateHud();
-    last = performance.now();
+    last = null;
     raf = requestAnimationFrame(loop);
   }
 
@@ -1226,7 +1226,8 @@
   }
 
   function loop(now) {
-    const dt = Math.min(0.033, (now - last) / 1000 || 0);
+    // Use the pause-adjusted RAF clock for both the baseline and later frames.
+    const dt = last === null ? 0 : Math.max(0, Math.min(0.033, (now - last) / 1000));
     last = now;
     if (state.playing) update(dt);
     draw();
