@@ -6,14 +6,14 @@ const vm = require('node:vm');
 
 // Exercise the real game and its registered input handlers with a fixed clock
 // and RNG. No production-only test hooks or alternate scoring implementation.
-function game({ reducedMotion = false, mode = "classic", storageBlocked = false } = {}) {
+function game({ reducedMotion = false, mode = "classic", storageBlocked = false, savedData = [] } = {}) {
   const nodes = new Map();
   const rendered = [];
   const sessions = [];
   const rewards = [];
   let wallTime = 0;
   let today = '2026-10-07T12:00:00Z';
-  const saves = new Map([['pepe-soul-world-save-v2', 'keep-soul'], ['emerald-arcade-v3', 'keep-arcade']]);
+  const saves = new Map([['pepe-soul-world-save-v2', 'keep-soul'], ['emerald-arcade-v3', 'keep-arcade'], ...savedData]);
   function target() {
     const listeners = new Map();
     return {
@@ -71,6 +71,7 @@ function game({ reducedMotion = false, mode = "classic", storageBlocked = false 
   });
   const run = source => vm.runInContext(source, context);
   run(fs.readFileSync(path.join(__dirname, '..', 'shard-rush-challenges.js'), 'utf8'));
+  run(fs.readFileSync(path.join(__dirname, '..', 'shard-rush-ghost.js'), 'utf8'));
   run(fs.readFileSync(path.join(__dirname, '..', 'shard-rush.js'), 'utf8'));
   return { run, window, document, canvas, nodes, rendered, sessions, rewards, saves, setDate: value => { today = value; }, setWallTime: value => { wallTime = value; } };
 }
@@ -301,4 +302,150 @@ test('daily storage failure is visible and changing back to classic restores the
   g.run('startGame(); endGame()');
   assert.equal(g.sessions.length, 1);
   assert.equal(g.rewards.length, 1);
+});
+
+test('only a completed daily run creates a full ghost that survives reload and resets on retry', () => {
+  const g = game({mode: 'daily'});
+  g.run('startGame(); update(20); endGame()');
+  assert.equal(g.saves.has('shard-rush-ghost-v1'), false);
+  g.run('update(40)');
+  const replay = JSON.parse(g.saves.get('shard-rush-ghost-v1'));
+  assert.equal(replay.samples.length, 1201);
+  assert.equal(replay.score, g.run('state.score'));
+  assert.equal(replay.samples.at(-1)[1], replay.score);
+  const reloaded = game({mode: 'daily', savedData: [...g.saves]});
+  assert.match(reloaded.nodes.get('#ghostPace').textContent, /Best ghost ready/);
+  reloaded.run('startGame()');
+  assert.equal(reloaded.run('state.dailyTick'), 0);
+  assert.equal(reloaded.run('state.recording.length'), 1);
+  assert.equal(reloaded.run('ghosts.at(state.ghost, state.dailyTick).score'), 0);
+  reloaded.run('update(60)');
+  assert.equal(reloaded.saves.get('shard-rush-ghost-v1'), g.saves.get('shard-rush-ghost-v1'), 'a tied run preserves the first matching ghost');
+});
+
+test('weaker runs keep the best ghost and a new best replaces it', () => {
+  const g = game({mode: 'daily'});
+  // The route finishes dropping before the last second. Set final scores here
+  // to exercise replacement decisions independently of route balance.
+  const finish = score => g.run(`startGame(); update(59); state.score=${score}; update(1)`);
+  finish(9000);
+  const first = g.saves.get('shard-rush-ghost-v1');
+  finish(3000);
+  assert.equal(g.saves.get('shard-rush-ghost-v1'), first);
+  finish(12000);
+  assert.equal(JSON.parse(g.saves.get('shard-rush-ghost-v1')).score, 12000);
+  assert.match(g.nodes.get('#dailyResult').textContent, /New daily best/);
+});
+
+test('legacy records and a newer best from another tab never show an unrelated replay', () => {
+  const g = game({mode: 'daily'});
+  g.run('startGame(); update(60)');
+  const old = g.saves.get('shard-rush-ghost-v1');
+  const book = {version: 1, records: [{day: '2026-10-07', score: 18000, attempts: 2}]};
+  g.saves.set('shard-rush-daily-v1', JSON.stringify(book));
+  g.run('startGame()');
+  assert.equal(g.run('state.ghost'), null);
+  assert.match(g.nodes.get('#ghostPace').textContent, /Match or beat 18,000/);
+  g.run('update(59); state.score=18000; update(1)');
+  assert.notEqual(g.saves.get('shard-rush-ghost-v1'), old, 'matching an older best can fill in its missing replay');
+  g.run('startGame()');
+  assert.equal(g.run('state.ghost.score'), 18000);
+  book.records[0].score = 20000;
+  g.saves.set('shard-rush-daily-v1', JSON.stringify(book));
+  g.run('update(59); state.score=19000; update(1)');
+  assert.equal(JSON.parse(g.saves.get('shard-rush-ghost-v1')).score, 18000, 'a lower finish cannot overwrite the newer daily best');
+  assert.equal(g.run('state.ghost'), null);
+});
+
+test('ghost toggles and playback never alter collector movement, collisions, score, rewards or other saves', () => {
+  const seed = game({mode: 'daily'});
+  seed.run('startGame(); update(60)');
+  const results = [];
+  for (const hidden of [false, true]) {
+    const g = game({mode: 'daily', savedData: [...seed.saves]});
+    g.run('startGame()');
+    if (hidden) g.nodes.get('#ghostToggle').emit('click');
+    g.window.emit('keydown', {key: 'ArrowRight'});
+    g.run('update(0.5); draw()');
+    g.window.emit('keyup', {key: 'ArrowRight'});
+    g.run('update(20)');
+    results.push(g.run('JSON.stringify({x:state.collectorX,score:state.score,catches:state.cleanCatches,hits:state.hazardsHit,tick:state.dailyTick,drops})'));
+    assert.equal(g.rendered.some(call => call.method === 'fillText' && call.args[0] === 'BEST'), !hidden);
+    assert.equal(g.rewards.length, 0);
+    assert.equal(g.saves.get('pepe-soul-world-save-v2'), 'keep-soul');
+    assert.equal(g.saves.get('emerald-arcade-v3'), 'keep-arcade');
+  }
+  assert.equal(results[0], results[1]);
+});
+
+test('reduced motion defaults the optional ghost off and classic hides its controls', () => {
+  const seed = game({mode: 'daily'});
+  seed.run('startGame(); update(60)');
+  const g = game({mode: 'daily', reducedMotion: true, savedData: [...seed.saves]});
+  assert.equal(g.nodes.get('#ghostToggle').attributes['aria-pressed'], 'false');
+  assert.equal(g.nodes.get('#ghostToggle').textContent, 'Ghost off');
+  g.nodes.get('#ghostToggle').emit('click');
+  assert.equal(g.nodes.get('#ghostToggle').attributes['aria-pressed'], 'true');
+  g.run('selectMode("classic")');
+  assert.equal(g.nodes.get('#ghostToggle').hidden, true);
+  assert.equal(g.nodes.get('#ghostPace').hidden, true);
+  assert.equal(g.run('state.ghost'), null);
+});
+
+test('ghost uses the paused simulation clock, remains pinned during the run, and expires on the next UTC date', () => {
+  const g = game({mode: 'daily'});
+  g.run('startGame(); update(60); startGame(); loop(0); loop(100)');
+  const tick = g.run('state.dailyTick');
+  const sample = g.run('JSON.stringify(ghosts.at(state.ghost,state.dailyTick))');
+  g.window.emit('emeraldarcade:pause', {detail: {paused: true}});
+  g.setWallTime(10000);
+  g.window.emit('emeraldarcade:pause', {detail: {paused: false}});
+  // The shared runtime supplies an unchanged RAF clock across the pause.
+  g.run('loop(100)');
+  assert.equal(g.run('state.dailyTick'), tick);
+  assert.equal(g.run('JSON.stringify(ghosts.at(state.ghost,state.dailyTick))'), sample);
+  g.saves.delete('shard-rush-ghost-v1');
+  g.setDate('2026-10-08T00:01:00Z');
+  g.run('update(1)');
+  assert.equal(g.run('state.ghost.day'), '2026-10-07');
+  g.run('update(60); startGame()');
+  assert.equal(g.run('state.ghost'), null);
+  assert.equal(g.run('state.recording.length'), 1);
+});
+
+test('blocked storage retains a playable ghost in this tab and reports its unsaved status', () => {
+  const g = game({mode: 'daily', storageBlocked: true});
+  g.run('startGame(); update(60)');
+  assert.match(g.nodes.get('#dailyResult').textContent, /ghost kept in this tab only/);
+  assert.equal(g.saves.has('shard-rush-ghost-v1'), false);
+  g.run('startGame()');
+  assert.ok(g.run('state.ghost'));
+  assert.equal(g.nodes.get('#ghostToggle').disabled, false);
+});
+
+test('live pace shows ahead, behind and level at the current ghost tick', () => {
+  const g = game({mode: 'daily'});
+  g.run('startGame(); update(59); state.score=9000; update(1); startGame(); update(59.5); state.score=10000; updateHud()');
+  assert.equal(g.nodes.get('#ghostPace').textContent, '1,000 ahead of best ghost');
+  g.run('state.score=8000; updateHud()');
+  assert.equal(g.nodes.get('#ghostPace').textContent, '1,000 behind best ghost');
+  g.run('state.score=9000; updateHud()');
+  assert.equal(g.nodes.get('#ghostPace').textContent, 'Level with best ghost');
+});
+
+test('replay-only storage failure keeps the score saved and retries persistence on a tied finish', () => {
+  const g = game({mode: 'daily'});
+  const setItem = g.window.localStorage.setItem;
+  g.window.localStorage.setItem = (key, value) => {
+    if (key === 'shard-rush-ghost-v1') throw Error('replay quota');
+    setItem(key, value);
+  };
+  g.run('startGame(); update(60)');
+  assert.ok(g.saves.has('shard-rush-daily-v1'));
+  assert.match(g.nodes.get('#dailyResult').textContent, /Saved on this device.*ghost kept in this tab only/);
+  const original = g.run('JSON.stringify(memoryGhost)');
+  g.window.localStorage.setItem = setItem;
+  g.run('startGame(); update(60)');
+  assert.equal(g.saves.get('shard-rush-ghost-v1'), original);
+  assert.match(g.nodes.get('#dailyResult').textContent, /ghost is ready/);
 });

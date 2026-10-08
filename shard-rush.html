@@ -7,7 +7,7 @@
     <title>Shard Rush</title>
     <link rel="preload" href="assets/shard-rush/arena-background.png" as="image">
     <link rel="preload" href="assets/shard-rush/sprite-sheet.png" as="image">
-    <link rel="stylesheet" href="shard-rush.css?v=5">
+    <link rel="stylesheet" href="shard-rush.css?v=6">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="rush">
@@ -29,6 +29,8 @@
         <div class="rush-mode-bar">
           <div class="rush-modes" role="group" aria-label="Sprint mode"><button id="classicMode" type="button" aria-pressed="true">Classic sprint</button><button id="dailyMode" type="button" aria-pressed="false">Daily vault</button></div>
           <p id="dailyRecord" hidden></p>
+          <button id="ghostToggle" type="button" aria-pressed="false" hidden>Best ghost</button>
+          <p id="ghostPace" hidden></p>
         </div>
         <div class="rush-target"><span id="rankTarget">3,000 to Retail Sprinter</span><progress id="rankProgress" value="0" max="3000" aria-label="Score toward Retail Sprinter"></progress></div>
         <div class="rush-stage">
@@ -67,13 +69,14 @@
     <footer class="game-guide" aria-label="How to play">
       <div><span class="game-guide__label">60-second sprint</span><p><strong>Catch green. Avoid red.</strong> Chain clean catches to raise your multiplier.</p></div>
       <div id="game-controls"><span class="game-guide__label">Controls</span><p>Drag the vault, or use <kbd>Left</kbd> <kbd>Right</kbd> / <kbd>A</kbd> <kbd>D</kbd>. Press <kbd>Space</kbd> to start a new sprint.</p></div>
-      <div><span class="game-guide__label">Daily vault</span><p>A new fixed course at 00:00 UTC. Retry for Bronze 3,000 / Silver 9,000 / Gold 18,000. Standard collector, no pet bonus. Daily records stay on this device and award no arcade currency or XP.</p></div>
+      <div><span class="game-guide__label">Daily vault</span><p>A new fixed course at 00:00 UTC. Retry for Bronze 3,000 / Silver 9,000 / Gold 18,000. Finish a best run to race its gold ghost; Ghost on/off controls its visibility. Standard collector, no pet bonus. Local records award no arcade currency or XP.</p></div>
     </footer>
 
     <script src="arcade.js?v=7"></script>
     <script src="arcade-pet.js?v=4"></script>
     <script src="shard-rush-challenges.js?v=1"></script>
-    <script src="shard-rush.js?v=5"></script>
+    <script src="shard-rush-ghost.js?v=1"></script>
+    <script src="shard-rush.js?v=6"></script>
   <script src="arcade-library.js?v=library-1"></script><script src="arcade-visit.js?v=library-1"></script>
 </body>
 </html>

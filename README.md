@@ -16,13 +16,15 @@ Temple Run ships its Crown runner model, environment assets, and local Three.js 
 
 **Daily Vault:** Shard Rush now offers a fixed daily course with three escalating waves, Bronze/Silver/Gold targets, retry comparisons, and a local daily best shown on the hub. Select Daily Vault or open `shard-rush.html?mode=daily`. See [DAILY_VAULT.md](DAILY_VAULT.md) for rules, save boundaries and testing.
 
+**Best-run ghost — October 8:** Completed daily bests now save an optional ghost collector and score pace for the next attempt. Race your own route, toggle its visibility, and track whether you are ahead or behind. Existing records need a matching or better completed run to create a replay. Reduced motion defaults it off.
+
 The hub now features Temple Run, distinct covers for the three independent Pepe games, and quick routes into arcade, adventure, and idle collections. Visible game tags are searchable, and the return link follows actual play history. Phone layouts bring the collection closer to the top; local arcade records sit together below the games.
 
 Shard Rush has catch/combo/hazard feedback, a next-rank score meter, direct Start/Play again controls, reliable keyboard/drag handoff, and a laptop-sized playfield. Its existing scores, rewards, rank thresholds, and 60-second simulation remain unchanged. Shared controls release held input on pause, provide a visible Resume button, return keyboard focus to canvas games, and support keyboard navigation inside Controls. Replay clocks were repaired in Shard Rush, Galactic Heroes, PepeCoin Run, Space Unchained, Wars, and Tower Defense; canceled animation requests stay canceled after pausing.
 
 The “What’s new” section links directly to the refreshed games. Soul World now includes sword guard poses, Spirit-based frontal blocking, and immediate guard-to-counter input. Its game and save remain independent of shared arcade rewards.
 
-Run `npm test` for the sixteen-page smoke check and 47 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope and [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge. Hosted deployment has not been verified.
+Run `npm test` for the sixteen-page smoke check and 62 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope and [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge. Hosted deployment has not been verified.
 
 ### Browsing your collection
 

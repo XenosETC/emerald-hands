@@ -220,6 +220,13 @@ canvas {
 .rush-mode-bar p { flex: 1; margin: 0; color: #bdd5c9; font-size: .7rem; line-height: 1.5; }
 .rush-overlay #dailyResult { color: #dbedaf; font-size: .8rem; }
 [data-rush-mode="daily"] .arcade-pet-assist { display: none; }
+#ghostToggle { min-height: 40px; padding: 8px 12px; border: 1px solid #d9bb864d; border-radius: 7px; color: #ffe4ad; background: #30291b; cursor: pointer; }
+#ghostToggle[aria-pressed="true"] { border-color: #e9ce93; }
+#ghostToggle:disabled { opacity: .65; cursor: default; }
+#ghostPace { color: #d4ddc5; font-variant-numeric: tabular-nums; }
+#ghostPace[data-pace="ahead"] { color: #b9f0c7; }
+#ghostPace[data-pace="behind"] { color: #ffcf9b; }
+@media (max-width: 540px) { .rush-mode-bar #ghostPace { flex: 1; } }
 
 .rush-target { display: flex; align-items: center; gap: 20px; padding: 10px 20px 15px; }
 .rush-target span { flex: 1; color: #c8dfb7; font-size: .76rem; font-variant-numeric: tabular-nums; }

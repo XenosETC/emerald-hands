@@ -21,13 +21,17 @@ const els = {
   rankKind: document.querySelector("#rankKind"),
   dailyRecord: document.querySelector("#dailyRecord"),
   dailyResult: document.querySelector("#dailyResult"),
+  ghostToggle: document.querySelector("#ghostToggle"),
+  ghostPace: document.querySelector("#ghostPace"),
 };
 
 const challenges = window.ShardRushChallenges;
+const ghosts = window.ShardRushGhost;
 let challengeStorage;
 try { challengeStorage = window.localStorage; } catch { /* Daily runs work without saving. */ }
 let dailyBook = challenges.read(challengeStorage);
 let dailyUnsaved = false;
+let memoryGhost = null;
 
 const background = new Image();
 background.src = "assets/shard-rush/arena-background.png";
@@ -51,6 +55,7 @@ const feedback = [];
 const keys = new Set();
 const pointer = { active: false, id: null, x: canvas.width / 2 };
 const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+let ghostEnabled = !motionPreference.matches;
 const scoreRanks = [
   { at: 0, label: "Unranked" },
   { at: 3000, label: "Retail Sprinter" },
@@ -66,6 +71,9 @@ const state = {
   dailyTick: 0,
   dailyAccumulator: 0,
   nextDrop: 0,
+  ghost: null,
+  ghostTargetScore: null,
+  recording: [],
   running: false,
   score: 0,
   combo: 1,
@@ -107,7 +115,13 @@ function startGame() {
     dailyTick: 0,
     dailyAccumulator: 0,
     nextDrop: 0,
+    ghost: null,
+    recording: [],
   });
+  if (daily) {
+    loadBestGhost();
+    ghosts.capture(state.recording, 0, state.collectorX, state.score);
+  }
   els.classicMode.disabled = true;
   els.dailyMode.disabled = true;
   els.dailyResult.hidden = true;
@@ -150,13 +164,26 @@ function endGame() {
     const result = challenges.complete(challengeStorage, dailyBook, state.course.day, state.score);
     dailyBook = result.data;
     dailyUnsaved = !result.saved;
+    let ghostNotice = "";
+    if (state.score === result.result.score) {
+      const oldGhost = ghosts.read(challengeStorage, state.course.day, state.score, state.course.version);
+      if (!oldGhost) {
+        if (!ghosts.matches(memoryGhost, state.course.day, state.score, state.course.version)) {
+          memoryGhost = ghosts.sanitize({ version: 1, courseVersion: state.course.version, day: state.course.day, score: state.score, samples: state.recording });
+        }
+        if (memoryGhost) ghostNotice = ghosts.write(challengeStorage, memoryGhost)
+          ? " Your best-run ghost is ready for the next attempt."
+          : " Best-run ghost kept in this tab only; replay could not be saved.";
+      }
+    }
     const difference = result.previous ? state.score - result.previous.score : null;
     const comparison = difference === null ? "Your first completed run today."
       : difference > 0 ? `New daily best! +${difference.toLocaleString()} over your previous best.`
       : difference === 0 ? "You matched your daily best."
       : `${Math.abs(difference).toLocaleString()} below your daily best. Learn the route and try again.`;
-    els.dailyResult.textContent = `${state.course.day} · ${comparison} ${result.saved ? "Saved on this device." : "Not saved: browser storage unavailable. Kept in this tab only."}`;
+    els.dailyResult.textContent = `${state.course.day} · ${comparison} ${result.saved ? "Saved on this device." : "Not saved: browser storage unavailable. Kept in this tab only."}${ghostNotice}`;
     els.dailyResult.hidden = false;
+    loadBestGhost();
     showDailyRecord();
   } else {
     window.EmeraldArcade?.recordAndNotify("rush", { score: state.score, rank, combo: state.maxCombo, played: true });
@@ -263,6 +290,7 @@ function updateRun(delta) {
     }
   }
 
+  if (state.mode === "daily") ghosts.capture(state.recording, state.dailyTick, state.collectorX, state.score);
   if (state.timeLeft <= 0) endGame();
   if (state.mode !== "daily") updateHud();
 }
@@ -321,6 +349,7 @@ function draw() {
     drawSprite(drop.type, drop.x, drop.y, drop.size, drop.spin);
   }
 
+  drawGhost();
   drawSprite("collector", state.collectorX, canvas.height - 80, 126, 0);
   drawFeedback();
 }
@@ -354,6 +383,29 @@ function drawFeedback() {
       ctx.stroke();
     }
   }
+  ctx.restore();
+}
+
+function drawGhost() {
+  if (state.mode !== "daily" || !state.running || !ghostEnabled || !state.ghost) return;
+  const point = ghosts.at(state.ghost, state.dailyTick);
+  const y = canvas.height - 80;
+  ctx.save();
+  ctx.globalAlpha = 0.32;
+  drawSprite("collector", point.x, y, 126, 0);
+  ctx.globalAlpha = 0.9;
+  ctx.strokeStyle = "#f1d59d";
+  ctx.lineWidth = 3;
+  ctx.setLineDash([8, 6]);
+  ctx.strokeRect(point.x - 60, y - 51, 120, 102);
+  ctx.setLineDash([]);
+  ctx.textAlign = "center";
+  ctx.font = "800 18px system-ui, sans-serif";
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "#07170e";
+  ctx.fillStyle = "#ffe6b5";
+  ctx.strokeText("BEST", point.x, y - 62);
+  ctx.fillText("BEST", point.x, y - 62);
   ctx.restore();
 }
 
@@ -411,6 +463,7 @@ function updateHud() {
   els.rankProgress.max = target.at;
   els.rankProgress.value = Math.min(state.score, target.at);
   els.rankProgress.setAttribute("aria-label", `Score toward ${target.label}`);
+  updateGhostHud();
 }
 
 function loop(now) {
@@ -443,6 +496,55 @@ function format(value) {
 els.startButton.addEventListener("click", startGame);
 els.overlayStartButton.addEventListener("click", startGame);
 
+function loadBestGhost() {
+  const day = state.course?.day || challenges.dayKey();
+  const version = state.course?.version || 1;
+  const freshBook = challenges.read(challengeStorage);
+  const saved = challenges.best(freshBook, day);
+  const local = challenges.best(dailyBook, day);
+  const best = saved && (!local || saved.score >= local.score) ? saved : local;
+  // Read fresh records at a run boundary, never swap an opponent mid-run.
+  if (best === saved && saved) dailyBook = freshBook;
+  state.ghostTargetScore = best?.score ?? null;
+  state.ghost = best ? ghosts.read(challengeStorage, day, best.score, version) : null;
+  if (!state.ghost && best && ghosts.matches(memoryGhost, day, best.score, version)) state.ghost = memoryGhost;
+}
+
+function updateGhostHud() {
+  const daily = state.mode === "daily";
+  els.ghostToggle.hidden = !daily;
+  els.ghostPace.hidden = !daily;
+  if (!daily) return;
+  els.ghostToggle.disabled = !state.ghost;
+  els.ghostToggle.textContent = state.ghost ? `Ghost ${ghostEnabled ? "on" : "off"}` : "Best ghost";
+  els.ghostToggle.setAttribute("aria-pressed", String(!!state.ghost && ghostEnabled));
+  let pace = "level";
+  let text;
+  if (!state.ghost) {
+    text = state.ghostTargetScore === null
+      ? "Finish a run to create your best ghost."
+      : `Match or beat ${state.ghostTargetScore.toLocaleString()} to create a ghost.`;
+  } else if (!ghostEnabled) {
+    text = `Best ghost ready · ${state.ghost.score.toLocaleString()} · Hidden`;
+  } else if (!state.running) {
+    text = `Best ghost ready · ${state.ghost.score.toLocaleString()} · Race it on your next run`;
+  } else {
+    const difference = state.score - ghosts.at(state.ghost, state.dailyTick).score;
+    pace = difference > 0 ? "ahead" : difference < 0 ? "behind" : "level";
+    text = difference ? `${Math.abs(difference).toLocaleString()} ${difference > 0 ? "ahead of" : "behind"} best ghost` : "Level with best ghost";
+  }
+  if (els.ghostPace.textContent !== text) els.ghostPace.textContent = text;
+  els.ghostPace.setAttribute("data-pace", pace);
+}
+
+els.ghostToggle.addEventListener("click", () => {
+  if (state.mode !== "daily" || !state.ghost) return;
+  ghostEnabled = !ghostEnabled;
+  updateGhostHud();
+  draw();
+  if (state.running) canvas.focus({ preventScroll: true });
+});
+
 function showDailyRecord() {
   els.dailyRecord.hidden = state.mode !== "daily";
   if (state.mode !== "daily") return;
@@ -463,6 +565,8 @@ function selectMode(mode) {
     window.history.replaceState(null, "", url);
   } catch { /* A file preview can still select its mode. */ }
   state.course = null;
+  state.ghost = null; state.recording = []; state.dailyTick = 0;
+  if (mode === "daily") loadBestGhost();
   state.score = 0; state.combo = 1; state.maxCombo = 1; state.timeLeft = 60; state.elapsed = 0;
   drops.length = 0; feedback.length = 0;
   els.classicMode.setAttribute("aria-pressed", String(mode === "classic"));
