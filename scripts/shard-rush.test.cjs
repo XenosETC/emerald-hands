@@ -6,12 +6,14 @@ const vm = require('node:vm');
 
 // Exercise the real game and its registered input handlers with a fixed clock
 // and RNG. No production-only test hooks or alternate scoring implementation.
-function game({ reducedMotion = false } = {}) {
+function game({ reducedMotion = false, mode = "classic", storageBlocked = false } = {}) {
   const nodes = new Map();
   const rendered = [];
   const sessions = [];
   const rewards = [];
   let wallTime = 0;
+  let today = '2026-10-07T12:00:00Z';
+  const saves = new Map([['pepe-soul-world-save-v2', 'keep-soul'], ['emerald-arcade-v3', 'keep-arcade']]);
   function target() {
     const listeners = new Map();
     return {
@@ -55,17 +57,22 @@ function game({ reducedMotion = false } = {}) {
     },
   });
   const window = Object.assign(target(), {
+    location: { search: mode === 'daily' ? '?mode=daily' : '' },
+    localStorage: { getItem: key => saves.get(key) ?? null, setItem(key, value) { if (storageBlocked) throw Error('storage blocked'); saves.set(key, String(value)); } },
     matchMedia: () => ({ matches: reducedMotion }),
     EmeraldArcade: { beginSession: (...args) => sessions.push(args), recordAndNotify: (...args) => rewards.push(args) },
   });
   const context = vm.createContext({
     window, document, performance: { now: () => wallTime }, requestAnimationFrame() {},
     Math: Object.assign(Object.create(Math), { random: () => 0.5 }),
+    URLSearchParams,
+    Date: class extends Date { constructor(...args) { super(...(args.length ? args : [today])); } },
     Image: class { complete = false; naturalWidth = 0; addEventListener() {} },
   });
   const run = source => vm.runInContext(source, context);
+  run(fs.readFileSync(path.join(__dirname, '..', 'shard-rush-challenges.js'), 'utf8'));
   run(fs.readFileSync(path.join(__dirname, '..', 'shard-rush.js'), 'utf8'));
-  return { run, window, document, canvas, nodes, rendered, sessions, rewards, setWallTime: value => { wallTime = value; } };
+  return { run, window, document, canvas, nodes, rendered, sessions, rewards, saves, setDate: value => { today = value; }, setWallTime: value => { wallTime = value; } };
 }
 
 test('replaying after a pause starts a full sprint on the shared animation clock', () => {
@@ -227,4 +234,71 @@ test('rank target follows catches, hazards and top-rank thresholds without chang
   g.run('endGame(); startGame()');
   assert.equal(g.nodes.get('#rankProgress').value, 0);
   assert.equal(g.nodes.get('#rankProgress').max, 3000);
+});
+
+test('daily run uses fixed course and collector without touching classic sessions or rewards', () => {
+  const g = game({ mode: 'daily' });
+  let petCalls = 0;
+  g.window.ArcadePet = { activeBonus() { petCalls++; return {magnetRadius: 200}; }, showAssist() { petCalls++; } };
+  assert.equal(g.nodes.get('#dailyMode').attributes['aria-pressed'], 'true');
+  g.nodes.get('#overlayStartButton').emit('click');
+  assert.equal(g.run('state.petMagnet'), 0);
+  assert.equal(petCalls, 0);
+  assert.equal(g.run('drops[0].tick'), 0);
+  g.run('selectMode("classic"); endGame()');
+  assert.equal(g.run('state.mode'), 'daily');
+  assert.equal(g.run('state.running'), true, 'an early end cannot submit a daily result');
+  assert.equal(g.saves.has('shard-rush-daily-v1'), false);
+  g.run('update(60); endGame()');
+  assert.equal(g.run('state.running'), false);
+  assert.equal(g.run('state.dailyTick'), 7200);
+  assert.equal(g.sessions.length, 0);
+  assert.equal(g.rewards.length, 0);
+  assert.equal(JSON.parse(g.saves.get('shard-rush-daily-v1')).records[0].attempts, 1);
+  assert.equal(g.saves.get('pepe-soul-world-save-v2'), 'keep-soul');
+  assert.equal(g.saves.get('emerald-arcade-v3'), 'keep-arcade');
+  assert.match(g.nodes.get('#dailyResult').textContent, /Saved on this device/);
+});
+
+test('daily simulation is identical at 30, 60 and 144 FPS and same-day retries reset the route', () => {
+  const results = [];
+  for (const fps of [30, 60, 144]) {
+    const g = game({mode: 'daily'});
+    g.run(`startGame(); loop(0); for(let i=1;i<=${fps * 12};i++) loop(i*1000/${fps})`);
+    results.push(g.run('JSON.stringify({score:state.score,combo:state.combo,catches:state.cleanCatches,hazards:state.hazardsHit,tick:state.dailyTick,drops})'));
+    g.run('update(48); startGame()');
+    assert.equal(g.run('state.timeLeft'), 60);
+    assert.equal(g.run('state.score'), 0);
+    assert.equal(g.run('state.dailyTick'), 0);
+    assert.equal(g.run('state.nextDrop'), 1);
+  }
+  assert.equal(results[0], results[1]);
+  assert.equal(results[1], results[2]);
+});
+
+test('midnight preserves an in-progress course date and starts the next course on retry', () => {
+  const g = game({mode: 'daily'});
+  g.run('startGame(); update(30)');
+  const course = g.run('JSON.stringify(state.course)');
+  g.setDate('2026-10-08T00:01:00Z');
+  g.run('update(30)');
+  assert.equal(JSON.parse(g.saves.get('shard-rush-daily-v1')).records[0].day, '2026-10-07');
+  assert.match(g.nodes.get('#dailyResult').textContent, /2026-10-07/);
+  g.run('startGame()');
+  assert.equal(g.run('state.course.day'), '2026-10-08');
+  assert.notEqual(g.run('JSON.stringify(state.course)'), course);
+  assert.match(g.nodes.get('#dailyRecord').textContent, /No completed runs/);
+});
+
+test('daily storage failure is visible and changing back to classic restores the usual rewards', () => {
+  const g = game({mode: 'daily', storageBlocked: true});
+  g.run('startGame(); update(60)');
+  assert.match(g.nodes.get('#dailyResult').textContent, /Not saved/);
+  g.nodes.get('#classicMode').emit('click');
+  assert.equal(g.nodes.get('#dailyRecord').hidden, true);
+  assert.equal(g.nodes.get('#dailyResult').hidden, true);
+  assert.equal(g.nodes.get('#rankKind').textContent, 'rank');
+  g.run('startGame(); endGame()');
+  assert.equal(g.sessions.length, 1);
+  assert.equal(g.rewards.length, 1);
 });

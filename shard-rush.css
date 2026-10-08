@@ -211,6 +211,15 @@ canvas {
 .rush-overlay .rush-start-hint { color: #a9c3b5; font-size: .74rem; text-align: center; }
 .rush-nav button:disabled { opacity: .65; }
 .run-stats[hidden] { display: none; }
+[hidden] { display: none !important; }
+.rush-mode-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 0 20px; }
+.rush-modes { display: flex; gap: 6px; }
+.rush-modes button { min-height: 40px; padding: 8px 13px; color: #d6f4e7; border: 1px solid #7affbf40; border-radius: 7px; background: #0a2319; cursor: pointer; }
+.rush-modes button[aria-pressed="true"] { color: #0a2115; background: #b5e8b5; font-weight: 750; }
+.rush-modes button:disabled { cursor: default; opacity: .65; }
+.rush-mode-bar p { flex: 1; margin: 0; color: #bdd5c9; font-size: .7rem; line-height: 1.5; }
+.rush-overlay #dailyResult { color: #dbedaf; font-size: .8rem; }
+[data-rush-mode="daily"] .arcade-pet-assist { display: none; }
 
 .rush-target { display: flex; align-items: center; gap: 20px; padding: 10px 20px 15px; }
 .rush-target span { flex: 1; color: #c8dfb7; font-size: .76rem; font-variant-numeric: tabular-nums; }
@@ -221,13 +230,15 @@ canvas {
 
 /* Keep the HUD and collector visible together on laptop screens. */
 @media (min-width: 821px) and (min-height: 540px) {
-  .arcade-game .rush-stage { width: min(calc(100% - 36px), calc((100svh - 230px) * 16 / 9)); margin-inline: auto; }
+  .arcade-game .rush-stage { width: min(calc(100% - 36px), calc((100svh - 275px) * 16 / 9)); margin-inline: auto; }
 }
 
 @media (max-width: 540px) {
   .arcade-game .rush-hud #rankLabel { font-size: .72rem; overflow-wrap: normal; }
   .rush-target { gap: 12px; padding: 8px 16px 12px; }
   .rush-target span { font-size: .68rem; }
+  .rush-mode-bar { gap: 8px; padding: 0 16px; }
+  .rush-mode-bar p { flex-basis: 100%; }
 }
 
 @media (max-width: 760px) {

@@ -514,6 +514,17 @@ h1 em { font-weight: 600; color: #d2efa7; font-style: normal; }
 }
 
 /* October arcade refresh: a featured world, distinct covers and shorter routes to play. */
+.daily-vault { display: flex; align-items: center; gap: 24px; margin-top: 18px; padding: 24px; border: 1px solid #d7db9750; border-radius: 12px; background: linear-gradient(110deg, #263726, #192a23); }
+.daily-vault-mark { color: #dfebb5; font-size: 3rem; }
+.daily-vault h2 { margin: 6px 0 8px; font-size: 1.55rem; }
+.daily-vault p { margin: 0; color: #c5d5bd; font-size: .76rem; line-height: 1.6; }
+.daily-vault .eyebrow { color: #dcebb0; font-size: .59rem; }
+.daily-vault .daily-vault-note { margin-top: 7px; color: #a9bca5; font-size: .65rem; }
+.daily-vault-action { margin-left: auto; text-align: right; }
+.daily-vault-action a { display: flex; align-items: center; justify-content: space-between; gap: 40px; min-height: 44px; margin-top: 10px; padding: 11px 18px; border-radius: 6px; background: #dcebb0; color: #182517; font-size: .8rem; font-weight: 750; text-decoration: none; }
+.daily-vault-action a:hover { background: #eef6d4; }
+.daily-vault-action small { display: block; margin-top: 8px; font-size: .64rem; color: #a9bca5; }
+@media (max-width: 720px) { .daily-vault { align-items: stretch; flex-direction: column; gap: 15px; padding: 20px; } .daily-vault-mark { display: none; } .daily-vault-action { margin: 0; text-align: left; } }
 .updates-section { padding-top: 38px; }
 .update-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 .update-card { display: flex; flex-direction: column; padding: 25px; border: 1px solid var(--line); border-radius: 12px; background: #16221b; }
