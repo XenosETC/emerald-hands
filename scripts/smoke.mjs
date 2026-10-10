@@ -67,7 +67,7 @@ for (const file of readdirSync(root).filter((name) => [".html", ".js", ".css"].i
   check(!/[ÂÃ]|â€/.test(source), `${file} contains a visible text encoding artifact`);
 }
 
-for (const file of readdirSync(root).filter((name) => extname(name) === ".js")) {
+for (const file of readdirSync(root).filter((name) => [".js", ".mjs"].includes(extname(name)))) {
   const result = spawnSync(process.execPath, ["--check", resolve(root, file)], { encoding: "utf8" });
   check(result.status === 0, `${file} has invalid JavaScript: ${result.stderr.trim()}`);
 }

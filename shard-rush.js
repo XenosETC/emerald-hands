@@ -564,6 +564,7 @@ function selectMode(mode) {
     if (mode === "daily") url.searchParams.set("mode", "daily"); else url.searchParams.delete("mode");
     window.history.replaceState(null, "", url);
   } catch { /* A file preview can still select its mode. */ }
+  window.dispatchEvent?.(new Event("arcade:modechange"));
   state.course = null;
   state.ghost = null; state.recording = []; state.dailyTick = 0;
   if (mode === "daily") loadBestGhost();

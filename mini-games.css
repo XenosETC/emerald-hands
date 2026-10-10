@@ -590,6 +590,24 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
 .game-card a { min-height: 44px; font-size: .77rem; border-radius: 6px; }
 .game-body > .control-label { font-size: .7rem; color: #bdd39f; }
 .arcade-status { margin-bottom: 10px; padding-top: 9px; }
+.recent-games { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(245px, 1fr); overflow-x: auto; padding: 4px 3px 14px; scroll-snap-type: x proximity; scrollbar-color: #91aa72 #16251c; }
+.recent-games a { position: relative; gap: 8px; min-height: 265px; padding: 20px; overflow: hidden; scroll-snap-align: start; justify-content: flex-start; }
+.recent-games .continue-art { display: block; height: 50px; margin: -20px -20px 7px; background: linear-gradient(110deg, #354c33, #142217); opacity: .8; }
+.recent-games [data-continue-id="soulWorld"] .continue-art { background: linear-gradient(90deg, #10241a33, #10241a99), url("pepe-soul-world/assets/academy.webp") center 38% / cover; }
+.recent-games [data-continue-id="feudalism"] .continue-art { background: linear-gradient(90deg, #10241a22, #10241a99), url("pepe-feudalism/assets/crownhaven-v2.png") center 42% / cover; }
+.recent-games [data-continue-id="templeRun"] .continue-art { background: url("pepe-temple-run/assets/emerald-frog-temple-v1.png") center 38% / cover; }
+.recent-games [data-continue-id="rush"] .continue-art { background: url("assets/shard-rush/arena-background.png") center 55% / cover; }
+.recent-games .continue-kind { color: #d8c98e; font-size: .62rem; letter-spacing: .05em; text-transform: uppercase; }
+.recent-games .continue-summary { margin: 0; color: #d9e8ca; font-size: .76rem; line-height: 1.6; }
+.recent-games .continue-goal { margin: 0 0 12px; color: #adbdaf; font-size: .72rem; line-height: 1.65; }
+.recent-games .continue-action { margin-top: auto; padding-top: 10px; border-top: 1px solid #c9f59625; }
+.recent-games:focus-visible { outline: 2px solid #d8c98e; outline-offset: 3px; }
+@media (max-width: 540px) {
+  .recent-games { grid-template-columns: none; grid-auto-columns: 88%; }
+  .recent-games a { padding: 20px; }
+  .recent-section .library-heading { align-items: flex-start; }
+  .recent-section .library-heading > p { max-width: 140px; line-height: 1.5; }
+}
 @media (max-width: 1050px) {
   .hub-copy { padding: 35px 26px; }
   .hero-note { flex-wrap: wrap; line-height: 1.6; }

@@ -12,6 +12,10 @@ Temple Run ships its Crown runner model, environment assets, and local Three.js 
 
 ## Personal arcade library
 
+### Continue playing — October 10, 2026
+
+The hub now shows saved Soul World checkpoints and objectives, Feudalism warbands and contracts, and Temple Run distance records. Its Continue playing shelf combines recent openings with existing saved journeys, while Daily Vault return links remember the selected mode. These summaries only read each game's own save. See [CONTINUE_PLAYING.md](CONTINUE_PLAYING.md) for behavior, save boundaries and verification.
+
 ### Arcade refresh — October 7, 2026
 
 **Daily Vault:** Shard Rush now offers a fixed daily course with three escalating waves, Bronze/Silver/Gold targets, retry comparisons, and a local daily best shown on the hub. Select Daily Vault or open `shard-rush.html?mode=daily`. See [DAILY_VAULT.md](DAILY_VAULT.md) for rules, save boundaries and testing.
@@ -24,11 +28,11 @@ Shard Rush has catch/combo/hazard feedback, a next-rank score meter, direct Star
 
 The “What’s new” section links directly to the refreshed games. Soul World now includes sword guard poses, Spirit-based frontal blocking, and immediate guard-to-counter input. Its game and save remain independent of shared arcade rewards.
 
-Run `npm test` for the sixteen-page smoke check and 62 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope and [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge. Hosted deployment has not been verified.
+Run `npm test` for the sixteen-page smoke check and 72 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope and [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge. Hosted deployment has not been verified.
 
 ### Browsing your collection
 
-Save any game with its star button, then use Favorites to see your collection. Recently opened lists the last four games you visited, including the independent Pepe games, and the hero's Return link follows your latest game. Openings are navigation history; they do not claim completed runs or change game rewards.
+Save any game with its star button, then use Favorites to see your collection. Continue playing lists up to four recent games and fills unused slots with supported saved journeys. The hero's Return link follows your latest game. Openings are navigation history; they do not claim completed runs or change game rewards.
 
 All sixteen games share one navigation catalog with genre and control metadata. Search supports titles, descriptions and controls; genre, favorites and touch filters combine. Sort by featured order, title or recently opened. Pick a game chooses only from the visible results. Filters are preserved in the page URL for reload and browser Back.
 

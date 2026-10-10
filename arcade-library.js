@@ -31,7 +31,7 @@
       .filter(item => byId(item?.id) && Number.isSafeInteger(item.at) && item.at > 0)
       .sort((a, b) => b.at - a.at)
       .filter(item => !seen.has(item.id) && seen.add(item.id))
-      .slice(0, games.length).map(({ id, at }) => ({ id, at }));
+      .slice(0, games.length).map(({ id, at, mode }) => ({ id, at, ...(id === "rush" && mode === "daily" ? { mode } : {}) }));
     return { version: 1, favorites, recent };
   }
 
@@ -45,10 +45,10 @@
     catch { return false; }
   }
 
-  function visit(value, id, at = Date.now()) {
+  function visit(value, id, at = Date.now(), mode) {
     const state = sanitize(value);
     if (!byId(id) || !Number.isSafeInteger(at) || at <= 0) return state;
-    state.recent = [{ id, at }, ...state.recent.filter(item => item.id !== id)];
+    state.recent = [{ id, at, mode }, ...state.recent.filter(item => item.id !== id)];
     return sanitize(state);
   }
 
@@ -57,6 +57,18 @@
     if (!byId(id)) return state;
     state.favorites = state.favorites.includes(id) ? state.favorites.filter(item => item !== id) : [...state.favorites, id];
     return state;
+  }
+
+  // Destinations are built from catalog IDs, never stored URLs or arbitrary queries.
+  function destination(item) {
+    const game = byId(item?.id);
+    return game ? game.path + (game.id === "rush" && item.mode === "daily" ? "?mode=daily" : "") : null;
+  }
+
+  function continuations(value, savedIds = []) {
+    const items = [...sanitize(value).recent];
+    for (const id of savedIds) if (byId(id) && !items.some(item => item.id === id)) items.push({ id });
+    return items.slice(0, 4);
   }
 
   function select(value, { genre = "all", query = "", favorites = false, touch = false, sort = "featured", descriptions = {} } = {}) {
@@ -73,7 +85,7 @@
     return result;
   }
 
-  const api = Object.freeze({ games: Object.freeze(games), key, byId, byPath, sanitize, read, write, visit, toggleFavorite, select });
+  const api = Object.freeze({ games: Object.freeze(games), key, byId, byPath, sanitize, read, write, visit, toggleFavorite, select, destination, continuations });
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ArcadeLibrary = api;
 })(typeof window !== "undefined" ? window : globalThis);

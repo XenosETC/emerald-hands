@@ -56,9 +56,17 @@
     controls.className = "control-label";
     controls.textContent = game.controls;
     card.querySelector(".game-body > a").before(controls);
+    if (["soulWorld", "feudalism", "templeRun"].includes(game.id)) {
+      const summary = document.createElement("p");
+      summary.className = "game-stat";
+      summary.dataset.saveSummary = game.id;
+      summary.hidden = true;
+      controls.before(summary);
+    }
   }
 
   function render() {
+    const progress = window.ArcadeProgress?.read(storage) || {};
     visibleGames = library.select(state, { genre, query: search.value, favorites: favorites.checked, touch: touch.checked, sort: sort.value, descriptions });
     const visible = new Set(visibleGames.map(game => game.id));
     for (const [id, card] of cards) {
@@ -68,6 +76,11 @@
       button.textContent = saved ? "★ Saved" : "☆ Save";
       button.setAttribute("aria-pressed", String(saved));
       button.setAttribute("aria-label", `${saved ? "Remove" : "Save"} ${library.byId(id).title}${saved ? " from favorites" : " to favorites"}`);
+      const summary = card.querySelector("[data-save-summary]");
+      if (summary && progress[id]) {
+        summary.hidden = false;
+        summary.textContent = `${progress[id].label} · ${progress[id].summary}`;
+      }
     }
     // DOM order keeps keyboard navigation aligned with the selected visual sort.
     const active = document.activeElement;
@@ -90,26 +103,53 @@
       ? "Save a game with the star button to build your own collection." : "Try another search or clear your filters.";
     document.querySelector("#pickGame").disabled = visibleGames.length === 0;
     const recentList = document.querySelector("#recentGames");
+    const scrollLeft = recentList.scrollLeft;
+    const focusedId = active?.closest?.("[data-continue-id]")?.dataset.continueId;
+    const continued = library.continuations(state, Object.keys(progress).filter(id => progress[id].status === "saved"));
     recentList.replaceChildren();
-    for (const item of state.recent.slice(0, 4)) {
+    for (const item of continued) {
       const game = library.byId(item.id);
       const link = document.createElement("a");
-      link.href = game.path;
+      link.href = library.destination(item);
+      link.dataset.continueId = game.id;
+      let info = progress[item.id] || { label: "Recently opened", summary: game.controls, goal: "Return to this game from your collection.", action: "Open game" };
+      if (item.id === "rush" && item.mode === "daily") {
+        const challenge = window.ShardRushChallenges;
+        const best = challenge?.best(challenge.read(storage), challenge.dayKey());
+        info = {label: "Daily Vault", summary: best ? `Today’s best ${best.score.toLocaleString()} · ${challenge.medal(best.score)}` : "A new course to learn today",
+          goal: "Start a fresh attempt on today’s course. Your best ghost joins you when available.", action: "Play today’s vault"};
+      }
+      const art = document.createElement("span");
+      art.className = "continue-art";
+      art.setAttribute("aria-hidden", "true");
+      const badge = document.createElement("small");
+      badge.className = "continue-kind";
+      badge.textContent = info.label;
       const name = document.createElement("strong");
       name.textContent = game.title;
+      const summary = document.createElement("p");
+      summary.className = "continue-summary";
+      summary.textContent = info.summary;
+      const goal = document.createElement("p");
+      goal.className = "continue-goal";
+      goal.textContent = info.goal;
       const label = document.createElement("span");
-      label.textContent = "Return to game ↗";
-      link.append(name, label);
+      label.className = "continue-action";
+      label.textContent = `${info.action} ↗`;
+      link.setAttribute("aria-label", `${info.action}: ${item.mode === "daily" ? "Shard Rush Daily Vault" : game.title}`);
+      link.append(art, badge, name, summary, goal, label);
       recentList.append(link);
+      if (focusedId === game.id) link.focus({ preventScroll: true });
     }
-    document.querySelector("#recentSection").hidden = !state.recent.length;
+    recentList.scrollLeft = scrollLeft;
+    document.querySelector("#recentSection").hidden = !continued.length;
     const recent = state.recent[0];
     const old = window.EmeraldArcade?.load().lastPlayed;
     const previous = Number.isSafeInteger(old?.at) && old.at > 0 ? library.byPath(old.path) : null;
-    const latest = recent && (!previous || recent.at >= old.at) ? library.byId(recent.id) : previous;
+    const latest = recent && (!previous || recent.at >= old.at) ? recent : previous ? {id: previous.id} : continued[0];
     const continueLink = document.querySelector("#continueGame");
-    continueLink.href = latest?.path || library.byId("hands").path;
-    continueLink.textContent = latest ? `Return to ${latest.title}` : "Play Emerald Hands";
+    continueLink.href = library.destination(latest) || library.byId("hands").path;
+    continueLink.textContent = latest ? `Return to ${latest.id === "rush" && latest.mode === "daily" ? "Daily Vault" : library.byId(latest.id).title}` : "Play Emerald Hands";
   }
 
   function change() { updateUrl(); render(); }
@@ -137,7 +177,10 @@
   });
   window.addEventListener("storage", event => {
     if (event.key === library.key || event.key === null) { state = library.read(storage); render(); }
+    else if (Object.values(window.ArcadeProgress?.keys || {}).includes(event.key) || event.key === window.ShardRushChallenges?.key) render();
   });
+  window.addEventListener("arcade:progress-ready", render);
+  window.addEventListener("focus", render);
   window.addEventListener("pageshow", () => { state = library.read(storage); render(); });
   window.addEventListener("popstate", () => { readUrl(); render(); });
   readUrl();

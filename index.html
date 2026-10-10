@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#0a1110">
     <title>Emerald Arcade — Small games. Big adventures.</title>
     <link rel="preload" href="pepe-temple-run/assets/emerald-frog-temple-v1.png" as="image">
-    <link rel="stylesheet" href="mini-games.css?v=daily-vault-1">
+    <link rel="stylesheet" href="mini-games.css?v=continue-1">
   </head>
   <body>
     <a class="skip-link" href="#games">Skip to games</a>
@@ -41,7 +41,7 @@
         <div><p class="eyebrow">LEARN THE ROUTE. CHASE YOUR BEST.</p><h2 id="daily-vault-title">The daily vault</h2><p>Shard Rush · 60 seconds · Race your best-run ghost</p><p id="dailyRushDate" class="daily-vault-note">A new course every day at 00:00 UTC</p></div>
         <div class="daily-vault-action"><p id="dailyRushStatus" role="status">Bronze 3,000 · Silver 9,000 · Gold 18,000</p><a href="shard-rush.html?mode=daily">Play today’s vault <span aria-hidden="true">↗</span></a><small>Your daily best stays on this device.</small></div>
       </section>
-      <section class="recent-section" id="recentSection" aria-labelledby="recentTitle" hidden><div class="library-heading"><div><p class="eyebrow">BACK TO YOUR WORLDS</p><h2 id="recentTitle">Recently opened</h2></div><p>Saved on this device</p></div><div class="recent-games" id="recentGames"></div></section>
+      <section class="recent-section" id="recentSection" aria-labelledby="recentTitle" hidden><div class="library-heading"><div><p class="eyebrow">BACK TO YOUR WORLDS</p><h2 id="recentTitle">Continue playing</h2></div><p>Last saved progress. Each world keeps its own save.</p></div><div class="recent-games" id="recentGames" role="region" aria-label="Continue playing games; scroll for more" tabindex="0"></div></section>
       <section class="library-section" id="games" aria-labelledby="library-title" tabindex="-1">
         <div class="library-heading"><div><p class="eyebrow">PICK YOUR NEXT ADVENTURE</p><h2 id="library-title">The game collection<span id="gameCount">16</span></h2></div><p>Quick thrills. Long quests. Your call.</p></div>
         <div class="library-controls">
@@ -281,11 +281,11 @@
       </section>
 
       <section class="updates-section" id="updates" aria-labelledby="updates-title" tabindex="-1">
-        <div class="library-heading"><div><p class="eyebrow">FRESH FROM THE LAB</p><h2 id="updates-title">A reason to play again.</h2></div><p><time datetime="2026-10-08">October 8, 2026</time> · Latest update</p></div>
+        <div class="library-heading"><div><p class="eyebrow">FRESH FROM THE LAB</p><h2 id="updates-title">A reason to play again.</h2></div><p><time datetime="2026-10-10">October 10, 2026</time> · Latest update</p></div>
         <div class="update-grid">
           <article class="update-card"><span class="update-kicker">PEPE SOUL WORLD</span><h3>Hold your ground.</h3><p>New sword guard poses and a quick transition into your next cut. Hold S or ↓ to block frontal strikes, release, then press J to counter.</p><a href="pepe-soul-world/index.html">Try Soul World’s sword guard <span aria-hidden="true">↗</span></a></article>
           <article class="update-card"><span class="update-kicker">SHARD RUSH / DAILY VAULT</span><h3>Your best run. Your next rival.</h3><p>Finish today’s course to save a best-run ghost. Race its gold collector on your next attempt and see whether you’re ahead or behind as you chase the three medals.</p><a href="shard-rush.html?mode=daily">Race the daily vault <span aria-hidden="true">↗</span></a></article>
-          <article class="update-card"><span class="update-kicker">AROUND THE ARCADE</span><h3>Take a breather.</h3><p>Clearer pause controls and smoother retries in six arcade games. Jump back into Galactic Heroes and keep the emerald sector safe.</p><a href="emerald-galactic-heroes.html">Return to Galactic Heroes <span aria-hidden="true">↗</span></a></article>
+          <article class="update-card"><span class="update-kicker">YOUR SAVED WORLDS</span><h3>Know where to pick up.</h3><p>See your saved realm, campaign objective, or best temple distance before you return. Daily Vault return links now remember your mode.</p><a href="#games">Explore your collection <span aria-hidden="true">↗</span></a></article>
         </div>
       </section>
 
@@ -341,6 +341,7 @@
     <script src="mini-games.js?v=arcade-refresh-2"></script>
     <script src="shard-rush-challenges.js?v=1"></script>
     <script src="arcade-daily-ui.js?v=1"></script>
-  <script src="arcade-library.js?v=library-1"></script><script src="arcade-library-ui.js?v=arcade-refresh-2"></script>
+    <script type="module" src="arcade-progress.mjs?v=1"></script>
+  <script src="arcade-library.js?v=library-2"></script><script src="arcade-library-ui.js?v=continue-1"></script>
   </body>
 </html>
