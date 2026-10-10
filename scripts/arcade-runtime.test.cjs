@@ -69,6 +69,7 @@ function harness(page = 'shard-rush.html') {
     matches(selector) {
       return selector.split(',').some(part => {
         const token = part.trim();
+        if (token === 'dialog[open]') return this.tagName === 'DIALOG' && 'open' in this.attributes;
         if (token === '[hidden]') return this.hidden;
         if (token.startsWith('.')) return this.className.split(/\s+/).includes(token.slice(1));
         if (token.startsWith('#')) return this.id === token.slice(1);
@@ -110,7 +111,7 @@ function harness(page = 'shard-rush.html') {
   document.append(document.head, document.body);
   document.activeElement = document.body;
   const saves = new Map([['emerald-arcade-v1', '{"xp":4321,"wallet":{"arcadeShards":876}}'], ['satoshi-system-save-v1', '{"ticks":99}']]);
-  const storage = values => ({ getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) });
+  const storage = values => ({ getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem:key => values.delete(key), key:index => [...values.keys()][index] ?? null, get length(){return values.size;} });
   const location = { pathname: `/${page}`, search: '', reloads: 0, reload() { this.reloads += 1; } };
   vm.runInNewContext(source, {
     window, document, location, CustomEvent: Event, KeyboardEvent: Event, PointerEvent: Event, URLSearchParams,
@@ -305,4 +306,37 @@ test('hub never pauses and leaves P and R to the page', () => {
   h.key('Escape');
   assert.equal(h.arcade.isPaused(), false);
   assert.equal(h.location.reloads, 0);
+});
+
+test('native game dialogs keep keyboard ownership even after the game loses focus', () => {
+  const h = harness('emerald-hands.html');
+  const dialog = h.document.createElement('dialog');
+  dialog.setAttribute('open', '');
+  const button = h.document.createElement('button');
+  dialog.append(button); h.document.body.append(dialog); button.focus();
+  assert.equal(h.key('r').defaultPrevented, false);
+  assert.equal(h.location.reloads, 0);
+  assert.equal(h.key('p').defaultPrevented, false);
+  assert.equal(h.arcade.isPaused(), false);
+  h.window.dispatchEvent(new h.Event('blur'));
+  assert.equal(h.arcade.isPaused(), true);
+  assert.equal(h.key('Enter').defaultPrevented, false);
+  assert.equal(h.key('Escape').defaultPrevented, false);
+});
+
+test('confirmed arcade reset announces the erase and removes Hands recovery while preserving independent saves', () => {
+  const h = harness('emerald-hands.html');
+  h.saves.set('emerald-hands-v1', 'current-hands');
+  h.saves.set('emerald-hands-v1-previous', 'previous-hands');
+  h.saves.set('pepe-soul-world-v1', 'independent-soul');
+  let announced=false;
+  h.window.addEventListener('emeraldarcade:reset', () => { announced = h.saves.has('emerald-hands-v1'); });
+  h.click('[data-arcade-command="controls"]');
+  h.click('[data-arcade-setting="reset"]');
+  h.click('[data-arcade-setting="confirm-reset"]');
+  assert.equal(announced,true);
+  assert.equal(h.saves.has('emerald-hands-v1'),false);
+  assert.equal(h.saves.has('emerald-hands-v1-previous'),false);
+  assert.equal(h.saves.get('pepe-soul-world-v1'),'independent-soul');
+  assert.equal(h.saves.get('satoshi-system-save-v1'),'{"ticks":99}');
 });

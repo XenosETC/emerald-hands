@@ -8,6 +8,7 @@
     SETTINGS_KEY,
     "emerald-arcade-pets-v1",
     "emerald-hands-v1",
+    "emerald-hands-v1-previous",
     "etc-rocket-simulator-v1",
     "pepe-space-unchained-best-v1",
     "pepe-tower-defense-best-v1",
@@ -660,6 +661,7 @@
 
   function resetLocalProgress() {
     if (isSatoshiPage) return;
+    window.dispatchEvent(new CustomEvent('emeraldarcade:reset'));
     for (const key of LOCAL_SAVE_KEYS) localStorage.removeItem(key);
     for (let index = localStorage.length - 1; index >= 0; index -= 1) {
       const key = localStorage.key(index);
@@ -945,6 +947,9 @@
         }
         return;
       }
+      // Native game dialogs own their keyboard controls and focus trap, including
+      // after blur has paused the underlying game. Never reload behind a save dialog.
+      if (document.querySelector('dialog[open]')) return;
       const editingText = /^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName || "") || event.target?.isContentEditable;
       if (event.defaultPrevented || event.isComposing || event.ctrlKey || event.metaKey || event.altKey || editingText) {
         if (runtime.paused) event.stopImmediatePropagation();

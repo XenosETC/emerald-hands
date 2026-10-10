@@ -15,7 +15,10 @@
     <link rel="preload" href="assets/market-building.png" as="image">
     <link rel="preload" href="assets/prestige-sage.png" as="image">
     <link rel="preload" href="assets/scroll-choice-sage.png" as="image">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="prefetch" href="assets/emerald-hands-events/sage-of-rage.png" as="image">
+    <link rel="prefetch" href="assets/emerald-hands-events/corrupted-shards.png" as="image">
+    <link rel="prefetch" href="assets/emerald-hands-events/emerald-flush.png" as="image">
+    <link rel="stylesheet" href="styles.css?v=hands-finish-2">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="hands">
@@ -29,9 +32,8 @@
           </div>
           <div class="topbar-actions">
             <a class="ghost-button" href="index.html">Arcade Hub</a>
-            <a class="ghost-button" href="shard-rush.html">Shard Rush</a>
-            <a class="ghost-button" href="emerald-galactic-heroes.html">Galactic Heroes</a>
-            <button class="ghost-button" id="resetButton" type="button">Reset Run</button>
+            <button class="ghost-button" id="saveVaultButton" type="button">Save vault</button>
+            <button class="ghost-button" id="resetButton" type="button">Restart cycle</button>
           </div>
         </div>
 
@@ -76,7 +78,7 @@
           </section>
 
           <section class="empire-panel" aria-label="Empire status">
-            <div class="empire-art" id="empireArt"></div>
+            <div class="empire-art" id="empireArt" role="img" aria-label="Emerald infrastructure artwork"><span class="event-art-label" id="eventArtLabel" hidden></span></div>
             <div class="event-card" id="eventCard">
               <span>Market Signal</span>
               <strong>Tap shards. Buy infra. Acquire businesses. Become OG.</strong>
@@ -87,8 +89,13 @@
             <button class="prestige-button" id="prestigeButton" type="button">Reach Ancient OG to prestige</button>
           </section>
         </div>
+        <section class="hands-journey" aria-labelledby="journeyTitle">
+          <div><p class="eyebrow" id="journeyLabel">Your next move</p><h2 id="journeyTitle">Build Sharper Hands</h2><p id="journeyBody">Collect 15 shards, then buy your first tap upgrade.</p><button class="ghost-button" id="journeyAction" type="button">Go to upgrade</button></div>
+          <div class="hands-career"><p class="eyebrow">Road to Emerald Sovereign</p><strong id="careerProgress">0 / 60 OG points</strong><progress id="careerMeter" max="60" value="0" aria-label="Emerald Sovereign progress"></progress><p id="cycleProgress">0 / 400,000 shards earned this cycle</p><p id="saveStatus" role="status">Loading local save…</p></div>
+        </section>
       </section>
 
+      <div class="hands-shop-heading"><div><p class="eyebrow">Build your engine</p><h2>Upgrade shop</h2></div><label for="buyAmount">Buy amount <select id="buyAmount"><option value="1">1 level</option><option value="10">10 levels</option><option value="max">Max affordable</option></select></label></div>
       <section class="shop" aria-label="Upgrade shop">
         <article class="upgrade-card" data-upgrade="click">
           <img src="assets/emerald-shards.png" alt="">
@@ -170,21 +177,22 @@
           <button type="button" class="buy-button" data-buy="market">Buy</button>
         </article>
       </section>
+      <details class="hands-journal"><summary>Sealed cycles <span id="cycleCount">0 completed</span></summary><p>Your latest ten sealed cycles. Restarting a cycle keeps this record and your OG points.</p><ol id="cycleHistory"></ol></details>
     </main>
 
     <footer class="game-guide" aria-label="How to play">
       <div><span class="game-guide__label">Click & grow</span><p><strong>Tap the emerald.</strong> Spend shards on click power and passive upgrades.</p></div>
-      <div id="game-controls"><span class="game-guide__label">Controls</span><p><kbd>Click</kbd> or <kbd>Tap</kbd> to collect. Use the shop below to build your empire.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls & saves</span><p><kbd>Click</kbd>, <kbd>Tap</kbd>, or focus the emerald and press <kbd>Space</kbd>. Autosaves on this browser. Production pauses when you leave; no offline earnings.</p></div>
       <div><span class="game-guide__label">Your own economy</span><p>Emerald Shards and OG points belong to this idle game. Every value is fictional.</p></div>
     </footer>
 
-    <section class="prestige-modal" id="prestigeModal" aria-labelledby="prestigeModalTitle" aria-modal="true" role="dialog" hidden>
+    <dialog class="prestige-modal" id="prestigeModal" aria-labelledby="prestigeModalTitle">
       <div class="prestige-modal__backdrop" data-close-prestige></div>
       <article class="prestige-modal__panel">
         <img class="prestige-modal__art" src="assets/prestige-sage.png" alt="">
         <div class="prestige-modal__copy">
           <p class="eyebrow">Emerald Sage Appears</p>
-          <h2 id="prestigeModalTitle">The Vault Recognizes You</h2>
+          <h2 id="prestigeModalTitle" tabindex="-1" autofocus>The Vault Recognizes You</h2>
           <p class="prestige-modal__message" id="prestigeMessage">
             Your run has been sealed into the archive. The next cycle begins stronger.
           </p>
@@ -206,27 +214,27 @@
             <span>Prestige Rank</span>
             <strong id="prestigeRank">Emerald Initiate</strong>
           </div>
-          <div class="prestige-ladder" aria-label="Prestige rank ladder">
+          <details class="prestige-ladder" aria-label="Prestige rank ladder"><summary>View prestige rank ladder</summary>
             <div class="prestige-ladder__header">
               <span>Rank Path</span>
               <strong id="prestigeRankPath">Retail Ghost to Emerald Initiate</strong>
             </div>
             <div class="prestige-ladder__list" id="prestigeLadder"></div>
-          </div>
+          </details>
           <button class="prestige-modal__button" id="prestigeContinue" type="button" data-close-prestige>
             Begin Next Cycle
           </button>
         </div>
       </article>
-    </section>
+    </dialog>
 
-    <section class="scroll-modal" id="scrollModal" aria-labelledby="scrollModalTitle" aria-modal="true" role="dialog" hidden>
+    <dialog class="scroll-modal" id="scrollModal" aria-labelledby="scrollModalTitle">
       <div class="scroll-modal__backdrop"></div>
       <article class="scroll-modal__panel">
         <img class="scroll-modal__art" src="assets/scroll-choice-sage.png" alt="">
         <div class="scroll-modal__copy">
           <p class="eyebrow">Sage's Due Diligence</p>
-          <h2 id="scrollModalTitle">Two Scrolls. One Allocation.</h2>
+          <h2 id="scrollModalTitle" tabindex="-1" autofocus>Two Scrolls. One Allocation.</h2>
           <p class="scroll-modal__message">
             The Emerald Sage opens a deal room inside the vault. Choose volatility for upside, or stewardship for a clean guaranteed yield.
           </p>
@@ -242,13 +250,27 @@
               <small>Smaller guaranteed payout with a clean passive boost.</small>
             </button>
           </div>
+          <button class="ghost-button" id="skipScroll" type="button">Pass on this offer</button>
         </div>
       </article>
-    </section>
+    </dialog>
 
-    <script src="arcade.js?v=7"></script>
+    <dialog class="hands-dialog" id="confirmModal" aria-labelledby="confirmTitle" aria-describedby="confirmBody">
+      <p class="eyebrow">Review your next cycle</p><h2 id="confirmTitle">Seal this cycle?</h2><p id="confirmBody"></p>
+      <div class="hands-dialog-actions"><button class="ghost-button" id="cancelAction" type="button" autofocus>Keep playing</button><button class="prestige-button" id="confirmAction" type="button">Confirm</button></div>
+    </dialog>
+    <dialog class="hands-dialog" id="saveModal" aria-labelledby="saveTitle">
+      <p class="eyebrow">Your local progress</p><h2 id="saveTitle">Save vault</h2>
+      <p>Copy your save code somewhere safe. To restore, paste a backup and review it first. Only Emerald Hands progress is replaced.</p>
+      <label for="saveCode">Save code</label><textarea id="saveCode" rows="6" spellcheck="false" autocomplete="off"></textarea>
+      <p id="savePreview" role="status"></p>
+      <div class="hands-dialog-actions"><button class="ghost-button" id="copySave" type="button">Copy code</button><button class="ghost-button" id="previewSave" type="button">Review backup</button><button class="ghost-button" id="previousSave" type="button">Load previous save</button><button class="prestige-button" id="restoreSave" type="button" hidden>Restore this backup</button><button class="ghost-button" id="closeSave" type="button">Close vault</button></div>
+    </dialog>
+
+    <script src="arcade.js?v=8"></script>
     <script src="arcade-pet.js?v=4"></script>
-    <script src="app.js"></script>
+    <script src="emerald-hands-save.js?v=1"></script>
+    <script src="app.js?v=hands-finish-2"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

@@ -252,6 +252,7 @@ small,
 }
 
 .empire-art {
+  position: relative;
   min-height: 0;
   border: 1px solid rgba(117, 255, 189, 0.16);
   border-radius: 8px;
@@ -262,6 +263,14 @@ small,
   background-size: contain;
   box-shadow: inset 0 -90px 90px rgba(0, 0, 0, 0.46);
 }
+
+.event-art-label { position:absolute; left:12px; right:12px; bottom:12px; width:fit-content; max-width:calc(100% - 24px); padding:9px 12px; border:1px solid #80eeb477; border-radius:8px; color:#eafff1; background:#06160fe8; font-size:.82rem; font-weight:800; line-height:1.4; pointer-events:none; }
+.empire-art[data-event="rage"] { border-color:#ffad4c; box-shadow:inset 0 0 24px #ff931530, 0 0 18px #ff931522; }
+.empire-art[data-event="rage"] .event-art-label { color:#ffcb88; border-color:#ffad4c88; }
+.empire-art[data-event="corruption"] { border-color:#bf82ff; box-shadow:inset 0 0 24px #8a38da33; }
+.empire-art[data-event="corruption"] .event-art-label { color:#e0bdff; border-color:#bf82ff88; }
+.empire-art[data-event="flush"] { border-color:#69ffc1; }
+.empire-art[data-event="choice"] { border-color:var(--gold); }
 
 .event-card {
   min-height: 68px;
@@ -445,11 +454,11 @@ small,
   cursor: not-allowed;
 }
 
-.prestige-modal[hidden] {
+.prestige-modal:not([open]) {
   display: none;
 }
 
-.scroll-modal[hidden] {
+.scroll-modal:not([open]) {
   display: none;
 }
 
@@ -461,6 +470,14 @@ small,
   display: grid;
   place-items: center;
   padding: 24px;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  color: var(--text);
+  background: transparent;
 }
 
 .prestige-modal__backdrop,
@@ -891,3 +908,41 @@ small,
     grid-template-columns: 1fr;
   }
 }
+
+/* Emerald Hands finishing pass: goals, save recovery and a visible career end. */
+.hands-journey { position:relative; display:grid; grid-template-columns:1.1fr 1fr; gap:32px; padding:24px; border-top:1px solid var(--line); background:rgba(3,14,10,.88); }
+.hands-journey h2, .hands-shop-heading h2 { margin:0; font-size:1.45rem; }
+.hands-journey p, .hands-journal p, .hands-dialog p { line-height:1.55; color:#b6cfc0; }
+.hands-journey .eyebrow { color:var(--emerald-strong); }
+.hands-journey .ghost-button { display:inline-grid; }
+.hands-career strong { display:block; font-size:1rem; line-height:1.6; }
+.hands-career progress { width:100%; height:10px; margin-top:12px; accent-color:var(--emerald); }
+#saveStatus { font-size:.8rem; margin-bottom:0; }
+.hands-shop-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:26px 4px 12px; }
+.hands-shop-heading label { display:flex; align-items:center; gap:12px; color:#b6cfc0; }
+.hands-shop-heading select { min-height:44px; padding:8px 12px; border:1px solid var(--line-strong); border-radius:8px; color:var(--text); background:#0c2017; font:inherit; }
+.hands-journal { padding:20px; margin:20px 0; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+.hands-journal summary { cursor:pointer; font-weight:700; min-height:32px; }
+.hands-journal summary span { color:var(--muted); font-weight:400; margin-left:12px; }
+.hands-journal li { padding:8px 0; color:#c0d8c8; line-height:1.5; }
+.hands-dialog { width:min(640px,calc(100% - 28px)); max-height:calc(100dvh - 32px); overflow:auto; padding:28px; border:1px solid var(--line-strong); border-radius:16px; color:var(--text); background:#07150f; box-shadow:0 30px 100px #000b; }
+.hands-dialog::backdrop, .prestige-modal::backdrop, .scroll-modal::backdrop { background:#000c; backdrop-filter:blur(5px); }
+.hands-dialog h2 { margin:6px 0 14px; }
+.hands-dialog-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+.hands-dialog-actions button { padding:10px 16px; min-height:44px; }
+.hands-dialog-actions .prestige-button { margin:0; width:auto; }
+.hands-dialog textarea { display:block; width:100%; margin-top:8px; padding:12px; resize:vertical; color:#c6e4d4; background:#020a06; border:1px solid var(--line-strong); border-radius:8px; font:12px/1.5 ui-monospace,monospace; }
+.prestige-modal__panel, .scroll-modal__panel { max-height:calc(100dvh - 48px); overflow-y:auto; }
+.prestige-modal__copy h2, .scroll-modal__copy h2 { font-size:clamp(1.8rem,2.8vw,2.6rem); line-height:1.06; }
+.prestige-ladder { display:block; }
+.prestige-ladder summary { cursor:pointer; color:var(--emerald-strong); padding:8px 0; }
+.prestige-ladder[open] .prestige-ladder__header { margin:10px 0; }
+[hidden] { display:none !important; }
+#skipScroll { margin-top:16px; }
+@media (max-width:640px) {
+  .hands-journey { grid-template-columns:1fr; gap:20px; padding:20px 16px; }
+  .hands-shop-heading { align-items:flex-start; flex-direction:column; }
+  .hands-dialog { padding:20px; }
+  .prestige-modal__art, .scroll-modal__art { min-height:140px; max-height:24vh; object-fit:cover; }
+}
+@media (prefers-reduced-motion:reduce) { .float-pop { animation-duration:1ms; } }

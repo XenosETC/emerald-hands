@@ -4,6 +4,10 @@ Local-first sixteen-game arcade portfolio with ETC-inspired games, Pepe Legends 
 
 Open `index.html` for the ETC Mini Games Lab hub. `emerald-hands.html` opens the idle/clicker game directly.
 
+## Finishing the collection — oldest first
+
+Work now follows the [oldest-to-newest finishing queue](ARCADE_FINISHING.md): Emerald Hands, Shard Rush, then Emerald Galactic Heroes. Emerald Hands has a finishing candidate with guided objectives, bulk buying, protected cycle restarts, save backup/recovery, a cycle journal, and completion at its existing Emerald Sovereign rank. See [EMERALD_HANDS.md](EMERALD_HANDS.md) for behavior and verification. Local checks do not replace human balance, physical-device, hosted-release or asset-rights gates.
+
 ## Browser game release — October 5, 2026
 
 The sixteen-game hub includes four new browser prototypes: Satoshi System, Pepe Soul World (`pepe-soul-world/index.html`), Pepe Temple Run (`pepe-temple-run/index.html`), and Pepe Feudalism (`pepe-feudalism/index.html`). The three independent Pepe games preserve their own gameplay and saves without shared arcade rewards. Native Unreal/Godot projects, local galleries, and historical screenshots are outside this web release.
@@ -28,7 +32,7 @@ Shard Rush has catch/combo/hazard feedback, a next-rank score meter, direct Star
 
 The “What’s new” section links directly to the refreshed games. Soul World now includes sword guard poses, Spirit-based frontal blocking, and immediate guard-to-counter input. Its game and save remain independent of shared arcade rewards.
 
-Run `npm test` for the sixteen-page smoke check and 72 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope and [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge. Hosted deployment has not been verified.
+Run `npm test` for the sixteen-page smoke check and 94 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope and [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge. Hosted deployment has not been verified.
 
 ### Browsing your collection
 
@@ -160,6 +164,8 @@ Emerald Hands includes occasional event-card moments above the rank progress bar
 - `Sage's Due Diligence`: a scroll-choice event. `Scroll of Volatile Dominion` offers bigger upside with controlled downside risk; `Scroll of Steward's Yield` offers a smaller guaranteed payout and clean passive boost.
 
 Cadence target: standard market signals should be the usual rhythm, `Emerald Flush` should appear sometimes, `Corrupted Shards` should lightly counterbalance boosts, scroll choices should feel like a notable decision, and `Emerald Sage of Rage` should be the rare hype event. The scheduler uses weighted eligibility, per-event cooldowns, and an anti-clump penalty after special events.
+
+Timed events temporarily take over the business artwork above the meter: Rage, Corrupted Shards and Flush have dedicated images, and scroll boosts reuse the Sage's scroll image after the choice modal closes. The scene shows the event countdown and returns to the most recently bought business when it ends. Instant signals show a six-second scene reveal. Pause freezes the artwork's timer with the event.
 
 ## Emerald Galactic Heroes
 

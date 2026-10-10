@@ -39,9 +39,9 @@ for (const page of independentGamePages) {
   const html = readFileSync(path, "utf8");
   check(hubHtml.includes(`href="${page}"`), `Hub does not link to ${page}`);
   check(html.includes('../index.html'), `${page} has no Arcade Hub return link`);
-  for (const match of html.matchAll(/(?:src|href)="([^"#?]+)"/g)) {
-    const target = match[1];
-    if (/^(?:https?:|data:|mailto:)/.test(target)) continue;
+  for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
+    const target = match[1].split(/[?#]/)[0];
+    if (!target || /^(?:https?:|data:|mailto:)/.test(target)) continue;
     check(existsSync(resolve(path, "..", target)), `${page} references missing file: ${target}`);
   }
 }
@@ -55,9 +55,9 @@ for (const page of ["index.html", ...gamePages]) {
   check(/arcade\.js/.test(html), `${page} does not load shared arcade progress`);
   if (page !== "index.html") check(/href="index\.html"/.test(html), `${page} has no Arcade Hub return link`);
 
-  for (const match of html.matchAll(/(?:src|href)="([^"#?]+)"/g)) {
-    const target = match[1];
-    if (/^(?:https?:|data:|mailto:)/.test(target) || target === "/") continue;
+  for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
+    const target = match[1].split(/[?#]/)[0];
+    if (!target || /^(?:https?:|data:|mailto:)/.test(target) || target === "/") continue;
     check(existsSync(resolve(root, target)), `${page} references missing file: ${target}`);
   }
 }

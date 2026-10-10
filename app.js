@@ -1,4 +1,6 @@
-const SAVE_KEY = "emerald-hands-v1";
+const saveCodec = window.EmeraldHandsSave;
+const SAVE_KEY = saveCodec.key;
+const RECOVERY_KEY = `${SAVE_KEY}-previous`;
 
 const upgrades = {
   click: {
@@ -74,16 +76,29 @@ const upgradeArt = {
   market: "assets/market-building.png",
 };
 
+const eventArt = {
+  rage: { src: 'assets/emerald-hands-events/sage-of-rage.png', label: 'Emerald Sage of Rage' },
+  corruption: { src: 'assets/emerald-hands-events/corrupted-shards.png', label: 'Corrupted Shards' },
+  flush: { src: 'assets/emerald-hands-events/emerald-flush.png', label: 'Emerald Flush' },
+  choice: { src: 'assets/scroll-choice-sage.png', label: "Sage's Due Diligence" },
+};
+
 const events = [
-  { label: "Green Candle Blessing", body: "Momentum hits. Passive production gets a quick shard bonus.", effect: 0.18 },
-  { label: "Paper Hands Panic", body: "Weak hands shook out. You held the vault line.", effect: 0.08 },
-  { label: "Infra Flywheel", body: "Rails, servers, and workflows squeeze more yield from the machine.", effect: 0.14 },
-  { label: "Business Roll-Up", body: "A tiny cash-flow asset joins the portfolio. Shards like discipline.", effect: 0.2 },
-  { label: "Ancient Relic Found", body: "The OG vault hums. Your shard engine gets blessed.", effect: 0.25 },
-  { label: "IP Run-Up", body: "The media studio minted attention while you were stacking.", effect: 0.22 },
-  { label: "Deal Flow Hit", body: "The acquisition desk found a clean little operator.", effect: 0.28 },
+  { label: "Green Candle Blessing", body: "Momentum hits. Passive production gets a quick shard bonus.", effect: 0.18, art: eventArt.flush.src },
+  { label: "Paper Hands Panic", body: "Weak hands shook out. You held the vault line.", effect: 0.08, art: upgradeArt.vault },
+  { label: "Infra Flywheel", body: "Rails, servers, and workflows squeeze more yield from the machine.", effect: 0.14, art: 'assets/infra-core.png' },
+  { label: "Business Roll-Up", body: "A tiny cash-flow asset joins the portfolio. Shards like discipline.", effect: 0.2, art: upgradeArt.business },
+  { label: "Ancient Relic Found", body: "The OG vault hums. Your shard engine gets blessed.", effect: 0.25, art: 'assets/prestige-sage.png' },
+  { label: "IP Run-Up", body: "The media studio minted attention while you were stacking.", effect: 0.22, art: upgradeArt.media },
+  { label: "Deal Flow Hit", body: "The acquisition desk found a clean little operator.", effect: 0.28, art: upgradeArt.acquisition },
 ];
 
+let saveBlocked = false;
+let originalSave = null;
+let saveMessage = '';
+let pendingAction = null;
+let pendingRestore = null;
+let lastHistory = '';
 const state = loadState();
 let handsPlayRecorded = false;
 let lastRankName = currentRank().name;
@@ -102,6 +117,8 @@ let choiceLabel = "";
 let choiceResult = "";
 let scrollChoiceOpen = false;
 let specialEventStreak = 0;
+let signalArt = null;
+let signalTimer = 0;
 
 const els = {
   shardButton: document.querySelector("#shardButton"),
@@ -119,6 +136,7 @@ const els = {
   rankProgress: document.querySelector("#rankProgress"),
   eventCard: document.querySelector("#eventCard"),
   empireArt: document.querySelector("#empireArt"),
+  eventArtLabel: document.querySelector('#eventArtLabel'),
   rankProgressShell: document.querySelector("#rankProgressShell"),
   buyButtons: document.querySelectorAll("[data-buy]"),
   prestigeModal: document.querySelector("#prestigeModal"),
@@ -132,6 +150,13 @@ const els = {
   prestigeClosers: document.querySelectorAll("[data-close-prestige]"),
   scrollModal: document.querySelector("#scrollModal"),
   scrollChoices: document.querySelectorAll("[data-scroll-choice]"),
+  confirmModal: document.querySelector('#confirmModal'),
+  saveModal: document.querySelector('#saveModal'),
+  saveCode: document.querySelector('#saveCode'),
+  savePreview: document.querySelector('#savePreview'),
+  restoreSave: document.querySelector('#restoreSave'),
+  saveStatus: document.querySelector('#saveStatus'),
+  buyAmount: document.querySelector('#buyAmount'),
 };
 
 let lastTick = performance.now();
@@ -139,32 +164,32 @@ let eventCooldown = 0;
 let audioContext;
 
 function loadState() {
-  const fallback = {
-    shards: 0,
-    totalEarned: 0,
-    ogPoints: 0,
-    lifetimePrestiges: 0,
-    levels: { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0, market: 0 },
-    featuredUpgrade: null,
-    lastSaved: Date.now(),
-  };
-
   try {
-    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-    return {
-      ...fallback,
-      ...saved,
-      levels: { ...fallback.levels, ...saved?.levels },
-    };
+    originalSave = localStorage.getItem(SAVE_KEY);
+    const loaded = saveCodec.decode(originalSave);
+    saveBlocked = loaded.status === 'unavailable';
+    saveMessage = saveBlocked ? 'Save unreadable. Autosaving is paused; open Save vault to recover it.' : 'Autosaves on this browser. Back up in Save vault.';
+    return loaded.state;
   } catch {
-    return fallback;
+    saveMessage = 'Browser storage is unavailable. Use Save vault to copy your progress.';
+    return saveCodec.fresh();
   }
 }
 
 function saveState() {
+  if (saveBlocked) return false;
   state.lastSaved = Date.now();
-  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    saveMessage = 'Saved on this browser. Back up in Save vault.';
+  } catch {
+    saveMessage = 'Could not save. Keep this tab open and copy your code from Save vault.';
+    els.saveStatus.textContent = saveMessage;
+    return false;
+  }
+  els.saveStatus.textContent = saveMessage;
   recordArcadeProgress();
+  return true;
 }
 
 function costFor(type) {
@@ -274,17 +299,36 @@ function earn(amount) {
 }
 
 function buy(type) {
-  const cost = costFor(type);
-  if (state.shards < cost) return;
+  if (!canPlay() || !upgrades[type]) return;
+  const {cost, quantity} = purchaseQuote(type);
+  if (!quantity || !Number.isFinite(cost) || state.shards < cost) return;
   state.shards -= cost;
-  state.levels[type] += 1;
+  state.levels[type] += quantity;
   if (upgradeArt[type]) {
     state.featuredUpgrade = type;
   }
   chime(220 + state.levels[type] * 22, 0.08);
-  announce(`${labelFor(type)} acquired`, `${format(cost)} shards deployed. The machine gets cleaner.`);
+  announce(`${labelFor(type)} acquired`, `${quantity} ${quantity === 1 ? 'level' : 'levels'} · ${format(cost)} shards spent.`);
   render();
   saveState();
+}
+
+function purchaseQuote(type) {
+  const wanted = els.buyAmount.value === 'max' ? Infinity : Number(els.buyAmount.value) || 1;
+  let cost = 0;
+  let quantity = 0;
+  // Increasing costs eventually exceed any finite balance; the cap also bounds UI work.
+  while (quantity < wanted && quantity < 1000) {
+    const next = Math.floor(upgrades[type].baseCost * upgrades[type].growth ** (state.levels[type] + quantity));
+    if (wanted === Infinity && cost + next > state.shards) break;
+    cost += next;
+    quantity += 1;
+  }
+  return {cost, quantity};
+}
+
+function canPlay() {
+  return !window.EmeraldArcade?.isPaused?.() && !document.querySelector('dialog[open]');
 }
 
 function labelFor(type) {
@@ -310,8 +354,8 @@ function render() {
   }
 
   els.shardCount.textContent = format(state.shards);
-  els.perClick.textContent = format(perClick());
-  els.perSecond.textContent = format(perSecond());
+  els.perClick.textContent = formatRate(perClick());
+  els.perSecond.textContent = formatRate(perSecond());
   els.empireValue.textContent = format(empireValue());
   els.ogPoints.textContent = format(state.ogPoints);
   els.prestigeRankLabel.textContent = prestigeRankFor(state.ogPoints).name;
@@ -357,9 +401,11 @@ function render() {
 
   for (const button of els.buyButtons) {
     const type = button.dataset.buy;
-    const cost = costFor(type);
-    button.textContent = `Buy ${format(cost)} | Lv ${state.levels[type]}`;
-    button.disabled = state.shards < cost;
+    button.id = `buy-${type}`;
+    const {cost, quantity} = purchaseQuote(type);
+    button.textContent = `${quantity ? `Buy ${quantity} · ${format(cost)}` : `Need ${format(costFor(type))}`} | Lv ${state.levels[type]}`;
+    button.setAttribute('aria-label', `${labelFor(type)}: ${button.textContent} shards`);
+    button.disabled = quantity === 0 || !Number.isFinite(cost) || state.shards < cost;
   }
 
   const reward = prestigeReward();
@@ -367,8 +413,62 @@ function render() {
     reward > 0 ? `Prestige for ${format(reward)} OG Points` : "Reach Ancient OG to prestige";
   els.prestigeButton.disabled = reward === 0;
 
-  const featuredUpgrade = selectedArtUpgrade(rank);
-  els.empireArt.style.backgroundImage = `url("${upgradeArt[featuredUpgrade] || "assets/infra-core.png"}")`;
+  renderEmpireArt(rank);
+  renderJourney();
+}
+
+function activeEventArt() {
+  if (rageTimer > 0) return {...eventArt.rage, kind: 'rage', seconds: rageTimer};
+  if (corruptionTimer > 0) return {...eventArt.corruption, kind: 'corruption', seconds: corruptionTimer};
+  if (flushTimer > 0) return {...eventArt.flush, kind: 'flush', seconds: flushTimer};
+  if (choiceTimer > 0 || scrollChoiceOpen) return {...eventArt.choice, kind: 'choice', label: choiceTimer > 0 ? choiceLabel : eventArt.choice.label, seconds: choiceTimer};
+  if (signalTimer > 0 && signalArt) return {...signalArt, kind: 'signal', seconds: signalTimer};
+  return null;
+}
+
+function renderEmpireArt(rank) {
+  const featured = selectedArtUpgrade(rank);
+  const businessImage = upgradeArt[featured] || 'assets/infra-core.png';
+  const active = activeEventArt();
+  // A second background keeps the owned scene visible if event art is still
+  // loading. Transient presentation never changes the saved featured upgrade.
+  els.empireArt.style.backgroundImage = active ? `url("${active.src}"), url("${businessImage}")` : `url("${businessImage}")`;
+  els.empireArt.dataset.event = active?.kind || '';
+  els.empireArt.setAttribute('aria-label', active ? `${active.label} event artwork` : `${featured ? labelFor(featured) : 'Emerald infrastructure'} artwork`);
+  els.eventArtLabel.hidden = !active;
+  els.eventArtLabel.textContent = active ? `${active.label}${active.seconds > 0 ? ` · ${Math.ceil(active.seconds)}s` : ''}` : '';
+}
+
+function renderJourney() {
+  const objective = saveCodec.objective(state);
+  document.querySelector('#journeyLabel').textContent = objective.complete ? 'Journey complete · Endless play unlocked' : 'Your next move';
+  document.querySelector('#journeyTitle').textContent = objective.title;
+  document.querySelector('#journeyBody').textContent = objective.body;
+  const action = document.querySelector('#journeyAction');
+  action.hidden = !objective.target;
+  action.textContent = objective.target === 'prestigeButton' ? 'View cycle goal' : 'Go to upgrade';
+  document.querySelector('#careerProgress').textContent = `${format(state.ogPoints)} / 60 OG points · +${Math.round(state.ogPoints * 12)}% permanent production`;
+  document.querySelector('#careerMeter').value = Math.min(60, state.ogPoints);
+  document.querySelector('#cycleProgress').textContent = `${format(state.totalEarned)} / 400K shards earned this cycle`;
+  els.saveStatus.textContent = saveMessage;
+  els.resetButton.disabled = saveBlocked;
+  document.querySelector('#cycleCount').textContent = `${state.lifetimePrestiges} completed`;
+  const history = JSON.stringify(state.history);
+  if (history !== lastHistory) {
+    lastHistory = history;
+    const list = document.querySelector('#cycleHistory');
+    list.replaceChildren();
+    for (const row of [...state.history].reverse()) {
+      const entry = document.createElement('li');
+      entry.textContent = `Cycle ${row.cycle} · ${format(row.totalEarned)} earned · +${row.reward} OG · ${row.ogPoints} total OG`;
+      list.append(entry);
+    }
+    if (!state.history.length) {
+      const entry = document.createElement('li');
+      entry.textContent = 'Your next prestige will appear here. Earlier cycles keep their OG points and completion count.';
+      list.append(entry);
+    }
+  }
 }
 
 function selectedArtUpgrade(rank) {
@@ -387,6 +487,10 @@ function format(value) {
   if (value < 1000) return Math.floor(value).toLocaleString();
   if (value < 1000000) return `${(value / 1000).toFixed(value < 10000 ? 1 : 0)}K`;
   return `${(value / 1000000).toFixed(value < 10000000 ? 1 : 0)}M`;
+}
+
+function formatRate(value) {
+  return value < 1000 ? Number(value.toFixed(2)).toLocaleString() : format(value);
 }
 
 function announce(label, body) {
@@ -411,6 +515,8 @@ function maybeEvent(deltaSeconds) {
   const event = events[Math.floor(Math.random() * events.length)];
   const bonus = Math.max(10, perSecond() * 6, state.totalEarned * event.effect * 0.015);
   earn(bonus);
+  signalArt = {src: event.art, label: event.label};
+  signalTimer = 6;
   announce(event.label, `${event.body} +${format(bonus)} shards.`);
   specialEventStreak = 0;
 }
@@ -455,18 +561,19 @@ function openScrollChoice() {
   eventCooldown = 30 + Math.random() * 12;
   choiceCooldown = 150 + Math.random() * 70;
   announce("Sage's Due Diligence", "The Emerald Sage offers two scrolls. Choose volatility or stewardship.");
-  els.scrollModal.hidden = false;
+  els.scrollModal.showModal();
   document.body.classList.add("scroll-open");
   window.EmeraldArcade?.toast("Sage's Due Diligence", "Choose a scroll allocation", "assets/badges/market-sage.png");
 }
 
 function closeScrollChoice() {
   scrollChoiceOpen = false;
-  els.scrollModal.hidden = true;
+  els.scrollModal.close();
   document.body.classList.remove("scroll-open");
 }
 
 function chooseScroll(type) {
+  if (!scrollChoiceOpen || !['risk', 'safe'].includes(type)) return;
   const empire = empireValue();
   if (type === "risk") {
     const success = Math.random() < 0.65;
@@ -553,9 +660,13 @@ function triggerEmeraldFlush() {
 
 function prestige() {
   const reward = prestigeReward();
-  if (reward === 0) return;
-  const confirmed = confirm(`Reset this run for ${format(reward)} OG Points?`);
-  if (!confirmed) return;
+  if (reward === 0 || !canPlay() || saveBlocked) return;
+  requestConfirmation('Seal this cycle?', `${format(state.totalEarned)} earned this cycle → +${format(reward)} OG points. Your ${format(state.shards)} unspent shards and all shop levels reset. Keep ${format(state.ogPoints + reward)} total OG points, a +${Math.round((state.ogPoints + reward) * 12)}% permanent boost, and your sealed-cycle records.`, 'Seal cycle', sealCycle);
+}
+
+function sealCycle() {
+  const reward = prestigeReward();
+  if (!reward || saveBlocked) return;
 
   const summary = {
     reward,
@@ -566,19 +677,14 @@ function prestige() {
     runRank: currentRank().name,
   };
 
-  state.shards = 0;
-  state.totalEarned = 0;
+  const previousRun = saveCodec.restart(state);
+  Object.assign(state, previousRun);
   state.ogPoints += reward;
   state.lifetimePrestiges += 1;
-  state.levels = { click: 0, infra: 0, business: 0, vault: 0, media: 0, acquisition: 0, research: 0, market: 0 };
-  state.featuredUpgrade = null;
-  rageTimer = 0;
-  corruptionTimer = 0;
-  flushTimer = 0;
-  flushBoost = 1;
-  choiceTimer = 0;
-  choiceBoost = 1;
-  closeScrollChoice();
+  state.history.push({cycle: state.lifetimePrestiges, reward, ogPoints: state.ogPoints,
+    totalEarned: summary.totalEarned, empireValue: summary.empireValue, at: Date.now()});
+  state.history = state.history.slice(-10);
+  resetEvents();
   announce("OG Prestige Locked", `${format(reward)} OG Points secured. New runs start stronger.`);
   chime(740, 0.16);
   setTimeout(() => chime(980, 0.12), 120);
@@ -587,6 +693,25 @@ function prestige() {
   showPrestigeModal(summary);
   saveState();
   recordArcadeProgress(false, true);
+}
+
+function resetEvents() {
+  rageTimer = 0;
+  corruptionTimer = 0;
+  flushTimer = 0;
+  flushBoost = 1;
+  choiceTimer = 0;
+  choiceBoost = 1;
+  rageCooldown = 55;
+  corruptionCooldown = 92;
+  flushCooldown = 38;
+  choiceCooldown = 70;
+  eventCooldown = 0;
+  specialEventStreak = 0;
+  signalArt = null;
+  signalTimer = 0;
+  lastRankName = currentRank().name;
+  closeScrollChoice();
 }
 
 function showPrestigeModal(summary) {
@@ -603,7 +728,10 @@ function showPrestigeModal(summary) {
   els.prestigeMessage.textContent =
     `The Emerald Sage seals ${format(summary.totalEarned)} shards and ${format(summary.empireValue)} empire value from your ${summary.runRank} run. ` +
     `Your next cycle begins with ${format(summary.newPoints)} OG Points.`;
-  els.prestigeModal.hidden = false;
+  const completed = summary.newPoints >= 60;
+  document.querySelector('#prestigeModalTitle').textContent = completed ? 'Emerald Sovereign — Journey Complete' : 'The Vault Recognizes You';
+  document.querySelector('#prestigeContinue').textContent = completed ? 'Continue in endless play' : 'Begin Next Cycle';
+  els.prestigeModal.showModal();
   document.body.classList.add("prestige-open");
 }
 
@@ -632,8 +760,48 @@ function renderPrestigeLadder(oldPoints, newPoints) {
 }
 
 function closePrestigeModal() {
-  els.prestigeModal.hidden = true;
+  els.prestigeModal.close();
   document.body.classList.remove("prestige-open");
+}
+
+function requestConfirmation(title, body, label, action) {
+  pendingAction = action;
+  document.querySelector('#confirmTitle').textContent = title;
+  document.querySelector('#confirmBody').textContent = body;
+  document.querySelector('#confirmAction').textContent = label;
+  els.confirmModal.showModal();
+}
+
+function reviewBackup() {
+  const result = saveCodec.decode(els.saveCode.value);
+  pendingRestore = result.status === 'saved' ? result.state : null;
+  els.restoreSave.hidden = !pendingRestore;
+  els.savePreview.textContent = pendingRestore
+    ? `${format(pendingRestore.shards)} shards · ${pendingRestore.ogPoints} OG points · ${pendingRestore.lifetimePrestiges} sealed cycles. Restoring replaces only this game's progress. Your previous save is kept for recovery.`
+    : 'This is not a supported Emerald Hands save. Nothing has been replaced.';
+}
+
+function restoreBackup() {
+  if (!pendingRestore) return;
+  // Commit storage before changing the playable state. A failed recovery write
+  // leaves the current run intact and keeps the dialog available for copying.
+  try {
+    const previous = localStorage.getItem(SAVE_KEY);
+    if (previous !== null) localStorage.setItem(RECOVERY_KEY, previous);
+    localStorage.setItem(SAVE_KEY, JSON.stringify(pendingRestore));
+  } catch {
+    els.savePreview.textContent = 'Restore could not be saved. Current progress is unchanged. Copy your code and free browser storage before retrying.';
+    return;
+  }
+  Object.assign(state, pendingRestore);
+  pendingRestore = null;
+  originalSave = null;
+  saveBlocked = false;
+  resetEvents();
+  saveMessage = 'Backup restored on this browser. Previous save kept in Save vault.';
+  els.saveModal.close();
+  render();
+  recordArcadeProgress();
 }
 
 function recordArcadeProgress(played = false, notify = false) {
@@ -658,6 +826,7 @@ function pop(amount, x, y) {
 }
 
 function chime(frequency, duration) {
+  try {
   audioContext ||= new AudioContext();
   const oscillator = audioContext.createOscillator();
   const gain = audioContext.createGain();
@@ -669,15 +838,22 @@ function chime(frequency, duration) {
   oscillator.connect(gain).connect(audioContext.destination);
   oscillator.start();
   oscillator.stop(audioContext.currentTime + duration);
+  } catch { /* Audio must never prevent a purchase, save, or new cycle. */ }
 }
 
 function loop(now) {
-  const deltaSeconds = Math.min(1, (now - lastTick) / 1000);
+  const deltaSeconds = Math.max(0, Math.min(1, (now - lastTick) / 1000));
   lastTick = now;
+  if (!canPlay()) { requestAnimationFrame(loop); return; }
+  const hadBoost = rageTimer > 0 || corruptionTimer > 0 || flushTimer > 0 || choiceTimer > 0;
   rageTimer = Math.max(0, rageTimer - deltaSeconds);
   corruptionTimer = Math.max(0, corruptionTimer - deltaSeconds);
   flushTimer = Math.max(0, flushTimer - deltaSeconds);
   choiceTimer = Math.max(0, choiceTimer - deltaSeconds);
+  signalTimer = Math.max(0, signalTimer - deltaSeconds);
+  if (hadBoost && rageTimer === 0 && corruptionTimer === 0 && flushTimer === 0 && choiceTimer === 0) {
+    announce('Steady production', 'The event has ended. Your permanent upgrades are still working.');
+  }
   const passive = perSecond() * deltaSeconds;
   if (passive > 0) earn(passive);
   maybeEvent(deltaSeconds);
@@ -686,6 +862,7 @@ function loop(now) {
 }
 
 els.shardButton.addEventListener("click", (event) => {
+  if (!canPlay()) return;
   if (!handsPlayRecorded) {
     handsPlayRecorded = true;
     window.EmeraldArcade?.beginSession("hands", "emerald-hands.html");
@@ -693,7 +870,9 @@ els.shardButton.addEventListener("click", (event) => {
   }
   const amount = perClick();
   earn(amount);
-  pop(amount, event.clientX, event.clientY);
+  const bounds = els.shardButton.getBoundingClientRect();
+  pop(amount, event.detail === 0 ? bounds.left + bounds.width / 2 : event.clientX,
+    event.detail === 0 ? bounds.top + bounds.height / 2 : event.clientY);
   chime(520 + Math.random() * 80, 0.05);
   render();
 });
@@ -712,27 +891,82 @@ for (const choice of els.scrollChoices) {
   choice.addEventListener("click", () => chooseScroll(choice.dataset.scrollChoice));
 }
 
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !els.prestigeModal.hidden) {
-    closePrestigeModal();
-  }
-  if (event.key === "Escape" && !els.scrollModal.hidden) {
-    closeScrollChoice();
-  }
+els.resetButton.addEventListener("click", () => {
+  if (!canPlay() || saveBlocked) return;
+  requestConfirmation('Restart this cycle?', `Lose ${format(state.shards)} unspent shards, this cycle's earned total, and all shop levels. Keep your ${format(state.ogPoints)} OG points, permanent boost, and ${state.lifetimePrestiges} sealed cycles. No prestige reward is awarded.`, 'Restart cycle', () => {
+    Object.assign(state, saveCodec.restart(state));
+    resetEvents();
+    announce('Cycle restarted', 'Your OG points and sealed-cycle records are preserved.');
+    render();
+    saveState();
+  });
 });
 
-els.resetButton.addEventListener("click", () => {
-  const confirmed = confirm("Reset this Emerald Hands run?");
-  if (!confirmed) return;
-  localStorage.removeItem(SAVE_KEY);
-  Object.assign(state, loadState());
-  announce("Fresh Run", "Back to retail. The path to OG is open again.");
-  render();
-  saveState();
+els.buyAmount.addEventListener('change', render);
+window.addEventListener('keydown', event => {
+  const dialog = document.querySelector('dialog[open]');
+  if (!dialog) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    pendingAction = null;
+    dialog.close();
+  } else if (event.key === 'Tab') {
+    const controls = [...dialog.querySelectorAll('button:not([disabled]):not([hidden]), textarea, select, summary')];
+    const first = controls[0], last = controls.at(-1);
+    if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+      event.preventDefault(); last?.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+      event.preventDefault(); first?.focus();
+    }
+  }
+});
+document.querySelector('#journeyAction').addEventListener('click', () => {
+  const target = document.getElementById(saveCodec.objective(state).target);
+  target?.scrollIntoView({block: 'center', behavior: 'smooth'});
+  if (!target?.disabled) target?.focus({preventScroll: true});
+});
+document.querySelector('#confirmAction').addEventListener('click', () => {
+  const action = pendingAction;
+  pendingAction = null;
+  els.confirmModal.close();
+  action?.();
+});
+document.querySelector('#cancelAction').addEventListener('click', () => { pendingAction = null; els.confirmModal.close(); });
+els.confirmModal.addEventListener('cancel', () => { pendingAction = null; });
+els.prestigeModal.addEventListener('close', () => document.body.classList.remove('prestige-open'));
+els.scrollModal.addEventListener('close', () => { scrollChoiceOpen = false; document.body.classList.remove('scroll-open'); });
+document.querySelector('#skipScroll').addEventListener('click', closeScrollChoice);
+document.querySelector('#saveVaultButton').addEventListener('click', () => {
+  pendingRestore = null;
+  els.restoreSave.hidden = true;
+  els.saveCode.value = saveBlocked ? originalSave : JSON.stringify(state);
+  els.savePreview.textContent = saveBlocked ? 'The original unreadable save is preserved here. Copy it before trying a valid backup.' : 'This is your current save code. Copy it to keep a backup.';
+  els.saveModal.showModal();
+});
+document.querySelector('#closeSave').addEventListener('click', () => els.saveModal.close());
+document.querySelector('#copySave').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(els.saveCode.value); els.savePreview.textContent = 'Save code copied. Keep it somewhere safe.'; }
+  catch { els.saveCode.focus(); els.saveCode.select(); els.savePreview.textContent = 'Code selected. Press Ctrl+C (or Copy on your device) to copy it.'; }
+});
+els.saveCode.addEventListener('input', () => { pendingRestore = null; els.restoreSave.hidden = true; els.savePreview.textContent = 'Review this code before restoring.'; });
+document.querySelector('#previewSave').addEventListener('click', reviewBackup);
+els.restoreSave.addEventListener('click', restoreBackup);
+document.querySelector('#previousSave').addEventListener('click', () => {
+  pendingRestore = null;
+  els.restoreSave.hidden = true;
+  try {
+    const previous = localStorage.getItem(RECOVERY_KEY);
+    if (previous === null) { els.savePreview.textContent = 'No previous restore is stored on this browser.'; return; }
+    els.saveCode.value = previous;
+    reviewBackup();
+  } catch { els.savePreview.textContent = 'Browser storage is unavailable.'; }
 });
 
 setInterval(saveState, 2500);
 window.addEventListener("beforeunload", saveState);
+window.addEventListener('pagehide', saveState);
+// The explicitly confirmed arcade-wide erase must not be undone by exit autosave.
+window.addEventListener('emeraldarcade:reset', () => { saveBlocked = true; });
 render();
 recordArcadeProgress();
 requestAnimationFrame(loop);
