@@ -423,3 +423,27 @@ test('Space Unchained defeats a vault core through projectiles and continues to 
   assert.equal(g.read('state.wave'), 3);
   assert.equal(g.read('state.boss.maxHp'), 44);
 });
+
+
+test('Space Unchained clears six projectile-damaged vault nodes and banks Chainbreaker Ace', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  // Seed kill checkpoints, not victories. Every core takes its real full HP
+  // through the shipped projectile collision path; late-game aim is synthetic.
+  for (let node = 1; node <= 6; node++) {
+    g.read('state.kills = state.nextBossKills; spawnEnemy(); state.boss.x = 1000; state.boss.y = 360; updateHud()');
+    assert.equal(g.nodes.get('#coreHealth').hidden, false);
+    const hp = g.read('state.boss.maxHp');
+    assert.equal(g.nodes.get('#coreHealth').value, hp);
+    g.read(`for(let hit=0;hit<${hp};hit++) { bullets.push({x:1000,y:360,vx:0,vy:0,damage:1,life:1}); updateEnemies(0); } updateHud()`);
+    assert.equal(g.read('state.nodesCleared'), node);
+    assert.equal(g.nodes.get('#coreHealth').hidden, true);
+  }
+  assert.equal(g.read('state.wave'), 7);
+  assert.equal(g.nodes.get('#rankProgress').value, 1);
+  g.nodes.get('#finishButton').emit('click'); g.timers[0]();
+  assert.equal(g.records[0][1].rank, 'Chainbreaker Ace');
+  assert.equal(g.records[0][1].nodesCleared, 6);
+  assert.match(g.nodes.get('#overlayText').textContent, /6 vault nodes cleared/);
+  g.start(); assert.equal(g.read('state.nodesCleared'), 0);
+  assert.equal(g.nodes.get('#rankProgress').value, 0);
+});

@@ -15,7 +15,7 @@ This is an in-progress finishing pass, preserving the independent `pepe-space-un
 
 ## Verification
 
-Root smoke and 144 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
+Root smoke and 145 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
 
 Native browser checks used an isolated origin and a 390 x 844 viewport. Launch, keyboard movement, pause/resume, natural loss and replay were exercised. The page was 375 px wide without overflow. An auto-fire run ended naturally at 1,809 points, wave 1, five kills and seven remaining shards. Replay restored shield 100, zero shards and the 16-kill target while retaining the best. Pointer automation at phone dimensions is not a physical-device test. Touch ownership and funded Burst activation are controller fixtures, not a native multitouch demonstration.
 
@@ -24,6 +24,10 @@ Native browser checks used an isolated origin and a 390 x 844 viewport. Launch, 
 The second pass adds controller checks for matching keyboard motion at 30/60/120 Hz, banking once and fresh replay, and a vault-core defeat using actual projectile collision/damage. The boss fixture seeds the 16-kill checkpoint, deals all 39 HP through bullets, awards the normal 2,300 points and ten immediate shards, then reaches the next node at 32 kills. It is a fixture, not a native browser boss win.
 
 The banking control was also exercised natively at 390 x 844: a brief flight banked its actual one-point score, replay retained that best, and pause disabled banking. Page width remained 375 px without overflow. This is a control check, not a high-score playthrough.
+
+A third pass adds a native progress element for active core health and a progress meter for the existing wave-7-or-18,000-point goal. Actual boss defeats increment a per-flight cleared-node count, which appears in results and the shared record payload; replay resets it. Rewards are unchanged.
+
+A six-node fixture seeds successive kill checkpoints and synthetic projectile aim, deals each core its full real HP, reaches wave 7, banks Chainbreaker Ace and verifies six cleared nodes in results. It checks the late-game reward/result/reset path, not player survival or native boss balance. Phone-sized launch, goal meter and banking were rechecked on an isolated origin.
 
 ## Remaining work
 

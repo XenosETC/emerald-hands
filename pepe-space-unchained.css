@@ -183,3 +183,7 @@ canvas { display: block; width: 100%; height: 100%; }
 #finishButton:disabled { opacity: .5; cursor: default; }
 #finishButton:focus-visible { outline: 3px solid white; outline-offset: 3px; }
 @media (max-width: 760px) { #finishButton { width: 100%; } }
+
+#coreHealth { grid-column: 1 / -1; width: 100%; height: 10px; accent-color: #d8b45f; }
+#rankProgress { width: 100%; height: 10px; accent-color: #74ffc5; }
+#coreHealth[hidden] { display: none; }

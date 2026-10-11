@@ -18,6 +18,8 @@ const ui = {
   burst: document.querySelector("#burstButton"),
   finish: document.querySelector("#finishButton"),
   goal: document.querySelector("#flightGoal"),
+  core: document.querySelector("#coreHealth"),
+  rankProgress: document.querySelector("#rankProgress"),
 };
 
 const W = canvas.width;
@@ -80,6 +82,7 @@ const state = {
   shards: 0,
   wave: 1,
   kills: 0,
+  nodesCleared: 0,
   best: readBest(),
   nextBossKills: 16,
   spawnClock: 0,
@@ -132,6 +135,7 @@ function startGame() {
     shards: 0,
     wave: 1,
     kills: 0,
+  nodesCleared: 0,
     nextBossKills: 16,
     spawnClock: 0.2,
     waveClock: 0,
@@ -316,6 +320,7 @@ function killEnemy(e) {
   state.kills += 1;
   state.score += e.boss ? 1400 : 180 + state.wave * 15;
   if (e.boss) {
+    state.nodesCleared += 1;
     state.boss = null;
     state.score += 900;
     state.shards += 10;
@@ -379,6 +384,7 @@ function endGame(reason = "shield") {
     wave: state.wave,
     shards: state.shards,
     kills: state.kills,
+    nodesCleared: state.nodesCleared,
     played: true,
   });
   const thisFlight = flightId;
@@ -386,7 +392,7 @@ function endGame(reason = "shield") {
   window.setTimeout(() => {
     if (flightId !== thisFlight || state.mode !== "gameover") return;
     ui.title.textContent = `${rank} Flight`;
-    ui.text.textContent = `${reason === "bank" ? "Flight banked" : "Shield depleted"} · ${finalScore.toLocaleString()} points - Wave ${state.wave} - ${state.shards} shards - ${state.kills} corrupt ships unchained.`;
+    ui.text.textContent = `${reason === "bank" ? "Flight banked" : "Shield depleted"} · ${finalScore.toLocaleString()} points - Wave ${state.wave} - ${state.shards} shards - ${state.kills} corrupt ships unchained - ${state.nodesCleared} vault nodes cleared.`;
     ui.start.textContent = "Launch Again";
     ui.overlay.classList.remove("is-hidden");
     ui.start.focus();
@@ -583,6 +589,12 @@ function updateHud() {
   ui.meta.textContent = state.boss
     ? `Core ${Math.max(0, state.boss.hp)} / ${state.boss.maxHp} · burst costs 5 shards`
     : `${Math.max(0, state.nextBossKills - state.kills)} kills to next vault node · auto-fire`;
+  ui.core.hidden = !state.boss;
+  ui.core.max = state.boss?.maxHp || 1;
+  ui.core.value = Math.max(0, state.boss?.hp || 0);
+  ui.core.setAttribute("aria-label", state.boss ? `Vault core health ${state.boss.hp} of ${state.boss.maxHp}` : "No active vault core");
+  ui.rankProgress.value = Math.min(1, Math.max(state.score / 18000, (state.wave - 1) / 6));
+  ui.rankProgress.setAttribute("aria-valuetext", `Wave ${state.wave} of 7 or ${Math.floor(state.score)} of 18000 points; ${state.nodesCleared} nodes cleared`);
   ui.finish.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.());
   ui.goal.textContent = rankFor(state.score, state.wave) === "Chainbreaker Ace" ? "Chainbreaker Ace reached. Bank your flight or keep exploring." : "Reach wave 7 or 18,000 points for Chainbreaker Ace. Flight continues until you bank or lose shield.";
   ui.burst.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.()) || state.shards < 5 || player.burstClock > 0;
