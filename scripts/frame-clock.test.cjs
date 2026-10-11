@@ -27,7 +27,7 @@ function game(file) {
       },
       emit(type, details = {}) { for (const listener of listeners.get(type) || []) listener({ target: this, preventDefault() {}, ...details }); },
       setAttribute() {},
-      focus() {}, scrollIntoView() {},
+      focus() { document.activeElement = this; }, scrollIntoView() {},
     };
   }
   const drawing = new Proxy({
@@ -511,4 +511,15 @@ test('Space Unchained a lethal volley rewards one core and preserves the neighbo
   assert.equal(g.read('enemies.length'), 1);
   assert.equal(g.read('enemies[0].hp'), 3);
   assert.equal(g.read('bullets.length'), 4, 'unspent projectiles continue flying');
+});
+
+
+test('Space Unchained Burst returns focus to flight controls for immediate keyboard steering', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  const button = g.nodes.get('#burstButton');
+  button.focus();
+  g.read('state.shards = 5'); button.emit('click');
+  assert.equal(g.read('document.activeElement === canvas'), true);
+  assert.equal(g.read('state.burstsUsed'), 1);
+  assert.equal(g.read('state.shards'), 0);
 });

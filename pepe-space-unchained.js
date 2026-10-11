@@ -696,7 +696,11 @@ canvas.addEventListener("pointerdown", (event) => {
 for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
   canvas.addEventListener(type, (event) => { if (event.pointerId === activePointer) resetInput(); });
 }
-ui.burst.addEventListener("click", () => { burstShot(); updateHud(); });
+ui.burst.addEventListener("click", () => {
+  burstShot();
+  updateHud();
+  if (state.mode === "playing" && !window.EmeraldArcade?.isPaused?.()) canvas.focus({ preventScroll: true });
+});
 ui.finish.addEventListener("click", () => { if (!window.EmeraldArcade?.isPaused?.()) endGame("bank"); });
 
 ui.start.addEventListener("click", startGame);
