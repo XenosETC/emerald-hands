@@ -16,6 +16,8 @@ const ui = {
   marketLabel: document.querySelector("#marketLabel"),
   marketMeta: document.querySelector("#marketMeta"),
   sound: document.querySelector("#soundToggle"),
+  jump: document.querySelector("#jumpButton"),
+  goal: document.querySelector("#runGoal"),
 };
 
 const coinImage = new Image();
@@ -40,6 +42,8 @@ const state = {
   shards: 0,
   combo: 1,
   comboClock: 0,
+  jumpBuffer: 0,
+  peakCombo: 1,
   best: readBest(),
   shake: 0,
   flash: 0,
@@ -161,7 +165,7 @@ function startGame() {
   }
   courseEnd = 760;
   window.EmeraldArcade?.beginSession("pepeRun", "pepecoin-run.html");
-  Object.assign(state, { mode: "running", elapsed: 0, distance: 0, speed: 310, score: 0, shards: 0, combo: 1, comboClock: 0, shake: 0, flash: 0, lastFrame: null });
+  Object.assign(state, { mode: "running", elapsed: 0, distance: 0, speed: 310, score: 0, shards: 0, combo: 1, comboClock: 0, jumpBuffer: 0, peakCombo: 1, shake: 0, flash: 0, lastFrame: null });
   hazards.length = 0;
   emeralds.length = 0;
   particles.length = 0;
@@ -196,7 +200,13 @@ function buildCourse() {
 
 function jump() {
   if (state.mode !== "running") return;
-  if (player.grounded) {
+  state.jumpBuffer = .12;
+  performJump();
+}
+
+function performJump() {
+  if (player.grounded && state.jumpBuffer > 0) {
+    state.jumpBuffer = 0;
     player.vy = -690;
     player.grounded = false;
     tone(420, .07, "triangle");
@@ -217,6 +227,8 @@ function update(dt) {
   state.flash = Math.max(0, state.flash - dt * 3);
 
   const ground = terrainAt(state.distance + player.x) - player.radius;
+  state.jumpBuffer = Math.max(0, state.jumpBuffer - dt);
+  player.grounded = false;
   player.vy += 1750 * dt;
   player.y += player.vy * dt;
   if (player.y >= ground) {
@@ -224,6 +236,7 @@ function update(dt) {
     player.vy = 0;
     player.grounded = true;
   }
+  performJump();
   player.rotation += (state.speed / player.radius) * dt;
 
   for (const shard of emeralds) {
@@ -261,6 +274,7 @@ function collectShard(shard, x, y) {
   shard.collected = true;
   state.shards += 1;
   state.combo = Math.min(8, state.combo + (state.shards % 3 === 0 ? 1 : 0));
+  state.peakCombo = Math.max(state.peakCombo, state.combo);
   state.comboClock = 3.2;
   state.score += 125 * state.combo;
   state.flash = .45;
@@ -279,15 +293,21 @@ function crash(hazard) {
   state.best = Math.max(state.best, finalScore);
   try { localStorage.setItem(STORAGE_KEY, state.best); } catch { /* session best still works */ }
   const rank = rankFor(finalScore);
-  window.EmeraldArcade?.recordAndNotify("pepeRun", { score: finalScore, rank, shards: state.shards, combo: state.combo, played: true });
+  window.EmeraldArcade?.recordAndNotify("pepeRun", { score: finalScore, rank, shards: state.shards, combo: state.peakCombo, played: true });
   window.setTimeout(() => {
     ui.title.textContent = `${rank} Run`;
-    ui.text.textContent = `${finalScore.toLocaleString()} points · ${state.shards} emeralds · ${Math.floor(state.distance / 10)}m ridden. ${terrainIsLive ? "ETC market road conquered." : "Offline road conquered."}`;
+    ui.text.textContent = `${finalScore.toLocaleString()} points · ${state.shards} emeralds · ${Math.floor(state.distance / 10)}m ridden · peak x${state.peakCombo}. ${nextGoal(finalScore)}`;
     ui.start.textContent = "Run It Back";
     ui.overlay.classList.remove("is-hidden");
     updateHud();
     ui.start.focus();
   }, 520);
+}
+
+function nextGoal(score) {
+  const ranks = [[1800, "Shard Hopper"], [4500, "Chart Surfer"], [9000, "Emerald Maxi"], [18000, "Ancient Pepe"]];
+  const next = ranks.find(([target]) => score < target);
+  return next ? `${Math.ceil(next[0] - score).toLocaleString()} points to ${next[1]}.` : "Ancient Pepe reached. Keep riding for a new best.";
 }
 
 function rankFor(score) {
@@ -471,6 +491,8 @@ function updateHud() {
   ui.shards.textContent = state.shards;
   ui.combo.textContent = `x${state.combo}`;
   ui.best.textContent = state.best.toLocaleString();
+  ui.goal.textContent = nextGoal(state.score);
+  ui.jump.disabled = state.mode !== "running" || Boolean(window.EmeraldArcade?.isPaused?.());
 }
 
 function tone(frequency, duration, type) {
@@ -505,6 +527,17 @@ function loop(now) {
 }
 
 ui.start.addEventListener("click", startGame);
+ui.jump.addEventListener("pointerdown", (event) => {
+  if (event.button !== undefined && event.button !== 0) return;
+  event.preventDefault();
+  if (!window.EmeraldArcade?.isPaused?.()) jump();
+});
+ui.jump.addEventListener("click", (event) => {
+  // Pointer activation already jumped; keyboard and assistive clicks use this path.
+  if (event.detail === 0 && !window.EmeraldArcade?.isPaused?.()) jump();
+});
+window.addEventListener("emeraldarcade:pause", () => { state.jumpBuffer = 0; updateHud(); });
+window.addEventListener("blur", () => { state.jumpBuffer = 0; });
 stage.addEventListener("pointerdown", (event) => { if (!event.target.closest("button, a")) action(event); });
 window.addEventListener("keydown", (event) => { if ([" ", "ArrowUp", "w", "W"].includes(event.key)) action(event); });
 ui.sound.addEventListener("click", () => { state.sound = !state.sound; ui.sound.textContent = `Sound: ${state.sound ? "on" : "off"}`; ui.sound.setAttribute("aria-pressed", String(state.sound)); });

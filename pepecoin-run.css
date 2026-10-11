@@ -167,3 +167,10 @@ canvas { display: block; width: 100%; height: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) { .tap-hint.is-visible { animation: none; } }
+
+.run-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px; }
+.run-controls p { margin: 0; color: var(--green-soft); font-size: .85rem; }
+#jumpButton { min-width: 120px; min-height: 52px; padding: 12px 24px; border: 1px solid #9affc9; border-radius: 14px; background: #22d779; color: #001b0c; font-weight: 900; touch-action: none; cursor: pointer; }
+#jumpButton:disabled { opacity: .45; cursor: default; }
+#jumpButton:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+@media (max-width: 760px) { .game-shell { min-height: 0; } .run-controls { flex-direction: column; gap: 10px; } #jumpButton { width: 100%; } }

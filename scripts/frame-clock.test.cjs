@@ -13,6 +13,7 @@ function game(file) {
   const nodes = new Map();
   const drawingCalls = [];
   const sessions = [];
+  const records = [];
   const saves = new Map();
   function node() {
     const listeners = new Map();
@@ -23,7 +24,7 @@ function game(file) {
         if (!listeners.has(type)) listeners.set(type, []);
         listeners.get(type).push(listener);
       },
-      emit(type) { for (const listener of listeners.get(type) || []) listener({ target: this }); },
+      emit(type, details = {}) { for (const listener of listeners.get(type) || []) listener({ target: this, preventDefault() {}, ...details }); },
       setAttribute() {},
       focus() {}, scrollIntoView() {},
     };
@@ -48,7 +49,7 @@ function game(file) {
   });
   const window = Object.assign(node(), {
     setTimeout() {},
-    EmeraldArcade: { beginSession: (...args) => sessions.push(args), recordAndNotify() {} },
+    EmeraldArcade: { beginSession: (...args) => sessions.push(args), recordAndNotify: (...args) => records.push(args) },
   });
   const context = vm.createContext({
     document, window, performance: { now: () => wallTime },
@@ -64,7 +65,7 @@ function game(file) {
   const read = expression => vm.runInContext(expression, context);
   read(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'));
   return {
-    read, nodes, sessions, drawingCalls,
+    read, nodes, sessions, records, drawingCalls,
     start: () => nodes.get('#startButton').emit('click'),
     setWallTime: value => { wallTime = value; },
     pending: () => frames.size,
@@ -196,4 +197,53 @@ test('Emerald Run ignores paused jumps and repeat keys', () => {
   assert.equal(g.read('player.grounded'), true);
   g.read('action({preventDefault(){}})');
   assert.equal(g.read('player.grounded'), false);
+});
+
+
+test('Emerald Run remembers a near-landing tap but never a stale airborne jump', () => {
+  const g = game('pepecoin-run.js'); g.start();
+  g.read('player.grounded = false; player.y = terrainAt(player.x) - player.radius - 1; player.vy = 100; jump(); update(.016)');
+  assert.equal(g.read('player.vy'), -690);
+  assert.equal(g.read('state.jumpBuffer'), 0);
+  g.read('player.y = 0; player.vy = 0; player.grounded = false; jump(); update(.032); update(.032); update(.032); update(.032)');
+  assert.equal(g.read('state.jumpBuffer'), 0);
+  g.read('player.y = terrainAt(state.distance + player.x) - player.radius; player.vy = 100; update(0)');
+  assert.equal(g.read('player.grounded'), true);
+});
+
+test('Emerald Run records peak combo even after it expires and exposes rank targets', () => {
+  const g = game('pepecoin-run.js'); g.start();
+  g.read('state.shards = 14; state.combo = 5; collectShard({}, 0, 0); state.comboClock = 0; update(0)');
+  assert.equal(g.read('state.combo'), 1);
+  assert.equal(g.read('state.peakCombo'), 6);
+  assert.match(g.read('nextGoal(1800)'), /Chart Surfer/);
+  assert.match(g.read('nextGoal(18000)'), /Ancient Pepe reached/);
+  g.read('crash({})');
+  assert.equal(g.records[0][1].combo, 6);
+  g.start();
+  assert.equal(g.read('state.peakCombo'), 1);
+});
+
+
+test('Emerald Run jump button handles pointer and keyboard activation once and clears queued input on pause', () => {
+  const g = game('pepecoin-run.js'); g.start();
+  const jump = g.nodes.get('#jumpButton');
+  jump.emit('pointerdown', { button: 0 });
+  assert.equal(g.read('player.vy'), -690);
+  jump.emit('click', { detail: 1 });
+  assert.equal(g.read('state.jumpBuffer'), 0, 'pointer click must not queue a second jump');
+  jump.emit('click', { detail: 0 });
+  assert.equal(g.read('state.jumpBuffer'), .12, 'keyboard activation queues near landing');
+  g.read('window.EmeraldArcade.isPaused = () => true');
+  g.read('window.emit("emeraldarcade:pause")');
+  assert.equal(g.read('state.jumpBuffer'), 0);
+  assert.equal(jump.disabled, true);
+});
+
+test('Emerald Run loses grounded state while dropping onto a lower road', () => {
+  const g = game('pepecoin-run.js'); g.start();
+  g.read('player.y = 0; player.vy = 0; player.grounded = true; update(.016)');
+  assert.equal(g.read('player.grounded'), false);
+  g.read('jump()');
+  assert.ok(g.read('player.vy') > 0, 'a falling coin cannot jump before landing');
 });
