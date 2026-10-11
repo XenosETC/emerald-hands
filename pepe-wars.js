@@ -112,6 +112,7 @@
   }
 
   function resetGame() {
+    if (window.EmeraldArcade?.isPaused?.()) return;
     window.EmeraldArcade?.beginSession("pepeWars", "pepe-wars.html");
     cancelAnimationFrame(raf);
     friendlies.length = 0;
@@ -138,6 +139,8 @@
     statusLabel.textContent = "Train miners, then send fighters.";
     statusMeta.textContent = "Destroy the corrupt relic base before yours falls.";
     last = null;
+    updateHud();
+    canvas.focus();
     raf = requestAnimationFrame(loop);
   }
 
@@ -216,6 +219,7 @@
     spawnUnit(type, "friendly");
     statusLabel.textContent = `${spec.name} trained`;
     statusMeta.textContent = type === "miner" ? "miner heading to a shard deposit" : "Pepe army moving out";
+    updateHud();
   }
 
   function claimDeposit(unit) {
@@ -299,7 +303,8 @@
     state.stance = stance;
     stanceButtons.forEach((button) => button.classList.toggle("is-selected", button.dataset.stance === stance));
     statusLabel.textContent = `${stance[0].toUpperCase()}${stance.slice(1)} stance`;
-    statusMeta.textContent = stance === "attack" ? "army pushes the corrupt base" : stance === "hold" ? "army holds the center line" : "army defends your relic base";
+    statusMeta.textContent = stance === "attack" ? "army pushes the corrupt base" : stance === "hold" ? "army returns to the center line" : "army returns to defend your relic base";
+    updateHud();
   }
 
   function targetFor(unit) {
@@ -337,6 +342,12 @@
         continue;
       }
 
+      const fallback = lineLimit(unit);
+      if (unit.side === "friendly" && state.stance !== "attack" && unit.x > fallback) {
+        unit.action = "run";
+        unit.x = Math.max(fallback, unit.x - unit.speed * dt);
+        continue;
+      }
       const target = targetFor(unit);
       const baseX = unit.side === "friendly" ? 1195 : 85;
       const enemyBaseDistance = distance(unit.x, baseX);
@@ -357,7 +368,7 @@
         const canMove = unit.side === "enemy" || (dir > 0 ? unit.x < limit : unit.x > limit);
         if (canMove) {
           unit.action = "run";
-          unit.x += dir * unit.speed * dt;
+          unit.x = unit.side === "friendly" ? Math.min(limit, unit.x + unit.speed * dt) : unit.x + dir * unit.speed * dt;
           if (Math.random() < dt * 2.6) {
             dust.push({
               x: unit.x - dir * 18,
@@ -492,6 +503,12 @@
     scoreLabel.textContent = format(state.score);
     timeLabel.textContent = formatTime(state.elapsed);
     bestLabel.textContent = format(state.best);
+    const paused = Boolean(window.EmeraldArcade?.isPaused?.());
+    unitButtons.forEach(button => { button.disabled = !state.playing || paused || state.shards < unitTypes[button.dataset.unit].cost; });
+    stanceButtons.forEach(button => {
+      button.disabled = !state.playing || paused;
+      button.setAttribute("aria-pressed", String(button.dataset.stance === state.stance));
+    });
   }
 
   function drawBackground() {
@@ -710,6 +727,7 @@
     raf = requestAnimationFrame(loop);
   }
 
+  window.addEventListener("emeraldarcade:pause", updateHud);
   unitButtons.forEach((button) => button.addEventListener("click", () => train(button.dataset.unit)));
   stanceButtons.forEach((button) => button.addEventListener("click", () => setStance(button.dataset.stance)));
   startButton.addEventListener("click", resetGame);

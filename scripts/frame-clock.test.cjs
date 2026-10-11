@@ -793,3 +793,19 @@ test('Pepe Wars paused or post-result training cannot spend or relaunch', () => 
   assert.equal(g.records.length,1);
   assert.equal(g.read('window.__warsRead("state.playing")'),false);
 });
+
+
+test('Pepe Wars hold and defend return advanced fighters to their commanded line', () => {
+  const g = game('pepe-wars.js'); g.start();
+  g.read('window.__warsRead("spawnUnit(String.fromCharCode(98,114,97,119,108,101,114)); friendlies[0].x=900; setStance(String.fromCharCode(104,111,108,100)); for(let i=0;i<300;i++) updateUnits(1/30)")');
+  assert.equal(g.read('window.__warsRead("friendlies[0].x")'),650);
+  g.read('window.__warsRead("setStance(String.fromCharCode(100,101,102,101,110,100)); for(let i=0;i<300;i++) updateUnits(1/30)")');
+  assert.equal(g.read('window.__warsRead("friendlies[0].x")'),330);
+});
+
+test('Pepe Wars miners retain their gathering job under defensive stances', () => {
+  const g = game('pepe-wars.js'); g.start();
+  g.read('window.__warsRead("train(String.fromCharCode(109,105,110,101,114)); setStance(String.fromCharCode(100,101,102,101,110,100)); friendlies[0].x=438; friendlies[0].assignedDeposit=String.fromCharCode(100,101,101,112); friendlies[0].gatherTimer=0; updateUnits(0)")');
+  assert.equal(g.read('window.__warsRead("state.shards")'),75);
+  assert.equal(g.read('window.__warsRead("friendlies[0].action")'),'gather');
+});
