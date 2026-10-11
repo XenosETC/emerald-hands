@@ -931,3 +931,22 @@ test('Paradox pause clears movement and rejects queued jump and dash', () => {
   assert.equal(g.read('window.__paradoxRead("player.dash")'),0);
   assert.equal(g.read('window.__paradoxRead("player.grounded")'),true);
 });
+
+
+test('Paradox falls return to safe landed ground without losing collected items', () => {
+  const g=game('pepes-paradox.js');g.start();
+  g.read('window.__paradoxRead("player.x=1200; player.y=411; player.vy=0; update(0); player.shards=3; shards[0].got=true; player.x=1600; player.y=900; player.vx=300; player.dash=.2; update(0)")');
+  assert.equal(g.read('window.__paradoxRead("player.x")'),1200);
+  assert.equal(g.read('window.__paradoxRead("player.y")'),411);
+  assert.equal(g.read('window.__paradoxRead("player.shards")'),3);
+  assert.equal(g.read('window.__paradoxRead("shards[0].got")'),true);
+  assert.equal(g.read('window.__paradoxRead("player.dash")'),0);
+  assert.match(g.nodes.get('#recoveryStatus').textContent,/fall 1/);
+});
+
+test('Paradox chooses the highest crossed platform when a fall crosses multiple surfaces', () => {
+  const g=game('pepes-paradox.js');g.start();
+  g.read('window.__paradoxRead("player.x=750; player.y=250; player.vy=5000; update(.033)")');
+  assert.equal(g.read('window.__paradoxRead("player.y")'),316);
+  assert.equal(g.read('window.__paradoxRead("player.grounded")'),true);
+});

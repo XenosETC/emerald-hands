@@ -7,6 +7,7 @@
     dialogue: document.querySelector("#dialogue"), next: document.querySelector("#dialogueNext"),
     text: document.querySelector("#dialogueText"), name: document.querySelector("#speakerName"),
     portrait: document.querySelector("#speakerPortrait"), sound: document.querySelector("#soundToggle"),
+    recovery: document.querySelector("#recoveryStatus"),
     shards: document.querySelector("#shardCount"), relics: document.querySelector("#relicCount"), frogs: document.querySelector("#frogCount"),
   };
   const loadImage = (src) => { const image = new Image(); image.src = src; return image; };
@@ -39,6 +40,8 @@
     {name:"Fallen Pepe", text:"You'll never get Pepina back! LMAOOOOOO.", portrait:"assets/pepe-relic-rumble/fallen-special.png"},
     {name:"Fallen Pepe", text:"Finish the stage if you want the next clue. Try not to rage quit, hero.", portrait:"assets/pepe-relic-rumble/fallen-walk.png"},
   ];
+  let checkpoint = {x:180,y:FLOOR-154};
+  let falls = 0;
   const originalWisps = wisps.map(w => ({...w}));
   let audio;
   function clearInput(){keys.clear();player.vx=0;player.dash=0;}
@@ -50,6 +53,7 @@
   function start(){
     if(window.EmeraldArcade?.isPaused?.() || ["playing","cutscene","escape"].includes(state.mode)) return;
     clearInput(); particles.length=0;
+    checkpoint={x:180,y:FLOOR-154};falls=0;ui.recovery.textContent="Falls return you to your last safe footing. Collected items stay collected.";
     wisps.forEach((w,i)=>Object.assign(w,originalWisps[i]));
     for(const p of platforms) if(p.moving){p.x=p.baseX+Math.sin(p.phase)*p.amplitude;p.dx=0;}
     Object.assign(rival,{x:2740,y:FLOOR-165,alpha:0});
@@ -78,8 +82,15 @@
     player.dash=Math.max(0,player.dash-dt);if(!player.dash)player.vx+=(move*390-player.vx)*Math.min(1,dt*11);if(move)player.facing=move;
     let carried=0;for(const p of platforms){if(!p.moving)continue;const oldX=p.x;p.x=p.baseX+Math.sin(state.time*p.speed+p.phase)*p.amplitude;p.dx=p.x-oldX;if(player.grounded&&Math.abs(player.y+player.h-p.y)<4&&player.x+player.w>oldX&&player.x<oldX+p.w)carried=p.dx;}
     player.vy+=1850*dt; const oldBottom=player.y+player.h;player.x=Math.max(0,Math.min(WORLD_W-player.w,player.x+player.vx*dt+carried));player.y+=player.vy*dt;player.grounded=false;
-    for(const p of platforms){if(player.x+player.w>p.x&&player.x<p.x+p.w&&oldBottom<=p.y+12&&player.y+player.h>=p.y&&player.vy>=0){player.y=p.y-player.h;player.vy=0;player.grounded=true;}}
-    if(player.y>H+100){player.x=Math.max(120,player.x-360);player.y=200;player.vy=0;tone(90,.25,"sawtooth");}
+    let landing=null;
+    for(const p of platforms){
+      if(player.x+player.w>p.x&&player.x<p.x+p.w&&oldBottom<=p.y+12&&player.y+player.h>=p.y&&player.vy>=0&&(!landing||p.y<landing.y))landing=p;
+    }
+    if(landing){
+      player.y=landing.y-player.h;player.vy=0;player.grounded=true;
+      if(!landing.moving)checkpoint={x:Math.max(landing.x+12,Math.min(landing.x+landing.w-player.w-12,player.x)),y:landing.y-player.h};
+    }
+    if(player.y>H+100){clearInput();Object.assign(player,{x:checkpoint.x,y:checkpoint.y,vy:0,grounded:true});falls++;ui.recovery.textContent=`Recovered from fall ${falls}. Your collected items are safe.`;tone(90,.25,"sawtooth");}
     for(const item of shards) collect(item,player.x+52,player.y+70,26,"shards");for(const item of relics) collect(item,player.x+52,player.y+70,34,"relics");for(const item of frogs) collect(item,player.x+52,player.y+70,38,"frogs");
     for(const w of wisps){const dx=player.x+52-w.x,dy=player.y+80-w.y;if(Math.hypot(dx,dy)<w.r+36){player.vx=-player.facing*380;player.vy=-390;w.x+=player.facing*150;tone(105,.18,"square",.03);}}
     if(!state.tauntDone&&player.x>2180)beginTaunt();if(player.x>5100)finish();
