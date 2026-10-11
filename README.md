@@ -6,7 +6,7 @@ Open `index.html` for the ETC Mini Games Lab hub. `emerald-hands.html` opens the
 
 ## Finishing the collection — oldest first
 
-Work now follows the [oldest-to-newest finishing queue](ARCADE_FINISHING.md): Emerald Hands, Shard Rush, then Emerald Galactic Heroes. Emerald Hands has a finishing candidate with guided objectives, bulk buying, protected cycle restarts, save backup/recovery, a cycle journal, and completion at its existing Emerald Sovereign rank. See [EMERALD_HANDS.md](EMERALD_HANDS.md) for behavior and verification. Local checks do not replace human balance, physical-device, hosted-release or asset-rights gates.
+Work now follows the [oldest-to-newest finishing queue](ARCADE_FINISHING.md): The first five games now have documented local finishing candidates; Pepe: Space Unchained is next. Emerald Hands has a finishing candidate with guided objectives, bulk buying, protected cycle restarts, save backup/recovery, a cycle journal, and completion at its existing Emerald Sovereign rank. See [EMERALD_HANDS.md](EMERALD_HANDS.md) for behavior and verification. Local checks do not replace human balance, physical-device, hosted-release or asset-rights gates.
 
 ## Browser game release — October 5, 2026
 
@@ -122,6 +122,10 @@ Current roster identities:
 - `Berserk Pepe`: unchained emerald-fury bruiser.
 
 All fighters currently share the same combat statistics. Character-specific move balance remains gated on real playtesting.
+
+## PepeCoin Emerald Run
+
+See [PEPECOIN_RUN.md](PEPECOIN_RUN.md) for the runner finishing pass: phone Jump controls, rank guidance, peak-combo records, stable per-run terrain and maximum-speed spike spacing. Five-minute progression checks are controller fixtures; physical-device comfort and curved-road human balance remain open.
 
 ## Concept
 

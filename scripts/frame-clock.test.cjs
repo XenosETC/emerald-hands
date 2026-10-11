@@ -14,6 +14,7 @@ function game(file) {
   const drawingCalls = [];
   const sessions = [];
   const records = [];
+  const timers = [];
   const saves = new Map();
   function node() {
     const listeners = new Map();
@@ -48,7 +49,7 @@ function game(file) {
     querySelectorAll: () => [],
   });
   const window = Object.assign(node(), {
-    setTimeout() {},
+    setTimeout(callback) { timers.push(callback); },
     EmeraldArcade: { beginSession: (...args) => sessions.push(args), recordAndNotify: (...args) => records.push(args) },
   });
   const context = vm.createContext({
@@ -65,7 +66,7 @@ function game(file) {
   const read = expression => vm.runInContext(expression, context);
   read(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'));
   return {
-    read, nodes, sessions, records, drawingCalls,
+    read, nodes, sessions, records, timers, drawingCalls,
     start: () => nodes.get('#startButton').emit('click'),
     setWallTime: value => { wallTime = value; },
     pending: () => frames.size,
@@ -246,4 +247,61 @@ test('Emerald Run loses grounded state while dropping onto a lower road', () => 
   assert.equal(g.read('player.grounded'), false);
   g.read('jump()');
   assert.ok(g.read('player.vy') > 0, 'a falling coin cannot jump before landing');
+});
+
+
+for (const random of [0, .5]) test(`Emerald Run sustains five minutes of timed jumps at random=${random}`, () => {
+  const g = game('pepecoin-run.js');
+  g.read('applyMarketSeries([20, 20], false, "flat fixture")');
+  g.read(`Math.random = () => ${random}`);
+  g.start();
+  // Synthetic timing player: it reads the actual next spike, never removes
+  // hazards or bypasses collisions. Flat terrain isolates maximum-speed spacing.
+  g.read(`for (let tick = 0; tick < 18000 && state.mode === "running"; tick++) {
+    const next = hazards.find(h => h.x > state.distance + player.x - 30);
+    if (next && player.grounded && next.x - state.distance - player.x < state.speed * .32) jump();
+    update(1 / 60);
+  }`);
+  assert.equal(g.read('state.mode'), 'running', g.read('JSON.stringify({elapsed:state.elapsed, distance:state.distance, speed:state.speed, player, hit:hazards.find(h=>h.hit)})'));
+  assert.ok(g.read('state.elapsed') > 299);
+  assert.equal(g.read('state.speed'), 570);
+  assert.ok(g.read('state.score') >= 18000);
+  assert.ok(g.read('hazards.length') < 40);
+  assert.ok(g.read('emeralds.length') < 100);
+  g.read('crash({})');
+  assert.equal(g.records[0][1].rank, 'Ancient Pepe');
+});
+
+
+test('Emerald Run rejects corrupt market tapes and copies accepted data', () => {
+  const g = game('pepecoin-run.js');
+  const ground = g.read('terrainAt(245)');
+  for (const tape of ['[]', '[1, null]', '[1, NaN]', '[0, 1]', '[1, -1]', '[1, "2"]']) {
+    assert.equal(g.read(`applyMarketSeries(${tape}, true, "corrupt")`), false);
+    assert.equal(g.read('terrainAt(245)'), ground);
+  }
+  g.read('var tape = [10, 20, 15]; applyMarketSeries(tape, true, "fixture"); tape[0] = NaN');
+  assert.ok(Number.isFinite(g.read('terrainAt(245)')));
+});
+
+test('Emerald Run stale result and hint timers cannot affect a new run', () => {
+  const g = game('pepecoin-run.js'); g.start();
+  const oldHint = g.timers[0];
+  g.read('state.score = 2000; crash({})');
+  const oldResult = g.timers[1];
+  g.start();
+  oldHint(); oldResult();
+  assert.equal(g.read('state.mode'), 'running');
+  assert.notEqual(g.nodes.get('#overlayTitle').textContent, 'Shard Hopper Run');
+  assert.equal(g.records.length, 1);
+});
+
+test('Emerald Run blocked best-score storage does not interrupt result or replay', () => {
+  const g = game('pepecoin-run.js'); g.start();
+  g.read('localStorage.setItem = () => { throw new Error("blocked"); }; state.score = 4500; crash({})');
+  g.timers[1]();
+  assert.equal(g.nodes.get('#overlayTitle').textContent, 'Chart Surfer Run');
+  assert.equal(g.read('state.best'), 4500);
+  assert.equal(g.records.length, 1);
+  g.start(); assert.equal(g.read('state.best'), 4500);
 });

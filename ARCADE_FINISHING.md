@@ -8,7 +8,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 2 | Shard Rush | June 29, 2026 · `1826d75` | [Finishing candidate](SHARD_RUSH.md); Classic/Daily, guide and retry advice |
 | 3 | Emerald Galactic Heroes | June 29, 2026 · `9b6401b` | [Finishing candidate](GALACTIC_HEROES.md); flight/results, combat and input repairs |
 | 4 | Pepe Relic Rumble | July 10, 2026 · `3853947` | [Finishing candidate](RELIC_RUMBLE.md); fair draws, tournament/replay and input |
-| 5 | PepeCoin Emerald Run | July 12, 2026 · `7afc074` | [In progress](PEPECOIN_RUN.md); course continuity, phone Jump control and rank guidance |
+| 5 | PepeCoin Emerald Run | July 12, 2026 · `7afc074` | [Finishing candidate](PEPECOIN_RUN.md); jump controls, rank goals and max-speed spacing |
 | 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | Queued |
 | 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 8 | Pepe Wars | July 14, 2026 · `0e9cec9` | Same-commit cohort |
@@ -32,6 +32,6 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 
 “Finishing candidate” means the implemented loop passed its documented local checks. Physical-device comfort, human pacing, hosted behavior and asset rights for commercial release remain separate gates before calling a game fully release-ready. Native Unreal/Godot projects are outside this browser-game queue.
 
-## Next: PepeCoin Emerald Run
+## Next: Pepe: Space Unchained
 
-The runner now has phone-sized launch/jump/pause/loss/replay checks, a landing buffer and rank guidance. Continue sustained human jump timing and high-rank pacing before advancing to Space Unchained. The native Rumble projects remain separate. Physical-device, human pacing and hosted-release checks stay open for the first four finishing candidates.
+Review Space Unchained's launch, flight controls, objectives, loss/replay and saved records. Emerald Run has phone-sized loop checks and five-minute spacing/progression fixtures. Human balance, physical-device comfort and hosted-release checks remain open for the first five finishing candidates.

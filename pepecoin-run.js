@@ -53,9 +53,13 @@ const state = {
 
 let audioContext;
 let terrainSource = createFallbackSeries();
+let terrainMin = Math.min(...terrainSource);
+let terrainSpan = Math.max(.001, Math.max(...terrainSource) - terrainMin);
 let terrainIsLive = false;
 let pendingMarket = null;
 let courseEnd = 760;
+let lastHazardX = -Infinity;
+let runId = 0;
 let marketPrice = null;
 let marketChange = null;
 let marketHudClock = 0;
@@ -77,7 +81,7 @@ async function loadEtcTerrain() {
   const cacheKey = "etc-road-cache-v1";
   try {
     const cached = JSON.parse(localStorage.getItem(cacheKey));
-    if (cached?.at > Date.now() - 30 * 60 * 1000 && cached.prices?.length > 24) {
+    if (cached?.at > Date.now() - 30 * 60 * 1000 && validMarketSeries(cached.prices) && cached.prices.length >= 24) {
       applyMarketSeries(cached.prices, true, "cached market tape");
       return;
     }
@@ -88,20 +92,27 @@ async function loadEtcTerrain() {
     if (!response.ok) throw new Error(`Market response ${response.status}`);
     const body = await response.json();
     const prices = body.prices?.map((point) => Number(point[1])).filter(Number.isFinite);
-    if (!prices || prices.length < 24) throw new Error("Not enough market points");
-    localStorage.setItem(cacheKey, JSON.stringify({ at: Date.now(), prices }));
+    if (!validMarketSeries(prices) || prices.length < 24) throw new Error("Not enough market points");
+    try { localStorage.setItem(cacheKey, JSON.stringify({ at: Date.now(), prices })); } catch { /* usable data does not depend on cache writes */ }
     applyMarketSeries(prices, true, "recent 24h price tape");
   } catch {
     applyMarketSeries(terrainSource, false, "offline market simulation");
   }
 }
 
+function validMarketSeries(prices) {
+  return Array.isArray(prices) && prices.length >= 2 && prices.length <= 10000 && prices.every(value => Number.isFinite(value) && value > 0);
+}
+
 function applyMarketSeries(prices, isLive, meta) {
+  if (!validMarketSeries(prices)) return false;
   if (state.mode === "running") {
     pendingMarket = { prices, isLive, meta };
     return;
   }
-  terrainSource = prices;
+  terrainSource = prices.slice();
+  terrainMin = Math.min(...terrainSource);
+  terrainSpan = Math.max(.001, Math.max(...terrainSource) - terrainMin);
   terrainIsLive = isLive;
   marketPrice = isLive ? prices[prices.length - 1] : null;
   marketChange = isLive && prices[0]
@@ -121,11 +132,8 @@ function terrainAt(worldX) {
   const i = Math.floor(sample) % terrainSource.length;
   const next = (i + 1) % terrainSource.length;
   const t = sample - Math.floor(sample);
-  const min = Math.min(...terrainSource);
-  const max = Math.max(...terrainSource);
-  const span = Math.max(0.001, max - min);
-  const a = (terrainSource[i] - min) / span;
-  const b = (terrainSource[next] - min) / span;
+  const a = (terrainSource[i] - terrainMin) / terrainSpan;
+  const b = (terrainSource[next] - terrainMin) / terrainSpan;
   const smooth = t * t * (3 - 2 * t);
   return 520 - (a + (b - a) * smooth) * 170;
 }
@@ -164,6 +172,8 @@ function startGame() {
     applyMarketSeries(next.prices, next.isLive, next.meta);
   }
   courseEnd = 760;
+  lastHazardX = -Infinity;
+  const thisRun = ++runId;
   window.EmeraldArcade?.beginSession("pepeRun", "pepecoin-run.html");
   Object.assign(state, { mode: "running", elapsed: 0, distance: 0, speed: 310, score: 0, shards: 0, combo: 1, comboClock: 0, jumpBuffer: 0, peakCombo: 1, shake: 0, flash: 0, lastFrame: null });
   hazards.length = 0;
@@ -177,7 +187,7 @@ function startGame() {
   updateMarketPlayback(0, true);
   ui.overlay.classList.add("is-hidden");
   ui.hint.classList.add("is-visible");
-  window.setTimeout(() => ui.hint.classList.remove("is-visible"), 2100);
+  window.setTimeout(() => { if (runId === thisRun) ui.hint.classList.remove("is-visible"); }, 2100);
   updateHud();
   canvas.focus();
   tone(280, .05, "sine");
@@ -187,7 +197,10 @@ function buildCourse() {
   const horizon = state.distance + 9000;
   for (; courseEnd < horizon; courseEnd += 310 + Math.random() * 270) {
     const worldX = courseEnd;
-    if (Math.random() < .68) {
+    // At 570 units/s, the 690 / 1750 jump takes ~450 units to land.
+    // Reserve another 100 units for a fresh tap before the next spike.
+    if (Math.random() < .68 && worldX - lastHazardX >= 550) {
+      lastHazardX = worldX;
       hazards.push({ x: worldX, width: 42 + Math.random() * 26, height: 52 + Math.random() * 34, hit: false });
     }
     const count = 1 + Math.floor(Math.random() * 3);
@@ -294,7 +307,9 @@ function crash(hazard) {
   try { localStorage.setItem(STORAGE_KEY, state.best); } catch { /* session best still works */ }
   const rank = rankFor(finalScore);
   window.EmeraldArcade?.recordAndNotify("pepeRun", { score: finalScore, rank, shards: state.shards, combo: state.peakCombo, played: true });
+  const thisRun = runId;
   window.setTimeout(() => {
+    if (runId !== thisRun || state.mode !== "gameover") return;
     ui.title.textContent = `${rank} Run`;
     ui.text.textContent = `${finalScore.toLocaleString()} points · ${state.shards} emeralds · ${Math.floor(state.distance / 10)}m ridden · peak x${state.peakCombo}. ${nextGoal(finalScore)}`;
     ui.start.textContent = "Run It Back";
