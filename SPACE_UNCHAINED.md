@@ -1,6 +1,6 @@
 # Pepe: Space Unchained development pass — October 11, 2026
 
-This is an in-progress finishing pass, preserving the independent `pepe-space-unchained-best-v1` best score, endless shooter, auto-fire, rank thresholds and existing burst damage/cost/cooldown.
+This is a local finishing candidate, preserving the independent `pepe-space-unchained-best-v1` best score, endless shooter, auto-fire, rank thresholds and existing burst damage/cost/cooldown.
 
 ## Changes
 
@@ -15,7 +15,7 @@ This is an in-progress finishing pass, preserving the independent `pepe-space-un
 
 ## Verification
 
-Root smoke and 156 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
+Root smoke and 158 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
 
 Native browser checks used an isolated origin and a 390 x 844 viewport. Launch, keyboard movement, pause/resume, natural loss and replay were exercised. The page was 375 px wide without overflow. An auto-fire run ended naturally at 1,809 points, wave 1, five kills and seven remaining shards. Replay restored shield 100, zero shards and the 16-kill target while retaining the best. Pointer automation at phone dimensions is not a physical-device test. Touch ownership and funded Burst activation are controller fixtures, not a native multitouch demonstration.
 
@@ -51,6 +51,8 @@ Shield repair development: a visible Repair button trades ten flight shards for 
 
 Controller fixtures cover capped healing, exact cost, cooldown blocking, pause, insufficient funds, no revival and replay reset. Native phone-sized launch/banking verifies the new control and report fit a 390 px viewport with a 375 px page and no overflow. Funded repair activation is fixture evidence; physical-device use and survival balance are not yet verified. [Phone control evidence](docs/space-unchained-development-2026-10-11/repair-controls-phone.png)
 
-## Remaining work
+Keyboard repair access: E invokes the same shard-funded repair action as the button. Held/repeated keydown, pause, modifier keys and focused controls cannot trigger repairs. The normal simulation update expires the cooldown and re-enables the repair control. Controller fixtures verify this without bypassing the update path. The existing repair balance values remain provisional.
 
-Continue actual vault-node fights and later-wave/rank progression, sustained steering and human balance before marking this game as a finishing candidate. Physical touch comfort and hosted behavior remain separate release gates. The touch-steering change is deliberate: dragging should not spend five shards merely to reposition the fighter.
+## Remaining release gates
+
+The implemented loop passes its documented local checks: launch, control ownership, combat/progression fixtures, fatal loss, voluntary banking, records and replay. Native boss-run survival, later-wave pacing, sustained steering and human balance still require playtesting before calling it fully release-ready. Physical touch comfort and hosted behavior remain separate release gates. The touch-steering change is deliberate: dragging should not spend five shards merely to reposition the fighter.

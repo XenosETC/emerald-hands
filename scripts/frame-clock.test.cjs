@@ -573,3 +573,31 @@ test('Space Unchained cannot repair a lost flight or buy a repair without enough
   assert.equal(g.read('state.shards'), 20);
   assert.equal(g.read('state.repairsUsed'), 0);
 });
+
+
+test('Space Unchained E repairs once and ignores repeat, paused and focused-control keys', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('player.shield=25; state.shards=40; window.emit("keydown",{code:"KeyE",target:canvas})');
+  assert.equal(g.read('player.shield'), 50);
+  assert.equal(g.read('state.shards'), 30);
+  g.read('player.repairClock=0; window.emit("keydown",{code:"KeyE",repeat:true,target:canvas})');
+  assert.equal(g.read('state.repairsUsed'), 1);
+  g.read('window.EmeraldArcade.isPaused=()=>true; window.emit("keydown",{code:"KeyE",target:canvas})');
+  assert.equal(g.read('state.repairsUsed'), 1);
+  g.read('window.EmeraldArcade.isPaused=()=>false; window.emit("keydown",{code:"KeyE",target:{closest:()=>true}})');
+  assert.equal(g.read('state.repairsUsed'), 1);
+});
+
+test('Space Unchained repair cooldown expires through actual simulation updates', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  // Isolate the cooldown from enemy damage; use the real update path.
+  g.read('state.spawnClock=1000; player.shield=50; state.shards=30; repairShield(); for(let i=0;i<240;i++) update(1/30)');
+  assert.ok(g.read('player.repairClock') < .000001);
+  // One further frame removes floating-point remainder, enabling the UI.
+  g.read('update(1/30)');
+  assert.equal(g.nodes.get('#repairButton').disabled, false);
+  g.nodes.get('#repairButton').emit('click');
+  assert.equal(g.read('player.shield'), 100);
+  assert.equal(g.read('state.shards'), 10);
+  assert.equal(g.read('state.repairsUsed'), 2);
+});

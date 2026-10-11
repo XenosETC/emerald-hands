@@ -9,7 +9,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 3 | Emerald Galactic Heroes | June 29, 2026 · `9b6401b` | [Finishing candidate](GALACTIC_HEROES.md); flight/results, combat and input repairs |
 | 4 | Pepe Relic Rumble | July 10, 2026 · `3853947` | [Finishing candidate](RELIC_RUMBLE.md); fair draws, tournament/replay and input |
 | 5 | PepeCoin Emerald Run | July 12, 2026 · `7afc074` | [Finishing candidate](PEPECOIN_RUN.md); jump controls, rank goals and max-speed spacing |
-| 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | [In progress](SPACE_UNCHAINED.md); boss combat fixtures, bankable flights and consistent steering |
+| 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | [Finishing candidate](SPACE_UNCHAINED.md); combat/progression fixtures, banking and burst/repair choices |
 | 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 8 | Pepe Wars | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 9 | Pepe's Paradox | July 14, 2026 · `0e9cec9` | Same-commit cohort |
@@ -32,6 +32,6 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 
 “Finishing candidate” means the implemented loop passed its documented local checks. Physical-device comfort, human pacing, hosted behavior and asset rights for commercial release remain separate gates before calling a game fully release-ready. Native Unreal/Godot projects are outside this browser-game queue.
 
-## Next: Pepe: Space Unchained
+## Next: Pepe Tower Defense
 
-Review Space Unchained's launch, flight controls, objectives, loss/replay and saved records. Emerald Run has phone-sized loop checks and five-minute spacing/progression fixtures. Human balance, physical-device comfort and hosted-release checks remain open for the first five finishing candidates.
+Review Tower Defense's placement, upgrade/sell controls, waves, win/loss, replay and saved records. The first six games have documented local finishing candidates. Native boss-run balance and physical touch comfort remain open for Space Unchained; local completion does not claim hosted or commercial readiness.

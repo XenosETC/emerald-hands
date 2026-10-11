@@ -668,7 +668,7 @@ function updateHud() {
   ui.rankProgress.value = Math.min(1, Math.max(state.score / 18000, (state.wave - 1) / 6));
   ui.rankProgress.setAttribute("aria-valuetext", `Wave ${state.wave} of 7 or ${Math.floor(state.score)} of 18000 points; ${state.nodesCleared} nodes cleared`);
   ui.repair.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.()) || player.shield >= 100 || player.repairClock > 0 || state.shards < 10;
-  ui.repair.textContent = player.repairClock > 0 ? `Repair · ${player.repairClock.toFixed(1)}s` : "Repair +25 shield · 10 shards";
+  ui.repair.textContent = player.repairClock > 0 ? `Repair · ${player.repairClock.toFixed(1)}s` : "Repair [E] +25 shield · 10 shards";
   ui.finish.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.());
   ui.goal.textContent = rankFor(state.score, state.wave) === "Chainbreaker Ace" ? "Chainbreaker Ace reached. Bank your flight or keep exploring." : "Reach wave 7 or 18,000 points for Chainbreaker Ace. Flight continues until you bank or lose shield.";
   ui.burst.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.()) || state.shards < 5 || player.burstClock > 0;
@@ -689,6 +689,7 @@ window.addEventListener("keydown", (event) => {
   if (event.target?.closest?.("button, a, input, select, textarea, [contenteditable='true']")) return;
   if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
   if (event.code === "Space" && !event.repeat) burstShot();
+  if (event.code === "KeyE" && !event.repeat) repairShield();
   if (/^(Arrow(Up|Down|Left|Right)|Key[WASD])$/.test(event.code)) keys.add(event.code);
 });
 window.addEventListener("keyup", (event) => keys.delete(event.code));
