@@ -10,7 +10,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 4 | Pepe Relic Rumble | July 10, 2026 · `3853947` | [Finishing candidate](RELIC_RUMBLE.md); fair draws, tournament/replay and input |
 | 5 | PepeCoin Emerald Run | July 12, 2026 · `7afc074` | [Finishing candidate](PEPECOIN_RUN.md); jump controls, rank goals and max-speed spacing |
 | 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | [Finishing candidate](SPACE_UNCHAINED.md); combat/progression fixtures, banking and burst/repair choices |
-| 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | [In progress](TOWER_DEFENSE.md); fatal breach, pause and storage repairs |
+| 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | [Finishing candidate](TOWER_DEFENSE.md); fitted artwork, accessible pads and real-combat campaign fixtures |
 | 8 | Pepe Wars | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 9 | Pepe's Paradox | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 10 | ETC Pets | July 18, 2026 · `68c2492` | Same-commit cohort |
@@ -32,6 +32,6 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 
 “Finishing candidate” means the implemented loop passed its documented local checks. Physical-device comfort, human pacing, hosted behavior and asset rights for commercial release remain separate gates before calling a game fully release-ready. Native Unreal/Godot projects are outside this browser-game queue.
 
-## Next: Pepe Tower Defense
+## Next: Pepe Wars
 
-Review Tower Defense's placement, upgrade/sell controls, waves, win/loss, replay and saved records. The first six games have documented local finishing candidates. Native boss-run balance and physical touch comfort remain open for Space Unchained; local completion does not claim hosted or commercial readiness.
+Review Pepe Wars recruitment, lanes, resource economy, base victory/loss and replay. The first seven games have documented local finishing candidates. Tower Defense still needs human balance and physical-device review; its successful campaign runs are automated controller evidence, not manual wins.

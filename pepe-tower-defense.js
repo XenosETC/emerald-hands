@@ -18,6 +18,7 @@
   const statusMeta = document.querySelector("#statusMeta");
   const campaignProgress = document.querySelector("#campaignProgress");
   const campaignLabel = document.querySelector("#campaignLabel");
+  const towerGuide = document.querySelector("#towerGuide");
 
   const W = canvas.width;
   const H = canvas.height;
@@ -286,6 +287,10 @@
     campaignProgress.setAttribute("aria-valuetext", campaignLabel.textContent);
     vaultLabel.textContent = state.vault;
     bestLabel.textContent = format(state.best);
+    const spec = towerTypes[selectedTower];
+    const roles = { pepe: "Direct beam damage", shard: "48% slow for 1.6 seconds", relic: "54-unit splash radius", mage: "32-unit splash and 12% slow", archer: "Long-range direct damage" };
+    const guide = `${spec.name} · Level 1: ${spec.damage} damage, ${spec.range} range, ${(spec.rate / 1.08).toFixed(2)} seconds per attack. ${roles[selectedTower]}. Level 3: ${upgradeName({type:selectedTower,level:3})}. Level 5: ${upgradeName({type:selectedTower,level:5})}.`;
+    if (towerGuide.textContent !== guide) towerGuide.textContent = guide;
     padButtons.forEach(button => {
       const tower = towerAtPad(pads[Number(button.dataset.pad)]);
       const cost = tower ? upgradeCost(tower) : towerTypes[selectedTower].cost;

@@ -726,3 +726,41 @@ test('Tower Defense multi-corner travel preserves boss breach damage and records
   assert.equal(g.read('window.__towerRead("enemies.length")'),0);
   assert.equal(g.records.length,1);
 });
+
+
+for (const sample of [.1,.2,.5]) test(`Tower Defense earned-shard combat campaign at random=${sample}`, (t) => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read(`Math.random = () => ${sample}`);
+  const outcome = JSON.parse(g.read(`window.__towerRead(\`
+    const order = [0,2,4,6,1,5,7,8,3];
+    let ticks = 0;
+    while(state.playing && ticks < 54000) {
+      // Deterministic purchasing policy; never grant funds, kills or clears.
+      selectTower("pepe");
+      for (const index of order) if (!towerAtPad(pads[index]) && state.shards >= 75) buildOrUpgrade(pads[index]);
+      for (let level=1;level<5;level++) for(const index of order) {
+        const tower = towerAtPad(pads[index]);
+        if(tower && tower.level===level && state.shards >= upgradeCost(tower)) buildOrUpgrade(pads[index]);
+      }
+      if(!state.waveActive) startWave();
+      update(1/30);
+      ticks++;
+    }
+    JSON.stringify({wave:state.wave,vault:state.vault,score:state.score,ticks,towers:towers.length,playing:state.playing});
+  \`)`));
+  t.diagnostic(`Controller policy only: ${JSON.stringify(outcome)}; human balance remains open.`);
+  assert.equal(outcome.playing, false, JSON.stringify(outcome));
+  assert.equal(outcome.wave, 13, JSON.stringify(outcome));
+  assert.ok(outcome.vault > 0);
+  assert.equal(g.records.length, 1);
+  assert.equal(g.records[0][1].wave, 12);
+});
+
+
+test('Tower Defense field guide follows the selected defender and actual level-one stats', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  assert.match(g.nodes.get('#towerGuide').textContent, /Pepe Blaster.*22 damage, 150 range, 0.42 seconds/);
+  g.read('window.__towerRead("selectTower(String.fromCharCode(115,104,97,114,100))")');
+  assert.match(g.nodes.get('#towerGuide').textContent, /48% slow for 1.6 seconds/);
+  assert.match(g.nodes.get('#towerGuide').textContent, /Absolute Zero/);
+});

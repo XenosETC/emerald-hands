@@ -1,12 +1,12 @@
 # Pepe Tower Defense development pass — October 11, 2026
 
-In-progress finishing pass; costs, tower statistics, waves and mastery thresholds are unchanged.
+Local finishing candidate; costs, tower statistics, waves and mastery thresholds are unchanged.
 
 - Fatal breaches clamp vault integrity to zero and stop remaining combat/wave processing. Results record once and accurately show zero cleared waves when wave one is lost.
 - Paused placement/upgrades and wave requests do not spend shards or launch a wave. Repeated keys, modifiers and focused controls do not trigger game shortcuts.
 - Blocked mastery and best-score writes retain usable tab state. Invalid or unavailable best-score storage no longer blocks startup. Results focus Rebuild Defense.
 
-Verification: root smoke and 170 behavior tests pass in the workspace and clean staged copy. Three controller fixtures cover fatal breach/duplicate results, paused mutations and storage-failure placement/results. Tests access the private controller through a gateway injected only into the in-memory test source; shipped code has no gateway. Browser placement, upgrades, later-wave balance and full win/loss/replay playthroughs remain to be checked before marking this game as a finishing candidate.
+Verification: root smoke and 174 behavior tests pass in the workspace and clean staged copy. Three controller fixtures cover fatal breach/duplicate results, paused mutations and storage-failure placement/results. Tests access the private controller through a gateway injected only into the in-memory test source; shipped code has no gateway. Browser placement, upgrades, later-wave balance and full win/loss/replay playthroughs remain to be checked before calling this game fully release-ready.
 
 ## Courtyard artwork
 
@@ -37,3 +37,11 @@ A controller fixture uses synthetic clears to exercise all twelve wave-transitio
 ## Corner movement repair
 
 Creeps now carry unused movement through corners instead of discarding the remainder of a frame. Controller checks match actual route positions at 30/60/120 Hz and exercise multi-corner boss breach / one-time loss recording. Boss/elite/normal breach damage remains 4/2/1 integrity. This removes a frame-rate-dependent slowdown at turns; campaign pacing still needs human review. This pass uses controller checks, not a native campaign win.
+
+## Real-combat campaign baseline and field guide
+
+Three controller runs use fixed random values 0.1, 0.2 and 0.5, exercising elite-heavy, runner-heavy and normal waves, with scheduled bosses. An automated policy builds Blasters on all nine pads and buys upgrades using only the starting 180 shards and actual combat/wave rewards. It does not grant shards, remove creeps, suppress damage or force clears. All three complete the 12-wave campaign and record victory once. The 0.5 baseline took 9,008 simulation ticks at 30 Hz (about five minutes), scored 158,496 and retained 20 integrity. These are automated controller runs, not native browser wins. A pure Blaster policy can win: mixed-tower necessity and reward pacing remain human balance concerns.
+
+The collapsible defender field guide now displays actual level-one damage, range, effective attack interval, control/splash role and level-three/five upgrade names. Browser selection verified Shard Slow shows 12 damage, 135 range, a 0.60-second interval and 48% slow.
+
+The implemented loop has local coverage for building, evolution, campaign combat/transitions, loss, records and replay, with phone-sized native purchases. Manual upgrades/campaign playthroughs, physical touch comfort, hosted behavior and commercial artwork review remain release gates. The next implementation pass is Pepe Wars.
