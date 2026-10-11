@@ -7,10 +7,10 @@
     <title>Shard Rush</title>
     <link rel="preload" href="assets/shard-rush/arena-background.png" as="image">
     <link rel="preload" href="assets/shard-rush/sprite-sheet.png" as="image">
-    <link rel="stylesheet" href="shard-rush.css?v=6">
+    <link rel="stylesheet" href="shard-rush.css?v=8">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
-  <body class="arcade-game" data-game="rush">
+  <body class="arcade-game" data-game="rush" data-rush-running="false">
     <main class="rush-shell">
       <section class="rush-game" aria-label="Shard Rush game">
         <div class="rush-topbar arcade-topbar">
@@ -29,10 +29,12 @@
         <div class="rush-mode-bar">
           <div class="rush-modes" role="group" aria-label="Sprint mode"><button id="classicMode" type="button" aria-pressed="true">Classic sprint</button><button id="dailyMode" type="button" aria-pressed="false">Daily vault</button></div>
           <p id="dailyRecord" hidden></p>
+          <p id="classicRecord">Classic best: no completed score yet</p>
           <button id="ghostToggle" type="button" aria-pressed="false" hidden>Best ghost</button>
           <p id="ghostPace" hidden></p>
         </div>
         <div class="rush-target"><span id="rankTarget">3,000 to Retail Sprinter</span><progress id="rankProgress" value="0" max="3000" aria-label="Score toward Retail Sprinter"></progress></div>
+        <p class="rush-combo-target" id="comboTarget">Six clean catches raise your combo. Candle and combo drops boost it immediately.</p>
         <div class="rush-stage">
           <canvas id="rushCanvas" width="1280" height="720" aria-label="Shard Rush playfield" tabindex="0" aria-describedby="game-controls"></canvas>
           <section class="rush-hud" aria-label="Run status">
@@ -57,12 +59,26 @@
             <p class="eyebrow" id="modeLabel">Market Sprint</p>
             <h2 id="overlayTitle">Catch the green. Dodge the red.</h2>
             <p id="overlayText">Drag the vault or use arrow keys / A and D. Chain six catches to raise your combo. Candle and combo drops give an instant boost; missed catches and red hazards reset your streak.</p>
-            <div class="run-stats" id="runStats" hidden></div>
-            <p id="dailyResult" role="status" hidden></p>
             <button id="overlayStartButton" class="rush-play-button" type="button">Start 60s Sprint</button>
             <p class="rush-start-hint">Or press Space to start</p>
+            <div class="run-stats" id="runStats" hidden></div>
+            <p id="runAdvice" class="rush-advice" role="status" hidden></p>
+            <p id="dailyResult" role="status" hidden></p>
           </section>
         </div>
+        <details class="rush-field-guide">
+          <summary>Know your drops · rewards and hazards</summary>
+          <div class="rush-drop-guide">
+            <div><i class="drop-icon" style="--col:1;--row:0" aria-hidden="true"></i><strong>Emerald shard</strong><span>120 × combo</span></div>
+            <div><i class="drop-icon" style="--col:2;--row:0" aria-hidden="true"></i><strong>Liquidity</strong><span>360 × combo</span></div>
+            <div><i class="drop-icon" style="--col:3;--row:0" aria-hidden="true"></i><strong>Green candle</strong><span>520 × combo · +1 combo</span></div>
+            <div><i class="drop-icon" style="--col:0;--row:1" aria-hidden="true"></i><strong>Dead LP revival</strong><span>440 × combo · catch it</span></div>
+            <div><i class="drop-icon" style="--col:3;--row:1" aria-hidden="true"></i><strong>Combo boost</strong><span>250 × combo · +1 combo</span></div>
+            <div class="drop-danger"><i class="drop-icon" style="--col:1;--row:1" aria-hidden="true"></i><strong>FUD</strong><span>−650 · resets combo</span></div>
+            <div class="drop-danger"><i class="drop-icon" style="--col:2;--row:1" aria-hidden="true"></i><strong>Bot</strong><span>−900 · resets combo</span></div>
+          </div>
+          <p>Points use your combo before the catch. Combo caps at x8. Missing any reward resets the streak; letting a hazard pass is safe. Scores never fall below zero.</p>
+        </details>
       </section>
     </main>
 
@@ -72,11 +88,11 @@
       <div><span class="game-guide__label">Daily vault</span><p>A new fixed course at 00:00 UTC. Retry for Bronze 3,000 / Silver 9,000 / Gold 18,000. Finish a best run to race its gold ghost; Ghost on/off controls its visibility. Standard collector, no pet bonus. Local records award no arcade currency or XP.</p></div>
     </footer>
 
-    <script src="arcade.js?v=7"></script>
+    <script src="arcade.js?v=8"></script>
     <script src="arcade-pet.js?v=4"></script>
     <script src="shard-rush-challenges.js?v=1"></script>
     <script src="shard-rush-ghost.js?v=1"></script>
-    <script src="shard-rush.js?v=7"></script>
+    <script src="shard-rush.js?v=8"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

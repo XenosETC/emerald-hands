@@ -99,6 +99,64 @@ test('replaying after a pause starts a full sprint on the shared animation clock
   assert.equal(g.run('drops[0].y'), y);
 });
 
+test('movement pressed during pause cannot latch into the resumed run', () => {
+  const g=game(); let paused=true;
+  g.window.EmeraldArcade.isPaused=()=>paused;
+  g.run('startGame()');
+  g.window.emit('keydown',{key:'ArrowRight'});
+  g.canvas.emit('pointerdown',{clientX:1100});
+  assert.equal(g.run('keys.size'),0);
+  assert.equal(g.run('pointer.active'),false);
+  paused=false; g.run('update(0.1)');
+  assert.equal(g.run('state.collectorX'),640);
+  g.window.emit('keydown',{key:'ArrowRight'}); g.run('update(0.1)');
+  assert.equal(g.run('state.collectorX'),716);
+});
+
+test('miss counters track only passed rewards and results guide the next actual target', () => {
+  const g=game();
+  g.run('startGame(); state.spawnTimer=100; drops.push({type:"shard",x:0,y:820,speed:0,spin:0},{type:"bot",x:0,y:820,speed:0,spin:0}); update(0.01); endGame()');
+  assert.equal(g.run('state.missedCatches'),1);
+  assert.match(g.nodes.get('#runStats').innerHTML,/1<\/span><small>rewards missed/);
+  assert.match(g.nodes.get('#runAdvice').textContent,/missed reward.*3,000 more points to Retail Sprinter/);
+  assert.equal(g.nodes.get('#overlayStartButton').focused,true);
+  g.nodes.get('#overlayStartButton').emit('click');
+  assert.equal(g.run('state.missedCatches'),0);
+  assert.equal(g.nodes.get('#runAdvice').hidden,true);
+  g.run('collect({type:"bot",x:640}); endGame()');
+  assert.match(g.nodes.get('#runAdvice').textContent,/Give FUD and bots room/);
+});
+
+test('combo guidance follows streak, immediate boosts, hazard reset and cap', () => {
+  const g=game();
+  g.run('startGame(); collect({type:"shard",x:640}); updateHud()');
+  assert.match(g.nodes.get('#comboTarget').textContent,/5 clean catches/);
+  g.run('collect({type:"candle",x:640}); updateHud()');
+  assert.equal(g.run('state.combo'),2);
+  assert.match(g.nodes.get('#comboTarget').textContent,/4 clean catches/);
+  g.run('collect({type:"fud",x:640}); updateHud()');
+  assert.match(g.nodes.get('#comboTarget').textContent,/6 clean catches/);
+  g.run('for(let i=0;i<7;i++) collect({type:"combo",x:640}); updateHud()');
+  assert.match(g.nodes.get('#comboTarget').textContent,/x8 maximum/);
+});
+
+test('Classic record reads the existing shared best without creating another save or daily reward', () => {
+  const g=game(); const before=[...g.saves];
+  g.window.EmeraldArcade.load=()=>({best:{rush:{score:18000}}});
+  g.run('selectMode("classic")');
+  assert.equal(g.nodes.get('#classicRecord').textContent,'Classic best: 18,000 · Liquidity Runner');
+  assert.deepEqual([...g.saves],before);
+  g.run('selectMode("daily")');
+  assert.equal(g.nodes.get('#classicRecord').hidden,true);
+  g.run('startGame(); update(59.99); drops.length=0; state.score=18000; update(0.02)');
+  assert.match(g.nodes.get('#runAdvice').textContent,/Top target reached/);
+  assert.equal(g.rewards.length,0);
+  g.window.EmeraldArcade.load=()=>{throw Error('storage unavailable');};
+  g.run('selectMode("classic")');
+  assert.match(g.nodes.get('#classicRecord').textContent,/unavailable/);
+  assert.equal(g.run('state.running'),false);
+});
+
 test('keyboard takes over a drag without pointer pullback, and uppercase A/D work', () => {
   const g = game();
   g.nodes.get('#overlayStartButton').emit('click');

@@ -194,6 +194,20 @@ canvas {
   display: none;
 }
 
+.rush-combo-target { margin: 0; padding: 0 20px 12px; color: #bdd5c9; font-size: .72rem; }
+.rush-advice { border-left: 2px solid var(--gold); padding-left: 10px; }
+.rush-field-guide { margin: 0 18px 18px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+.rush-field-guide summary { cursor: pointer; color: #d6edcb; font-weight: 700; }
+.rush-field-guide > p { font-size: .8rem; color: #bdd5c9; line-height: 1.5; }
+.rush-drop-guide { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; margin-top: 12px; }
+.rush-drop-guide > div { display: grid; justify-items: center; gap: 6px; padding: 12px 6px; background: #0a2319; border-radius: 6px; text-align: center; }
+.rush-drop-guide strong { font-size: .8rem; }
+.rush-drop-guide span { font-size: .72rem; color: #bdd5c9; }
+.rush-drop-guide .drop-danger { background: #291818; }
+.drop-icon { display: block; width: 64px; height: 64px; background-image: url('assets/shard-rush/sprite-sheet.png'); background-size: 400% 200%; background-position: calc(var(--col) * 100% / 3) calc(var(--row) * 100%); }
+.rush-overlay { max-height: calc(100% - 28px); overflow-y: auto; }
+[data-rush-running="false"] .arcade-pet-assist { display: none; }
+
 .rush-play-button {
   width: 100%;
   min-height: 48px;

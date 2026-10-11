@@ -32,7 +32,7 @@ Shard Rush has catch/combo/hazard feedback, a next-rank score meter, direct Star
 
 The “What’s new” section links directly to the refreshed games. Soul World now includes sword guard poses, Spirit-based frontal blocking, and immediate guard-to-counter input. Its game and save remain independent of shared arcade rewards.
 
-Run `npm test` for the sixteen-page smoke check and 100 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope and [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge. Hosted deployment has not been verified.
+Run `npm test` for the sixteen-page smoke check and 104 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope, [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge, and [SHARD_RUSH.md](SHARD_RUSH.md) for the drop guide and run-feedback finishing pass. Hosted deployment has not been verified.
 
 ### Browsing your collection
 

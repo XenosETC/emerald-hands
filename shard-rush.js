@@ -20,6 +20,9 @@ const els = {
   modeLabel: document.querySelector("#modeLabel"),
   rankKind: document.querySelector("#rankKind"),
   dailyRecord: document.querySelector("#dailyRecord"),
+  classicRecord: document.querySelector("#classicRecord"),
+  runAdvice: document.querySelector("#runAdvice"),
+  comboTarget: document.querySelector("#comboTarget"),
   dailyResult: document.querySelector("#dailyResult"),
   ghostToggle: document.querySelector("#ghostToggle"),
   ghostPace: document.querySelector("#ghostPace"),
@@ -82,6 +85,7 @@ const state = {
   streak: 0,
   cleanCatches: 0,
   hazardsHit: 0,
+  missedCatches: 0,
   timeLeft: 60,
   elapsed: 0,
   spawnTimer: 0,
@@ -92,6 +96,7 @@ const state = {
 function startGame() {
   if (state.running) return;
   const daily = state.mode === "daily";
+  document.body?.setAttribute('data-rush-running', 'true');
   if (!daily) window.EmeraldArcade?.beginSession("rush", "shard-rush.html");
   const petBonus = daily ? null : window.ArcadePet?.activeBonus("rush");
   resetInput();
@@ -106,6 +111,7 @@ function startGame() {
     streak: 0,
     cleanCatches: 0,
     hazardsHit: 0,
+    missedCatches: 0,
     timeLeft: 60,
     elapsed: 0,
     spawnTimer: 0,
@@ -125,6 +131,7 @@ function startGame() {
   els.classicMode.disabled = true;
   els.dailyMode.disabled = true;
   els.dailyResult.hidden = true;
+  els.runAdvice.hidden = true;
   if (daily) spawnDailyDrops();
   showDailyRecord();
   els.overlay.classList.add("is-hidden");
@@ -143,6 +150,7 @@ function endGame() {
   // Abandoning/reloading a daily attempt never writes a completed result.
   if (state.mode === "daily" && state.timeLeft > 0) return;
   state.running = false;
+  document.body?.setAttribute('data-rush-running', 'false');
   resetInput();
   const rank = rankForScore(state.score);
   els.overlayTitle.textContent = state.mode === "daily" ? `${challenges.medal(state.score)} daily run` : `${rank} Run`;
@@ -153,7 +161,10 @@ function endGame() {
     <div><span>x${state.maxCombo}</span><small>max combo</small></div>
     <div><span>${state.cleanCatches}</span><small>clean catches</small></div>
     <div><span>${state.hazardsHit}</span><small>hazards hit</small></div>
+    <div><span>${state.missedCatches}</span><small>rewards missed</small></div>
   `;
+  els.runAdvice.textContent = runAdvice();
+  els.runAdvice.hidden = false;
   els.overlay.classList.remove("is-hidden");
   els.overlayStartButton.textContent = state.mode === "daily" ? "Retry daily vault" : "Play again";
   els.startButton.disabled = false;
@@ -187,8 +198,35 @@ function endGame() {
     showDailyRecord();
   } else {
     window.EmeraldArcade?.recordAndNotify("rush", { score: state.score, rank, combo: state.maxCombo, played: true });
+    showClassicRecord();
   }
   updateHud();
+  els.overlayStartButton.focus({ preventScroll: true });
+}
+
+function runAdvice() {
+  const targets = state.mode === 'daily' ? challenges.medals.map(item => ({at:item.score,label:item.name})) : scoreRanks;
+  const next = targets.find(target => target.at > state.score);
+  const goal = next ? `${(next.at-state.score).toLocaleString()} more points to ${next.label}.` : 'Top target reached. Try to beat this score.';
+  const tip = state.hazardsHit > 0 && state.hazardsHit >= state.missedCatches
+    ? 'Give FUD and bots room: each hit costs points and resets your combo.'
+    : state.missedCatches > 0
+      ? 'Follow reachable rewards instead of chasing every lane. A missed reward resets your combo.'
+      : state.cleanCatches === 0
+        ? 'Move the vault under falling rewards. Start with emerald shards, then seek candle and combo boosts.'
+        : 'Clean run! Chain six catches or seek candle and combo drops to build toward x8.';
+  return `${tip} ${goal}`;
+}
+
+function showClassicRecord() {
+  els.classicRecord.hidden = state.mode !== 'classic';
+  if (els.classicRecord.hidden) return;
+  try {
+    const best = window.EmeraldArcade?.load?.()?.best?.rush;
+    els.classicRecord.textContent = best && Number.isFinite(best.score) && best.score > 0
+      ? `Classic best: ${Math.round(best.score).toLocaleString()} · ${rankForScore(best.score)}`
+      : 'Classic best: no completed score yet';
+  } catch { els.classicRecord.textContent = 'Classic record unavailable; you can still play.'; }
 }
 
 function rankForScore(score) {
@@ -284,6 +322,7 @@ function updateRun(delta) {
     } else if (drop.y > canvas.height + 90) {
       drops.splice(i, 1);
       if (!isHazard(drop.type)) {
+        state.missedCatches += 1;
         if (state.combo > 1) addFeedback("MISSED · COMBO RESET", state.collectorX, "miss");
         breakCombo();
       }
@@ -450,6 +489,10 @@ function updateHud() {
   els.score.textContent = format(state.score);
   els.time.textContent = Math.ceil(state.timeLeft);
   els.combo.textContent = `x${state.combo}`;
+  els.comboTarget.textContent = !state.running
+    ? 'Six clean catches raise your combo. Candle and combo drops boost it immediately.'
+    : state.combo >= 8 ? 'x8 maximum · Keep catching rewards and avoid hazards'
+      : `${6 - state.streak % 6} clean catches to the next combo · Candle / combo drops boost it now`;
   const daily = state.mode === "daily";
   els.rank.textContent = daily ? challenges.medal(state.score) : rankForScore(state.score);
   els.rankKind.textContent = daily ? "medal" : "rank";
@@ -580,8 +623,9 @@ function selectMode(mode) {
   els.overlayStartButton.textContent = mode === "daily" ? "Start daily vault" : "Start 60s Sprint";
   els.startButton.textContent = els.overlayStartButton.textContent;
   els.runStats.hidden = true; els.dailyResult.hidden = true;
+  els.runAdvice.hidden = true;
   els.overlay.classList.remove("is-hidden");
-  showDailyRecord(); updateHud(); draw();
+  showDailyRecord(); showClassicRecord(); updateHud(); draw();
 }
 els.classicMode.addEventListener("click", () => selectMode("classic"));
 els.dailyMode.addEventListener("click", () => selectMode("daily"));
@@ -607,6 +651,7 @@ window.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
   if (["arrowleft", "arrowright", "a", "d"].includes(key) && state.running) {
     event.preventDefault();
+    if (window.EmeraldArcade?.isPaused?.()) return;
     releasePointer();
     keys.add(key);
   }
@@ -624,7 +669,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 canvas.addEventListener("pointerdown", (event) => {
-  if (!state.running || event.isPrimary === false || event.button !== 0) return;
+  if (!state.running || window.EmeraldArcade?.isPaused?.() || event.isPrimary === false || event.button !== 0) return;
   event.preventDefault();
   keys.clear();
   canvas.focus({ preventScroll: true });
