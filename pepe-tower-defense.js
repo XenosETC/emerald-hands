@@ -16,6 +16,8 @@
   const bestLabel = document.querySelector("#bestLabel");
   const statusLabel = document.querySelector("#statusLabel");
   const statusMeta = document.querySelector("#statusMeta");
+  const campaignProgress = document.querySelector("#campaignProgress");
+  const campaignLabel = document.querySelector("#campaignLabel");
 
   const W = canvas.width;
   const H = canvas.height;
@@ -221,7 +223,7 @@
       shards: state.shards,
     });
     overlayTitle.textContent = title;
-    overlayText.textContent = `${format(score)} score - survived wave ${completedWave} - rank: ${rank}.`;
+    overlayText.textContent = `${format(score)} score · ${completedWave} / 12 waves cleared · ${state.vault} vault integrity · ${rank}.`;
     startButton.textContent = "Rebuild Defense";
     overlay.classList.remove("is-hidden");
     startButton.focus();
@@ -277,7 +279,11 @@
   function updateHud() {
     scoreLabel.textContent = format(state.score);
     shardLabel.textContent = state.shards;
-    waveLabel.textContent = state.wave;
+    waveLabel.textContent = Math.min(12, state.wave);
+    const cleared = Math.min(12, Math.max(0, state.wave - 1));
+    campaignProgress.value = cleared;
+    campaignLabel.textContent = `${cleared} / 12 waves cleared · ${state.vault} vault integrity`;
+    campaignProgress.setAttribute("aria-valuetext", campaignLabel.textContent);
     vaultLabel.textContent = state.vault;
     bestLabel.textContent = format(state.best);
     padButtons.forEach(button => {

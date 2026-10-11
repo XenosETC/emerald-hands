@@ -675,3 +675,36 @@ test('Tower Defense ignores dead targets so the next ready tower hits a live cre
   g.read(`window.__towerRead('enemies.push({x:200,y:170,pathIndex:3,hp:0},{x:170,y:300,pathIndex:2,hp:100})')`);
   assert.equal(g.read('window.__towerRead("targetFor({x:230,y:260,range:200}).hp")'), 100);
 });
+
+
+test('Tower Defense twelve wave-clear transitions reward once and replay resets campaign', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  // Synthetic clears isolate campaign transitions, not combat or human balance.
+  for (let wave=1;wave<=12;wave++) {
+    g.nodes.get('#waveButton').emit('click');
+    g.read('window.__towerRead("enemies.length=0; state.spawnLeft=0; updateWave(0); updateHud()")');
+    assert.equal(g.nodes.get('#campaignProgress').value, wave);
+  }
+  assert.equal(g.records.length, 1);
+  assert.equal(g.records[0][1].wave, 12);
+  assert.equal(g.records[0][1].rank, 'Vault Architect');
+  assert.equal(g.records[0][1].score, 13800);
+  assert.equal(g.records[0][1].shards, 1776);
+  assert.equal(g.nodes.get('#waveLabel').textContent, 12);
+  g.read('window.__towerRead("updateWave(0); endGame()")');
+  assert.equal(g.records.length, 1);
+  g.start(); assert.equal(g.nodes.get('#campaignProgress').value, 0);
+  assert.equal(g.read('window.__towerRead("state.vault")'), 20);
+});
+
+test('Tower Defense upgrades reach evolution with exact costs and mastery actions', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read('window.__towerRead("state.shards=1000; selectTower(String.fromCharCode(115,104,97,114,100)); buildOrUpgrade(pads[0]); for(let i=0;i<4;i++) buildOrUpgrade(pads[0])")');
+  assert.equal(g.read('window.__towerRead("towers[0].level")'), 5);
+  assert.equal(g.read('window.__towerRead("towers[0].evolved")'), true);
+  assert.equal(g.read('window.__towerRead("towers[0].slow")'), .82);
+  assert.equal(g.read('window.__towerRead("state.shards")'), 95);
+  assert.equal(g.read('window.__towerRead("mastery.shard.upgrades")'), 4);
+  g.read('window.__towerRead("buildOrUpgrade(pads[0])")');
+  assert.equal(g.read('window.__towerRead("state.shards")'), 95);
+});
