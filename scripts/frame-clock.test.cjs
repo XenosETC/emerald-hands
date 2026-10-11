@@ -92,6 +92,7 @@ for (const [file, cap] of [
     g.setWallTime(6016);
     // Galactic Heroes now guards active-flight launch; replay follows results.
     if (file === 'emerald-galactic-heroes.js') g.read('endGame()');
+    if (file === 'pepecoin-run.js') g.read('crash({})');
     g.start();
     g.frame(1032);
     assert.equal(g.read('state.elapsed'), 0);
@@ -163,4 +164,36 @@ test('Tower Defense replay starts its first enemy at the portal without duplicat
   assert.equal(g.pending(), 1);
   g.frame(4000);
   assert.equal(enemyX(), 34);
+});
+
+
+test('Emerald Run appends its course without overlapping the existing horizon', () => {
+  const g = game('pepecoin-run.js'); g.start();
+  const end = g.read('courseEnd');
+  g.read('state.distance = 5000; buildCourse()');
+  assert.ok(g.read('hazards.every((h, i) => i === 0 || h.x > hazards[i - 1].x)'));
+  assert.ok(g.read('courseEnd') > end);
+  g.read('state.distance = 12000; update(0)');
+  assert.ok(g.read('hazards.every(h => h.x >= state.distance - 120)'));
+});
+
+test('Emerald Run freezes market terrain until the next run and guards duplicate loss', () => {
+  const g = game('pepecoin-run.js'); g.start();
+  const ground = g.read('terrainAt(245)');
+  g.read('applyMarketSeries([1, 100, 1], true, "test tape")');
+  assert.equal(g.read('terrainAt(245)'), ground);
+  g.start(); assert.equal(g.sessions.length, 1);
+  g.read('state.score = 2000; crash({}); state.score = 9000; crash({})');
+  assert.equal(g.read('state.best'), 2000);
+  g.start(); assert.equal(g.read('terrainIsLive'), true);
+});
+
+test('Emerald Run ignores paused jumps and repeat keys', () => {
+  const g = game('pepecoin-run.js'); g.start();
+  g.read('window.EmeraldArcade.isPaused = () => true; action({preventDefault(){}})');
+  assert.equal(g.read('player.grounded'), true);
+  g.read('window.EmeraldArcade.isPaused = () => false; action({repeat:true})');
+  assert.equal(g.read('player.grounded'), true);
+  g.read('action({preventDefault(){}})');
+  assert.equal(g.read('player.grounded'), false);
 });

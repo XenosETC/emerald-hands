@@ -8,7 +8,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 2 | Shard Rush | June 29, 2026 · `1826d75` | [Finishing candidate](SHARD_RUSH.md); Classic/Daily, guide and retry advice |
 | 3 | Emerald Galactic Heroes | June 29, 2026 · `9b6401b` | [Finishing candidate](GALACTIC_HEROES.md); flight/results, combat and input repairs |
 | 4 | Pepe Relic Rumble | July 10, 2026 · `3853947` | [Finishing candidate](RELIC_RUMBLE.md); fair draws, tournament/replay and input |
-| 5 | PepeCoin Emerald Run | July 12, 2026 · `7afc074` | Queued |
+| 5 | PepeCoin Emerald Run | July 12, 2026 · `7afc074` | [In progress](PEPECOIN_RUN.md); course continuity and input lifecycle repaired |
 | 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | Queued |
 | 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 8 | Pepe Wars | July 14, 2026 · `0e9cec9` | Same-commit cohort |

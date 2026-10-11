@@ -24,6 +24,12 @@ coinImage.src = "assets/pepecoin-run/pepecoin-classic.png";
 const W = canvas.width;
 const H = canvas.height;
 const STORAGE_KEY = "pepecoin-emerald-run-v1";
+function readBest() {
+  try {
+    const value = Number(localStorage.getItem(STORAGE_KEY));
+    return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+  } catch { return 0; }
+}
 const player = { x: 245, y: 0, vy: 0, radius: 42, rotation: 0, grounded: true };
 const state = {
   mode: "ready",
@@ -34,7 +40,7 @@ const state = {
   shards: 0,
   combo: 1,
   comboClock: 0,
-  best: Number(localStorage.getItem(STORAGE_KEY) || 0),
+  best: readBest(),
   shake: 0,
   flash: 0,
   sound: true,
@@ -44,6 +50,8 @@ const state = {
 let audioContext;
 let terrainSource = createFallbackSeries();
 let terrainIsLive = false;
+let pendingMarket = null;
+let courseEnd = 760;
 let marketPrice = null;
 let marketChange = null;
 let marketHudClock = 0;
@@ -85,6 +93,10 @@ async function loadEtcTerrain() {
 }
 
 function applyMarketSeries(prices, isLive, meta) {
+  if (state.mode === "running") {
+    pendingMarket = { prices, isLive, meta };
+    return;
+  }
   terrainSource = prices;
   terrainIsLive = isLive;
   marketPrice = isLive ? prices[prices.length - 1] : null;
@@ -141,6 +153,13 @@ function updateMarketPlayback(dt, force = false) {
 }
 
 function startGame() {
+  if (state.mode === "running" || window.EmeraldArcade?.isPaused?.()) return;
+  if (pendingMarket) {
+    const next = pendingMarket;
+    pendingMarket = null;
+    applyMarketSeries(next.prices, next.isLive, next.meta);
+  }
+  courseEnd = 760;
   window.EmeraldArcade?.beginSession("pepeRun", "pepecoin-run.html");
   Object.assign(state, { mode: "running", elapsed: 0, distance: 0, speed: 310, score: 0, shards: 0, combo: 1, comboClock: 0, shake: 0, flash: 0, lastFrame: null });
   hazards.length = 0;
@@ -156,12 +175,14 @@ function startGame() {
   ui.hint.classList.add("is-visible");
   window.setTimeout(() => ui.hint.classList.remove("is-visible"), 2100);
   updateHud();
+  canvas.focus();
   tone(280, .05, "sine");
 }
 
 function buildCourse() {
-  for (let x = 760; x < 9000; x += 310 + Math.random() * 270) {
-    const worldX = x + state.distance;
+  const horizon = state.distance + 9000;
+  for (; courseEnd < horizon; courseEnd += 310 + Math.random() * 270) {
+    const worldX = courseEnd;
     if (Math.random() < .68) {
       hazards.push({ x: worldX, width: 42 + Math.random() * 26, height: 52 + Math.random() * 34, hit: false });
     }
@@ -217,7 +238,7 @@ function update(dt) {
     if (hazard.hit) continue;
     const hx = hazard.x - state.distance;
     const base = terrainAt(hazard.x);
-    if (circleTriangleCollision(player.x, player.y, player.radius * .72, hx, base, hazard.width, hazard.height)) crash(hazard);
+    if (circleTriangleCollision(player.x, player.y, player.radius * .72, hx, base, hazard.width, hazard.height)) { crash(hazard); break; }
   }
 
   for (let i = particles.length - 1; i >= 0; i -= 1) {
@@ -229,7 +250,10 @@ function update(dt) {
     if (p.life <= 0) particles.splice(i, 1);
   }
 
-  if (hazards[hazards.length - 1]?.x - state.distance < 4500) buildCourse();
+  // Keep a bounded rolling course; append beyond the last generated position.
+  while (hazards.length && hazards[0].x < state.distance - 120) hazards.shift();
+  while (emeralds.length && emeralds[0].x < state.distance - 120) emeralds.shift();
+  if (state.mode === "running" && courseEnd - state.distance < 4500) buildCourse();
   updateHud();
 }
 
@@ -245,6 +269,7 @@ function collectShard(shard, x, y) {
 }
 
 function crash(hazard) {
+  if (state.mode !== "running") return;
   hazard.hit = true;
   state.mode = "gameover";
   state.shake = 16;
@@ -252,7 +277,7 @@ function crash(hazard) {
   tone(110, .28, "sawtooth");
   const finalScore = Math.floor(state.score);
   state.best = Math.max(state.best, finalScore);
-  localStorage.setItem(STORAGE_KEY, state.best);
+  try { localStorage.setItem(STORAGE_KEY, state.best); } catch { /* session best still works */ }
   const rank = rankFor(finalScore);
   window.EmeraldArcade?.recordAndNotify("pepeRun", { score: finalScore, rank, shards: state.shards, combo: state.combo, played: true });
   window.setTimeout(() => {
@@ -261,6 +286,7 @@ function crash(hazard) {
     ui.start.textContent = "Run It Back";
     ui.overlay.classList.remove("is-hidden");
     updateHud();
+    ui.start.focus();
   }, 520);
 }
 
@@ -462,6 +488,9 @@ function tone(frequency, duration, type) {
 }
 
 function action(event) {
+  if (window.EmeraldArcade?.isPaused?.() || state.mode !== "running") return;
+  if (event?.repeat || event?.ctrlKey || event?.metaKey || event?.altKey) return;
+  if (event?.target?.closest?.("button, a, input, select, textarea, [contenteditable='true']")) return;
   if (event) event.preventDefault();
   if (state.mode === "running") jump();
 }
