@@ -21,6 +21,7 @@ const ui = {
   core: document.querySelector("#coreHealth"),
   rankProgress: document.querySelector("#rankProgress"),
   report: document.querySelector("#flightReport"),
+  repair: document.querySelector("#repairButton"),
 };
 
 const W = canvas.width;
@@ -74,6 +75,7 @@ const player = {
   invuln: 0,
   fireClock: 0,
   burstClock: 0,
+  repairClock: 0,
 };
 
 const state = {
@@ -89,6 +91,7 @@ const state = {
   shotDamage: 0,
   hullDamage: 0,
   burstsUsed: 0,
+  repairsUsed: 0,
   best: readBest(),
   nextBossKills: 16,
   spawnClock: 0,
@@ -147,6 +150,7 @@ function startGame() {
   shotDamage: 0,
   hullDamage: 0,
   burstsUsed: 0,
+  repairsUsed: 0,
     nextBossKills: 16,
     spawnClock: 0.2,
     waveClock: 0,
@@ -155,7 +159,7 @@ function startGame() {
     boss: null,
     lastFrame: null,
   });
-  Object.assign(player, { x: 190, y: H / 2, vx: 0, vy: 0, shield: 100, invuln: 0, fireClock: 0, burstClock: 0 });
+  Object.assign(player, { x: 190, y: H / 2, vx: 0, vy: 0, shield: 100, invuln: 0, fireClock: 0, burstClock: 0, repairClock: 0 });
   bullets.length = 0;
   enemyBullets.length = 0;
   enemies.length = 0;
@@ -184,6 +188,17 @@ function burstShot() {
   }
   burst(player.x + 90, player.y, "#d8b45f", 18);
   tone(240, 0.08, "sawtooth", 0.02);
+}
+
+function repairShield() {
+  // Prototype balance: trade ten flight shards for 25 shield, once per eight seconds.
+  if (state.mode !== "playing" || window.EmeraldArcade?.isPaused?.() || player.shield >= 100 || player.repairClock > 0 || state.shards < 10) return;
+  state.shards -= 10;
+  state.repairsUsed += 1;
+  player.shield = Math.min(100, player.shield + 25);
+  player.repairClock = 8;
+  burst(player.x, player.y, "#74ffc5", 16);
+  tone(540, .12, "triangle");
 }
 
 function spawnEnemy() {
@@ -219,6 +234,7 @@ function update(dt) {
   state.flash = Math.max(0, state.flash - dt * 2.8);
   player.invuln = Math.max(0, player.invuln - dt);
   player.burstClock = Math.max(0, player.burstClock - dt);
+  player.repairClock = Math.max(0, player.repairClock - dt);
 
   const ax = (keys.has("ArrowRight") || keys.has("KeyD") ? 1 : 0) - (keys.has("ArrowLeft") || keys.has("KeyA") ? 1 : 0);
   const ay = (keys.has("ArrowDown") || keys.has("KeyS") ? 1 : 0) - (keys.has("ArrowUp") || keys.has("KeyW") ? 1 : 0);
@@ -424,11 +440,12 @@ function endGame(reason = "shield") {
 function flightAdvice(reason) {
   const seconds = Math.floor(state.elapsed);
   const duration = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-  const summary = `${duration} flown · ${state.shotHits} enemy-shot hits · ${state.hullHits} hull collisions · ${state.burstsUsed} bursts used.`;
+  const summary = `${duration} flown · ${state.shotHits} enemy-shot hits · ${state.hullHits} hull collisions · ${state.burstsUsed} bursts used · ${state.repairsUsed} repairs.`;
   let advice;
   if (state.hullDamage > state.shotDamage) advice = "Leave more space between your fighter and enemy hulls; steer before they reach you.";
   else if (state.shotDamage > 0) advice = "Watch the dashed aim warnings and change your flight line before the shot arrives.";
   else advice = reason === "bank" ? "Clean flight banked. Keep exploring longer when you’re ready." : "Keep moving and preserve room to dodge.";
+  if (state.shards >= 10 && player.shield < 100 && state.repairsUsed === 0) advice += " Ten shards can repair 25 shield during flight.";
   return `${summary} ${advice}`;
 }
 
@@ -650,6 +667,8 @@ function updateHud() {
   ui.core.setAttribute("aria-label", state.boss ? `Vault core health ${state.boss.hp} of ${state.boss.maxHp}` : "No active vault core");
   ui.rankProgress.value = Math.min(1, Math.max(state.score / 18000, (state.wave - 1) / 6));
   ui.rankProgress.setAttribute("aria-valuetext", `Wave ${state.wave} of 7 or ${Math.floor(state.score)} of 18000 points; ${state.nodesCleared} nodes cleared`);
+  ui.repair.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.()) || player.shield >= 100 || player.repairClock > 0 || state.shards < 10;
+  ui.repair.textContent = player.repairClock > 0 ? `Repair · ${player.repairClock.toFixed(1)}s` : "Repair +25 shield · 10 shards";
   ui.finish.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.());
   ui.goal.textContent = rankFor(state.score, state.wave) === "Chainbreaker Ace" ? "Chainbreaker Ace reached. Bank your flight or keep exploring." : "Reach wave 7 or 18,000 points for Chainbreaker Ace. Flight continues until you bank or lose shield.";
   ui.burst.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.()) || state.shards < 5 || player.burstClock > 0;
@@ -703,6 +722,11 @@ for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
 }
 ui.burst.addEventListener("click", () => {
   burstShot();
+  updateHud();
+  if (state.mode === "playing" && !window.EmeraldArcade?.isPaused?.()) canvas.focus({ preventScroll: true });
+});
+ui.repair.addEventListener("click", () => {
+  repairShield();
   updateHud();
   if (state.mode === "playing" && !window.EmeraldArcade?.isPaused?.()) canvas.focus({ preventScroll: true });
 });

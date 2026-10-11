@@ -543,3 +543,33 @@ test('Space Unchained enemy fire timers start on screen and stop after departure
   g.read('enemyBullets.length=0; enemies[0].x=-100; enemies[0].shoot=.01; updateEnemies(.02)');
   assert.equal(g.read('enemyBullets.length'), 0);
 });
+
+
+test('Space Unchained repairs trade flight shards for capped shield and respect cooldown', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('player.shield=90; state.shards=30; repairShield(); repairShield()');
+  assert.equal(g.read('player.shield'), 100);
+  assert.equal(g.read('state.shards'), 20);
+  assert.equal(g.read('state.repairsUsed'), 1);
+  g.read('player.shield=50; repairShield()'); assert.equal(g.read('player.shield'), 50);
+  g.read('player.repairClock=0; window.EmeraldArcade.isPaused=()=>true; repairShield()');
+  assert.equal(g.read('state.shards'), 20);
+  g.read('window.EmeraldArcade.isPaused=()=>false');
+  g.nodes.get('#repairButton').emit('click');
+  assert.equal(g.read('player.shield'), 75);
+  assert.equal(g.read('state.shards'), 10);
+  assert.equal(g.read('document.activeElement===canvas'), true);
+  g.read('endGame("bank")'); g.start();
+  assert.equal(g.read('state.repairsUsed'), 0);
+  assert.equal(g.read('player.repairClock'), 0);
+});
+
+test('Space Unchained cannot repair a lost flight or buy a repair without enough shards', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('player.shield=50; state.shards=9; repairShield()');
+  assert.equal(g.read('player.shield'), 50);
+  g.read('state.shards=20; damagePlayer(100); repairShield()');
+  assert.equal(g.read('player.shield'), 0);
+  assert.equal(g.read('state.shards'), 20);
+  assert.equal(g.read('state.repairsUsed'), 0);
+});

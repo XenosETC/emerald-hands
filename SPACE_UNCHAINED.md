@@ -15,7 +15,7 @@ This is an in-progress finishing pass, preserving the independent `pepe-space-un
 
 ## Verification
 
-Root smoke and 154 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
+Root smoke and 156 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
 
 Native browser checks used an isolated origin and a 390 x 844 viewport. Launch, keyboard movement, pause/resume, natural loss and replay were exercised. The page was 375 px wide without overflow. An auto-fire run ended naturally at 1,809 points, wave 1, five kills and seven remaining shards. Replay restored shield 100, zero shards and the 16-kill target while retaining the best. Pointer automation at phone dimensions is not a physical-device test. Touch ownership and funded Burst activation are controller fixtures, not a native multitouch demonstration.
 
@@ -46,6 +46,10 @@ A new native forward-position playtest ended at 1,064 points after 13 seconds, w
 Combat fairness repair: expired and out-of-bounds hostile projectiles are removed before collision, so a spent shot cannot cause a final-frame hit. Enemy fire timers now advance only while the enemy center is inside the playfield, preventing shots from offscreen attackers and preserving the visible firing countdown. Already-fired live bullets keep their existing behavior. This intentionally changes entry/exit firing timing; damage and normal on-screen shot intervals are unchanged.
 
 Two controller fixtures verify expired shots cannot reduce shield or inflate hit counts, and that offscreen enemies neither count down nor fire, while the same enemy fires normally after entering. This pass used controller regression checks rather than a new native boss win; previous browser layout evidence remains applicable.
+
+Shield repair development: a visible Repair button trades ten flight shards for up to 25 shield with an eight-second cooldown. These are explicit provisional balance values intended to create a choice between survival and five-shard burst attacks. Repair cannot exceed shield 100, run while paused, operate without funds, or revive a finished flight. It creates no shared-currency or save changes. Results count successful repairs and suggest the option when a damaged flight ends with ten unused shards. Button activation restores keyboard focus to the canvas.
+
+Controller fixtures cover capped healing, exact cost, cooldown blocking, pause, insufficient funds, no revival and replay reset. Native phone-sized launch/banking verifies the new control and report fit a 390 px viewport with a 375 px page and no overflow. Funded repair activation is fixture evidence; physical-device use and survival balance are not yet verified. [Phone control evidence](docs/space-unchained-development-2026-10-11/repair-controls-phone.png)
 
 ## Remaining work
 
