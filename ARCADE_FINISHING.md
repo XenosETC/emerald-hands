@@ -7,7 +7,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 1 | Emerald Hands | June 29, 2026 · `39925b3` (originally `index.html`) | [Finishing candidate](EMERALD_HANDS.md) |
 | 2 | Shard Rush | June 29, 2026 · `1826d75` | [Finishing candidate](SHARD_RUSH.md); Classic/Daily, guide and retry advice |
 | 3 | Emerald Galactic Heroes | June 29, 2026 · `9b6401b` | [Finishing candidate](GALACTIC_HEROES.md); flight/results, combat and input repairs |
-| 4 | Pepe Relic Rumble | July 10, 2026 · `3853947` | Queued |
+| 4 | Pepe Relic Rumble | July 10, 2026 · `3853947` | [Finishing candidate](RELIC_RUMBLE.md); fair draws, tournament/replay and input |
 | 5 | PepeCoin Emerald Run | July 12, 2026 · `7afc074` | Queued |
 | 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | Queued |
 | 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | Same-commit cohort |
@@ -32,6 +32,6 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 
 “Finishing candidate” means the implemented loop passed its documented local checks. Physical-device comfort, human pacing, hosted behavior and asset rights for commercial release remain separate gates before calling a game fully release-ready. Native Unreal/Godot projects are outside this browser-game queue.
 
-## Next: Pepe Relic Rumble
+## Next: PepeCoin Emerald Run
 
-Review the browser fighter's character selection, combat rules, PvP/tournament outcomes, replay and records. The native Rumble projects remain separate. Physical-device, human pacing and hosted-release checks stay open for the first three finishing candidates.
+Review the one-tap runner's first jump, hazards, score progression, loss/replay, controls and saved best. The native Rumble projects remain separate. Physical-device, human pacing and hosted-release checks stay open for the first four finishing candidates.

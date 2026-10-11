@@ -17,7 +17,7 @@
     <link rel="preload" href="assets/pepe-relic-rumble/shard-shield-green.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/shard-shield-red.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/premium-aura-atlas-v2-alpha.png" as="image">
-    <link rel="stylesheet" href="pepe-relic-rumble.css?v=8">
+    <link rel="stylesheet" href="pepe-relic-rumble.css?v=finish-1">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="rumble">
@@ -48,6 +48,7 @@
             </div>
             <div class="round-panel">
               <span id="roundLabel">Round 1</span>
+              <span id="matchScore">P1 0 · P2 0 · First to 3</span>
               <strong id="timerLabel">60</strong>
               <small id="stateLabel">first to 3 rounds</small>
             </div>
@@ -72,6 +73,7 @@
             <p class="eyebrow">Relic Rumble Fight Card</p>
             <h2 id="overlayTitle">Choose the next vault legend.</h2>
             <p id="overlayText">Choose a fight format, then draft your legend from the relic table.</p>
+            <p class="round-rules">Keyboard required. Versus: first to 3 round wins. Tournament: first to 2 in each bout. Equal-health timeouts and double knockouts are draws; neither player receives a win.</p>
             <div class="rumble-setup" id="rumbleSetup">
               <div class="setup-step mode-step" id="modeStep">
                 <div class="mode-picker" role="group" aria-label="Rumble mode">
@@ -158,9 +160,9 @@
       <div><span class="game-guide__label">Player two</span><p>P2: arrow keys move, <kbd>J</kbd> punch, <kbd>K</kbd> kick, <kbd>L</kbd> shield / special. Hold down to charge.</p></div>
     </footer>
 
-    <script src="arcade.js?v=7"></script>
+    <script src="arcade.js?v=8"></script>
     <script src="arcade-pet.js?v=4"></script>
-    <script src="pepe-relic-rumble.js?v=27"></script>
+    <script src="pepe-relic-rumble.js?v=finish-1"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

@@ -14,6 +14,7 @@
   const p2Meter = document.querySelector("#p2Meter");
   const roundLabel = document.querySelector("#roundLabel");
   const timerLabel = document.querySelector("#timerLabel");
+  const matchScore = document.querySelector('#matchScore');
   const stateLabel = document.querySelector("#stateLabel");
   const p1Name = document.querySelector("#p1Name");
   const p2Name = document.querySelector("#p2Name");
@@ -421,7 +422,7 @@
       const locked = id === "berserk" && !unlock;
       const corruptClass = id === "corrupt" ? "preview-corrupt" : "";
       return `
-        <button class="character-card ${selectedId === id ? "is-selected" : ""} ${locked ? "is-locked" : ""}" type="button" data-character="${id}" ${locked ? "disabled" : ""}>
+        <button class="character-card ${selectedId === id ? "is-selected" : ""} ${locked ? "is-locked" : ""}" type="button" data-character="${id}" aria-pressed="${selectedId === id}" ${locked ? "disabled" : ""}>
           <img class="${corruptClass}" src="${previewPath(id)}" alt="">
           <strong>${character.name}</strong>
           <small>${locked ? "Beat Tournament" : characterRoles[id]}</small>
@@ -463,6 +464,7 @@
 
   function showRosterStep(mode) {
     selectedMode = mode;
+    firstTo = mode === 'tournament' ? 2 : 3;
     modeStep.hidden = true;
     rosterStep.hidden = false;
     const tournament = mode === "tournament";
@@ -621,7 +623,7 @@
     if (!domainAudioContext) {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (!AudioContextClass) return null;
-      domainAudioContext = new AudioContextClass();
+      try { domainAudioContext = new AudioContextClass(); } catch { return null; }
     }
     if (domainAudioContext.state === "suspended") domainAudioContext.resume().catch(() => {});
     return domainAudioContext;
@@ -694,6 +696,7 @@
   }
 
   function showDomainCeremony(mode = "entry") {
+    resetInput();
     domainCeremonyMode = mode;
     const completion = mode === "completion";
     domainCeremony.classList.toggle("is-completion", completion);
@@ -707,6 +710,7 @@
       : "BREAK THE DOMAIN · CLAIM THE CROWN · RETURN WITH THE SIGIL";
     domainCeremonyButton.textContent = completion ? "Seal the Champion Record" : "Enter KEK Domain";
     domainCeremony.hidden = false;
+    domainCeremonyButton.focus({preventScroll:true});
   }
 
   function activateKekDomainFinal() {
@@ -845,6 +849,7 @@
   }
 
   function startFight() {
+    resetInput();
     deactivateKekDomain();
     round = 1;
     fighters.forEach((f) => {
@@ -855,10 +860,14 @@
     gameState = "playing";
     overlay.hidden = true;
     startButton.textContent = "Restart Fight";
+    canvas.focus({preventScroll:true});
     window.EmeraldArcade?.beginSession("rumble", "pepe-relic-rumble.html");
   }
 
   function launchSelectedFight() {
+    if (['playing','round-over','bout-over','domain-ceremony','domain-intro'].includes(gameState)) return;
+    if (!characterRoster[p1Character.value] || !characterRoster[p2Character.value]) return;
+    if ((p1Character.value === 'berserk' || selectedMode === 'pvp' && p2Character.value === 'berserk') && !berserkUnlocked()) return;
     prepareDomainAudio();
     setCharacter(fighters[0], p1Character.value);
     setCharacter(fighters[1], p2Character.value);
@@ -881,12 +890,18 @@
   }
 
   function openSetup() {
+    resetInput();
+    domainCeremony.hidden = true;
     deactivateKekDomain();
+    round = 1; firstTo = 3;
+    fighters.forEach(f=>{f.wins=0; f.energy=35;});
+    resetRound();
     gameState = "idle";
     rumbleSetup.hidden = false;
     overlay.hidden = false;
     showModeStep();
     startButton.textContent = "Choose Fighters";
+    modeButtons[0]?.focus({preventScroll:true});
   }
 
   function showOverlay(title, text) {
@@ -1219,6 +1234,15 @@
   }
 
   function endRound(roundWinner) {
+    if (gameState !== 'playing') return;
+    resetInput();
+    if (!roundWinner) {
+      winner = null;
+      pauseTimer = 2.2;
+      gameState = 'round-over';
+      stateLabel.textContent = 'Draw · No round awarded · Fight again';
+      return;
+    }
     roundWinner.wins += 1;
     winner = roundWinner;
     pauseTimer = 2.2;
@@ -1266,6 +1290,7 @@
         launchButton.textContent = selectedMode === "tournament" ? "Run New Tournament" : "Run It Back";
         startButton.textContent = "New Fight Card";
         gameState = "match-over";
+        if (!tournamentWon) launchButton.focus({preventScroll:true});
         stopDomainMusic();
       }
     } else {
@@ -1282,9 +1307,9 @@
       updateSparks(dt);
       updateShardBlasts(dt);
       if (fighters[0].health <= 0 || fighters[1].health <= 0) {
-        endRound(fighters[0].health > fighters[1].health ? fighters[0] : fighters[1]);
+        endRound(fighters[0].health === fighters[1].health ? null : fighters[0].health > fighters[1].health ? fighters[0] : fighters[1]);
       } else if (roundTime <= 0) {
-        endRound(fighters[0].health >= fighters[1].health ? fighters[0] : fighters[1]);
+        endRound(fighters[0].health === fighters[1].health ? null : fighters[0].health > fighters[1].health ? fighters[0] : fighters[1]);
       }
     } else if (gameState === "round-over") {
       pauseTimer -= dt;
@@ -2449,6 +2474,7 @@
     p2Meter.value = fighters[1].health;
     roundLabel.textContent = kekDomainActive ? `KEK Final • Round ${round}` : `Round ${round}`;
     timerLabel.textContent = Math.ceil(roundTime);
+    matchScore.textContent = `P1 ${fighters[0].wins} · P2 ${fighters[1].wins} · First to ${firstTo}`;
     if (gameState === "playing") {
       const bout = selectedMode === "tournament" ? ` | bout ${tournamentIndex + 1}/${tournamentOpponents.length}` : "";
       const domain = kekDomainActive ? " | domain champion empowered" : "";
@@ -2495,7 +2521,7 @@
       return;
     }
     // Preserve real combat speed when a device cannot sustain the 60 FPS render target.
-    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    const dt = Math.max(0, Math.min(0.05, (now - lastTime) / 1000));
     lastRenderTime = now;
     lastTime = now;
     perfFrames += 1;
@@ -2510,7 +2536,16 @@
     requestAnimationFrame(loop);
   }
 
+  function resetInput() {
+    keys.clear(); pressed.clear();
+    fighters.forEach(f=>{if(f.inputBuffer) f.inputBuffer={action:null,ttl:0};});
+  }
+  window.addEventListener('blur',resetInput);
+  window.addEventListener('emeraldarcade:pause',resetInput);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden) resetInput();});
   window.addEventListener("keydown", (event) => {
+    if (event.target?.isContentEditable || event.target?.closest?.('button, a, input, textarea, select') || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (gameState !== 'playing' || window.EmeraldArcade?.isPaused?.()) return;
     if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
     if (!keys.has(event.code)) pressed.add(event.code);
     keys.add(event.code);
@@ -2546,6 +2581,7 @@
   startButton.addEventListener("click", openSetup);
   launchButton.addEventListener("click", launchSelectedFight);
   domainCeremonyButton.addEventListener("click", () => {
+    resetInput();
     domainCeremony.hidden = true;
     if (domainCeremonyMode === "completion") { openSetup(); return; }
     kekDomainIntroTime = KEK_DOMAIN_INTRO_DURATION;
