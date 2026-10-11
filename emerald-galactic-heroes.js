@@ -3,6 +3,12 @@ const ctx = canvas.getContext("2d");
 
 const els = {
   startButton: document.querySelector("#startButton"),
+  overlayStartButton: document.querySelector('#overlayStartButton'),
+  finishButton: document.querySelector('#finishFlight'),
+  objective: document.querySelector('#flightObjective'),
+  bossStatus: document.querySelector('#bossStatus'),
+  bossHealth: document.querySelector('#bossHealth'),
+  best: document.querySelector('#flightBest'),
   score: document.querySelector("#scoreLabel"),
   shields: document.querySelector("#shieldLabel"),
   armor: document.querySelector("#armorLabel"),
@@ -34,7 +40,7 @@ const spriteMap = {
 };
 
 const keys = new Set();
-const pointer = { active: false, x: canvas.width / 2, y: canvas.height - 105 };
+const pointer = { active: false, id: null, x: canvas.width / 2, y: canvas.height - 105 };
 const enemies = [];
 const heroShots = [];
 const enemyShots = [];
@@ -67,12 +73,15 @@ const state = {
 };
 
 function startGame() {
+  if (state.running) return;
+  resetInput();
   window.EmeraldArcade?.beginSession("galaxy", "emerald-galactic-heroes.html");
   enemies.length = 0;
   heroShots.length = 0;
   enemyShots.length = 0;
   pickups.length = 0;
   particles.length = 0;
+  popups.length = 0;
   Object.assign(state, {
     running: true,
     ended: false,
@@ -99,16 +108,22 @@ function startGame() {
   els.overlay.classList.add("is-hidden");
   els.runStats.hidden = true;
   els.runStats.innerHTML = "";
+  els.startButton.disabled = true;
+  els.finishButton.disabled = false;
+  els.startButton.textContent = 'Flight in progress';
+  canvas.focus({preventScroll:true});
+  document.querySelector('.galaxy-game').scrollIntoView({block:'start',behavior:'auto'});
   updateHud();
 }
 
-function endGame() {
-  if (state.ended) return;
+function endGame(reason = 'defeat') {
+  if (!state.running || state.ended) return;
   state.ended = true;
   state.running = false;
+  resetInput();
   const rank = rankForScore(state.score, state.wave);
-  els.overlayTitle.textContent = `${rank} Stand`;
-  els.overlayText.textContent = `Final score: ${format(state.score)}. You held wave ${state.wave} against the Gas Empire.`;
+  els.overlayTitle.textContent = `${rank} ${reason === 'retired' ? 'Flight' : 'Stand'}`;
+  els.overlayText.textContent = `${reason === 'retired' ? 'Flight finished.' : 'Last shield cell lost.'} Final score: ${format(state.score)}. You held wave ${state.wave} against the Gas Empire.`;
   els.runStats.hidden = false;
   els.runStats.innerHTML = `
     <div><span>${format(state.score)}</span><small>score</small></div>
@@ -119,6 +134,10 @@ function endGame() {
     <div><span>${state.pickupsCollected}</span><small>pickups used</small></div>
   `;
   els.overlay.classList.remove("is-hidden");
+  els.startButton.disabled = false;
+  els.finishButton.disabled = true;
+  els.startButton.textContent = 'Launch again';
+  els.overlayStartButton.textContent = 'Launch again';
   window.EmeraldArcade?.recordAndNotify("galaxy", {
     score: state.score,
     rank,
@@ -127,12 +146,15 @@ function endGame() {
     played: true,
   });
   updateHud();
+  showBest();
+  els.overlayStartButton.focus({preventScroll:true});
 }
 
 function spawnEnemy() {
   if (state.wave >= 3 && !state.bossSpawned) {
     notify("Boss Cruiser Incoming", canvas.width / 2, 118, "#d8b45f");
-    enemies.push({ type: "boss", x: canvas.width / 2, y: -90, size: 150, hp: 34 + state.weaponLevel * 7, speed: 46, shotTimer: 1.2 });
+    const hp = 34 + state.weaponLevel * 7;
+    enemies.push({ type: "boss", x: canvas.width / 2, y: -90, size: 150, hp, maxHp: hp, speed: 46, shotTimer: 1.2 });
     state.bossSpawned = true;
     return;
   }
@@ -160,7 +182,7 @@ function update(delta) {
   state.wingmenDropCooldown = Math.max(0, state.wingmenDropCooldown - delta);
   state.pickupDropCooldown = Math.max(0, state.pickupDropCooldown - delta);
 
-  state.wave = Math.min(5, 1 + Math.floor(state.elapsed / 24));
+  state.wave = Math.min(5, Math.max(state.wave, 1 + Math.floor(state.elapsed / 24)));
   updateWeaponLevel();
   state.spawnTimer -= delta;
   state.shotTimer -= delta;
@@ -175,7 +197,9 @@ function update(delta) {
 
   moveHero(delta);
   updateShots(delta);
+  if (!state.running) return;
   updateEnemies(delta);
+  if (!state.running) return;
   updatePickups(delta);
   updateParticles(delta);
   updatePopups(delta);
@@ -209,6 +233,7 @@ function updateShots(delta) {
     if (distance(shot, state.hero) < 42) {
       hitShield();
       enemyShots.splice(i, 1);
+      if (!state.running) return;
     } else if (shot.y > canvas.height + 70) {
       enemyShots.splice(i, 1);
     }
@@ -241,8 +266,11 @@ function updateEnemies(delta) {
       }
     }
 
+    // A destroyed hull must not collide with the hero or remove its neighbor.
+    if (enemy.hp <= 0) continue;
     if (enemies[i] && distance(enemy, state.hero) < enemy.size * 0.45) {
       hitShip(enemy.type);
+      if (!state.running) return;
       if (enemy.type !== "boss") enemies.splice(i, 1);
     } else if (enemy.y > canvas.height + 110) {
       if (enemy.type === "boss") state.bossSpawned = false;
@@ -315,8 +343,8 @@ function hitShield() {
 }
 
 function hitShip(type) {
-  if (state.hero.invuln > 0) return;
-  const cellsLost = type === "boss" ? 2 : 1;
+  if (!state.running || state.hero.invuln > 0) return;
+  const cellsLost = Math.min(state.shieldCells, type === "boss" ? 2 : 1);
   state.shieldCells -= cellsLost;
   state.shieldCellsLost += cellsLost;
   state.shieldCharge = Math.max(0, state.shieldCharge - 28);
@@ -600,6 +628,26 @@ function updateHud() {
   els.rank.textContent = rankForScore(state.score, state.wave);
   els.weapon.textContent = `Mk ${roman(state.weaponLevel)}`;
   els.allies.textContent = state.allyTimer > 0 ? `${Math.ceil(state.allyTimer)}s` : "0s";
+  els.objective.textContent = !state.running
+    ? state.ended ? 'Flight ended · Launch again to improve your score and wave record.' : 'Reach wave 5 or 70,000 points for Emerald Ace. Auto-fire is always on.'
+    : state.wave >= 5 ? 'Wave 5 · Emerald Ace reached · Endless sector defense'
+      : `Wave ${state.wave}/5 · ${Math.ceil(Math.max(0,state.wave*24-state.elapsed))}s to the next timed wave · Boss victories advance a wave`;
+  const boss = state.running && enemies.find(enemy=>enemy.type==='boss');
+  els.bossStatus.hidden = !boss;
+  if (boss) {
+    els.bossHealth.max=boss.maxHp;
+    els.bossHealth.value=Math.max(0,boss.hp);
+    els.bossHealth.setAttribute('aria-label',`Boss Cruiser health: ${Math.max(0,boss.hp)} of ${boss.maxHp}`);
+  }
+}
+
+function showBest() {
+  try {
+    const best=window.EmeraldArcade?.load?.()?.best?.galaxy;
+    els.best.textContent=best && Number.isFinite(best.score) && best.score > 0
+      ? `Your best: ${Math.round(best.score).toLocaleString()} points · ${rankForScore(best.score,Number.isFinite(best.wave)?best.wave:1)}`
+      : 'Your first sector defense awaits · Records stay on this browser';
+  } catch { els.best.textContent='Record unavailable; you can still fly.'; }
 }
 
 function loop(now) {
@@ -638,31 +686,50 @@ function roman(value) {
 }
 
 els.startButton.addEventListener("click", startGame);
+els.overlayStartButton.addEventListener('click', startGame);
+els.finishButton.addEventListener('click',()=>endGame('retired'));
+
+function releasePointer() {
+  const id=pointer.id;
+  pointer.active=false; pointer.id=null;
+  if (id !== null && canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+}
+function resetInput() { keys.clear(); releasePointer(); }
+function isInteractiveTarget(target) { return target?.isContentEditable || target?.closest?.('button, a, input, textarea, select'); }
 
 window.addEventListener("keydown", (event) => {
+  if (isInteractiveTarget(event.target) || event.altKey || event.ctrlKey || event.metaKey) return;
   const key = event.key.toLowerCase();
-  keys.add(key);
+  if (state.running && ['arrowleft','arrowright','arrowup','arrowdown','w','a','s','d'].includes(key)) {
+    event.preventDefault();
+    if (window.EmeraldArcade?.isPaused?.()) return;
+    releasePointer(); keys.add(key);
+  }
   if (event.key === " ") {
     event.preventDefault();
-    if (!state.running) startGame();
+    if (!state.running && !event.repeat) startGame();
   }
 });
 
 window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
+window.addEventListener('blur',resetInput);
+window.addEventListener('emeraldarcade:pause',resetInput);
+document.addEventListener('visibilitychange',()=>{if(document.hidden) resetInput();});
 
 canvas.addEventListener("pointerdown", (event) => {
+  if (!state.running || window.EmeraldArcade?.isPaused?.() || event.isPrimary === false || event.button !== 0) return;
+  event.preventDefault(); keys.clear(); canvas.focus({preventScroll:true});
   pointer.active = true;
+  pointer.id=event.pointerId;
   Object.assign(pointer, canvasPoint(event));
   canvas.setPointerCapture(event.pointerId);
 });
 
 canvas.addEventListener("pointermove", (event) => {
-  if (pointer.active) Object.assign(pointer, canvasPoint(event));
+  if (pointer.active && pointer.id === event.pointerId) Object.assign(pointer, canvasPoint(event));
 });
 
-canvas.addEventListener("pointerup", () => {
-  pointer.active = false;
-});
+for (const type of ['pointerup','pointercancel','lostpointercapture']) canvas.addEventListener(type,event=>{if(event.pointerId===pointer.id) releasePointer();});
 
 background.addEventListener("load", draw);
 sprites.addEventListener("load", () => {
@@ -671,4 +738,5 @@ sprites.addEventListener("load", () => {
 });
 if (sprites.complete) drawAssetGuide();
 updateHud();
+showBest();
 requestAnimationFrame(loop);

@@ -9,6 +9,22 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+[hidden] { display:none !important; }
+.flight-brief { padding: 0 18px 12px; color:#c8dfb7; font-size:.8rem; line-height:1.5; }
+.flight-brief p { margin:4px 0; }
+#flightBest { color:#8aa99b; }
+#bossStatus { display:flex; align-items:center; gap:12px; color:#eed49a; }
+#bossHealth { flex:1; max-width:360px; accent-color:#d8b45f; }
+.galaxy-play-button { width:100%; min-height:48px; margin-top:14px; border:1px solid #c7eebe; border-radius:8px; background:#b5e8b5; color:#071b10; font:inherit; font-weight:800; cursor:pointer; }
+.galaxy-overlay { max-height:calc(100% - 28px); overflow-y:auto; }
+.flight-start-hint { font-size:.74rem; }
+.galaxy-nav button:disabled { opacity:.65; cursor:default; }
+#finishFlight { min-height:40px; padding:8px 12px; border:1px solid #d8b45f70; border-radius:6px; color:#eed49a; background:#231f13; cursor:pointer; }
+#finishFlight:disabled { opacity:.5; cursor:default; }
+@media (min-width:821px) and (min-height:540px) {
+  .arcade-game .galaxy-stage { width:min(calc(100% - 36px),calc((100svh - 280px) * 16 / 9)); margin-inline:auto; }
+}
+
 * {
   box-sizing: border-box;
 }

@@ -25,6 +25,7 @@ function game(file) {
       },
       emit(type) { for (const listener of listeners.get(type) || []) listener({ target: this }); },
       setAttribute() {},
+      focus() {}, scrollIntoView() {},
     };
   }
   const drawing = new Proxy({
@@ -38,13 +39,13 @@ function game(file) {
   const canvas = Object.assign(node(), { width: 1280, height: 720, getContext: () => drawing });
   nodes.set('#gameCanvas', canvas);
   nodes.set('#galaxyCanvas', canvas);
-  const document = {
+  const document = Object.assign(node(), {
     querySelector(selector) {
       if (!nodes.has(selector)) nodes.set(selector, node());
       return nodes.get(selector);
     },
     querySelectorAll: () => [],
-  };
+  });
   const window = Object.assign(node(), {
     setTimeout() {},
     EmeraldArcade: { beginSession: (...args) => sessions.push(args), recordAndNotify() {} },
@@ -89,6 +90,8 @@ for (const [file, cap] of [
     g.frame(1016);
     assert.equal(g.read('state.elapsed'), 0.016);
     g.setWallTime(6016);
+    // Galactic Heroes now guards active-flight launch; replay follows results.
+    if (file === 'emerald-galactic-heroes.js') g.read('endGame()');
     g.start();
     g.frame(1032);
     assert.equal(g.read('state.elapsed'), 0);

@@ -7,7 +7,7 @@
     <title>Emerald Galactic Heroes</title>
     <link rel="preload" href="assets/emerald-galactic-heroes/space-background.png" as="image">
     <link rel="preload" href="assets/emerald-galactic-heroes/sprite-sheet.png" as="image">
-    <link rel="stylesheet" href="emerald-galactic-heroes.css">
+    <link rel="stylesheet" href="emerald-galactic-heroes.css?v=finish-1">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="galaxy">
@@ -26,6 +26,12 @@
           </nav>
         </div>
 
+        <section class="flight-brief" aria-label="Flight objective">
+          <p id="flightObjective">Reach wave 5 or 70,000 points for Emerald Ace. Auto-fire is always on.</p>
+          <p id="flightBest"></p>
+          <button id="finishFlight" type="button" disabled>Finish flight · bank score</button>
+          <div id="bossStatus" hidden><span>Boss Cruiser</span><progress id="bossHealth" max="1" value="1" aria-label="Boss Cruiser health"></progress></div>
+        </section>
         <div class="galaxy-stage">
           <canvas id="galaxyCanvas" width="1280" height="720" aria-label="Emerald Galactic Heroes playfield" tabindex="0" aria-describedby="game-controls"></canvas>
           <section class="galaxy-hud" aria-label="Battle status">
@@ -62,6 +68,8 @@
             <p class="eyebrow">Gas Empire Incoming</p>
             <h2 id="overlayTitle">Defend the Emerald Sector</h2>
             <p id="overlayText">Move with mouse, touch, arrow keys, or WASD. Auto-fire upgrades from Mk I-IV as score and waves climb. Purple shots break charge; empty charge breaks a shield cell.</p>
+            <button id="overlayStartButton" class="galaxy-play-button" type="button">Launch Hero</button>
+            <p class="flight-start-hint">Or focus the playfield and press Space</p>
             <div class="run-stats" id="runStats" hidden></div>
           </section>
         </div>
@@ -146,9 +154,9 @@
       <div><span class="game-guide__label">Read the battlefield</span><p>Shield pickups restore protection. Collect wingmen for temporary backup. The flight manual identifies each pickup.</p></div>
     </footer>
 
-    <script src="arcade.js?v=7"></script>
+    <script src="arcade.js?v=8"></script>
     <script src="arcade-pet.js?v=4"></script>
-    <script src="emerald-galactic-heroes.js?v=arcade-refresh-2"></script>
+    <script src="emerald-galactic-heroes.js?v=finish-1"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>
