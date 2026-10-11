@@ -491,3 +491,24 @@ test('Space Unchained reports only shield actually lost on fatal shots', () => {
   assert.equal(g.read('state.shotHits'), 1);
   g.timers[0](); assert.match(g.nodes.get('#flightReport').textContent, /dashed aim warnings/);
 });
+
+
+test('Space Unchained all five burst projectiles damage a surviving core in one collision pass', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('player.x=600; state.kills=16; spawnEnemy(); state.boss.x=1000; state.boss.y=360; state.boss.shoot=10; state.shards=5; burstShot(); for(let i=0;i<31;i++) updateBullets(.01); updateEnemies(0)');
+  assert.equal(g.read('state.boss.hp'), 29, 'five connecting projectiles each deal their existing two damage');
+  assert.equal(g.read('bullets.length'), 0);
+  assert.equal(g.read('state.shards'), 0);
+  assert.equal(g.read('state.burstsUsed'), 1);
+});
+
+test('Space Unchained a lethal volley rewards one core and preserves the neighboring enemy', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('player.x=600; state.kills=16; spawnEnemy(); state.boss.x=1000; state.boss.y=360; state.boss.hp=1; state.boss.shoot=10; enemies.unshift({x:1150,y:100,hp:3,maxHp:3,speed:0,amp:0,t:0,shoot:10,boss:false}); state.shards=5; burstShot(); for(let i=0;i<31;i++) updateBullets(.01); updateEnemies(0)');
+  assert.equal(g.read('state.nodesCleared'), 1);
+  assert.equal(g.read('state.kills'), 17);
+  assert.equal(g.read('state.score'), 2300);
+  assert.equal(g.read('enemies.length'), 1);
+  assert.equal(g.read('enemies[0].hp'), 3);
+  assert.equal(g.read('bullets.length'), 4, 'unspent projectiles continue flying');
+});

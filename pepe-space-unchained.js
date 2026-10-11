@@ -312,7 +312,7 @@ function updateEnemies(dt) {
           enemies.splice(i, 1);
           break;
         }
-        break;
+        // Other projectiles in this volley may also hit a surviving hull.
       }
     }
     if (e.hp > 0 && e.x < -120) enemies.splice(i, 1);
