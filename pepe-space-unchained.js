@@ -15,12 +15,30 @@ const ui = {
   text: document.querySelector("#overlayText"),
   start: document.querySelector("#startButton"),
   sound: document.querySelector("#soundToggle"),
+  burst: document.querySelector("#burstButton"),
 };
 
 const W = canvas.width;
 const H = canvas.height;
 const STORAGE_KEY = "pepe-space-unchained-best-v1";
+function readBest() {
+  try {
+    const value = Number(localStorage.getItem(STORAGE_KEY));
+    return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0;
+  } catch { return 0; }
+}
 const keys = new Set();
+let activePointer = null;
+let flightId = 0;
+function resetInput() {
+  keys.clear();
+  if (activePointer !== null) {
+    try { canvas.releasePointerCapture(activePointer); } catch { /* already released */ }
+  }
+  activePointer = null;
+  player.vx = 0;
+  player.vy = 0;
+}
 const bullets = [];
 const enemyBullets = [];
 const enemies = [];
@@ -60,7 +78,8 @@ const state = {
   shards: 0,
   wave: 1,
   kills: 0,
-  best: Number(localStorage.getItem(STORAGE_KEY) || 0),
+  best: readBest(),
+  nextBossKills: 16,
   spawnClock: 0,
   waveClock: 0,
   shake: 0,
@@ -100,6 +119,9 @@ function tone(freq, duration = 0.08, type = "sine", gain = 0.03) {
 }
 
 function startGame() {
+  if (state.mode === "playing" || window.EmeraldArcade?.isPaused?.()) return;
+  flightId += 1;
+  resetInput();
   window.EmeraldArcade?.beginSession("spaceUnchained", "pepe-space-unchained.html");
   Object.assign(state, {
     mode: "playing",
@@ -108,6 +130,7 @@ function startGame() {
     shards: 0,
     wave: 1,
     kills: 0,
+    nextBossKills: 16,
     spawnClock: 0.2,
     waveClock: 0,
     shake: 0,
@@ -122,6 +145,7 @@ function startGame() {
   shards.length = 0;
   particles.length = 0;
   ui.overlay.classList.add("is-hidden");
+  canvas.focus();
   tone(360, 0.08, "triangle");
   updateHud();
 }
@@ -133,7 +157,7 @@ function fire() {
 }
 
 function burstShot() {
-  if (player.burstClock > 0 || state.shards < 5) return;
+  if (state.mode !== "playing" || window.EmeraldArcade?.isPaused?.() || player.burstClock > 0 || state.shards < 5) return;
   state.shards -= 5;
   player.burstClock = 2.2;
   for (let i = -2; i <= 2; i += 1) {
@@ -144,8 +168,9 @@ function burstShot() {
 }
 
 function spawnEnemy() {
-  const bossSoon = state.kills > 0 && state.kills % 16 === 0 && !state.boss;
+  const bossSoon = state.kills >= state.nextBossKills && !state.boss;
   if (bossSoon) {
+    state.nextBossKills += 16;
     state.boss = { x: W + 160, y: H / 2, hp: 34 + state.wave * 5, maxHp: 34 + state.wave * 5, shoot: 0.8, t: 0, boss: true };
     enemies.push(state.boss);
     state.wave += 1;
@@ -198,7 +223,9 @@ function update(dt) {
   }
 
   updateBullets(dt);
+  if (state.mode !== "playing") { updateHud(); return; }
   updateEnemies(dt);
+  if (state.mode !== "playing") { updateHud(); return; }
   updateShards(dt);
   updateParticles(dt);
   updateHud();
@@ -220,6 +247,7 @@ function updateBullets(dt) {
     if (distance(b.x, b.y, player.x + 30, player.y) < 48 && player.invuln <= 0) {
       enemyBullets.splice(i, 1);
       damagePlayer(10);
+      if (state.mode !== "playing") return;
       continue;
     }
     if (b.life <= 0 || b.x < -80 || b.y < -80 || b.y > H + 80) enemyBullets.splice(i, 1);
@@ -244,6 +272,7 @@ function updateEnemies(dt) {
     }
     if (distance(e.x, e.y, player.x + 28, player.y) < (e.boss ? 110 : 64) && player.invuln <= 0) {
       damagePlayer(e.boss ? 24 : 18);
+      if (state.mode !== "playing") return;
     }
     for (let j = bullets.length - 1; j >= 0; j -= 1) {
       const b = bullets[j];
@@ -254,11 +283,12 @@ function updateEnemies(dt) {
         if (e.hp <= 0) {
           killEnemy(e);
           enemies.splice(i, 1);
+          break;
         }
         break;
       }
     }
-    if (e.x < -120) enemies.splice(i, 1);
+    if (e.hp > 0 && e.x < -120) enemies.splice(i, 1);
   }
 }
 
@@ -315,7 +345,8 @@ function updateParticles(dt) {
 }
 
 function damagePlayer(amount) {
-  player.shield -= amount;
+  if (state.mode !== "playing") return;
+  player.shield = Math.max(0, player.shield - amount);
   player.invuln = 0.75;
   state.shake = 12;
   state.flash = 0.5;
@@ -325,10 +356,12 @@ function damagePlayer(amount) {
 }
 
 function endGame() {
+  if (state.mode !== "playing") return;
+  resetInput();
   state.mode = "gameover";
   const finalScore = Math.floor(state.score);
   state.best = Math.max(state.best, finalScore);
-  localStorage.setItem(STORAGE_KEY, state.best);
+  try { localStorage.setItem(STORAGE_KEY, state.best); } catch { /* session best remains playable */ }
   const rank = rankFor(finalScore, state.wave);
   window.EmeraldArcade?.recordAndNotify("spaceUnchained", {
     score: finalScore,
@@ -338,11 +371,15 @@ function endGame() {
     kills: state.kills,
     played: true,
   });
+  const thisFlight = flightId;
+  updateHud();
   window.setTimeout(() => {
+    if (flightId !== thisFlight || state.mode !== "gameover") return;
     ui.title.textContent = `${rank} Flight`;
     ui.text.textContent = `${finalScore.toLocaleString()} points - Wave ${state.wave} - ${state.shards} shards - ${state.kills} corrupt ships unchained.`;
     ui.start.textContent = "Launch Again";
     ui.overlay.classList.remove("is-hidden");
+    ui.start.focus();
   }, 500);
 }
 
@@ -538,7 +575,11 @@ function updateHud() {
   ui.pill.classList.toggle("is-danger", player.shield <= 30 || state.mode === "gameover");
   ui.pill.classList.toggle("is-boss", Boolean(state.boss));
   ui.mission.textContent = state.boss ? "Vault node engaged" : player.shield <= 30 ? "Shield critical" : "Explore the chain";
-  ui.meta.textContent = state.boss ? "break the node core" : `Wave ${state.wave} - burst costs 5 shards`;
+  ui.meta.textContent = state.boss
+    ? `Core ${Math.max(0, state.boss.hp)} / ${state.boss.maxHp} · burst costs 5 shards`
+    : `${Math.max(0, state.nextBossKills - state.kills)} kills to next vault node · auto-fire`;
+  ui.burst.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.()) || state.shards < 5 || player.burstClock > 0;
+  ui.burst.textContent = player.burstClock > 0 ? `Burst · ${player.burstClock.toFixed(1)}s` : `Burst · 5 shards (${state.shards})`;
 }
 
 function loop(now) {
@@ -551,23 +592,42 @@ function loop(now) {
 }
 
 window.addEventListener("keydown", (event) => {
+  if (state.mode !== "playing" || window.EmeraldArcade?.isPaused?.() || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (event.target?.closest?.("button, a, input, select, textarea, [contenteditable='true']")) return;
   if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
-  if (event.code === "Space" && state.mode === "playing") burstShot();
-  keys.add(event.code);
+  if (event.code === "Space" && !event.repeat) burstShot();
+  if (/^(Arrow(Up|Down|Left|Right)|Key[WASD])$/.test(event.code)) keys.add(event.code);
 });
-
 window.addEventListener("keyup", (event) => keys.delete(event.code));
+window.addEventListener("blur", resetInput);
+window.addEventListener("emeraldarcade:pause", () => { resetInput(); updateHud(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) resetInput(); });
 
-canvas.addEventListener("pointermove", (event) => {
-  if (state.mode !== "playing") return;
+function movePointer(event) {
+  if (state.mode !== "playing" || window.EmeraldArcade?.isPaused?.()) return;
   const rect = canvas.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+  keys.clear();
+  player.vx = 0;
+  player.vy = 0;
   player.x = clamp(((event.clientX - rect.left) / rect.width) * W, 80, W * 0.55);
   player.y = clamp(((event.clientY - rect.top) / rect.height) * H, 100, H - 100);
+}
+canvas.addEventListener("pointermove", (event) => {
+  if (event.pointerType === "mouse" || event.pointerId === activePointer) movePointer(event);
 });
-
-canvas.addEventListener("pointerdown", () => {
-  if (state.mode === "playing") burstShot();
+canvas.addEventListener("pointerdown", (event) => {
+  if (state.mode !== "playing" || window.EmeraldArcade?.isPaused?.() || activePointer !== null || (event.button !== undefined && event.button !== 0)) return;
+  event.preventDefault();
+  activePointer = event.pointerId;
+  canvas.setPointerCapture?.(event.pointerId);
+  movePointer(event);
+  if (event.pointerType === "mouse") burstShot();
 });
+for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
+  canvas.addEventListener(type, (event) => { if (event.pointerId === activePointer) resetInput(); });
+}
+ui.burst.addEventListener("click", () => { burstShot(); updateHud(); });
 
 ui.start.addEventListener("click", startGame);
 ui.sound.addEventListener("click", () => {

@@ -9,7 +9,7 @@
     <link rel="preload" href="assets/pepe-space-unchained/space-bg.jpg" as="image">
     <link rel="preload" href="assets/pepe-space-unchained/pepe-ship.png" as="image">
     <link rel="preload" href="assets/pepe-space-unchained/corrupt-ship.png" as="image">
-    <link rel="stylesheet" href="pepe-space-unchained.css?v=1">
+    <link rel="stylesheet" href="pepe-space-unchained.css?v=finish-1">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="space">
@@ -48,17 +48,18 @@
           <small>WASD / arrows to fly - Space to burst shot - auto-fire enabled</small>
         </section>
       </section>
+      <div class="flight-controls"><button id="burstButton" type="button" disabled>Burst · 5 shards</button><p>Auto-fire is always on. Defeat 16 ships to engage a vault node.</p></div>
     </main>
 
     <footer class="game-guide" aria-label="How to play">
       <div><span class="game-guide__label">Horizontal shooter</span><p><strong>Fly the chain-space frontier.</strong> Clear corrupt ships and survive each vault-node wave.</p></div>
-      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Drag to fly or use <kbd>WASD</kbd> / arrows. <kbd>Space</kbd> fires a burst; your main gun fires automatically.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Touch and drag to fly, move the mouse, or use <kbd>WASD</kbd> / arrows. <kbd>Space</kbd>, a mouse click, or the Burst button spends 5 shards for a burst; your main gun fires automatically.</p></div>
       <div><span class="game-guide__label">Keep moving</span><p>Leave yourself room to dodge. A wide screen makes enemy formations easier to read.</p></div>
     </footer>
 
-    <script src="arcade.js?v=7"></script>
+    <script src="arcade.js?v=8"></script>
     <script src="arcade-pet.js?v=4"></script>
-    <script src="pepe-space-unchained.js?v=arcade-refresh-2"></script>
+    <script src="pepe-space-unchained.js?v=finish-1"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

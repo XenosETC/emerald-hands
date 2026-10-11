@@ -95,6 +95,7 @@ for (const [file, cap] of [
     // Galactic Heroes now guards active-flight launch; replay follows results.
     if (file === 'emerald-galactic-heroes.js') g.read('endGame()');
     if (file === 'pepecoin-run.js') g.read('crash({})');
+    if (file === 'pepe-space-unchained.js') g.read('endGame()');
     g.start();
     g.frame(1032);
     assert.equal(g.read('state.elapsed'), 0);
@@ -304,4 +305,82 @@ test('Emerald Run blocked best-score storage does not interrupt result or replay
   assert.equal(g.read('state.best'), 4500);
   assert.equal(g.records.length, 1);
   g.start(); assert.equal(g.read('state.best'), 4500);
+});
+
+
+test('Space Unchained does not miss a boss milestone when kills skip sixteen', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('state.kills = 17; spawnEnemy()');
+  assert.equal(g.read('state.wave'), 2);
+  assert.equal(g.read('state.nextBossKills'), 32);
+  g.read('state.kills = 33; spawnEnemy()');
+  assert.equal(g.read('state.wave'), 2, 'only one live boss');
+  g.read('killEnemy(state.boss); spawnEnemy()');
+  assert.equal(g.read('state.wave'), 3);
+});
+
+test('Space Unchained stops collision and pickup phases on fatal damage', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('player.shield = 1; enemyBullets.push({x:player.x+30,y:player.y,vx:0,vy:0,life:1}); shards.push({x:player.x,y:player.y,vx:0,spin:0}); update(0)');
+  assert.equal(g.read('player.shield'), 0);
+  assert.equal(g.read('state.shards'), 0);
+  assert.equal(g.read('state.mode'), 'gameover');
+  const score = g.records[0][1].score;
+  g.read('endGame(); damagePlayer(100)');
+  assert.equal(g.records.length, 1);
+  assert.equal(g.read('state.score'), score);
+});
+
+test('Space Unchained guards burst resources, pause and setup, and clears flight input', () => {
+  const g = game('pepe-space-unchained.js');
+  g.read('state.shards = 10; burstShot()');
+  assert.equal(g.read('bullets.length'), 0);
+  g.start(); g.start(); assert.equal(g.sessions.length, 1);
+  g.read('state.shards = 10; keys.add("KeyW"); player.vy = -100; window.EmeraldArcade.isPaused = () => true; burstShot(); window.emit("emeraldarcade:pause")');
+  assert.equal(g.read('state.shards'), 10);
+  assert.equal(g.read('keys.size'), 0);
+  assert.equal(g.read('player.vy'), 0);
+  g.read('window.EmeraldArcade.isPaused = () => false; burstShot(); burstShot()');
+  assert.equal(g.read('state.shards'), 5);
+  assert.equal(g.read('bullets.length'), 5);
+});
+
+test('Space Unchained records once with blocked storage and stale result callbacks stay out of replay', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('localStorage.setItem = () => { throw new Error("blocked"); }; state.score=6200; endGame()');
+  const result = g.timers[0]; result();
+  assert.equal(g.nodes.get('#overlayTitle').textContent, 'Emerald Wing Flight');
+  assert.equal(g.read('state.best'), 6200);
+  g.start(); g.nodes.get('#overlayTitle').textContent = 'new flight'; result();
+  assert.equal(g.nodes.get('#overlayTitle').textContent, 'new flight');
+  assert.equal(g.records.length, 1);
+});
+
+
+test('Space Unchained touch steering owns one pointer and never spends burst shards', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('canvas.getBoundingClientRect = () => ({left:0,top:0,width:1280,height:720}); state.shards = 10');
+  const canvas = g.nodes.get('#gameCanvas');
+  canvas.emit('pointerdown', {pointerId:1,pointerType:'touch',clientX:400,clientY:500,button:0});
+  assert.equal(g.read('player.x'), 400);
+  assert.equal(g.read('player.y'), 500);
+  assert.equal(g.read('state.shards'), 10);
+  canvas.emit('pointerdown', {pointerId:2,pointerType:'touch',clientX:100,clientY:100,button:0});
+  canvas.emit('pointermove', {pointerId:2,pointerType:'touch',clientX:100,clientY:100});
+  assert.equal(g.read('player.x'), 400);
+  canvas.emit('pointercancel', {pointerId:1});
+  canvas.emit('pointermove', {pointerId:1,pointerType:'touch',clientX:600,clientY:200});
+  assert.equal(g.read('player.x'), 400);
+  g.nodes.get('#burstButton').emit('click');
+  assert.equal(g.read('state.shards'), 5);
+  assert.equal(g.read('bullets.length'), 5);
+});
+
+test('Space Unchained fatal hull collision cannot award a kill or collect a shard afterward', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('player.shield=1; enemies.push({x:player.x+28,y:player.y,hp:1,maxHp:1,speed:0,amp:0,t:0,shoot:10,boss:false}); bullets.push({x:player.x+28,y:player.y,vx:0,vy:0,damage:1,life:1}); shards.push({x:player.x,y:player.y,vx:0,spin:0}); update(0)');
+  assert.equal(g.read('state.mode'), 'gameover');
+  assert.equal(g.read('state.kills'), 0);
+  assert.equal(g.read('state.shards'), 0);
+  assert.equal(g.records.length, 1);
 });
