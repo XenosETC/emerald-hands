@@ -12,7 +12,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | [Finishing candidate](SPACE_UNCHAINED.md); combat/progression fixtures, banking and burst/repair choices |
 | 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | [Finishing candidate](TOWER_DEFENSE.md); fitted artwork, accessible pads and real-combat campaign fixtures |
 | 8 | Pepe Wars | July 14, 2026 · `0e9cec9` | [Finishing candidate](PEPE_WARS.md); generated citadels, mining, stance and full-combat siege fixtures |
-| 9 | Pepe's Paradox | July 14, 2026 · `0e9cec9` | Same-commit cohort |
+| 9 | Pepe's Paradox | July 14, 2026 · `0e9cec9` | [In progress](PARADOX.md); replay, pause, dialogue input and audio repairs |
 | 10 | ETC Pets | July 18, 2026 · `68c2492` | Same-commit cohort |
 | 11 | ETC Rocket Simulator | July 18, 2026 · `68c2492` | Same-commit cohort |
 | 12 | ETC: Unstable Launch | July 18, 2026 · `68c2492` | Same-commit cohort |

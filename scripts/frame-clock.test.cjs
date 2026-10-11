@@ -41,6 +41,7 @@ function game(file) {
   const canvas = Object.assign(node(), { width: 1280, height: 720, getContext: () => drawing });
   nodes.set('#gameCanvas', canvas);
   nodes.set('#galaxyCanvas', canvas);
+  nodes.set('#paradoxCanvas', canvas);
   const document = Object.assign(node(), {
     querySelector(selector) {
       if (!nodes.has(selector)) nodes.set(selector, node());
@@ -53,6 +54,8 @@ function game(file) {
     EmeraldArcade: { beginSession: (...args) => sessions.push(args), recordAndNotify: (...args) => records.push(args) },
   });
   const context = vm.createContext({
+    addEventListener: window.addEventListener.bind(window), setTimeout: window.setTimeout,
+    URLSearchParams, location: {search: ""},
     document, window, performance: { now: () => wallTime },
     requestAnimationFrame(callback) { frames.set(++nextFrame, callback); return nextFrame; },
     cancelAnimationFrame(id) { frames.delete(id); },
@@ -67,6 +70,7 @@ function game(file) {
   let source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
   if (file === 'pepe-tower-defense.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__towerRead = expression => eval(expression); })();');
   if (file === 'pepe-wars.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__warsRead = expression => eval(expression); })();');
+  if (file === 'pepes-paradox.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__paradoxRead = expression => eval(expression); })();');
   read(source);
   return {
     read, nodes, sessions, records, timers, drawingCalls,
@@ -901,4 +905,29 @@ test('Pepe Wars enemy forecast matches actual AI roster boundaries', () => {
   g.read('window.__warsRead("state.elapsed=96; updateHud()")');
   assert.equal(g.read('window.__warsRead("enemyRoster().length")'),3);
   assert.match(g.nodes.get('#threatReport').textContent,/runners and brutes/);
+});
+
+
+test('Paradox blocked audio cannot prevent launch and active launch cannot reset progress', () => {
+  const g=game('pepes-paradox.js');g.start();
+  assert.equal(g.read('window.__paradoxRead("state.mode")'),'playing');
+  g.read('window.__paradoxRead("player.x=700")');g.start();
+  assert.equal(g.read('window.__paradoxRead("player.x")'),700);
+});
+
+test('Paradox replay restores shifted wisps, particles, facing and input', () => {
+  const g=game('pepes-paradox.js');g.start();
+  g.read('window.__paradoxRead("wisps[0].x+=300; keys.add(String.fromCharCode(75,101,121,68)); player.facing=-1; particles.push({}); state.mode=String.fromCharCode(119,111,110)")');g.start();
+  assert.equal(g.read('window.__paradoxRead("wisps[0].x")'),1180);
+  assert.equal(g.read('window.__paradoxRead("particles.length")'),0);
+  assert.equal(g.read('window.__paradoxRead("keys.size")'),0);
+  assert.equal(g.read('window.__paradoxRead("player.facing")'),1);
+});
+
+test('Paradox pause clears movement and rejects queued jump and dash', () => {
+  const g=game('pepes-paradox.js');g.start();
+  g.read('window.__paradoxRead("keys.add(String.fromCharCode(75,101,121,68)); player.vx=300; player.dash=.2"); window.EmeraldArcade.isPaused=()=>true; window.emit("emeraldarcade:pause"); window.__paradoxRead("jump(); dash()")');
+  assert.equal(g.read('window.__paradoxRead("player.vx")'),0);
+  assert.equal(g.read('window.__paradoxRead("player.dash")'),0);
+  assert.equal(g.read('window.__paradoxRead("player.grounded")'),true);
 });

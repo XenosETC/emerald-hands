@@ -39,29 +39,37 @@
     {name:"Fallen Pepe", text:"You'll never get Pepina back! LMAOOOOOO.", portrait:"assets/pepe-relic-rumble/fallen-special.png"},
     {name:"Fallen Pepe", text:"Finish the stage if you want the next clue. Try not to rage quit, hero.", portrait:"assets/pepe-relic-rumble/fallen-walk.png"},
   ];
+  const originalWisps = wisps.map(w => ({...w}));
   let audio;
+  function clearInput(){keys.clear();player.vx=0;player.dash=0;}
 
   function tone(freq=330,duration=.08,type="sine",gain=.045){
-    if(!state.sound) return; audio ||= new (window.AudioContext||window.webkitAudioContext)();
-    const o=audio.createOscillator(),g=audio.createGain(); o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(gain,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+duration);
+    if(!state.sound) return; try { audio ||= new (window.AudioContext||window.webkitAudioContext)();
+    const o=audio.createOscillator(),g=audio.createGain(); o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(gain,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);o.connect(g).connect(audio.destination);o.start();o.stop(audio.currentTime+duration); } catch { /* optional audio must not interrupt play */ }
   }
   function start(){
+    if(window.EmeraldArcade?.isPaused?.() || ["playing","cutscene","escape"].includes(state.mode)) return;
+    clearInput(); particles.length=0;
+    wisps.forEach((w,i)=>Object.assign(w,originalWisps[i]));
+    for(const p of platforms) if(p.moving){p.x=p.baseX+Math.sin(p.phase)*p.amplitude;p.dx=0;}
+    Object.assign(rival,{x:2740,y:FLOOR-165,alpha:0});
+    loop.last=null;
     window.EmeraldArcade?.beginSession("paradox","pepes-paradox.html");
     const petBonus=window.ArcadePet?.activeBonus("paradox");
-    Object.assign(player,{x:180,y:FLOOR-154,vx:0,vy:0,grounded:true,shards:0,relics:0,frogs:0,dash:0});
+    Object.assign(player,{x:180,y:FLOOR-154,vx:0,vy:0,grounded:true,shards:0,relics:0,frogs:0,dash:0,facing:1});
     Object.assign(state,{mode:"playing",time:0,camera:0,cutsceneStep:0,tauntDone:false,finished:false,petCollectRadius:Number(petBonus?.collectibleRadius||0)});
-    [...shards,...relics,...frogs].forEach(o=>o.got=false); ui.overlay.classList.add("is-hidden"); ui.dialogue.hidden=true; syncHud(); tone(220,.15,"triangle");
+    [...shards,...relics,...frogs].forEach(o=>o.got=false); ui.overlay.classList.add("is-hidden"); ui.dialogue.hidden=true; canvas.focus(); syncHud(); tone(220,.15,"triangle");
   }
-  function jump(){ if(state.mode==="playing"&&player.grounded){player.vy=-740;player.grounded=false;tone(440,.08,"triangle");} }
-  function dash(){ if(state.mode==="playing"&&player.dash<=0){player.dash=.24;player.vx=player.facing*720;tone(170,.12,"sawtooth",.03);burst(player.x+player.w/2,player.y+player.h/2,"#9affac",16);} }
-  function beginTaunt(){ state.mode="cutscene";state.cutsceneStep=0;state.cutsceneClock=0;rival.x=player.x+720;rival.alpha=1;player.vx=0;showLine();tone(85,.35,"sawtooth",.025); }
+  function jump(){ if(!window.EmeraldArcade?.isPaused?.()&&state.mode==="playing"&&player.grounded){player.vy=-740;player.grounded=false;tone(440,.08,"triangle");} }
+  function dash(){ if(!window.EmeraldArcade?.isPaused?.()&&state.mode==="playing"&&player.dash<=0){player.dash=.24;player.vx=player.facing*720;tone(170,.12,"sawtooth",.03);burst(player.x+player.w/2,player.y+player.h/2,"#9affac",16);} }
+  function beginTaunt(){ clearInput(); state.mode="cutscene";state.cutsceneStep=0;state.cutsceneClock=0;rival.x=player.x+720;rival.alpha=1;player.vx=0;showLine();ui.next.focus();tone(85,.35,"sawtooth",.025); }
   function showLine(){ const line=dialogue[state.cutsceneStep];ui.name.textContent=line.name;ui.text.textContent=line.text;ui.portrait.src=line.portrait;ui.dialogue.hidden=false; }
   function advanceDialogue(){
-    if(state.mode!=="cutscene") return; state.cutsceneStep++;
+    if(state.mode!=="cutscene"||window.EmeraldArcade?.isPaused?.()) return; state.cutsceneStep++;
     if(state.cutsceneStep<dialogue.length){showLine();tone(120+state.cutsceneStep*35,.08,"square",.02);return;}
-    ui.dialogue.hidden=true;state.mode="escape";state.cutsceneClock=0;state.tauntDone=true;tone(520,.1,"triangle");
+    ui.dialogue.hidden=true;clearInput();canvas.focus();state.mode="escape";state.cutsceneClock=0;state.tauntDone=true;tone(520,.1,"triangle");
   }
-  function finish(){ if(state.finished)return;state.finished=true;state.mode="won";tone(523,.18);setTimeout(()=>tone(659,.18),180);setTimeout(()=>tone(784,.3),360);window.EmeraldArcade?.recordAndNotify("paradox",{score:player.shards*120+player.relics*600+player.frogs*1000,rank:"Mountain Pursuer",shards:player.shards,relics:player.relics,frogs:player.frogs,stage:2,played:true});ui.overlay.querySelector("p:first-child").textContent="Mountain Archive · Rage Bait Survived";ui.overlay.querySelector("h1").textContent="The Ancient Temple has opened.";ui.overlay.querySelectorAll("p")[1].textContent="The bamboo bells speak Pepina's name. Fallen escaped through the temple gate, but the recovered frog sigil remembers the path.";ui.start.textContent="Replay Bamboo Mountains";ui.overlay.classList.remove("is-hidden"); }
+  function finish(){ if(state.finished||state.mode!=="playing"||!state.tauntDone)return;clearInput();state.finished=true;state.mode="won";tone(523,.18);setTimeout(()=>tone(659,.18),180);setTimeout(()=>tone(784,.3),360);window.EmeraldArcade?.recordAndNotify("paradox",{score:player.shards*120+player.relics*600+player.frogs*1000,rank:"Mountain Pursuer",shards:player.shards,relics:player.relics,frogs:player.frogs,stage:2,played:true});ui.overlay.querySelector("p:first-child").textContent="Mountain Archive · Rage Bait Survived";ui.overlay.querySelector("h1").textContent="The Ancient Temple has opened.";ui.overlay.querySelectorAll("p")[1].textContent="The bamboo bells speak Pepina's name. Fallen escaped through the temple gate, but the recovered frog sigil remembers the path.";ui.start.textContent="Replay Bamboo Mountains";ui.overlay.classList.remove("is-hidden");ui.start.focus(); }
   function update(dt){
     state.time+=dt;
     if(state.mode==="escape"){rival.x+=660*dt;rival.alpha=Math.max(0,rival.alpha-dt*.28);state.cutsceneClock+=dt;if(state.cutsceneClock>1.5){state.mode="playing";}return;}
@@ -96,8 +104,18 @@
   function drawRival(){if(rival.alpha<=0&&state.mode!=="cutscene")return;drawSprite(sprites.fallen,rival.x,rival.y,rival.w,rival.h,rival.facing,rival.alpha);ctx.fillStyle=`rgba(255,45,70,${rival.alpha*.22})`;ctx.beginPath();ctx.arc(rival.x+55,rival.y+85,100,0,Math.PI*2);ctx.fill();}
   function drawParticles(){for(const p of particles){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,5,5);}ctx.globalAlpha=1;}
   function drawProgress(){const p=Math.min(1,player.x/(WORLD_W-player.w));ctx.fillStyle="rgba(0,0,0,.6)";ctx.fillRect(340,H-25,600,8);ctx.fillStyle="#7eff97";ctx.fillRect(340,H-25,600*p,8);ctx.fillStyle="#e9c96c";ctx.fillRect(340+600*.42,H-29,4,16);ctx.font="900 11px system-ui";ctx.fillStyle="#c8ddcf";ctx.textAlign="center";ctx.fillText(state.tauntDone?"RAGE BAIT SURVIVED":"THE TRAIL",640,H-36);}
-  function loop(now){const dt=Math.min(.033,(now-(loop.last||now))/1000);loop.last=now;update(dt);draw();requestAnimationFrame(loop);}
-  addEventListener("keydown",e=>{keys.add(e.code);if(["Space","ArrowUp","KeyW"].includes(e.code)){e.preventDefault();jump();}if(["ShiftLeft","ShiftRight"].includes(e.code))dash();if(e.code==="Enter")advanceDialogue();});
+  function loop(now){const dt=loop.last==null?0:Math.max(0,Math.min(.033,(now-loop.last)/1000));loop.last=now;update(dt);draw();requestAnimationFrame(loop);}
+  addEventListener("blur",clearInput);
+  addEventListener("emeraldarcade:pause",clearInput);
+  document.addEventListener("visibilitychange",()=>{if(document.hidden)clearInput();});
+  addEventListener("keydown",e=>{
+    if(window.EmeraldArcade?.isPaused?.()||e.ctrlKey||e.metaKey||e.altKey||e.target?.closest?.("button,a,input,select,textarea,[contenteditable]"))return;
+    if(state.mode==="cutscene"){if(e.code==="Enter"&&!e.repeat){e.preventDefault();advanceDialogue();}return;}
+    if(state.mode!=="playing")return;
+    if(["ArrowLeft","ArrowRight","KeyA","KeyD"].includes(e.code))keys.add(e.code);
+    if(["Space","ArrowUp","KeyW"].includes(e.code)){e.preventDefault();if(!e.repeat)jump();}
+    if(["ShiftLeft","ShiftRight"].includes(e.code)&&!e.repeat)dash();
+  });
   addEventListener("keyup",e=>keys.delete(e.code));ui.start.addEventListener("click",start);ui.next.addEventListener("click",advanceDialogue);ui.sound.addEventListener("click",()=>{state.sound=!state.sound;ui.sound.textContent=`Sound: ${state.sound?"on":"off"}`;ui.sound.setAttribute("aria-pressed",String(state.sound));});
   window.__pepesParadoxDebug={getState:()=>JSON.parse(canvas.dataset.debugState||"{}")};
   const previewParams=new URLSearchParams(location.search);
