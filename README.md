@@ -32,7 +32,7 @@ Shard Rush has catch/combo/hazard feedback, a next-rank score meter, direct Star
 
 The “What’s new” section links directly to the refreshed games. Soul World now includes sword guard poses, Spirit-based frontal blocking, and immediate guard-to-counter input. Its game and save remain independent of shared arcade rewards.
 
-Run `npm test` for the sixteen-page smoke check and 94 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope and [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge. Hosted deployment has not been verified.
+Run `npm test` for the sixteen-page smoke check and 100 behavior tests, and `npm test --prefix pepe-soul-world` for Soul World’s combat suite. See [ARCADE_REFRESH.md](ARCADE_REFRESH.md) for the earlier refresh scope and [DAILY_VAULT.md](DAILY_VAULT.md) for the daily challenge. Hosted deployment has not been verified.
 
 ### Browsing your collection
 
@@ -166,6 +166,8 @@ Emerald Hands includes occasional event-card moments above the rank progress bar
 Cadence target: standard market signals should be the usual rhythm, `Emerald Flush` should appear sometimes, `Corrupted Shards` should lightly counterbalance boosts, scroll choices should feel like a notable decision, and `Emerald Sage of Rage` should be the rare hype event. The scheduler uses weighted eligibility, per-event cooldowns, and an anti-clump penalty after special events.
 
 Timed events temporarily take over the business artwork above the meter: Rage, Corrupted Shards and Flush have dedicated images, and scroll boosts reuse the Sage's scroll image after the choice modal closes. The scene shows the event countdown and returns to the most recently bought business when it ends. Instant signals show a six-second scene reveal. Pause freezes the artwork's timer with the event.
+
+Ordinary events require the business they describe: IP Run-Up needs Media Studio, Deal Flow Hit needs Acquisition Desk, Infra Flywheel needs Emerald Rails, Business Roll-Up needs Shard Businesses, and the two vault events need OG Vault. Green Candle is available without a business. Green Candle and Ancient Relic have dedicated subject artwork. See [the complete ownership and image audit](EMERALD_HANDS.md#event-ownership-and-visual-audit). Timed effects finish before another event rolls, keeping each payout, message and image together.
 
 ## Emerald Galactic Heroes
 

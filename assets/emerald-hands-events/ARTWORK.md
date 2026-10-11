@@ -6,8 +6,18 @@ Generated with the built-in image-generation tool on October 10, 2026. Original 
 - Corruption: `assets/emerald-hands-events/corrupted-shards.png`
 - Flush: `assets/emerald-hands-events/emerald-flush.png`
 - Scroll event: reuses `assets/scroll-choice-sage.png`.
+- Green Candle Blessing: `assets/emerald-hands-events/green-candle.png`.
+- Ancient Relic Found: `assets/emerald-hands-events/ancient-relic.png`.
 
 ## Final prompt set
+
+### green candle
+
+Use case: stylized-concept. Asset type: finished wide landscape event illustration for the Emerald Hands fantasy idle game. Event: GREEN CANDLE BLESSING, a general favorable market signal paying a small one-time shard windfall. Show a luminous abstract financial candlestick chart made of emerald crystal floating over black marble, five bright green rectangular candles with slender vertical wicks ascending from left to right, a shower of small emerald shards underneath, engraved antique gold architectural surround and dark teal mist. Painterly photoreal cinematic game concept art matching a luxurious emerald-black-gold fantasy economy. Clear central readable silhouette at thumbnail scale, focal candles within central two thirds of a 3:2 landscape composition. The chart is atmospheric art, no actual data or axes. No mine, mining equipment, office ownership, people, literal wax candles, text, captions, numbers, logos, watermark, or UI. Generate a single finished image.
+
+### ancient relic
+
+Use case: stylized-concept. Asset type: finished wide landscape event illustration for the Emerald Hands fantasy idle game. Event: ANCIENT RELIC FOUND inside the player's OG Vault. A newly uncovered ancient circular gold talisman with one brilliant faceted emerald at its center floats just above an opened carved black stone reliquary on a pedestal. Weathered gold filigree and abstract geometric carvings, a soft burst of emerald light and tiny floating shards, visible luxurious black-marble and antique-gold vault architecture in the background. Painterly photoreal cinematic concept art, emerald-black-gold palette, discovery and wonder, dramatic controlled light, foreground relic unmistakable at thumbnail size. Wide 3:2 landscape composition with relic central and intact within middle two thirds. No sage or other person, staff, mine, scroll, readable writing, letters, numbers, captions, logo, UI, or watermark. Generate a single finished image.
 
 ### rage
 

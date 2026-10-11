@@ -229,6 +229,100 @@ test('instant event art lasts six active seconds without changing the featured b
   const paths=h.run('[...Object.values(eventArt).map(x=>x.src),...events.map(x=>x.art)]');
   for(const imagePath of paths) assert.ok(fs.existsSync(path.join(__dirname,'..',imagePath)),imagePath);
 });
+test('event scheduler draws only from currently owned businesses for every ownership combination', () => {
+  const prerequisites = {panic:'vault',infra:'infra',business:'business',relic:'vault',ip:'media',deal:'acquisition'};
+  const kinds = [...new Set(Object.values(prerequisites))];
+  for (let mask=0; mask<2**kinds.length; mask++) {
+    const levels=Object.fromEntries(kinds.map((kind,i)=>[kind,(mask>>i)&1]));
+    // High rank and permanent OG must not stand in for owning a business.
+    const h=game({save:saved({shards:500000,totalEarned:500000,ogPoints:100,levels})});
+    const expected=['candle',...Object.entries(prerequisites).filter(([,kind])=>levels[kind]).map(([id])=>id)].sort();
+    const actual=h.run(`(() => {
+      const seen=new Set();
+      for(let step=0;step<100;step++) {
+        resetEvents(); rageCooldown=corruptionCooldown=flushCooldown=choiceCooldown=999;
+        Math.random=()=>step/100; maybeEvent(0);
+        seen.add(events.find(event=>event.label===signalArt.label).id);
+      }
+      return [...seen].sort();
+    })()`);
+    assert.deepEqual(Array.from(actual),expected,JSON.stringify(levels));
+  }
+});
+
+test('IP Run-Up cannot pay before buying Media Studio and unlocks on the actual purchase', () => {
+  const h=game({save:saved({shards:20000,totalEarned:20000})});
+  assert.equal(h.run('triggerStandardEvent(events.find(event=>event.id==="ip"))'),false);
+  assert.equal(h.snapshot().shards,20000);
+  assert.equal(h.run('signalTimer'),0);
+  h.buttons.find(button=>button.dataset.buy==='media').emit('click');
+  assert.equal(h.snapshot().levels.media,1);
+  const balance=h.snapshot().shards;
+  assert.equal(h.run('triggerStandardEvent(events.find(event=>event.id==="ip")); render(); signalArt.label'),'IP Run-Up');
+  assert.ok(h.snapshot().shards>balance);
+  assert.match(h.nodes.get('#empireArt').style.backgroundImage,/media-studio\.png/);
+  const reloaded=game({save:h.saves.get(codec.key)});
+  assert.equal(reloaded.run('eligibleStandardEvents().some(event=>event.id==="ip")'),true);
+});
+
+test('restart, prestige and restoring a no-business save relock business events', () => {
+  for(const action of ['restart','prestige','restore']) {
+    const h=game({save:saved({shards:400000,totalEarned:400000,ogPoints:10,levels:{vault:1,infra:1,business:1,media:1,acquisition:1}})});
+    assert.equal(h.run('eligibleStandardEvents().length'),7);
+    if(action==='restart') { h.click('#resetButton'); h.click('#confirmAction'); }
+    if(action==='prestige') { h.click('#prestigeButton'); h.click('#confirmAction'); }
+    if(action==='restore') {
+      h.click('#saveVaultButton'); h.nodes.get('#saveCode').value=JSON.stringify(saved({shards:500000,totalEarned:500000,ogPoints:10}));
+      h.click('#previewSave'); h.click('#restoreSave');
+    }
+    assert.deepEqual(Array.from(h.run('eligibleStandardEvents().map(event=>event.id)')),['candle'],action);
+  }
+});
+
+test('every ordinary event pairs its reward, label and reviewed subject artwork', () => {
+  const expected={
+    candle:'assets/emerald-hands-events/green-candle.png', panic:'assets/og-vault.png',
+    infra:'assets/infra-core.png', business:'assets/business-district.png',
+    relic:'assets/emerald-hands-events/ancient-relic.png', ip:'assets/media-studio.png', deal:'assets/acquisition-desk.png',
+  };
+  const h=game({save:saved({shards:100000,totalEarned:100000,levels:{vault:1,infra:1,business:1,media:1,acquisition:1}})});
+  for(const [id,art] of Object.entries(expected)) {
+    const before=h.snapshot();
+    h.run(`resetEvents(); triggerStandardEvent(events.find(event=>event.id==='${id}')); render()`);
+    const label=h.run('signalArt.label');
+    assert.equal(h.nodes.get('#empireArt').style.backgroundImage.split(', ')[0],`url("${art}")`,id);
+    assert.equal(h.nodes.get('#eventArtLabel').textContent,`${label} · 6s`);
+    assert.ok(h.nodes.get('#eventCard').innerHTML.startsWith(`<span>${label}</span>`));
+    assert.ok(h.snapshot().shards>before.shards);
+    assert.deepEqual(h.snapshot().levels,before.levels,'a narrative bonus does not grant a business level');
+    assert.ok(fs.existsSync(path.join(__dirname,'..',art)),art);
+  }
+});
+
+test('active special events prevent hidden ordinary payouts or mismatched event scenes', () => {
+  for(const trigger of ['triggerSageOfRage()','triggerCorruptedShards()','triggerEmeraldFlush()','openScrollChoice(); chooseScroll("safe")']) {
+    const h=game({save:saved({shards:10000,totalEarned:10000})});
+    h.run(`${trigger}; render()`);
+    const balance=h.snapshot().shards;
+    const art=h.nodes.get('#empireArt').style.backgroundImage;
+    h.run('eventCooldown=0; Math.random=()=>0; maybeEvent(0); render()');
+    assert.equal(h.snapshot().shards,balance,trigger);
+    assert.equal(h.run('signalTimer'),0);
+    assert.equal(h.nodes.get('#empireArt').style.backgroundImage,art);
+  }
+});
+
+test('instant event message matches its artwork across a rank up and clears on expiry', () => {
+  const h=game({save:saved({shards:118,totalEarned:118})});
+  h.run('triggerStandardEvent(events.find(event=>event.id==="candle")); render(); eventCooldown=999');
+  assert.equal(h.run('currentRank().name'),'Bag Holder');
+  assert.match(h.nodes.get('#eventCard').innerHTML,/Green Candle Blessing/);
+  assert.match(h.nodes.get('#empireArt').style.backgroundImage,/green-candle\.png/);
+  h.run('for(let i=1;i<=6;i++) loop(i*1000)');
+  assert.match(h.nodes.get('#eventCard').innerHTML,/Steady production/);
+  assert.equal(h.nodes.get('#eventArtLabel').hidden,true);
+});
+
 test('the unchanged economy can reach Sovereign through purchases and repeated cycles', t => {
   const h=game();
   // A deterministic play policy: four taps per active second, buy the best

@@ -84,13 +84,13 @@ const eventArt = {
 };
 
 const events = [
-  { label: "Green Candle Blessing", body: "Momentum hits. Passive production gets a quick shard bonus.", effect: 0.18, art: eventArt.flush.src },
-  { label: "Paper Hands Panic", body: "Weak hands shook out. You held the vault line.", effect: 0.08, art: upgradeArt.vault },
-  { label: "Infra Flywheel", body: "Rails, servers, and workflows squeeze more yield from the machine.", effect: 0.14, art: 'assets/infra-core.png' },
-  { label: "Business Roll-Up", body: "A tiny cash-flow asset joins the portfolio. Shards like discipline.", effect: 0.2, art: upgradeArt.business },
-  { label: "Ancient Relic Found", body: "The OG vault hums. Your shard engine gets blessed.", effect: 0.25, art: 'assets/prestige-sage.png' },
-  { label: "IP Run-Up", body: "The media studio minted attention while you were stacking.", effect: 0.22, art: upgradeArt.media },
-  { label: "Deal Flow Hit", body: "The acquisition desk found a clean little operator.", effect: 0.28, art: upgradeArt.acquisition },
+  { id: 'candle', label: "Green Candle Blessing", body: "Market momentum brings a one-time shard windfall.", effect: 0.18, art: 'assets/emerald-hands-events/green-candle.png' },
+  { id: 'panic', requires: 'vault', label: "Paper Hands Panic", body: "Weak hands shook out. Your OG Vault held the line and secured a shard bonus.", effect: 0.08, art: upgradeArt.vault },
+  { id: 'infra', requires: 'infra', label: "Infra Flywheel", body: "Your Emerald Rails squeeze a shard surplus from the machine.", effect: 0.14, art: 'assets/infra-core.png' },
+  { id: 'business', requires: 'business', label: "Business Roll-Up", body: "Your Shard Businesses complete a small roll-up and return a shard bonus.", effect: 0.2, art: upgradeArt.business },
+  { id: 'relic', requires: 'vault', label: "Ancient Relic Found", body: "An ancient emerald relic awakens inside your OG Vault, releasing a shard windfall.", effect: 0.25, art: 'assets/emerald-hands-events/ancient-relic.png' },
+  { id: 'ip', requires: 'media', label: "IP Run-Up", body: "Your Media Studio turns a burst of attention into a shard bonus.", effect: 0.22, art: upgradeArt.media },
+  { id: 'deal', requires: 'acquisition', label: "Deal Flow Hit", body: "Your Acquisition Desk closes a small deal and banks a shard bonus.", effect: 0.28, art: upgradeArt.acquisition },
 ];
 
 let saveBlocked = false;
@@ -379,24 +379,26 @@ function render() {
   if (rageTimer > 0) {
     announce(
       "Emerald Sage of Rage",
-      `Orange lightning floods the vault. 2x clicks and passive shards for ${Math.ceil(rageTimer)}s.`
+      `The Sage channels orange lightning into your shards. 2x clicks and passive shards for ${Math.ceil(rageTimer)}s.`
     );
   } else if (corruptionTimer > 0) {
     announce(
       "Corrupted Shards",
-      `Dark galaxy lightning contaminates the rails. Clicks and shards/sec run at 80% efficiency for ${Math.ceil(
+      `Dark galaxy lightning contaminates your shards. Clicks and shards/sec run at 80% efficiency for ${Math.ceil(
         corruptionTimer
       )}s.`
     );
   } else if (flushTimer > 0) {
     announce(
       "Emerald Flush",
-      `Regenerative shard mine acquired. +${Math.round((flushBoost - 1) * 100)}% shards/sec for ${Math.ceil(
+      `A regenerative mine shares its surplus. +${Math.round((flushBoost - 1) * 100)}% shards/sec for ${Math.ceil(
         flushTimer
       )}s. Mine payout: +${format(flushDrop)} shards.`
     );
   } else if (choiceTimer > 0) {
     announce(choiceLabel, `${choiceResult} +${Math.round((choiceBoost - 1) * 100)}% shards/sec for ${Math.ceil(choiceTimer)}s.`);
+  } else if (signalTimer > 0 && signalArt) {
+    announce(signalArt.label, signalArt.body);
   }
 
   for (const button of els.buyButtons) {
@@ -497,6 +499,23 @@ function announce(label, body) {
   els.eventCard.innerHTML = `<span>${label}</span><strong>${body}</strong>`;
 }
 
+function eligibleStandardEvents() {
+  // Current-cycle ownership matters: OG points, rank and past purchases do not
+  // unlock events for a business that was cleared by restart or prestige.
+  return events.filter(event => !event.requires || state.levels[event.requires] > 0);
+}
+
+function triggerStandardEvent(event) {
+  if (!eligibleStandardEvents().includes(event)) return false;
+  const bonus = Math.max(10, perSecond() * 6, state.totalEarned * event.effect * 0.015);
+  earn(bonus);
+  signalArt = {src: event.art, label: event.label, body: `${event.body} +${format(bonus)} shards.`};
+  signalTimer = 6;
+  announce(signalArt.label, signalArt.body);
+  specialEventStreak = 0;
+  return true;
+}
+
 function maybeEvent(deltaSeconds) {
   eventCooldown -= deltaSeconds;
   rageCooldown = Math.max(0, rageCooldown - deltaSeconds);
@@ -504,6 +523,9 @@ function maybeEvent(deltaSeconds) {
   flushCooldown = Math.max(0, flushCooldown - deltaSeconds);
   choiceCooldown = Math.max(0, choiceCooldown - deltaSeconds);
   if (eventCooldown > 0 || state.totalEarned < 90 || scrollChoiceOpen) return;
+  // Let the current event finish so every reward has a matching visible scene
+  // and explanation, rather than hiding an instant payout behind a boost.
+  if (rageTimer > 0 || corruptionTimer > 0 || flushTimer > 0 || choiceTimer > 0) return;
 
   eventCooldown = nextEventDelay();
   const eventType = chooseEventType();
@@ -512,13 +534,8 @@ function maybeEvent(deltaSeconds) {
   if (eventType === "flush") return triggerEmeraldFlush();
   if (eventType === "choice") return openScrollChoice();
 
-  const event = events[Math.floor(Math.random() * events.length)];
-  const bonus = Math.max(10, perSecond() * 6, state.totalEarned * event.effect * 0.015);
-  earn(bonus);
-  signalArt = {src: event.art, label: event.label};
-  signalTimer = 6;
-  announce(event.label, `${event.body} +${format(bonus)} shards.`);
-  specialEventStreak = 0;
+  const eligible = eligibleStandardEvents();
+  triggerStandardEvent(eligible[Math.floor(Math.random() * eligible.length)]);
 }
 
 function nextEventDelay() {
@@ -630,7 +647,7 @@ function triggerCorruptedShards() {
   specialEventStreak += 1;
   corruptionCooldown = 120 + Math.random() * 70;
   eventCooldown = 28 + Math.random() * 12;
-  announce("Corrupted Shards", "Dark galaxy-purple lightning leaks into the shard rails. Efficiency drops by 20%.");
+  announce("Corrupted Shards", "Dark galaxy-purple lightning contaminates your shards. Efficiency drops by 20%.");
   window.EmeraldArcade?.toast("Corrupted Shards", "30s 80% shard efficiency", "assets/badges/boss-challenger.png");
   chime(130, 0.14);
   setTimeout(() => chime(220, 0.12), 120);
@@ -649,7 +666,7 @@ function triggerEmeraldFlush() {
   earn(flushDrop);
   announce(
     "Emerald Flush",
-    `A magical regenerative shard mine joins the empire. +${format(flushDrop)} shards and +${Math.round(
+    `A magical regenerative shard mine shares its surplus. +${format(flushDrop)} shards and +${Math.round(
       (flushBoost - 1) * 100
     )}% shards/sec.`
   );
@@ -845,13 +862,13 @@ function loop(now) {
   const deltaSeconds = Math.max(0, Math.min(1, (now - lastTick) / 1000));
   lastTick = now;
   if (!canPlay()) { requestAnimationFrame(loop); return; }
-  const hadBoost = rageTimer > 0 || corruptionTimer > 0 || flushTimer > 0 || choiceTimer > 0;
+  const hadEvent = rageTimer > 0 || corruptionTimer > 0 || flushTimer > 0 || choiceTimer > 0 || signalTimer > 0;
   rageTimer = Math.max(0, rageTimer - deltaSeconds);
   corruptionTimer = Math.max(0, corruptionTimer - deltaSeconds);
   flushTimer = Math.max(0, flushTimer - deltaSeconds);
   choiceTimer = Math.max(0, choiceTimer - deltaSeconds);
   signalTimer = Math.max(0, signalTimer - deltaSeconds);
-  if (hadBoost && rageTimer === 0 && corruptionTimer === 0 && flushTimer === 0 && choiceTimer === 0) {
+  if (hadEvent && rageTimer === 0 && corruptionTimer === 0 && flushTimer === 0 && choiceTimer === 0 && signalTimer === 0) {
     announce('Steady production', 'The event has ended. Your permanent upgrades are still working.');
   }
   const passive = perSecond() * deltaSeconds;

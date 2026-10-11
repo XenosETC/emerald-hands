@@ -23,7 +23,7 @@ The latest ten sealed cycles record earned shards, empire value, OG reward and t
 
 ## Verification
 
-`npm test` includes the sixteen-game smoke check and **94 behavior tests**, including 20 Emerald Hands tests and shared-runtime dialog/reset regressions. The Hands suite executes the actual controller and save module: fresh play/reload, legacy/corrupt saves, bulk pricing, blocked storage/audio, pause/dialog freezing, timing, restart preservation, prestige/history/completion, backup recovery, failed restore and single-use scroll rewards. Confirmed arcade-wide erase clears the Hands recovery copy and cannot be undone by its exit autosave. Smoke checks now verify cached script/style URLs too.
+`npm test` includes the sixteen-game smoke check and **100 behavior tests**, including 26 Emerald Hands tests and shared-runtime dialog/reset regressions. The Hands suite executes the actual controller and save module: fresh play/reload, legacy/corrupt saves, bulk pricing, blocked storage/audio, pause/dialog freezing, timing, restart preservation, prestige/history/completion, backup recovery, failed restore and single-use scroll rewards. Confirmed arcade-wide erase clears the Hands recovery copy and cannot be undone by its exit autosave. Smoke checks now verify cached script/style URLs too.
 
 A deterministic policy reached first prestige at **1,040 simulated active seconds** and Sovereign at **10,029 seconds across 31 cycles**, using four taps per second, affordable production upgrades and existing rules. This is a reachability check, not human completion time or balance certification. Random event benefits are omitted from the policy.
 
@@ -33,13 +33,37 @@ Desktop and 390 px layouts showed completion/recovery dialogs without horizontal
 
 ## Temporary event artwork
 
-The image above the rank meter switches to dedicated artwork for Rage (30 seconds), Corrupted Shards (30 seconds), and Emerald Flush (45 seconds). After a scroll choice, the Sage's scroll image stays in that slot for the chosen boost's existing duration (20, 30 or 40 seconds). Instant market signals briefly show an appropriate existing scene for six active seconds; that display interval does not extend their one-time rewards.
+The image above the rank meter switches to dedicated artwork for Rage (30 seconds), Corrupted Shards (30 seconds), and Emerald Flush (45 seconds). After a scroll choice, the Sage's scroll image stays in that slot for the chosen boost's existing duration (20, 30 or 40 seconds). Instant market signals show a matching scene for six active seconds; that display interval does not extend their one-time rewards.
 
 An event-name/countdown label and matching border identify the temporary scene. The timers use the same paused gameplay clock as their effects. Event visuals never replace `featuredUpgrade` in the save: buying another business during the event updates the scene that returns afterward. Cycle restart, restore and prestige clear transient artwork. Tests cover all these timing and restoration paths.
 
-New art was made with the built-in image-generation tool; [saved assets and exact prompts](assets/emerald-hands-events/ARTWORK.md) are included. The scroll image and ordinary market-signal scenes reuse existing artwork. Browser verification used a separate, temporary fixture page with visible event buttons invoking the actual event functions; it was not a naturally rolled Rage event or a change to the user's run. [Rage in the game panel](docs/emerald-hands-finish-2026-10-10/rage-event-desktop.png) and [scroll effect on phone](docs/emerald-hands-finish-2026-10-10/scroll-event-phone.png) document the integration.
+New art was made with the built-in image-generation tool; [saved assets and exact prompts](assets/emerald-hands-events/ARTWORK.md) are included. The scroll image and business-specific signals reuse the matching existing artwork. Browser verification used a separate, temporary fixture page with visible event buttons invoking the actual event functions; it was not a naturally rolled Rage event or a change to the user's run. [Rage in the game panel](docs/emerald-hands-finish-2026-10-10/rage-event-desktop.png) and [scroll effect on phone](docs/emerald-hands-finish-2026-10-10/scroll-event-phone.png) document the integration.
 
-The live Rage fixture remained at 30 seconds while paused, then naturally expired after resuming and restored the normal infrastructure scene with its event label hidden. The clean staged release passed all 330 behavior tests across the arcade (94), Soul World (149), Feudalism (76) and Temple Run (11), plus the sixteen-game smoke check.
+The live Rage fixture remained at 30 seconds while paused, then naturally expired after resuming and restored the normal infrastructure scene with its event label hidden. The initial finishing release passed all 330 behavior tests across the arcade (94), Soul World (149), Feudalism (76) and Temple Run (11), plus the sixteen-game smoke check.
+
+## Event ownership and visual audit
+
+The October 10 follow-up fixes ordinary events incorrectly firing before their named business was purchased. Eligibility is recalculated from **current-cycle ownership** on each roll. OG points, ranks, and businesses owned in earlier cycles do not qualify. Green Candle remains the general event available after the existing 90-earned-shard threshold. Purchasing a relevant upgrade unlocks its events immediately; restart, prestige, and save restore use the resulting ownership state.
+
+| Event | Required current upgrade | Reviewed artwork subject |
+| --- | --- | --- |
+| Green Candle Blessing | None | New emerald candlestick ascent and shard windfall |
+| Paper Hands Panic | OG Vault | Closed, protected OG Vault |
+| Infra Flywheel | Emerald Rails | Infrastructure core and server rails |
+| Business Roll-Up | Shard Businesses | Connected business district |
+| Ancient Relic Found | OG Vault | New emerald talisman emerging from a reliquary |
+| IP Run-Up | Media Studio | Studio with illustrated screens and production desks |
+| Deal Flow Hit | Acquisition Desk | Deal desk and portfolio models |
+| Emerald Sage of Rage | Existing 650-earned threshold and cooldown | Sage channeling orange lightning |
+| Corrupted Shards | Existing 950-earned threshold and cooldown | Emerald crystals contaminated by violet lightning |
+| Emerald Flush | Existing 1,200-earned threshold and cooldown | Regenerating emerald mine |
+| Sage's Due Diligence / all scroll outcomes | Existing 2,400-earned threshold and cooldown | Sage offering the two scrolls |
+
+Rage and Corruption describe effects on shards without implying an unowned vault or rails. Flush describes a temporary mine surplus, not a permanent business acquisition. Ordinary events still grant one-time shards using their original formulas; their narrative never grants free business levels. New rolls wait for a timed effect to finish, preventing an ordinary payout from being hidden by another event's image. Signal text stays matched to its image even when its payout causes a rank up, and clears when the six-second display expires. Event frequency/mix now depends on actual ownership and these non-overlap rules; human pacing remains an open check.
+
+Six added regressions cover all 32 relevant ownership combinations (100 scheduler draws each), a real Media Studio purchase and reload, lifecycle relocking, all seven ordinary art/reward mappings, special-event overlap and rank-up/expiry coherence. Browser audit uses an isolated hostname and temporary visible QA controls with a held preview clock. These controls are not shipped and never modify the user's live save.
+
+The browser audit confirmed IP Run-Up is blocked before Media Studio and pays after an actual shop purchase. All eleven event images loaded successfully; each event's panel label and message matched its reviewed artwork, including the safe scroll outcome. [Green Candle in the game panel](docs/emerald-hands-finish-2026-10-10/green-candle-audit-desktop.png) records the new scene. This follow-up passed the sixteen-game smoke check and all 100 root behavior tests. The attempted phone viewport override did not change the QA tab's measured desktop width, so it is not counted as new phone evidence.
 
 ## Files and remaining gates
 
