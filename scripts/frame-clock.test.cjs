@@ -64,7 +64,9 @@ function game(file) {
     AbortSignal: { timeout: () => ({}) },
   });
   const read = expression => vm.runInContext(expression, context);
-  read(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'));
+  let source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+  if (file === 'pepe-tower-defense.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__towerRead = expression => eval(expression); })();');
+  read(source);
   return {
     read, nodes, sessions, records, timers, drawingCalls,
     start: () => nodes.get('#startButton').emit('click'),
@@ -600,4 +602,29 @@ test('Space Unchained repair cooldown expires through actual simulation updates'
   assert.equal(g.read('player.shield'), 100);
   assert.equal(g.read('state.shards'), 10);
   assert.equal(g.read('state.repairsUsed'), 2);
+});
+
+
+test('Tower Defense fatal breach stops the update and records zero cleared waves once', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read(`window.__towerRead('state.vault=1; enemies.length=0; enemies.push({x:1325,y:404,pathIndex:9,speed:60,slowTimer:0,hitFlash:0,spin:0,kind:"boss"}); update(.01); endGame("duplicate")')`);
+  assert.equal(g.read('window.__towerRead("state.vault")'), 0);
+  assert.equal(g.records.length, 1);
+  assert.equal(g.records[0][1].wave, 0);
+});
+
+test('Tower Defense paused placement and wave requests cannot spend shards', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read('window.EmeraldArcade.isPaused=()=>true');
+  g.read('window.__towerRead("buildOrUpgrade(pads[0]); startWave()")');
+  assert.equal(g.read('window.__towerRead("state.shards")'), 180);
+  assert.equal(g.read('window.__towerRead("towers.length")'), 0);
+});
+
+test('Tower Defense mastery write failure cannot interrupt placement or results', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read('localStorage.setItem=()=>{throw new Error("blocked")}; window.__towerRead("buildOrUpgrade(pads[0]); state.score=100; endGame()")');
+  assert.equal(g.read('window.__towerRead("state.shards")'), 105);
+  assert.equal(g.read('window.__towerRead("towers.length")'), 1);
+  assert.equal(g.records.length, 1);
 });

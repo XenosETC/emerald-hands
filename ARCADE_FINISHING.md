@@ -10,7 +10,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 4 | Pepe Relic Rumble | July 10, 2026 · `3853947` | [Finishing candidate](RELIC_RUMBLE.md); fair draws, tournament/replay and input |
 | 5 | PepeCoin Emerald Run | July 12, 2026 · `7afc074` | [Finishing candidate](PEPECOIN_RUN.md); jump controls, rank goals and max-speed spacing |
 | 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | [Finishing candidate](SPACE_UNCHAINED.md); combat/progression fixtures, banking and burst/repair choices |
-| 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | Same-commit cohort |
+| 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | [In progress](TOWER_DEFENSE.md); fatal breach, pause and storage repairs |
 | 8 | Pepe Wars | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 9 | Pepe's Paradox | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 10 | ETC Pets | July 18, 2026 · `68c2492` | Same-commit cohort |

@@ -85,6 +85,11 @@
     }
   }
 
+  function readBest() {
+    try { const value = Number(localStorage.getItem(STORAGE_KEY)); return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0; }
+    catch { return 0; }
+  }
+
   function masteryRank(type) {
     const actions = mastery[type].placements + mastery[type].upgrades;
     if (actions >= 35) return "Legend";
@@ -95,7 +100,7 @@
 
   function recordMastery(type, field) {
     mastery[type][field] += 1;
-    localStorage.setItem(MASTERY_KEY, JSON.stringify(mastery));
+    try { localStorage.setItem(MASTERY_KEY, JSON.stringify(mastery)); } catch { /* tab mastery remains usable */ }
     updateMasteryLabels();
   }
 
@@ -131,7 +136,7 @@
     spawnLeft: 0,
     waveSpawnTotal: 0,
     spawnTimer: 0,
-    best: Number(localStorage.getItem(STORAGE_KEY) || 0),
+    best: readBest(),
   };
 
   function clamp(value, min, max) {
@@ -194,14 +199,15 @@
   }
 
   function endGame(title) {
+    if (!state.playing) return;
     state.playing = false;
     state.waveActive = false;
     const score = Math.floor(state.score);
-    const completedWave = Math.max(1, state.wave - 1);
+    const completedWave = Math.max(0, state.wave - 1);
     const rank = rankForRun(completedWave, score);
     if (score > state.best) {
       state.best = score;
-      localStorage.setItem(STORAGE_KEY, String(score));
+      try { localStorage.setItem(STORAGE_KEY, String(score)); } catch { /* session best is retained */ }
     }
     window.EmeraldArcade?.recordAndNotify("towerDefense", {
       played: true,
@@ -214,10 +220,12 @@
     overlayText.textContent = `${format(score)} score - survived wave ${completedWave} - rank: ${rank}.`;
     startButton.textContent = "Rebuild Defense";
     overlay.classList.remove("is-hidden");
+    startButton.focus();
     updateHud();
   }
 
   function startWave() {
+    if (window.EmeraldArcade?.isPaused?.()) return;
     if (!state.playing) resetGame();
     if (state.waveActive) return;
     state.waveActive = true;
@@ -294,6 +302,7 @@
   }
 
   function buildOrUpgrade(pad) {
+    if (!state.playing || window.EmeraldArcade?.isPaused?.()) return;
     const existing = towerAtPad(pad);
     if (existing) {
       const cost = upgradeCost(existing);
@@ -431,7 +440,7 @@
           screenShake = Math.max(screenShake, enemy.kind === "boss" ? 16 : 8);
           statusLabel.textContent = "Vault breach";
           statusMeta.textContent = `${state.vault} integrity remaining`;
-          if (state.vault <= 0) endGame("The vault got cracked");
+          if (state.vault <= 0) { state.vault = 0; endGame("The vault got cracked"); return; }
           continue;
         }
       } else {
@@ -635,6 +644,7 @@
 
   function update(dt) {
     updateEnemies(dt);
+    if (!state.playing) { updateHud(); return; }
     updateTowers(dt);
     updateWave(dt);
     updateEffects(dt);
@@ -1270,6 +1280,7 @@
   });
 
   window.addEventListener("keydown", (event) => {
+    if (window.EmeraldArcade?.isPaused?.() || event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.target?.closest?.("button, a, input, select, textarea, [contenteditable]")) return;
     if (event.key === "1") selectTower("pepe");
     if (event.key === "2") selectTower("shard");
     if (event.key === "3") selectTower("relic");
