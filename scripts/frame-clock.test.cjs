@@ -146,13 +146,15 @@ test('Tower Defense replay starts its first enemy at the portal without duplicat
   // Both the portal and first enemy use this row. The enemy is drawn last.
   const enemyX = () => g.drawingCalls.filter(call => call.method === 'translate' && call.args[1] === 345).at(-1).args[0];
   assert.equal(g.pending(), 0);
-  g.start();
+  g.read('window.__towerRead("resetGame()")');
+  g.nodes.get('#waveButton').emit('click');
   g.frame(1000);
   assert.equal(enemyX(), 34);
   g.frame(1016);
   assert.ok(enemyX() > 34);
   g.setWallTime(6016);
-  g.start();
+  g.read('window.__towerRead("resetGame()")');
+  g.nodes.get('#waveButton').emit('click');
   g.frame(1032);
   assert.equal(enemyX(), 34, 'reset enemy must not move backward during the first frame');
   assert.equal(g.nodes.get('#vaultLabel').textContent, 20);
@@ -164,8 +166,10 @@ test('Tower Defense replay starts its first enemy at the portal without duplicat
   assert.equal(enemyX(), moved);
   g.frame(2044);
   assert.ok(enemyX() > moved && enemyX() - moved < 3, 'a long frame keeps the existing movement cap');
-  g.start();
-  g.start();
+  g.read('window.__towerRead("resetGame()")');
+  g.nodes.get('#waveButton').emit('click');
+  g.read('window.__towerRead("resetGame()")');
+  g.nodes.get('#waveButton').emit('click');
   assert.equal(g.pending(), 1);
   g.frame(4000);
   assert.equal(enemyX(), 34);
@@ -627,4 +631,17 @@ test('Tower Defense mastery write failure cannot interrupt placement or results'
   assert.equal(g.read('window.__towerRead("state.shards")'), 105);
   assert.equal(g.read('window.__towerRead("towers.length")'), 1);
   assert.equal(g.records.length, 1);
+});
+
+
+test('Tower Defense opens a safe build phase before its first wave', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  assert.equal(g.read('window.__towerRead("state.waveActive")'), false);
+  assert.equal(g.read('window.__towerRead("enemies.length")'), 0);
+  g.read('window.__towerRead("buildOrUpgrade(pads[0])")');
+  assert.equal(g.read('window.__towerRead("state.shards")'), 105);
+  g.start(); assert.equal(g.read('window.__towerRead("towers.length")'), 1);
+  g.nodes.get('#waveButton').emit('click');
+  assert.equal(g.read('window.__towerRead("state.waveActive")'), true);
+  assert.equal(g.nodes.get('#waveButton').disabled, true);
 });

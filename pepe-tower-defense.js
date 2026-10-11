@@ -189,15 +189,16 @@
     overlay.classList.add("is-hidden");
     waveButton.textContent = "Start Wave";
     statusLabel.textContent = "Place defenders on empty pads";
-    statusMeta.textContent = "1/2/3 select towers - click a pad to build";
+    statusMeta.textContent = "Build with 180 shards, then press Start Wave. Survive all 12 waves.";
     updateHud();
     last = null;
     raf = requestAnimationFrame(loop);
   }
 
   function resetAndLaunch() {
+    if (state.playing || window.EmeraldArcade?.isPaused?.()) return;
     resetGame();
-    startWave();
+    canvas.focus();
   }
 
   function endGame(title) {
@@ -239,6 +240,7 @@
     statusLabel.textContent = `Wave ${state.wave} incoming`;
     statusMeta.textContent = `${state.spawnLeft + enemies.length} corrupt units in this wave`;
     waveButton.textContent = "Wave Running";
+    updateHud();
   }
 
   function spawnEnemy() {
@@ -276,11 +278,13 @@
     waveLabel.textContent = state.wave;
     vaultLabel.textContent = state.vault;
     bestLabel.textContent = format(state.best);
+    waveButton.disabled = !state.playing || state.waveActive || Boolean(window.EmeraldArcade?.isPaused?.());
   }
 
   function selectTower(type) {
+    if (!towerTypes[type]) return;
     selectedTower = type;
-    towerButtons.forEach((button) => button.classList.toggle("is-selected", button.dataset.tower === type));
+    towerButtons.forEach((button) => { button.classList.toggle("is-selected", button.dataset.tower === type); button.setAttribute("aria-pressed", String(button.dataset.tower === type)); });
     const tower = towerTypes[type];
     statusLabel.textContent = tower.name;
     statusMeta.textContent = `${tower.cost} shards - click an empty pad to place`;
@@ -1309,6 +1313,7 @@
       statusMeta.textContent = "drop it on a glowing build pad";
     });
   });
+  window.addEventListener("emeraldarcade:pause", () => { pointer.active = false; updateHud(); });
   waveButton.addEventListener("click", startWave);
   startButton.addEventListener("click", resetAndLaunch);
   soundToggle.addEventListener("click", () => {
