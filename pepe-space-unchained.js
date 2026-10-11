@@ -271,13 +271,17 @@ function updateBullets(dt) {
     b.x += b.vx * dt;
     b.y += b.vy * dt;
     b.life -= dt;
+    if (b.life <= 0 || b.x < -80 || b.x > W + 80 || b.y < -80 || b.y > H + 80) {
+      enemyBullets.splice(i, 1);
+      continue;
+    }
     if (distance(b.x, b.y, player.x + 30, player.y) < 48 && player.invuln <= 0) {
       enemyBullets.splice(i, 1);
       damagePlayer(10, "shot");
       if (state.mode !== "playing") return;
       continue;
     }
-    if (b.life <= 0 || b.x < -80 || b.y < -80 || b.y > H + 80) enemyBullets.splice(i, 1);
+
   }
 }
 
@@ -292,8 +296,9 @@ function updateEnemies(dt) {
       e.x -= e.speed * dt;
       e.y += Math.sin(e.t * 3) * e.amp * dt;
     }
-    e.shoot -= dt;
-    if (e.shoot <= 0) {
+    const visible = e.x >= 0 && e.x <= W;
+    if (visible) e.shoot -= dt;
+    if (visible && e.shoot <= 0) {
       shootEnemy(e);
       e.shoot = e.boss ? 0.45 : 1.2 + Math.random() * 1.3;
     }

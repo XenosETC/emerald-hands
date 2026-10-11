@@ -15,7 +15,7 @@ This is an in-progress finishing pass, preserving the independent `pepe-space-un
 
 ## Verification
 
-Root smoke and 152 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
+Root smoke and 154 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
 
 Native browser checks used an isolated origin and a 390 x 844 viewport. Launch, keyboard movement, pause/resume, natural loss and replay were exercised. The page was 375 px wide without overflow. An auto-fire run ended naturally at 1,809 points, wave 1, five kills and seven remaining shards. Replay restored shield 100, zero shards and the 16-kill target while retaining the best. Pointer automation at phone dimensions is not a physical-device test. Touch ownership and funded Burst activation are controller fixtures, not a native multitouch demonstration.
 
@@ -42,6 +42,10 @@ Two controller fixtures use the actual burst spawner and projectile movement bef
 Control handoff repair: clicking the Burst button now returns focus to the canvas without scrolling, allowing immediate WASD/arrow steering. A controller fixture verifies focus, the single burst and exact five-shard cost.
 
 A new native forward-position playtest ended at 1,064 points after 13 seconds, with two kills and ten enemy-shot hits. It did not reach a boss. Standing near the front is unsafe against concentrated aimed fire; this observation is not a balance certification. The run report correctly attributed the loss to enemy shots.
+
+Combat fairness repair: expired and out-of-bounds hostile projectiles are removed before collision, so a spent shot cannot cause a final-frame hit. Enemy fire timers now advance only while the enemy center is inside the playfield, preventing shots from offscreen attackers and preserving the visible firing countdown. Already-fired live bullets keep their existing behavior. This intentionally changes entry/exit firing timing; damage and normal on-screen shot intervals are unchanged.
+
+Two controller fixtures verify expired shots cannot reduce shield or inflate hit counts, and that offscreen enemies neither count down nor fire, while the same enemy fires normally after entering. This pass used controller regression checks rather than a new native boss win; previous browser layout evidence remains applicable.
 
 ## Remaining work
 

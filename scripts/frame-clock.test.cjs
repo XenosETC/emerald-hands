@@ -523,3 +523,23 @@ test('Space Unchained Burst returns focus to flight controls for immediate keybo
   assert.equal(g.read('state.burstsUsed'), 1);
   assert.equal(g.read('state.shards'), 0);
 });
+
+
+test('Space Unchained expired enemy shots cannot damage the fighter', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('enemyBullets.push({x:player.x+30,y:player.y,vx:0,vy:0,life:.01}); updateBullets(.02)');
+  assert.equal(g.read('player.shield'), 100);
+  assert.equal(g.read('state.shotHits'), 0);
+  assert.equal(g.read('enemyBullets.length'), 0);
+});
+
+test('Space Unchained enemy fire timers start on screen and stop after departure', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('enemies.push({x:1400,y:100,hp:3,maxHp:3,speed:0,amp:0,t:0,shoot:.28,boss:false}); updateEnemies(.3)');
+  assert.equal(g.read('enemies[0].shoot'), .28);
+  assert.equal(g.read('enemyBullets.length'), 0);
+  g.read('enemies[0].x=1000; updateEnemies(.28)');
+  assert.equal(g.read('enemyBullets.length'), 1);
+  g.read('enemyBullets.length=0; enemies[0].x=-100; enemies[0].shoot=.01; updateEnemies(.02)');
+  assert.equal(g.read('enemyBullets.length'), 0);
+});
