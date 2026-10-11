@@ -15,7 +15,7 @@ This is an in-progress finishing pass, preserving the independent `pepe-space-un
 
 ## Verification
 
-Root smoke and 145 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
+Root smoke and 147 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
 
 Native browser checks used an isolated origin and a 390 x 844 viewport. Launch, keyboard movement, pause/resume, natural loss and replay were exercised. The page was 375 px wide without overflow. An auto-fire run ended naturally at 1,809 points, wave 1, five kills and seven remaining shards. Replay restored shield 100, zero shards and the 16-kill target while retaining the best. Pointer automation at phone dimensions is not a physical-device test. Touch ownership and funded Burst activation are controller fixtures, not a native multitouch demonstration.
 
@@ -28,6 +28,10 @@ The banking control was also exercised natively at 390 x 844: a brief flight ban
 A third pass adds a native progress element for active core health and a progress meter for the existing wave-7-or-18,000-point goal. Actual boss defeats increment a per-flight cleared-node count, which appears in results and the shared record payload; replay resets it. Rewards are unchanged.
 
 A six-node fixture seeds successive kill checkpoints and synthetic projectile aim, deals each core its full real HP, reaches wave 7, banks Chainbreaker Ace and verifies six cleared nodes in results. It checks the late-game reward/result/reset path, not player survival or native boss balance. Phone-sized launch, goal meter and banking were rechecked on an isolated origin.
+
+Combat readability pass: visible, living enemies show a dashed aim line and muzzle ring during the last 0.28 seconds before their existing shot timer fires. Boss warnings are gold; normal warnings are pink. The line tracks current aim and does not lock the shot direction in advance. It warns about the aimed shot; boss spread shots retain their existing pattern. Enemy projectiles now have a bright white rim. Critical shield text remains visible alongside the vault-node warning. No firing cadence, damage, reward or spawn values changed.
+
+Controller checks verify that warning drawing does not advance a timer or spawn bullets, the scheduled shot still fires, offscreen enemies do not draw warnings, and low-shield text remains visible during a boss fight. Warning readability under sustained combat still needs human review.
 
 ## Remaining work
 

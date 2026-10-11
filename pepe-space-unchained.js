@@ -500,8 +500,27 @@ function drawPlayer() {
   ctx.restore();
 }
 
+function shotWarning(enemy) {
+  return state.mode === "playing" && enemy.hp > 0 && enemy.x >= 0 && enemy.x <= W && enemy.shoot > 0 && enemy.shoot <= .28;
+}
+
 function drawEnemies() {
   enemies.forEach((e) => {
+    if (shotWarning(e)) {
+      ctx.save();
+      ctx.strokeStyle = e.boss ? "#ffe4a0" : "#ff9da9";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 12]);
+      ctx.beginPath();
+      ctx.moveTo(e.x - 54, e.y);
+      ctx.lineTo(player.x, player.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(e.x - 54, e.y, 13, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
     ctx.save();
     ctx.translate(e.x, e.y);
     ctx.rotate(-Math.PI / 2);
@@ -534,12 +553,15 @@ function drawBullets() {
     ctx.fill();
   });
   enemyBullets.forEach((b) => {
+    ctx.strokeStyle = "#fff2f4";
+    ctx.lineWidth = 2;
     ctx.fillStyle = "#ff4f70";
     ctx.shadowColor = "#ff4f70";
     ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.arc(b.x, b.y, 7, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
   });
 }
 
@@ -585,7 +607,7 @@ function updateHud() {
   ui.best.textContent = format(state.best);
   ui.pill.classList.toggle("is-danger", player.shield <= 30 || state.mode === "gameover");
   ui.pill.classList.toggle("is-boss", Boolean(state.boss));
-  ui.mission.textContent = state.boss ? "Vault node engaged" : player.shield <= 30 ? "Shield critical" : "Explore the chain";
+  ui.mission.textContent = player.shield <= 30 ? (state.boss ? "Shield critical · vault node engaged" : "Shield critical") : state.boss ? "Vault node engaged" : "Explore the chain";
   ui.meta.textContent = state.boss
     ? `Core ${Math.max(0, state.boss.hp)} / ${state.boss.maxHp} · burst costs 5 shards`
     : `${Math.max(0, state.nextBossKills - state.kills)} kills to next vault node · auto-fire`;

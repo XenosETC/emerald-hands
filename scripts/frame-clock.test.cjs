@@ -447,3 +447,26 @@ test('Space Unchained clears six projectile-damaged vault nodes and banks Chainb
   g.start(); assert.equal(g.read('state.nodesCleared'), 0);
   assert.equal(g.nodes.get('#rankProgress').value, 0);
 });
+
+
+test('Space Unchained shot warnings precede fire without consuming the shot timer', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('enemies.push({x:1000,y:360,hp:3,maxHp:3,speed:0,amp:0,t:0,shoot:.28,boss:false})');
+  assert.equal(g.read('shotWarning(enemies[0])'), true);
+  g.read('drawEnemies()');
+  assert.equal(g.read('enemies[0].shoot'), .28);
+  assert.equal(g.read('enemyBullets.length'), 0);
+  assert.ok(g.drawingCalls.some(call => call.method === 'lineTo' && call.args[0] === 190 && call.args[1] === 360));
+  g.read('updateEnemies(.28)');
+  assert.equal(g.read('enemyBullets.length'), 1);
+  assert.equal(g.read('shotWarning(enemies[0])'), false);
+  g.read('enemies[0].shoot=.1; enemies[0].x=1400');
+  assert.equal(g.read('shotWarning(enemies[0])'), false);
+});
+
+test('Space Unchained keeps critical-shield warning visible during a vault fight', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('state.kills=16; spawnEnemy(); player.shield=30; updateHud()');
+  assert.match(g.nodes.get('#missionLabel').textContent, /Shield critical.*vault node/);
+  assert.match(g.nodes.get('#missionMeta').textContent, /Core 39/);
+});
