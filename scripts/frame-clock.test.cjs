@@ -645,3 +645,26 @@ test('Tower Defense opens a safe build phase before its first wave', () => {
   assert.equal(g.read('window.__towerRead("state.waveActive")'), true);
   assert.equal(g.nodes.get('#waveButton').disabled, true);
 });
+
+
+test('Tower Defense slow strengths change actual movement and expire within the frame', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read(`window.__towerRead('enemies.push({x:34,y:345,pathIndex:1,speed:100,slowTimer:0,slowStrength:0,hitFlash:0,spin:0,hp:100,radius:14,kind:"grunt"}); applySlow(enemies[0],.48,.1); updateEnemies(1)')`);
+  assert.ok(Math.abs(g.read('window.__towerRead("enemies[0].x")') - 129.2) < .000001);
+  assert.equal(g.read('window.__towerRead("enemies[0].slowStrength")'), 0);
+});
+
+test('Tower Defense upgraded slow resists weaker hits and applies its strength to nearby creeps', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read(`window.__towerRead('enemies.push({x:34,y:345,hp:100,slowTimer:0},{x:40,y:345,hp:100,slowTimer:0}); applyMilestoneHit({type:"shard",level:5,slow:.82},enemies[0]); damageEnemy(enemies[0],0,.12,0)')`);
+  assert.equal(g.read('window.__towerRead("enemies[0].slowStrength")'), .82);
+  assert.equal(g.read('window.__towerRead("enemies[1].slowStrength")'), .82);
+  assert.equal(g.read('window.__towerRead("enemies[0].slowTimer")'), 2.8);
+});
+
+test('Tower Defense an enemy exactly at its waypoint stays finite on a zero-time frame', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read(`window.__towerRead('enemies.push({x:170,y:345,pathIndex:1,speed:100,slowTimer:0,hitFlash:0,spin:0,kind:"grunt"}); updateEnemies(0)')`);
+  assert.equal(g.read('window.__towerRead("enemies[0].pathIndex")'), 2);
+  assert.equal(g.read('window.__towerRead("enemies[0].x")'), 170);
+});

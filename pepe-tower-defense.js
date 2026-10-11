@@ -261,6 +261,7 @@
       reward: boss ? 120 : elite ? 28 : runner ? 18 : 13,
       radius: boss ? 31 : elite ? 19 : runner ? 15 : 14,
       slowTimer: 0,
+      slowStrength: 0,
       kind,
       spin: Math.random() * Math.PI * 2,
       hitFlash: 0,
@@ -428,14 +429,16 @@
     for (let i = enemies.length - 1; i >= 0; i -= 1) {
       const enemy = enemies[i];
       const target = path[enemy.pathIndex];
-      const speed = enemy.speed * (enemy.slowTimer > 0 ? 0.55 : 1);
+      const slowedTime = Math.min(dt, enemy.slowTimer);
+      const travel = enemy.speed * (dt - slowedTime * (enemy.slowStrength || 0));
       enemy.slowTimer = Math.max(0, enemy.slowTimer - dt);
+      if (!enemy.slowTimer) enemy.slowStrength = 0;
       enemy.hitFlash = Math.max(0, enemy.hitFlash - dt * 5);
       enemy.spin += dt * (enemy.kind === "runner" ? 5 : 2.2);
       const dx = target.x - enemy.x;
       const dy = target.y - enemy.y;
       const dist = Math.hypot(dx, dy);
-      if (dist < speed * dt) {
+      if (dist <= travel) {
         enemy.x = target.x;
         enemy.y = target.y;
         enemy.pathIndex += 1;
@@ -450,8 +453,8 @@
           continue;
         }
       } else {
-        enemy.x += (dx / dist) * speed * dt;
-        enemy.y += (dy / dist) * speed * dt;
+        enemy.x += (dx / dist) * travel;
+        enemy.y += (dy / dist) * travel;
       }
     }
   }
@@ -470,6 +473,11 @@
     return best;
   }
 
+  function applySlow(enemy, strength, duration) {
+    enemy.slowStrength = Math.max(enemy.slowTimer > 0 ? (enemy.slowStrength || 0) : 0, clamp(strength, 0, .9));
+    enemy.slowTimer = Math.max(enemy.slowTimer, duration);
+  }
+
   function damageEnemy(enemy, damage, slow, splash) {
     enemy.hp -= damage;
     enemy.hitFlash = 1;
@@ -480,7 +488,7 @@
       color: slow ? "#9ee7ff" : splash ? "#ffd86b" : "#98ffd0",
       life: 0.42,
     });
-    if (slow) enemy.slowTimer = Math.max(enemy.slowTimer, 1.6);
+    if (slow) applySlow(enemy, slow, 1.6);
     if (splash) {
       bursts.push({ x: enemy.x, y: enemy.y, r: 0, max: splash, color: "#d8b45f", life: 0.32 });
       for (const other of enemies) {
@@ -566,9 +574,9 @@
       }
     }
     if (tower.type === "shard") {
-      target.slowTimer = Math.max(target.slowTimer, tower.level >= 5 ? 2.8 : 2.1);
+      applySlow(target, tower.slow, tower.level >= 5 ? 2.8 : 2.1);
       if (tower.level >= 5) {
-        for (const enemy of enemiesNear(target.x, target.y, 62, target).slice(0, 4)) enemy.slowTimer = Math.max(enemy.slowTimer, 1.7);
+        for (const enemy of enemiesNear(target.x, target.y, 62, target).slice(0, 4)) applySlow(enemy, tower.slow, 1.7);
       }
     }
     if (tower.type === "mage" && tower.level >= 3) {
