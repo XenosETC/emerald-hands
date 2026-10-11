@@ -708,3 +708,21 @@ test('Tower Defense upgrades reach evolution with exact costs and mastery action
   g.read('window.__towerRead("buildOrUpgrade(pads[0])")');
   assert.equal(g.read('window.__towerRead("state.shards")'), 95);
 });
+
+
+test('Tower Defense corner travel is consistent at 30, 60 and 120 Hz', () => {
+  for (const hz of [30,60,120]) {
+    const g = game('pepe-tower-defense.js'); g.start();
+    g.read(`window.__towerRead('enemies.push({x:34,y:345,pathIndex:1,speed:100,slowTimer:0,hitFlash:0,spin:0,kind:"grunt"}); for(let i=0;i<${hz*5};i++) updateEnemies(1/${hz})')`);
+    assert.ok(Math.abs(g.read('window.__towerRead("enemies[0].x")')-359)<.000001);
+    assert.equal(g.read('window.__towerRead("enemies[0].y")'),170);
+  }
+});
+
+test('Tower Defense multi-corner travel preserves boss breach damage and records fatal loss once', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read(`window.__towerRead('state.vault=4; enemies.push({x:34,y:345,pathIndex:1,speed:100,slowTimer:0,hitFlash:0,spin:0,kind:"boss"}); updateEnemies(100); endGame()')`);
+  assert.equal(g.read('window.__towerRead("state.vault")'),0);
+  assert.equal(g.read('window.__towerRead("enemies.length")'),0);
+  assert.equal(g.records.length,1);
+});

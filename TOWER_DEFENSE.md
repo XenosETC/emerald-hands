@@ -6,7 +6,7 @@ In-progress finishing pass; costs, tower statistics, waves and mastery threshold
 - Paused placement/upgrades and wave requests do not spend shards or launch a wave. Repeated keys, modifiers and focused controls do not trigger game shortcuts.
 - Blocked mastery and best-score writes retain usable tab state. Invalid or unavailable best-score storage no longer blocks startup. Results focus Rebuild Defense.
 
-Verification: root smoke and 168 behavior tests pass in the workspace and clean staged copy. Three controller fixtures cover fatal breach/duplicate results, paused mutations and storage-failure placement/results. Tests access the private controller through a gateway injected only into the in-memory test source; shipped code has no gateway. Browser placement, upgrades, later-wave balance and full win/loss/replay playthroughs remain to be checked before marking this game as a finishing candidate.
+Verification: root smoke and 170 behavior tests pass in the workspace and clean staged copy. Three controller fixtures cover fatal breach/duplicate results, paused mutations and storage-failure placement/results. Tests access the private controller through a gateway injected only into the in-memory test source; shipped code has no gateway. Browser placement, upgrades, later-wave balance and full win/loss/replay playthroughs remain to be checked before marking this game as a finishing candidate.
 
 ## Courtyard artwork
 
@@ -33,3 +33,7 @@ Native browser checks at 390 x 844 built a 75-shard Blaster on pad 1, selected A
 A campaign meter reports cleared waves out of 12 and vault integrity. The final HUD caps the wave number at 12 rather than displaying wave 13, and results explicitly state cleared waves and remaining integrity. Native launch checked the initial 0/12, 20-integrity display.
 
 A controller fixture uses synthetic clears to exercise all twelve wave-transition rewards: 13,800 wave-bonus points and 1,776 ending shards from a 180-shard start, one Vault Architect result, and fresh replay. It is not a combat win. A separate fixture supplies a 1,000-shard test budget, purchases Shard Slow and all four upgrades for 905 total, verifies level-five evolution / 82% slow / four mastery upgrades, and confirms a maxed tower cannot spend more. Campaign balance and native upgrade playtesting remain open.
+
+## Corner movement repair
+
+Creeps now carry unused movement through corners instead of discarding the remainder of a frame. Controller checks match actual route positions at 30/60/120 Hz and exercise multi-corner boss breach / one-time loss recording. Boss/elite/normal breach damage remains 4/2/1 integrity. This removes a frame-rate-dependent slowdown at turns; campaign pacing still needs human review. This pass uses controller checks, not a native campaign win.

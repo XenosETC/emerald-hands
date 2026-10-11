@@ -444,33 +444,37 @@
   function updateEnemies(dt) {
     for (let i = enemies.length - 1; i >= 0; i -= 1) {
       const enemy = enemies[i];
-      const target = path[enemy.pathIndex];
       const slowedTime = Math.min(dt, enemy.slowTimer);
-      const travel = enemy.speed * (dt - slowedTime * (enemy.slowStrength || 0));
+      let travel = enemy.speed * (dt - slowedTime * (enemy.slowStrength || 0));
       enemy.slowTimer = Math.max(0, enemy.slowTimer - dt);
       if (!enemy.slowTimer) enemy.slowStrength = 0;
       enemy.hitFlash = Math.max(0, enemy.hitFlash - dt * 5);
       enemy.spin += dt * (enemy.kind === "runner" ? 5 : 2.2);
-      const dx = target.x - enemy.x;
-      const dy = target.y - enemy.y;
-      const dist = Math.hypot(dx, dy);
-      if (dist <= travel) {
+      // Preserve movement remaining after a corner rather than dropping it.
+      while (enemy.pathIndex < path.length) {
+        const target = path[enemy.pathIndex];
+        const dx = target.x - enemy.x;
+        const dy = target.y - enemy.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > travel) {
+          enemy.x += (dx / dist) * travel;
+          enemy.y += (dy / dist) * travel;
+          break;
+        }
         enemy.x = target.x;
         enemy.y = target.y;
+        travel -= dist;
         enemy.pathIndex += 1;
         if (enemy.pathIndex >= path.length) {
           enemies.splice(i, 1);
-          state.vault -= enemy.kind === "elite" ? 2 : 1;
-          if (enemy.kind === "boss") state.vault -= 3;
+          const damage = enemy.kind === "boss" ? 4 : enemy.kind === "elite" ? 2 : 1;
+          state.vault = Math.max(0, state.vault - damage);
           screenShake = Math.max(screenShake, enemy.kind === "boss" ? 16 : 8);
           statusLabel.textContent = "Vault breach";
           statusMeta.textContent = `${state.vault} integrity remaining`;
-          if (state.vault <= 0) { state.vault = 0; endGame("The vault got cracked"); return; }
-          continue;
+          if (!state.vault) { endGame("The vault got cracked"); return; }
+          break;
         }
-      } else {
-        enemy.x += (dx / dist) * travel;
-        enemy.y += (dy / dist) * travel;
       }
     }
   }
