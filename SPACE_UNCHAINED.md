@@ -15,7 +15,7 @@ This is an in-progress finishing pass, preserving the independent `pepe-space-un
 
 ## Verification
 
-Root smoke and 147 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
+Root smoke and 149 behavior tests pass in the workspace and clean staged copy. Six new actual-controller fixtures cover skipped boss milestones, single active boss, fatal combat/pickup cutoff, burst resource/cooldown guards, stale callbacks, blocked writes and touch ownership. Existing flight-clock replay checks now end the flight before relaunching.
 
 Native browser checks used an isolated origin and a 390 x 844 viewport. Launch, keyboard movement, pause/resume, natural loss and replay were exercised. The page was 375 px wide without overflow. An auto-fire run ended naturally at 1,809 points, wave 1, five kills and seven remaining shards. Replay restored shield 100, zero shards and the 16-kill target while retaining the best. Pointer automation at phone dimensions is not a physical-device test. Touch ownership and funded Burst activation are controller fixtures, not a native multitouch demonstration.
 
@@ -32,6 +32,8 @@ A six-node fixture seeds successive kill checkpoints and synthetic projectile ai
 Combat readability pass: visible, living enemies show a dashed aim line and muzzle ring during the last 0.28 seconds before their existing shot timer fires. Boss warnings are gold; normal warnings are pink. The line tracks current aim and does not lock the shot direction in advance. It warns about the aimed shot; boss spread shots retain their existing pattern. Enemy projectiles now have a bright white rim. Critical shield text remains visible alongside the vault-node warning. No firing cadence, damage, reward or spawn values changed.
 
 Controller checks verify that warning drawing does not advance a timer or spawn bullets, the scheduled shot still fires, offscreen enemies do not draw warnings, and low-shield text remains visible during a boss fight. Warning readability under sustained combat still needs human review.
+
+Flight feedback pass: results now show elapsed flight time, enemy-shot hits, hull collisions and successful bursts. Advice uses actual shield loss to distinguish projectile danger from hull collisions; clean banked flights get a clean-flight message. These counters stay per flight and do not create a new save or change rewards. Replay clears them. Fixtures verify fatal damage is clamped to the shield remaining and that blocked/cooldown burst attempts do not inflate usage. Native banking checks exercise report rendering; cause-specific reports are controller fixtures.
 
 ## Remaining work
 

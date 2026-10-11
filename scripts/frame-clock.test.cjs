@@ -470,3 +470,24 @@ test('Space Unchained keeps critical-shield warning visible during a vault fight
   assert.match(g.nodes.get('#missionLabel').textContent, /Shield critical.*vault node/);
   assert.match(g.nodes.get('#missionMeta').textContent, /Core 39/);
 });
+
+
+test('Space Unchained flight reports count actual shot and hull damage and reset on replay', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('damagePlayer(10,"shot"); player.invuln=0; damagePlayer(18,"hull"); state.shards=10; burstShot(); burstShot(); state.elapsed=65; endGame("bank")');
+  g.timers[0]();
+  assert.match(g.nodes.get('#flightReport').textContent, /1:05 flown.*1 enemy-shot hits.*1 hull collisions.*1 bursts used/);
+  assert.match(g.nodes.get('#flightReport').textContent, /Leave more space/);
+  assert.equal(g.read('state.burstsUsed'), 1);
+  g.start(); assert.equal(g.read('state.shotHits'), 0);
+  assert.equal(g.read('state.hullDamage'), 0);
+  assert.equal(g.nodes.get('#flightReport').textContent, '');
+});
+
+test('Space Unchained reports only shield actually lost on fatal shots', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('player.shield=3; damagePlayer(10,"shot"); damagePlayer(10,"shot")');
+  assert.equal(g.read('state.shotDamage'), 3);
+  assert.equal(g.read('state.shotHits'), 1);
+  g.timers[0](); assert.match(g.nodes.get('#flightReport').textContent, /dashed aim warnings/);
+});

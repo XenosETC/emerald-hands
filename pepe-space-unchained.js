@@ -20,6 +20,7 @@ const ui = {
   goal: document.querySelector("#flightGoal"),
   core: document.querySelector("#coreHealth"),
   rankProgress: document.querySelector("#rankProgress"),
+  report: document.querySelector("#flightReport"),
 };
 
 const W = canvas.width;
@@ -83,6 +84,11 @@ const state = {
   wave: 1,
   kills: 0,
   nodesCleared: 0,
+  shotHits: 0,
+  hullHits: 0,
+  shotDamage: 0,
+  hullDamage: 0,
+  burstsUsed: 0,
   best: readBest(),
   nextBossKills: 16,
   spawnClock: 0,
@@ -136,6 +142,11 @@ function startGame() {
     wave: 1,
     kills: 0,
   nodesCleared: 0,
+  shotHits: 0,
+  hullHits: 0,
+  shotDamage: 0,
+  hullDamage: 0,
+  burstsUsed: 0,
     nextBossKills: 16,
     spawnClock: 0.2,
     waveClock: 0,
@@ -151,6 +162,7 @@ function startGame() {
   shards.length = 0;
   particles.length = 0;
   ui.overlay.classList.add("is-hidden");
+  ui.report.textContent = "";
   canvas.focus();
   tone(360, 0.08, "triangle");
   updateHud();
@@ -165,6 +177,7 @@ function fire() {
 function burstShot() {
   if (state.mode !== "playing" || window.EmeraldArcade?.isPaused?.() || player.burstClock > 0 || state.shards < 5) return;
   state.shards -= 5;
+  state.burstsUsed += 1;
   player.burstClock = 2.2;
   for (let i = -2; i <= 2; i += 1) {
     bullets.push({ x: player.x + 118, y: player.y, vx: 900, vy: i * 105, life: 1, damage: 2 });
@@ -260,7 +273,7 @@ function updateBullets(dt) {
     b.life -= dt;
     if (distance(b.x, b.y, player.x + 30, player.y) < 48 && player.invuln <= 0) {
       enemyBullets.splice(i, 1);
-      damagePlayer(10);
+      damagePlayer(10, "shot");
       if (state.mode !== "playing") return;
       continue;
     }
@@ -285,7 +298,7 @@ function updateEnemies(dt) {
       e.shoot = e.boss ? 0.45 : 1.2 + Math.random() * 1.3;
     }
     if (distance(e.x, e.y, player.x + 28, player.y) < (e.boss ? 110 : 64) && player.invuln <= 0) {
-      damagePlayer(e.boss ? 24 : 18);
+      damagePlayer(e.boss ? 24 : 18, "hull");
       if (state.mode !== "playing") return;
     }
     for (let j = bullets.length - 1; j >= 0; j -= 1) {
@@ -359,8 +372,11 @@ function updateParticles(dt) {
   }
 }
 
-function damagePlayer(amount) {
-  if (state.mode !== "playing") return;
+function damagePlayer(amount, source = "other") {
+  if (state.mode !== "playing" || !Number.isFinite(amount) || amount <= 0) return;
+  const lost = Math.min(player.shield, amount);
+  if (source === "shot") { state.shotHits += 1; state.shotDamage += lost; }
+  if (source === "hull") { state.hullHits += 1; state.hullDamage += lost; }
   player.shield = Math.max(0, player.shield - amount);
   player.invuln = 0.75;
   state.shake = 12;
@@ -393,10 +409,22 @@ function endGame(reason = "shield") {
     if (flightId !== thisFlight || state.mode !== "gameover") return;
     ui.title.textContent = `${rank} Flight`;
     ui.text.textContent = `${reason === "bank" ? "Flight banked" : "Shield depleted"} · ${finalScore.toLocaleString()} points - Wave ${state.wave} - ${state.shards} shards - ${state.kills} corrupt ships unchained - ${state.nodesCleared} vault nodes cleared.`;
+    ui.report.textContent = flightAdvice(reason);
     ui.start.textContent = "Launch Again";
     ui.overlay.classList.remove("is-hidden");
     ui.start.focus();
   }, 500);
+}
+
+function flightAdvice(reason) {
+  const seconds = Math.floor(state.elapsed);
+  const duration = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  const summary = `${duration} flown · ${state.shotHits} enemy-shot hits · ${state.hullHits} hull collisions · ${state.burstsUsed} bursts used.`;
+  let advice;
+  if (state.hullDamage > state.shotDamage) advice = "Leave more space between your fighter and enemy hulls; steer before they reach you.";
+  else if (state.shotDamage > 0) advice = "Watch the dashed aim warnings and change your flight line before the shot arrives.";
+  else advice = reason === "bank" ? "Clean flight banked. Keep exploring longer when you’re ready." : "Keep moving and preserve room to dodge.";
+  return `${summary} ${advice}`;
 }
 
 function rankFor(score, wave) {
