@@ -22,6 +22,8 @@
   const MASTERY_KEY = "pepe-tower-defense-mastery-v1";
   const pepe = new Image();
   pepe.src = "assets/pepecoin-run/pepecoin-classic.png";
+  const courtyard = loadImage("assets/pepe-tower-defense/emerald-vault-courtyard-v1.png");
+  courtyard.addEventListener("load", () => { if (!state.playing) draw(); });
   const flame = new Image();
   flame.src = "assets/pepe-relic-rumble/origin-flame.png";
   const towerSprites = {
@@ -652,6 +654,13 @@
   }
 
   function drawBackground() {
+    if (courtyard.complete && courtyard.naturalWidth) {
+      ctx.drawImage(courtyard, 0, 0, W, H);
+      // Let the live path, pads and bright combat sprites lead the eye.
+      ctx.fillStyle = "rgba(2, 8, 6, .16)";
+      ctx.fillRect(0, 0, W, H);
+      return;
+    }
     const gradient = ctx.createRadialGradient(W * 0.52, H * 0.42, 0, W * 0.52, H * 0.42, W * 0.72);
     gradient.addColorStop(0, "#073022");
     gradient.addColorStop(0.48, "#03120d");
