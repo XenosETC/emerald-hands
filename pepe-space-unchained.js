@@ -16,6 +16,8 @@ const ui = {
   start: document.querySelector("#startButton"),
   sound: document.querySelector("#soundToggle"),
   burst: document.querySelector("#burstButton"),
+  finish: document.querySelector("#finishButton"),
+  goal: document.querySelector("#flightGoal"),
 };
 
 const W = canvas.width;
@@ -203,12 +205,20 @@ function update(dt) {
 
   const ax = (keys.has("ArrowRight") || keys.has("KeyD") ? 1 : 0) - (keys.has("ArrowLeft") || keys.has("KeyA") ? 1 : 0);
   const ay = (keys.has("ArrowDown") || keys.has("KeyS") ? 1 : 0) - (keys.has("ArrowUp") || keys.has("KeyW") ? 1 : 0);
-  player.vx += ax * 2100 * dt;
-  player.vy += ay * 2100 * dt;
-  player.vx *= 0.84;
-  player.vy *= 0.84;
-  player.x = clamp(player.x + player.vx * dt, 80, W * 0.55);
-  player.y = clamp(player.y + player.vy * dt, 100, H - 100);
+  // Exact drag integration keeps keyboard steering consistent across frame rates.
+  const drag = -Math.log(.84) * 60;
+  const decay = Math.exp(-drag * dt);
+  const speed = 2100 / 60 * .84 / (1 - .84);
+  const targetX = ax * speed;
+  const targetY = ay * speed;
+  player.x = clamp(player.x + targetX * dt + (player.vx - targetX) * (1 - decay) / drag, 80, W * .55);
+  player.y = clamp(player.y + targetY * dt + (player.vy - targetY) * (1 - decay) / drag, 100, H - 100);
+  player.vx = targetX + (player.vx - targetX) * decay;
+  player.vy = targetY + (player.vy - targetY) * decay;
+  for (const star of stars) {
+    star.x -= star.s * dt;
+    if (star.x < -5) { star.x = W + 5; star.y = Math.random() * H; }
+  }
 
   player.fireClock -= dt;
   if (player.fireClock <= 0) {
@@ -355,7 +365,7 @@ function damagePlayer(amount) {
   if (player.shield <= 0) endGame();
 }
 
-function endGame() {
+function endGame(reason = "shield") {
   if (state.mode !== "playing") return;
   resetInput();
   state.mode = "gameover";
@@ -376,7 +386,7 @@ function endGame() {
   window.setTimeout(() => {
     if (flightId !== thisFlight || state.mode !== "gameover") return;
     ui.title.textContent = `${rank} Flight`;
-    ui.text.textContent = `${finalScore.toLocaleString()} points - Wave ${state.wave} - ${state.shards} shards - ${state.kills} corrupt ships unchained.`;
+    ui.text.textContent = `${reason === "bank" ? "Flight banked" : "Shield depleted"} · ${finalScore.toLocaleString()} points - Wave ${state.wave} - ${state.shards} shards - ${state.kills} corrupt ships unchained.`;
     ui.start.textContent = "Launch Again";
     ui.overlay.classList.remove("is-hidden");
     ui.start.focus();
@@ -435,11 +445,6 @@ function drawBackground() {
   ctx.fillStyle = "rgba(0,0,0,0.12)";
   ctx.fillRect(0, 0, W, H);
   stars.forEach((s) => {
-    s.x -= s.s / 60;
-    if (s.x < -5) {
-      s.x = W + 5;
-      s.y = Math.random() * H;
-    }
     ctx.fillStyle = "rgba(186,255,221,0.75)";
     ctx.beginPath();
     ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
@@ -460,7 +465,7 @@ function drawBackgroundTile(x, mirrored) {
 }
 
 function drawPlayer() {
-  const blink = player.invuln > 0 && Math.floor(performance.now() / 80) % 2 === 0;
+  const blink = player.invuln > 0 && Math.floor(state.elapsed / .08) % 2 === 0;
   if (blink) return;
   ctx.save();
   ctx.translate(player.x, player.y);
@@ -578,6 +583,8 @@ function updateHud() {
   ui.meta.textContent = state.boss
     ? `Core ${Math.max(0, state.boss.hp)} / ${state.boss.maxHp} · burst costs 5 shards`
     : `${Math.max(0, state.nextBossKills - state.kills)} kills to next vault node · auto-fire`;
+  ui.finish.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.());
+  ui.goal.textContent = rankFor(state.score, state.wave) === "Chainbreaker Ace" ? "Chainbreaker Ace reached. Bank your flight or keep exploring." : "Reach wave 7 or 18,000 points for Chainbreaker Ace. Flight continues until you bank or lose shield.";
   ui.burst.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.()) || state.shards < 5 || player.burstClock > 0;
   ui.burst.textContent = player.burstClock > 0 ? `Burst · ${player.burstClock.toFixed(1)}s` : `Burst · 5 shards (${state.shards})`;
 }
@@ -628,6 +635,7 @@ for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
   canvas.addEventListener(type, (event) => { if (event.pointerId === activePointer) resetInput(); });
 }
 ui.burst.addEventListener("click", () => { burstShot(); updateHud(); });
+ui.finish.addEventListener("click", () => { if (!window.EmeraldArcade?.isPaused?.()) endGame("bank"); });
 
 ui.start.addEventListener("click", startGame);
 ui.sound.addEventListener("click", () => {

@@ -9,7 +9,7 @@
     <link rel="preload" href="assets/pepe-space-unchained/space-bg.jpg" as="image">
     <link rel="preload" href="assets/pepe-space-unchained/pepe-ship.png" as="image">
     <link rel="preload" href="assets/pepe-space-unchained/corrupt-ship.png" as="image">
-    <link rel="stylesheet" href="pepe-space-unchained.css?v=finish-1">
+    <link rel="stylesheet" href="pepe-space-unchained.css?v=finish-2">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="space">
@@ -43,12 +43,12 @@
         <section class="overlay" id="gameOverlay">
           <p class="eyebrow">Horizontal blockchain shooter</p>
           <h1 id="overlayTitle">Pepe: Space Unchained</h1>
-          <p id="overlayText">Fly through emerald chain-space, shoot corrupt block ships, collect ETC shards, and survive vault-node waves.</p>
+          <p id="overlayText">Fly through emerald chain-space, shoot corrupt block ships, collect ETC shards, and survive vault-node waves. Reach wave 7 or 18,000 points for Chainbreaker Ace; bank your flight whenever you’re ready.</p>
           <button id="startButton" type="button">Launch Fighter</button>
           <small>WASD / arrows to fly - Space to burst shot - auto-fire enabled</small>
         </section>
       </section>
-      <div class="flight-controls"><button id="burstButton" type="button" disabled>Burst · 5 shards</button><p>Auto-fire is always on. Defeat 16 ships to engage a vault node.</p></div>
+      <div class="flight-controls"><button id="burstButton" type="button" disabled>Burst · 5 shards</button><button id="finishButton" type="button" disabled>Finish flight · bank score</button><p id="flightGoal">Reach wave 7 or 18,000 points for Chainbreaker Ace.</p></div>
     </main>
 
     <footer class="game-guide" aria-label="How to play">
@@ -59,7 +59,7 @@
 
     <script src="arcade.js?v=8"></script>
     <script src="arcade-pet.js?v=4"></script>
-    <script src="pepe-space-unchained.js?v=finish-1"></script>
+    <script src="pepe-space-unchained.js?v=finish-2"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

@@ -384,3 +384,42 @@ test('Space Unchained fatal hull collision cannot award a kill or collect a shar
   assert.equal(g.read('state.shards'), 0);
   assert.equal(g.records.length, 1);
 });
+
+
+test('Space Unchained keyboard motion is consistent at 30, 60 and 120 Hz', () => {
+  const positions = [];
+  for (const hz of [30, 60, 120]) {
+    const g = game('pepe-space-unchained.js'); g.start();
+    g.read('keys.add("KeyD"); keys.add("KeyS")');
+    g.read(`for(let i=0;i<${hz};i++) update(1/${hz})`);
+    positions.push([g.read('player.x'), g.read('player.y'), g.read('player.vx')]);
+  }
+  for (const position of positions) for (let axis=0;axis<3;axis++) assert.ok(Math.abs(position[axis] - positions[0][axis]) < .00001);
+});
+
+test('Space Unchained banking records the actual earned flight once and replay clears it', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('update(.03)');
+  const score = Math.floor(g.read('state.score'));
+  g.nodes.get('#finishButton').emit('click');
+  g.nodes.get('#finishButton').emit('click');
+  assert.equal(g.records.length, 1);
+  assert.equal(g.records[0][1].score, score);
+  g.timers[0](); assert.match(g.nodes.get('#overlayText').textContent, /Flight banked/);
+  g.start(); assert.equal(g.read('state.score'), 0);
+});
+
+test('Space Unchained defeats a vault core through projectiles and continues to the next milestone', () => {
+  const g = game('pepe-space-unchained.js'); g.start();
+  g.read('state.kills = 16; spawnEnemy(); state.boss.x = 1000; state.boss.y = 360');
+  const hp = g.read('state.boss.hp');
+  g.read(`for (let i=0;i<${hp};i++) { bullets.push({x:1000,y:360,vx:0,vy:0,life:1,damage:1}); updateEnemies(0); }`);
+  assert.equal(g.read('state.boss'), null);
+  assert.equal(g.read('state.kills'), 17);
+  assert.equal(g.read('state.shards'), 10);
+  assert.equal(g.read('state.score'), 2300);
+  assert.equal(g.read('state.nextBossKills'), 32);
+  g.read('state.kills = 32; spawnEnemy()');
+  assert.equal(g.read('state.wave'), 3);
+  assert.equal(g.read('state.boss.maxHp'), 44);
+});

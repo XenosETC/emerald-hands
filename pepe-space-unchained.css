@@ -176,3 +176,10 @@ canvas { display: block; width: 100%; height: 100%; }
 #burstButton:disabled { opacity: .5; cursor: default; }
 #burstButton:focus-visible { outline: 3px solid white; outline-offset: 3px; }
 @media (max-width: 760px) { .game-shell { min-height: 0; } .flight-controls { flex-direction: column; } #burstButton { width: 100%; } }
+
+.flight-controls { flex-wrap: wrap; }
+.flight-controls p { width: 100%; text-align: center; }
+#finishButton { min-height: 52px; padding: 12px 22px; border: 1px solid #74ffc5; border-radius: 14px; background: #0d3224; color: #d9ffee; font-weight: 900; cursor: pointer; }
+#finishButton:disabled { opacity: .5; cursor: default; }
+#finishButton:focus-visible { outline: 3px solid white; outline-offset: 3px; }
+@media (max-width: 760px) { #finishButton { width: 100%; } }

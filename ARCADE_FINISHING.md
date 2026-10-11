@@ -9,7 +9,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 3 | Emerald Galactic Heroes | June 29, 2026 · `9b6401b` | [Finishing candidate](GALACTIC_HEROES.md); flight/results, combat and input repairs |
 | 4 | Pepe Relic Rumble | July 10, 2026 · `3853947` | [Finishing candidate](RELIC_RUMBLE.md); fair draws, tournament/replay and input |
 | 5 | PepeCoin Emerald Run | July 12, 2026 · `7afc074` | [Finishing candidate](PEPECOIN_RUN.md); jump controls, rank goals and max-speed spacing |
-| 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | [In progress](SPACE_UNCHAINED.md); boss milestones, touch/burst controls and fatal-hit replay |
+| 6 | Pepe: Space Unchained | July 12, 2026 · `ac9b3d1` | [In progress](SPACE_UNCHAINED.md); boss combat fixtures, bankable flights and consistent steering |
 | 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 8 | Pepe Wars | July 14, 2026 · `0e9cec9` | Same-commit cohort |
 | 9 | Pepe's Paradox | July 14, 2026 · `0e9cec9` | Same-commit cohort |
