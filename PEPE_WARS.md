@@ -24,3 +24,9 @@ Readable native progress bars now show both bases, with numeric 1000-point healt
 Three controller runs use fixed random values 0.1/0.5/0.9 and a purchasing policy: attempt recruitment every three seconds, buy up to two early miners, then affordable archers/brawlers. Only normal starting funds, passive income, mined shards and combat rewards are used. No funds, kills or base damage are injected. All three win through actual combat after 65.5–67.2 simulated seconds with player base 1000 and enemy base zero. Each records once and replay resets the final score. The 0.5 run earns 13,500 combat/mining points and records 17,000 after existing bonuses.
 
 These are synthetic input-policy controller runs, not native victories or human balance approval. The policy wins before the 95-second brute tier appears; late-game threats, difficulty and manual siege pacing remain open. Browser loss/victory/replay and physical-device testing remain release gates.
+
+## Artwork coverage
+
+Artwork audit confirms 13 runtime raster assets: four player units, three enemy types, three deposits, an arena and two newly generated citadels. Existing unit/deposit/arena artwork remains unchanged. The new emerald and corrupted base sprites match existing character style references and replace the procedural rectangles, retaining live labels/health bars and fallback rendering. Both new files are 1254 x 1254 RGBA with transparent pixels and render at 170 x 170. Exact built-in imagegen prompts are recorded in [ARTWORK.md](assets/pepe-wars/ARTWORK.md).
+
+Native gameplay preview verified the bases at desktop dimensions, then phone width 390 (375px page, no horizontal overflow). [In-game proof](docs/pepe-wars-art-2026-10-11/citadels-desktop.png). Gameplay and save rules are unchanged; root smoke and 182 behavior tests pass.

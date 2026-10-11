@@ -35,6 +35,8 @@
     depositSmall: loadImage("assets/pepe-wars/shard-deposit-small.png"),
     depositMedium: loadImage("assets/pepe-wars/shard-deposit-medium.png"),
     depositLarge: loadImage("assets/pepe-wars/shard-deposit-large.png"),
+    pepeBase: loadImage("assets/pepe-wars/emerald-citadel-v1.png"),
+    corruptBase: loadImage("assets/pepe-wars/corrupt-citadel-v1.png"),
     arena: loadImage("assets/pepe-wars/pepe-wars-arena.png"),
   };
 
@@ -541,6 +543,10 @@
   function drawBase(x, hp, color, label) {
     ctx.save();
     ctx.translate(x, LANE_Y - 58);
+    const sprite = label === "PEPE" ? assets.pepeBase : assets.corruptBase;
+    if (sprite.complete && sprite.naturalWidth) {
+      ctx.drawImage(sprite, -85, -102, 170, 170);
+    } else {
     ctx.fillStyle = "rgba(2, 8, 6, 0.86)";
     ctx.strokeStyle = color;
     ctx.lineWidth = 3;
@@ -556,6 +562,7 @@
     ctx.lineTo(-24, -5);
     ctx.closePath();
     ctx.fill();
+    }
     ctx.shadowBlur = 0;
     ctx.fillStyle = "#effff7";
     ctx.font = "900 14px Arial";
