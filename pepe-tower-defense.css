@@ -445,3 +445,10 @@ canvas {
     display: none;
   }
 }
+
+.pad-controls { padding: 16px; color: #dfffee; }
+.pad-controls > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+.pad-controls button { min-height: 48px; padding: 10px; color: #dfffee; background: #0d3224; border: 1px solid #74ffc5; border-radius: 10px; font: inherit; cursor: pointer; }
+.pad-controls button:disabled { opacity: .45; cursor: default; }
+.pad-controls button:focus-visible { outline: 3px solid white; outline-offset: 2px; }
+@media (max-width: 600px) { .pad-controls > div { grid-template-columns: repeat(2,minmax(0,1fr)); } }

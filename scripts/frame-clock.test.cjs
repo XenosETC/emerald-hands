@@ -668,3 +668,10 @@ test('Tower Defense an enemy exactly at its waypoint stays finite on a zero-time
   assert.equal(g.read('window.__towerRead("enemies[0].pathIndex")'), 2);
   assert.equal(g.read('window.__towerRead("enemies[0].x")'), 170);
 });
+
+
+test('Tower Defense ignores dead targets so the next ready tower hits a live creep', () => {
+  const g = game('pepe-tower-defense.js'); g.start();
+  g.read(`window.__towerRead('enemies.push({x:200,y:170,pathIndex:3,hp:0},{x:170,y:300,pathIndex:2,hp:100})')`);
+  assert.equal(g.read('window.__towerRead("targetFor({x:230,y:260,range:200}).hp")'), 100);
+});

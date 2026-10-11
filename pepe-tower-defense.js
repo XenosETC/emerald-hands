@@ -7,6 +7,7 @@
   const overlayText = document.querySelector("#overlayText");
   const soundToggle = document.querySelector("#soundToggle");
   const waveButton = document.querySelector("#waveButton");
+  const padButtons = [...document.querySelectorAll("[data-pad]")];
   const towerButtons = [...document.querySelectorAll(".tower-button")];
   const scoreLabel = document.querySelector("#scoreLabel");
   const shardLabel = document.querySelector("#shardLabel");
@@ -279,6 +280,14 @@
     waveLabel.textContent = state.wave;
     vaultLabel.textContent = state.vault;
     bestLabel.textContent = format(state.best);
+    padButtons.forEach(button => {
+      const tower = towerAtPad(pads[Number(button.dataset.pad)]);
+      const cost = tower ? upgradeCost(tower) : towerTypes[selectedTower].cost;
+      const label = `Pad ${Number(button.dataset.pad) + 1} · ${tower ? (Number.isFinite(cost) ? `Upgrade L${tower.level + 1} · ${cost}` : "Max level") : `Build · ${cost}`}`;
+      if (button.textContent !== label) button.textContent = label;
+      button.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.()) || !Number.isFinite(cost) || state.shards < cost;
+      button.setAttribute("aria-label", `${label} shards${tower ? ` · ${tower.name}` : ` · ${towerTypes[selectedTower].name}`}`);
+    });
     waveButton.disabled = !state.playing || state.waveActive || Boolean(window.EmeraldArcade?.isPaused?.());
   }
 
@@ -289,6 +298,7 @@
     const tower = towerTypes[type];
     statusLabel.textContent = tower.name;
     statusMeta.textContent = `${tower.cost} shards - click an empty pad to place`;
+    updateHud();
   }
 
   function padAt(x, y) {
@@ -463,6 +473,7 @@
     let best = null;
     let progress = -1;
     for (const enemy of enemies) {
+      if (enemy.hp <= 0) continue;
       if (distance(tower.x, tower.y, enemy.x, enemy.y) > tower.range) continue;
       const enemyProgress = enemy.pathIndex * 1000 - distance(enemy.x, enemy.y, path[enemy.pathIndex]?.x || enemy.x, path[enemy.pathIndex]?.y || enemy.y);
       if (enemyProgress > progress) {
@@ -810,6 +821,9 @@
       ctx.arc(0, 0, hovered ? 36 : 31, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
+      if (!occupied) {
+        ctx.fillStyle = "#dfffee"; ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.fillText(String(pads.indexOf(pad) + 1), 0, 6);
+      }
       if (!occupied && hovered) {
         const type = towerTypes[selectedTower];
         ctx.globalAlpha = 0.28;
@@ -1322,6 +1336,7 @@
     });
   });
   window.addEventListener("emeraldarcade:pause", () => { pointer.active = false; updateHud(); });
+  padButtons.forEach(button => button.addEventListener("click", () => buildOrUpgrade(pads[Number(button.dataset.pad)])));
   waveButton.addEventListener("click", startWave);
   startButton.addEventListener("click", resetAndLaunch);
   soundToggle.addEventListener("click", () => {
