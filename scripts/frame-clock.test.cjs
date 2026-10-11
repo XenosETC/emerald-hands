@@ -856,3 +856,49 @@ test('Pepe Wars mining cadence preserves timer remainder across frame rates', ()
     assert.match(g.nodes.get('#miningReport').textContent,/1 live miners.*660 \/ 710/);
   }
 });
+
+
+test('Pepe Wars defensive economy reaches the brute tier before a battle outcome', (t) => {
+  const g = game('pepe-wars.js'); g.start(); g.read('Math.random=()=>.9');
+  const outcome=JSON.parse(g.read(`window.__warsRead(\`
+    let ticks=0, sawBrute=false;
+    while(state.playing && ticks<18000) {
+      setStance(state.elapsed<120 ? "defend" : "attack");
+      if(ticks%90===0) {
+        if(friendlies.filter(u=>u.role==="miner" && u.hp>0).length<2 && state.elapsed<30 && state.shards>=50) train("miner");
+        else if(state.shards>=110) train("archer");
+        else if(state.shards>=75) train("brawler");
+      }
+      update(1/30); ticks++;
+      if(enemies.some(u=>u.type==="brute")) sawBrute=true;
+    }
+    JSON.stringify({playing:state.playing,playerBase:state.playerBase,enemyBase:state.enemyBase,elapsed:state.elapsed,sawBrute});
+  \`)`));
+  t.diagnostic(`Controller policy only: ${JSON.stringify(outcome)}; human balance remains open.`);
+  assert.equal(outcome.sawBrute,true);
+  assert.equal(outcome.playing,false);
+  assert.equal(g.records.length,1);
+});
+
+test('Pepe Wars unattended siege loses through real AI combat and replay restores bases', () => {
+  const g = game('pepe-wars.js'); g.start();
+  g.read('window.__warsRead("for(let tick=0;tick<9000 && state.playing;tick++) update(1/30)")');
+  assert.equal(g.read('window.__warsRead("state.playerBase")'),0);
+  assert.equal(g.records.length,1);
+  assert.equal(g.records[0][1].wins,0);
+  g.start();
+  assert.equal(g.read('window.__warsRead("state.playerBase")'),1000);
+  assert.equal(g.read('window.__warsRead("state.enemyBase")'),1000);
+  assert.equal(g.read('window.__warsRead("state.shards")'),120);
+});
+
+
+test('Pepe Wars enemy forecast matches actual AI roster boundaries', () => {
+  const g = game('pepe-wars.js'); g.start();
+  g.read('window.__warsRead("state.elapsed=36; updateHud()")');
+  assert.equal(g.read('window.__warsRead("enemyRoster().length")'),2);
+  assert.match(g.nodes.get('#threatReport').textContent,/brutes join in 59s/);
+  g.read('window.__warsRead("state.elapsed=96; updateHud()")');
+  assert.equal(g.read('window.__warsRead("enemyRoster().length")'),3);
+  assert.match(g.nodes.get('#threatReport').textContent,/runners and brutes/);
+});

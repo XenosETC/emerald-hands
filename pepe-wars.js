@@ -19,6 +19,9 @@
   const enemyHealth = document.querySelector("#enemyHealth");
   const baseReport = document.querySelector("#baseReport");
   const miningReport = document.querySelector("#miningReport");
+  const threatReport = document.querySelector("#threatReport");
+  const RUNNER_AT = 35;
+  const BRUTE_AT = 95;
 
   const W = canvas.width;
   const H = canvas.height;
@@ -459,11 +462,15 @@
     }
   }
 
+  function enemyRoster() {
+    return state.elapsed > BRUTE_AT ? ["crawler", "runner", "brute"] : state.elapsed > RUNNER_AT ? ["crawler", "runner"] : ["crawler"];
+  }
+
   function updateAi(dt) {
     state.aiBudget += dt * (24 + state.elapsed * 0.11);
     state.aiTimer -= dt;
     if (state.aiTimer > 0) return;
-    const choices = state.elapsed > 95 ? ["crawler", "runner", "brute"] : state.elapsed > 35 ? ["crawler", "runner"] : ["crawler"];
+    const choices = enemyRoster();
     const type = choices[Math.floor(Math.random() * choices.length)];
     const cost = type === "brute" ? 105 : type === "runner" ? 52 : 38;
     if (state.aiBudget >= cost) {
@@ -512,6 +519,7 @@
     scoreLabel.textContent = format(state.finalScore ?? state.score);
     playerHealth.value = state.playerBase;
     enemyHealth.value = state.enemyBase;
+    threatReport.textContent = state.elapsed > BRUTE_AT ? "Enemy roster: crawlers, runners and brutes" : state.elapsed > RUNNER_AT ? `Enemy roster: crawlers and runners · brutes join in ${Math.ceil(BRUTE_AT - state.elapsed)}s` : `Enemy roster: crawlers · runners join in ${Math.ceil(RUNNER_AT - state.elapsed)}s`;
     const depositsLeft = shardDeposits.reduce((total, deposit) => total + deposit.amount, 0);
     const miners = friendlies.filter(unit => unit.hp > 0 && unit.role === "miner").length;
     miningReport.textContent = `${miners} live miners · ${depositsLeft} / 710 deposit shards remaining${depositsLeft === 0 ? " · miners idle; passive income continues" : ""}`;
