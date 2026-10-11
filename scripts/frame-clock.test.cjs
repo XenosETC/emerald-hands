@@ -809,3 +809,29 @@ test('Pepe Wars miners retain their gathering job under defensive stances', () =
   assert.equal(g.read('window.__warsRead("state.shards")'),75);
   assert.equal(g.read('window.__warsRead("friendlies[0].action")'),'gather');
 });
+
+
+for(const sample of [.1,.5,.9]) test(`Pepe Wars earned-income battle at random=${sample}`, (t) => {
+  const g = game('pepe-wars.js'); g.start();
+  g.read(`Math.random=()=>${sample}`);
+  const outcome=JSON.parse(g.read(`window.__warsRead(\`
+    let ticks=0;
+    while(state.playing && ticks<18000) {
+      if(ticks%90===0) {
+        const miners=friendlies.filter(u=>u.role==="miner" && u.hp>0).length;
+        if(miners<2 && state.elapsed<30 && state.shards>=50) train("miner");
+        else if(state.shards>=110) train("archer");
+        else if(state.shards>=75) train("brawler");
+      }
+      update(1/30); ticks++;
+    }
+    JSON.stringify({playing:state.playing,playerBase:state.playerBase,enemyBase:state.enemyBase,score:state.score,elapsed:state.elapsed,ticks});
+  \`)`));
+  t.diagnostic(`Controller policy only: ${JSON.stringify(outcome)}; human balance remains open.`);
+  assert.equal(outcome.playing,false,JSON.stringify(outcome));
+  assert.equal(g.records.length,1);
+  assert.ok(outcome.playerBase===0 || outcome.enemyBase===0);
+  if(outcome.enemyBase===0) assert.equal(g.records[0][1].score,Math.floor(outcome.score+2500+outcome.playerBase));
+  assert.equal(g.nodes.get('#enemyHealth').value,outcome.enemyBase);
+  g.start(); assert.equal(g.read('window.__warsRead("state.finalScore")'),null);
+});

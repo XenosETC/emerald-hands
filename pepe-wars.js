@@ -15,6 +15,9 @@
   const bestLabel = document.querySelector("#bestLabel");
   const statusLabel = document.querySelector("#statusLabel");
   const statusMeta = document.querySelector("#statusMeta");
+  const playerHealth = document.querySelector("#playerHealth");
+  const enemyHealth = document.querySelector("#enemyHealth");
+  const baseReport = document.querySelector("#baseReport");
 
   const W = canvas.width;
   const H = canvas.height;
@@ -54,6 +57,7 @@
     shards: 120,
     income: 8,
     score: 0,
+    finalScore: null,
     elapsed: 0,
     playerBase: 1000,
     enemyBase: 1000,
@@ -127,6 +131,7 @@
       shards: 120,
       income: 8,
       score: 0,
+    finalScore: null,
       elapsed: 0,
       playerBase: 1000,
       enemyBase: 1000,
@@ -153,6 +158,7 @@
       state.best = score;
       try { localStorage.setItem(STORAGE_KEY, String(score)); } catch { /* keep session best */ }
     }
+    state.finalScore = score;
     const rank = rankFor(score, state.elapsed, win);
     window.EmeraldArcade?.recordAndNotify("pepeWars", {
       played: true,
@@ -500,7 +506,10 @@
   function updateHud() {
     shardLabel.textContent = Math.floor(state.shards);
     incomeLabel.textContent = `${state.income.toFixed(1)}/s`;
-    scoreLabel.textContent = format(state.score);
+    scoreLabel.textContent = format(state.finalScore ?? state.score);
+    playerHealth.value = state.playerBase;
+    enemyHealth.value = state.enemyBase;
+    baseReport.textContent = `Your base ${state.playerBase} / 1000 · Corrupt base ${state.enemyBase} / 1000`;
     timeLabel.textContent = formatTime(state.elapsed);
     bestLabel.textContent = format(state.best);
     const paused = Boolean(window.EmeraldArcade?.isPaused?.());
