@@ -66,6 +66,7 @@ function game(file) {
   const read = expression => vm.runInContext(expression, context);
   let source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
   if (file === 'pepe-tower-defense.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__towerRead = expression => eval(expression); })();');
+  if (file === 'pepe-wars.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__warsRead = expression => eval(expression); })();');
   read(source);
   return {
     read, nodes, sessions, records, timers, drawingCalls,
@@ -763,4 +764,32 @@ test('Tower Defense field guide follows the selected defender and actual level-o
   g.read('window.__towerRead("selectTower(String.fromCharCode(115,104,97,114,100))")');
   assert.match(g.nodes.get('#towerGuide').textContent, /48% slow for 1.6 seconds/);
   assert.match(g.nodes.get('#towerGuide').textContent, /Absolute Zero/);
+});
+
+
+test('Pepe Wars quick losses cannot receive speed-victory ranks', () => {
+  const g = game('pepe-wars.js'); g.start();
+  assert.equal(g.read('window.__warsRead("rankFor(0,10,false)")'),'Fresh Recruit');
+  assert.equal(g.read('window.__warsRead("rankFor(0,10,true)")'),'Shard General');
+  g.read('window.__warsRead("endGame(false)")');
+  assert.notEqual(g.records[0][1].rank,'Shard General');
+});
+
+test('Pepe Wars dead units cannot attack and fatal base combat stops remaining actors', () => {
+  const g = game('pepe-wars.js'); g.start();
+  g.read('window.__warsRead("spawnUnit(String.fromCharCode(98,114,97,119,108,101,114)); friendlies[0].hp=0; friendlies[0].x=1180; friendlies[0].cooldown=0; updateUnits(0)")');
+  assert.equal(g.read('window.__warsRead("state.enemyBase")'),1000);
+  g.read('window.__warsRead("spawnUnit(String.fromCharCode(98,114,97,119,108,101,114)); friendlies[0].x=1180; friendlies[0].cooldown=0; state.enemyBase=1; updateUnits(0)")');
+  assert.equal(g.read('window.__warsRead("state.enemyBase")'),0);
+  assert.equal(g.records.length,1);
+  assert.equal(g.records[0][1].wins,1);
+});
+
+test('Pepe Wars paused or post-result training cannot spend or relaunch', () => {
+  const g = game('pepe-wars.js'); g.start();
+  g.read('window.EmeraldArcade.isPaused=()=>true; window.__warsRead("train(String.fromCharCode(109,105,110,101,114))")');
+  assert.equal(g.read('window.__warsRead("state.shards")'),120);
+  g.read('window.EmeraldArcade.isPaused=()=>false; localStorage.setItem=()=>{throw new Error("blocked")}; window.__warsRead("state.score=100; endGame(false); train(String.fromCharCode(109,105,110,101,114))")');
+  assert.equal(g.records.length,1);
+  assert.equal(g.read('window.__warsRead("state.playing")'),false);
 });

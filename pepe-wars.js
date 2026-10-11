@@ -60,7 +60,7 @@
     aiTimer: 1.4,
     aiBudget: 0,
     stance: "attack",
-    best: Number(localStorage.getItem(STORAGE_KEY) || 0),
+    best: readBest(),
   };
 
   const friendlies = [];
@@ -98,9 +98,14 @@
     return `${m}:${s}`;
   }
 
-  function rankFor(score, elapsed) {
-    if (score >= 16000 || elapsed < 150) return "Shard General";
-    if (score >= 9000 || elapsed < 210) return "Relic Captain";
+  function readBest() {
+    try { const value = Number(localStorage.getItem(STORAGE_KEY)); return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 0; }
+    catch { return 0; }
+  }
+
+  function rankFor(score, elapsed, win = false) {
+    if (score >= 16000 || (win && elapsed < 150)) return "Shard General";
+    if (score >= 9000 || (win && elapsed < 210)) return "Relic Captain";
     if (score >= 4200) return "Pepe Commander";
     if (score >= 1600) return "Lane Fighter";
     return "Fresh Recruit";
@@ -143,9 +148,9 @@
     const score = Math.floor(state.score + (win ? 2500 : 0) + Math.max(0, state.playerBase));
     if (score > state.best) {
       state.best = score;
-      localStorage.setItem(STORAGE_KEY, String(score));
+      try { localStorage.setItem(STORAGE_KEY, String(score)); } catch { /* keep session best */ }
     }
-    const rank = rankFor(score, state.elapsed);
+    const rank = rankFor(score, state.elapsed, win);
     window.EmeraldArcade?.recordAndNotify("pepeWars", {
       played: true,
       score,
@@ -157,6 +162,7 @@
     overlayText.textContent = `${format(score)} score - ${formatTime(state.elapsed)} - rank: ${rank}.`;
     startButton.textContent = "Run Siege Back";
     overlay.classList.remove("is-hidden");
+    startButton.focus();
     updateHud();
   }
 
@@ -199,7 +205,7 @@
   }
 
   function train(type) {
-    if (!state.playing) resetGame();
+    if (!state.playing || window.EmeraldArcade?.isPaused?.() || !unitTypes[type]) return;
     const spec = unitTypes[type];
     if (state.shards < spec.cost) {
       statusLabel.textContent = "Need more shards";
@@ -289,6 +295,7 @@
   }
 
   function setStance(stance) {
+    if (!state.playing || window.EmeraldArcade?.isPaused?.() || !["attack","hold","defend"].includes(stance)) return;
     state.stance = stance;
     stanceButtons.forEach((button) => button.classList.toggle("is-selected", button.dataset.stance === stance));
     statusLabel.textContent = `${stance[0].toUpperCase()}${stance.slice(1)} stance`;
@@ -300,6 +307,7 @@
     let best = null;
     let bestDist = Infinity;
     for (const target of list) {
+      if (target.hp <= 0) continue;
       const d = distance(unit.x, target.x);
       if (d < bestDist) {
         best = target;
@@ -318,6 +326,7 @@
 
   function updateUnits(dt) {
     for (const unit of [...friendlies, ...enemies]) {
+      if (unit.hp <= 0) continue;
       unit.cooldown = Math.max(0, unit.cooldown - dt);
       unit.attackTimer = Math.max(0, unit.attackTimer - dt * 6);
       unit.hitFlash = Math.max(0, unit.hitFlash - dt * 5);
@@ -340,7 +349,7 @@
         if (unit.cooldown <= 0) {
           unit.cooldown = unit.rate;
           if (inRange) hitUnit(unit, target);
-          else hitBase(unit);
+          else { hitBase(unit); if (!state.playing) return; }
         }
       } else {
         const dir = unit.side === "friendly" ? 1 : -1;
@@ -408,11 +417,11 @@
   function hitBase(attacker) {
     attacker.attackTimer = 1;
     if (attacker.side === "friendly") {
-      state.enemyBase -= attacker.damage;
+      state.enemyBase = Math.max(0, state.enemyBase - attacker.damage);
       state.score += attacker.damage * 3;
       if (state.enemyBase <= 0) endGame(true);
     } else {
-      state.playerBase -= attacker.damage;
+      state.playerBase = Math.max(0, state.playerBase - attacker.damage);
       if (state.playerBase <= 0) endGame(false);
     }
   }
@@ -710,6 +719,7 @@
     soundToggle.setAttribute("aria-pressed", String(soundOn));
   });
   window.addEventListener("keydown", (event) => {
+    if (window.EmeraldArcade?.isPaused?.() || event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.target?.closest?.("button,a,input,select,textarea,[contenteditable]")) return;
     if (event.key === "1") train("miner");
     if (event.key === "2") train("brawler");
     if (event.key === "3") train("archer");
