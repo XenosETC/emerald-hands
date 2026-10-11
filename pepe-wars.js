@@ -18,6 +18,7 @@
   const playerHealth = document.querySelector("#playerHealth");
   const enemyHealth = document.querySelector("#enemyHealth");
   const baseReport = document.querySelector("#baseReport");
+  const miningReport = document.querySelector("#miningReport");
 
   const W = canvas.width;
   const H = canvas.height;
@@ -235,7 +236,7 @@
     if (!liveDeposits.length) return null;
     const assignedCounts = new Map(liveDeposits.map((deposit) => [deposit.id, 0]));
     for (const miner of friendlies) {
-      if (miner.role === "miner" && miner.assignedDeposit && assignedCounts.has(miner.assignedDeposit)) {
+      if (miner.hp > 0 && miner.role === "miner" && miner.assignedDeposit && assignedCounts.has(miner.assignedDeposit)) {
         assignedCounts.set(miner.assignedDeposit, assignedCounts.get(miner.assignedDeposit) + 1);
       }
     }
@@ -282,7 +283,7 @@
     unit.gatherTimer -= dt;
     if (unit.gatherTimer <= 0) {
       const mined = Math.min(unit.income, deposit.amount);
-      unit.gatherTimer = unit.rate;
+      unit.gatherTimer += unit.rate;
       deposit.amount -= mined;
       deposit.pulse = 1;
       state.shards += mined;
@@ -511,6 +512,9 @@
     scoreLabel.textContent = format(state.finalScore ?? state.score);
     playerHealth.value = state.playerBase;
     enemyHealth.value = state.enemyBase;
+    const depositsLeft = shardDeposits.reduce((total, deposit) => total + deposit.amount, 0);
+    const miners = friendlies.filter(unit => unit.hp > 0 && unit.role === "miner").length;
+    miningReport.textContent = `${miners} live miners · ${depositsLeft} / 710 deposit shards remaining${depositsLeft === 0 ? " · miners idle; passive income continues" : ""}`;
     baseReport.textContent = `Your base ${state.playerBase} / 1000 · Corrupt base ${state.enemyBase} / 1000`;
     timeLabel.textContent = formatTime(state.elapsed);
     bestLabel.textContent = format(state.best);

@@ -7,7 +7,7 @@ In progress. Existing unit prices/statistics, miners/deposits, income and victor
 - Paused and post-result recruitment cannot spend shards or silently relaunch. Stance and keyboard controls reject paused/invalid actions; repeated keys and focused controls do not issue game commands.
 - Invalid/unavailable best-score storage cannot block startup. Failed writes retain a session best and usable results. Results focus the replay button.
 
-Verification: root smoke and 182 behavior tests pass in the workspace and clean staged copy. Three controller fixtures cover rank boundaries, dead/fatal combat and paused/post-result recruitment with blocked storage. An in-memory gateway exposes the private controller only in test copies; none is shipped. Native browser launch and Miner recruitment were checked on an isolated origin: after buying a miner, income brought the displayed balance to 74; paused recruitment left it exactly 74.
+Verification: root smoke and 184 behavior tests pass in the workspace and clean staged copy. Three controller fixtures cover rank boundaries, dead/fatal combat and paused/post-result recruitment with blocked storage. An in-memory gateway exposes the private controller only in test copies; none is shipped. Native browser launch and Miner recruitment were checked on an isolated origin: after buying a miner, income brought the displayed balance to 74; paused recruitment left it exactly 74.
 
 Next: miner economy, stance behavior, base victory/loss/replay and phone layout. Combat balance, physical touch comfort and hosted behavior remain open; this is not yet a finishing candidate.
 
@@ -29,4 +29,10 @@ These are synthetic input-policy controller runs, not native victories or human 
 
 Artwork audit confirms 13 runtime raster assets: four player units, three enemy types, three deposits, an arena and two newly generated citadels. Existing unit/deposit/arena artwork remains unchanged. The new emerald and corrupted base sprites match existing character style references and replace the procedural rectangles, retaining live labels/health bars and fallback rendering. Both new files are 1254 x 1254 RGBA with transparent pixels and render at 170 x 170. Exact built-in imagegen prompts are recorded in [ARTWORK.md](assets/pepe-wars/ARTWORK.md).
 
-Native gameplay preview verified the bases at desktop dimensions, then phone width 390 (375px page, no horizontal overflow). [In-game proof](docs/pepe-wars-art-2026-10-11/citadels-desktop.png). Gameplay and save rules are unchanged; root smoke and 182 behavior tests pass.
+Native gameplay preview verified the bases at desktop dimensions, then phone width 390 (375px page, no horizontal overflow). [In-game proof](docs/pepe-wars-art-2026-10-11/citadels-desktop.png). Gameplay and save rules are unchanged; root smoke and 184 behavior tests pass.
+
+## Miner economy repair and resource status
+
+Mining retains timer overrun rather than resetting the cooldown after each harvest, removing frame-rate-dependent delays. Dead miners no longer influence deposit assignment. The status report shows live miner count and remaining deposit shards out of 710; when depleted it explains that miners idle while passive income continues. The guide states the existing five-shard / 2.2-second harvest and 0.02-per-second income increment. No costs or payout amounts changed.
+
+Controller fixtures verify a three-shard remainder pays exactly three and reassigns the miner, plus ten harvests in 23 seconds with matching payouts at 30/60/120 Hz. Native recruitment verified the report updates from zero to one live miner without depleting a deposit early. Manual full siege/depletion and late-game balance remain open.

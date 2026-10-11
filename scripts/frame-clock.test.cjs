@@ -835,3 +835,24 @@ for(const sample of [.1,.5,.9]) test(`Pepe Wars earned-income battle at random=$
   assert.equal(g.nodes.get('#enemyHealth').value,outcome.enemyBase);
   g.start(); assert.equal(g.read('window.__warsRead("state.finalScore")'),null);
 });
+
+
+test('Pepe Wars partial deposits never overpay and depletion reassigns miners', () => {
+  const g = game('pepe-wars.js'); g.start();
+  g.read('window.__warsRead("train(String.fromCharCode(109,105,110,101,114)); friendlies[0].x=216; friendlies[0].assignedDeposit=String.fromCharCode(110,101,97,114); friendlies[0].gatherTimer=0; shardDeposits[0].amount=3; updateMiner(friendlies[0],0)")');
+  assert.equal(g.read('window.__warsRead("state.shards")'),73);
+  assert.equal(g.read('window.__warsRead("shardDeposits[0].amount")'),0);
+  assert.equal(g.read('window.__warsRead("state.score")'),18);
+  g.read('window.__warsRead("updateMiner(friendlies[0],0)")');
+  assert.equal(g.read('window.__warsRead("friendlies[0].assignedDeposit")'),'mid');
+});
+
+test('Pepe Wars mining cadence preserves timer remainder across frame rates', () => {
+  for(const hz of [30,60,120]) {
+    const g = game('pepe-wars.js'); g.start();
+    g.read(`window.__warsRead('train("miner"); friendlies[0].x=216; friendlies[0].assignedDeposit="near"; for(let i=0;i<${hz*23};i++) updateMiner(friendlies[0],1/${hz}); updateHud()')`);
+    assert.equal(g.read('window.__warsRead("state.shards")'),120,'ten five-shard harvests after the fifty-shard recruit');
+    assert.equal(g.read('window.__warsRead("shardDeposits[0].amount")'),120);
+    assert.match(g.nodes.get('#miningReport').textContent,/1 live miners.*660 \/ 710/);
+  }
+});
