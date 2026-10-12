@@ -1,4 +1,4 @@
-# ETC Pets inventory repair and sanctuary refresh — October 12, 2026
+# ETC Pets local finishing candidate — October 12, 2026
 
 ## Confirmed inventory overwrite
 
@@ -87,3 +87,12 @@ The pet storage listener now also refreshes on shared wallet changes and browser
 ## Serialized sanctuary actions
 
 The sanctuary UI routes care, supply purchases, unlocks and selection through a shared Web Lock when available. Each queued action reads current state when its turn arrives, and same-page repeat input receives a wait message. Browsers without Web Locks use the prior synchronous path. Fixtures queue purchases and training across two controllers and verify exact balance and inventory; rejected locks do not spend. This protects cooperating updated sanctuary tabs, not old tabs, direct synchronous API calls, companion pickers or unrelated wallet rewards. Refresh sanctuary tabs to participate.
+
+
+## Local finishing candidate
+
+The current sanctuary has a complete local care loop: earn shards in arcade games, purchase supplies or companions, feed/play/train, retain individual strength and shared supplies, and bring bounded assists into supported games. Level 25 is the existing training cap; this companion sanctuary has no new win/loss condition. Care receipts, next-level goals and supported-game links explain progression.
+
+Latest validation: 218 behavior tests plus 16-game smoke passed from the clean staged release. Native two-tab QA dispatched stick purchases through both updated sanctuary UIs from a 60-shard starter balance, observed 24 shards and three sticks, then trained in the second tab. Reloading the first showed 24 shards, two sticks, level 2, the 30-XP next-level goal and the matching care receipt. Actions were dispatched together; browser scheduling alone is not proof that both contended on a held lock. Deterministic queued-lock fixtures cover ordering separately. User-origin saves were untouched.
+
+Earlier desktop/390px layout and native care checks remain documented above. Unlock progression uses fixture funds, not an earned native unlock journey. Physical-device comfort, human economy pacing, hosted behavior, unreadable-save reconstruction, legacy tabs and noncooperating wallet writes remain explicit gates. This is a local finishing candidate, not a claim of full release readiness.

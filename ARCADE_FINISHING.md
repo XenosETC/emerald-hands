@@ -13,7 +13,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 7 | Pepe Tower Defense | July 14, 2026 · `0e9cec9` | [Finishing candidate](TOWER_DEFENSE.md); fitted artwork, accessible pads and real-combat campaign fixtures |
 | 8 | Pepe Wars | July 14, 2026 · `0e9cec9` | [Finishing candidate](PEPE_WARS.md); generated citadels, mining, stance and full-combat siege fixtures |
 | 9 | Pepe's Paradox | July 14, 2026 · `0e9cec9` | [Finishing candidate](PARADOX.md); real-physics traversal fixture, story handoff and safe recovery |
-| 10 | ETC Pets | July 18, 2026 · `68c2492` | Same-commit cohort |
+| 10 | ETC Pets | July 18, 2026 · `68c2492` | [Finishing candidate](ETC_PETS.md); care receipts, purchase recovery and cooperating sanctuary locks |
 | 11 | ETC Rocket Simulator | July 18, 2026 · `68c2492` | Same-commit cohort |
 | 12 | ETC: Unstable Launch | July 18, 2026 · `68c2492` | Same-commit cohort |
 | 13 | Satoshi System | October 5, 2026 · `7e1f161` | Imported build; earlier separate development |
@@ -32,6 +32,6 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 
 “Finishing candidate” means the implemented loop passed its documented local checks. Physical-device comfort, human pacing, hosted behavior and asset rights for commercial release remain separate gates before calling a game fully release-ready. Native Unreal/Godot projects are outside this browser-game queue.
 
-## Next: ETC Pets
+## Next: ETC Rocket Simulator
 
-Review ETC Pets care, supplies, unlocks, cross-tab persistence and accessible progression, building on its confirmed inventory repair. The first nine games have documented local finishing candidates. Automated runs do not replace manual feel, physical-device or hosted-release review.
+Review Rocket Simulator launch, sector transitions, salvage, upgrades, failure/restart and save compatibility. The first ten games have documented local finishing candidates. Automated runs do not replace manual feel, physical-device or hosted-release review.
