@@ -11,7 +11,7 @@
     <link rel="preload" href="assets/pepes-paradox/bamboo-distant.png" as="image">
     <link rel="preload" href="assets/pepes-paradox/bamboo-temple-path.png" as="image">
     <link rel="preload" href="assets/pepes-paradox/bamboo-foreground.png" as="image">
-    <link rel="stylesheet" href="pepes-paradox.css?v=2">
+    <link rel="stylesheet" href="pepes-paradox.css?v=trail-1">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="paradox">
@@ -44,6 +44,7 @@
         </section>
       </section>
       <p id="recoveryStatus" role="status">Falls return you to your last safe footing. Collected items stay collected.</p>
+      <section class="trail-summary" aria-label="Trail objective"><p id="trailGoal">Follow the trail to Fallen, then reach the temple gate.</p><progress id="trailProgress" value="0" max="1" aria-label="Trail progress"></progress></section>
     </main>
 
     <footer class="game-guide" aria-label="How to play">
@@ -53,7 +54,7 @@
     </footer>
     <script src="arcade.js?v=8"></script>
     <script src="arcade-pet.js?v=5"></script>
-    <script src="pepes-paradox.js?v=finish-3"></script>
+    <script src="pepes-paradox.js?v=finish-4"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

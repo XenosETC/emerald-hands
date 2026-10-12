@@ -974,3 +974,18 @@ test('Paradox dialogue, escape, completion and replay follow the actual chapter 
   assert.equal(g.read('window.__paradoxRead("player.shards")'),0);
   assert.equal(g.nodes.get('#completionReport').hidden,true);
 });
+
+
+test('Paradox collects each item once and records the complete collectible score', () => {
+  const g=game('pepes-paradox.js');g.start();
+  g.read(`window.__paradoxRead('for(const [items,key,r] of [[shards,"shards",26],[relics,"relics",34],[frogs,"frogs",38]]) for(const item of items){collect(item,item.x,item.y,r,key);collect(item,item.x,item.y,r,key);} state.tauntDone=true; player.x=5101; update(0)')`);
+  assert.equal(g.records.length,1);
+  assert.equal(g.records[0][1].score,3640);
+  assert.equal(g.records[0][1].shards,12);
+  assert.equal(g.records[0][1].relics,2);
+  assert.equal(g.records[0][1].frogs,1);
+  assert.equal(g.nodes.get('#trailProgress').value,1);
+  g.start();
+  assert.equal(g.nodes.get('#trailProgress').value,0);
+  assert.match(g.nodes.get('#trailGoal').textContent,/optional score bonuses/);
+});
