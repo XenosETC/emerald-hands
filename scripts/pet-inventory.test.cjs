@@ -233,3 +233,21 @@ test('unreadable whole pet saves remain intact and cannot charge or accept care'
     assert.equal(wallet.value,100);
   }
 });
+
+
+test('care history persists supply receipts, stays bounded, and excludes failed actions',()=>{
+ const saves=new Map();const h=tab(saves,{value:0});
+ h.api.updatePet('feed');h.api.updatePet('train');
+ assert.equal(h.api.load().careHistory[0].shoots,1);
+ assert.equal(h.api.load().careHistory[1].sticks,0);
+ assert.equal(h.api.updatePet('train').ok,false);
+ assert.equal(h.api.load().careHistory.length,2);
+ for(let i=0;i<10;i++)h.api.updatePet('play');
+ const fresh=tab(saves,{value:0});
+ assert.equal(fresh.api.load().careHistory.length,8);
+ assert.equal(fresh.api.load().careHistory.every(entry=>entry.action==='play'),true);
+ const before=saves.get('emerald-arcade-pets-v1');
+ fresh.read('localStorage.setItem=()=>{throw new Error("quota")};');
+ assert.equal(fresh.api.updatePet('feed').ok,false);
+ assert.equal(saves.get('emerald-arcade-pets-v1'),before);
+});

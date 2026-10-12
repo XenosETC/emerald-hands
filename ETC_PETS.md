@@ -72,3 +72,8 @@ Pet loading normalizes supply counts and XP to finite nonnegative integers, clam
 ## Unreadable save protection
 
 Malformed JSON, null and array-valued pet saves now block care, selection and purchases while retaining the original stored text. Care returns an explicit stopped-action receipt. The display may show starter fallback values, but those are not persisted over the damaged save. Fixtures verify all three malformed shapes retain their exact bytes and wallet balance. Automatic reconstruction is not implemented; restore a known-good save before resuming.
+
+
+## Recent care receipts
+
+An expandable recent-care panel retains the last eight successful feed, play and train actions across reloads. Each names the companion, supply spent, resulting strength and remaining supplies. Receipts save with care in the same pet write; failed actions add no receipt. History begins with new actions, not reconstructed past activity. This is a bounded local care history, not a purchase or financial audit log.

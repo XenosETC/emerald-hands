@@ -69,6 +69,7 @@
           bambooSticks: safeCount(saved?.inventory?.bambooSticks ?? base.inventory.bambooSticks),
         },
         unlocked: [...new Set([...base.unlocked, ...(Array.isArray(saved?.unlocked) ? saved.unlocked.filter(id => pets.some(pet => pet.id === id)) : [])])],
+        careHistory: (Array.isArray(saved?.careHistory) ? saved.careHistory : []).filter(entry => entry && ["feed", "play", "train"].includes(entry.action) && pets.some(pet => pet.id === entry.pet)).slice(-8),
         stats: Object.fromEntries(pets.map((pet) => {
           const previous = saved?.stats?.[pet.id] || {};
           const strengthXp = safeCount(previous.strengthXp ?? Math.max(0, safeCount(previous.training, 1) - 1) * 10);
@@ -324,6 +325,10 @@
     }
     stats.aura += action === "train" ? 8 : 4;
     data.stats[data.selected] = stats;
+    data.careHistory = [...(data.careHistory || []), {
+      action, pet: data.selected, strength: stats.strength,
+      shoots: data.inventory.bambooShoots, sticks: data.inventory.bambooSticks,
+    }].slice(-8);
     try {
       save();
     } catch {

@@ -20,6 +20,7 @@ const els = {
   trainingGoal: document.querySelector("#trainingGoal"),
   rosterProgress: document.querySelector("#rosterProgress"),
   assist: document.querySelector("#assistReport"),
+  history: document.querySelector("#careHistory"),
 };
 
 let completedSession = false;
@@ -30,6 +31,20 @@ function render(excited = false) {
   const data = window.ArcadePet.load();
   const pet = window.ArcadePet.pets.find((item) => item.id === data.selected);
   const stats = data.stats[data.selected];
+  els.history.replaceChildren();
+  const entries = [...(data.careHistory || [])].reverse();
+  if (!entries.length) {
+    const row = document.createElement("li");
+    row.textContent = "Your next care action will appear here.";
+    els.history.append(row);
+  }
+  for (const entry of entries) {
+    const row = document.createElement("li");
+    const name = window.ArcadePet.pets.find(item => item.id === entry.pet).name;
+    const action = entry.action === "train" ? "Trained · used 1 stick" : entry.action === "feed" ? "Fed · used 1 shoot" : "Played · no supplies used";
+    row.textContent = `${name}: ${action} · Lv. ${Number(entry.strength) || 1} · ${Number(entry.shoots) || 0} shoots, ${Number(entry.sticks) || 0} sticks left`;
+    els.history.append(row);
+  }
   els.hero.style.backgroundImage = `url("${pet.sheet}")`;
   els.hero.style.backgroundPosition = window.ArcadePet.spritePosition(pet.id, excited);
   els.name.textContent = pet.name;
