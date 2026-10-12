@@ -94,14 +94,20 @@ function ensureSectorBackground(index) {
 ensureSectorBackground(0);
 ensureSectorBackground(1);
 
+function savedNumber(value, fallback, minimum = 0) {
+  if (value == null) return fallback;
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.min(Number.MAX_SAFE_INTEGER, Math.max(minimum, number)) : fallback;
+}
+
 function loadSave() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
     return {
-      shards: Number(saved?.shards || 180),
-      bestDistance: Number(saved?.bestDistance || 0),
-      runs: Number(saved?.runs || 0),
-      upgrades: Object.fromEntries(Object.keys(upgradeDefs).map((key) => [key, Math.max(1, Number(saved?.upgrades?.[key] || 1))])),
+      shards: savedNumber(saved?.shards, 180),
+      bestDistance: savedNumber(saved?.bestDistance, 0),
+      runs: Math.floor(savedNumber(saved?.runs, 0)),
+      upgrades: Object.fromEntries(Object.keys(upgradeDefs).map((key) => [key, Math.floor(savedNumber(saved?.upgrades?.[key], 1, 1))])),
     };
   } catch {
     return { shards: 180, bestDistance: 0, runs: 0, upgrades: Object.fromEntries(Object.keys(upgradeDefs).map((key) => [key, 1])) };
@@ -117,7 +123,7 @@ function upgradeCost(key) {
 }
 
 function buyUpgrade(key) {
-  if (state.mode === "flying") return;
+  if (state.mode === "flying" || !Object.hasOwn(upgradeDefs, key)) return;
   const cost = upgradeCost(key);
   if (save.shards < cost) return;
   save.shards -= cost;
@@ -439,6 +445,8 @@ function distanceText(value) {
 
 let audioContext;
 function playTone(frequency, duration, type = "sine", volume = .07) {
+  if (window.EmeraldArcade?.isMuted()) return;
+  try {
   audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
   if (audioContext.state === "suspended") audioContext.resume();
   const osc = audioContext.createOscillator();
@@ -451,6 +459,7 @@ function playTone(frequency, duration, type = "sine", volume = .07) {
   osc.connect(gain).connect(audioContext.destination);
   osc.start();
   osc.stop(audioContext.currentTime + duration + .03);
+  } catch { /* Audio is optional; gameplay and saved upgrades continue. */ }
 }
 
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
