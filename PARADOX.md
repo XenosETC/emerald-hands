@@ -8,7 +8,7 @@ In progress. This build is the Bamboo Mountains chapter only; the temple-opening
 - Dialogue clears movement, focuses Continue, and hands focus back to the canvas after its final line. Completion requires the existing taunt sequence and focuses replay.
 - Replay resets the frame baseline; negative frame deltas cannot rewind simulation.
 
-Verification: root smoke and 197 behavior tests pass in the workspace and clean staged copy. Three controller fixtures check audio-failure launch/active launch guard, replay world/input reset and paused jump/dash guards. Private controller access is injected into in-memory test copies only. Native browser checks used an isolated origin to launch, jump, pause and resume; they do not establish a full stage playthrough.
+Verification: root smoke and 198 behavior tests pass in the workspace and clean staged copy. Three controller fixtures check audio-failure launch/active launch guard, replay world/input reset and paused jump/dash guards. Private controller access is injected into in-memory test copies only. Native browser checks used an isolated origin to launch, jump, pause and resume; they do not establish a full stage playthrough.
 
 Next: platform landing, fall recovery, dialogue/escape/completion and collectible progression. Manual jump feel, physical-device comfort and hosted behavior remain open.
 
@@ -29,3 +29,9 @@ A controller fixture seeds the taunt threshold, advances all three dialogue line
 An accessible trail meter now starts at zero, fills toward the existing gate threshold, and completes on chapter victory. Objective text distinguishes the required story/gate path from optional score collectibles. Replay clears the meter. Collection is guarded outside active play.
 
 A controller fixture collects all twelve shards, two relics and one frog through the actual collection function, attempts each twice, seeds the previously tested story gate and verifies one 3,640-point record plus fresh replay. Item proximity and story completion are fixture inputs, not a native full-collection traversal. Full stage feel remains open.
+
+## Frame-rate-independent locomotion
+
+Horizontal steering now integrates drag over elapsed time. Dash frames preserve the portion before and after the 0.24-second dash expires, and facing stays consistent during the active dash. Gravity uses time-based displacement as well. The existing 390 walk speed, 720 dash speed, 740 jump impulse and 1850 gravity are unchanged, but the corrected integration slightly changes the old discrete jump arc; manual feel needs review.
+
+Controller tests match walking, jumping and dash-expiry trajectories over half a second at 30/60/120 Hz. Native launch, Space and Shift inputs were exercised on an isolated origin. This does not establish a complete native stage traversal.

@@ -84,9 +84,13 @@
     if(state.mode==="escape"){rival.x+=660*dt;rival.alpha=Math.max(0,rival.alpha-dt*.28);state.cutsceneClock+=dt;if(state.cutsceneClock>1.5){state.mode="playing";}return;}
     if(state.mode!=="playing") return;
     const move=(keys.has("ArrowRight")||keys.has("KeyD")?1:0)-(keys.has("ArrowLeft")||keys.has("KeyA")?1:0);
-    player.dash=Math.max(0,player.dash-dt);if(!player.dash)player.vx+=(move*390-player.vx)*Math.min(1,dt*11);if(move)player.facing=move;
+    const dashTime=Math.min(dt,player.dash),walkTime=dt-dashTime;
+    const drag=-Math.log(1-11/60)*60,target=move*390,decay=Math.exp(-drag*walkTime);
+    const travel=player.vx*dashTime+target*walkTime+(player.vx-target)*(1-decay)/drag;
+    player.vx=target+(player.vx-target)*decay;
+    player.dash=Math.max(0,player.dash-dt);if(move&&!player.dash)player.facing=move;
     let carried=0;for(const p of platforms){if(!p.moving)continue;const oldX=p.x;p.x=p.baseX+Math.sin(state.time*p.speed+p.phase)*p.amplitude;p.dx=p.x-oldX;if(player.grounded&&Math.abs(player.y+player.h-p.y)<4&&player.x+player.w>oldX&&player.x<oldX+p.w)carried=p.dx;}
-    player.vy+=1850*dt; const oldBottom=player.y+player.h;player.x=Math.max(0,Math.min(WORLD_W-player.w,player.x+player.vx*dt+carried));player.y+=player.vy*dt;player.grounded=false;
+    const oldBottom=player.y+player.h;player.x=Math.max(0,Math.min(WORLD_W-player.w,player.x+travel+carried));player.y+=player.vy*dt+.5*1850*dt*dt;player.vy+=1850*dt;player.grounded=false;
     let landing=null;
     for(const p of platforms){
       if(player.x+player.w>p.x&&player.x<p.x+p.w&&oldBottom<=p.y+12&&player.y+player.h>=p.y&&player.vy>=0&&(!landing||p.y<landing.y))landing=p;

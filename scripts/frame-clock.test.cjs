@@ -989,3 +989,18 @@ test('Paradox collects each item once and records the complete collectible score
   assert.equal(g.nodes.get('#trailProgress').value,0);
   assert.match(g.nodes.get('#trailGoal').textContent,/optional score bonuses/);
 });
+
+
+test('Paradox walk, jump and dash trajectories match at 30, 60 and 120 Hz', () => {
+  for(const action of ['walk','jump','dash']) {
+    const outcomes=[];
+    for(const hz of [30,60,120]) {
+      const g=game('pepes-paradox.js');g.start();
+      g.read('window.__paradoxRead("keys.add(String.fromCharCode(75,101,121,68))")');
+      if(action!=='walk')g.read(`window.__paradoxRead("${action}()")`);
+      g.read(`window.__paradoxRead("for(let i=0;i<${hz/2};i++)update(1/${hz})")`);
+      outcomes.push([g.read('window.__paradoxRead("player.x")'),g.read('window.__paradoxRead("player.y")'),g.read('window.__paradoxRead("player.vx")')]);
+    }
+    for(const outcome of outcomes)for(let axis=0;axis<3;axis++)assert.ok(Math.abs(outcome[axis]-outcomes[0][axis])<.00001,`${action} axis ${axis}: ${JSON.stringify(outcomes)}`);
+  }
+});
