@@ -26,7 +26,7 @@ Evidence: [desktop sanctuary](docs/pets-and-cards-2026-10-12/sanctuary-desktop.p
 
 Supply purchases and pet unlocks now check that the pet store can accept an unchanged write before charging Arcade Shards. Persistent storage failure returns a clear stopped-purchase message and does not invoke wallet spending. A controller fixture verifies both operations preserve the wallet and stored pet state when writes are blocked. Shared script references were updated across consumer pages. Costs, unlocks and successful purchase behavior are unchanged.
 
-This preflight protects persistent unavailability; it is not an atomic transaction across the wallet and pet storage keys and does not guarantee recovery from a failure occurring after the preflight. More comprehensive transaction recovery remains a separate engineering gate.
+This preflight protects persistent unavailability; it is not an atomic transaction across the wallet and pet storage keys and does not guarantee recovery from a failure occurring after the preflight. The recoverable-purchase section below supersedes this limitation for new purchases after the updated controllers load.
 
 ## Visible training progression
 
@@ -48,3 +48,12 @@ The sanctuary displays the selected pet’s actual Rush magnet radius, Paradox c
 ## Failed care saves
 
 Feed, play and train now return a failed-care receipt when the pet write fails, restoring the controller snapshot. Saved supplies, strength and aura remain intact; retrying after storage recovers applies the action once. Controller fixtures inject quota-style failure for all three actions and verify saved state, in-memory sticks and retries. This does not resolve the separate wallet/pet purchase transaction recovery gate.
+
+
+## Recoverable purchases
+
+New purchases save the shard debit and cumulative supply or companion grant together in the wallet key. Pet loading reconciles these totals against its previously applied totals; successful care saves record the reconciliation. If the pet write fails after charging, the UI reports a secured delivery and a fresh load recovers it without charging again. Wallet write failure stops the purchase. Existing inventory and legacy purchases are untouched; no historical refund is inferred. Refresh all arcade tabs for the new shared controllers.
+
+Controller fixtures cover delayed supply/unlock delivery, reloads without duplicate grants, and actual wallet write failure preserving its serialized state. This remains localStorage persistence, not a server transaction: simultaneous writes across tabs, manual deletion of only one save key, and external clearing of browser data remain separate limitations. Normal full arcade reset clears both keys.
+
+Native isolated-browser check: buying one stick leaves 42 shards and two sticks after reload; training leaves one stick, level 2 and the same 42 shards after a second reload. No user-origin saves were changed.

@@ -418,6 +418,29 @@
     return data.wallet.arcadeShards;
   }
 
+  function petPurchaseLedger() {
+    const ledger = load().wallet.petPurchases || {};
+    return { shoots: ledger.shoots || 0, sticks: ledger.sticks || 0, unlocked: [...(ledger.unlocked || [])] };
+  }
+
+  function purchasePetGrant(cost, grant) {
+    if (!Number.isSafeInteger(cost) || cost <= 0 || !grant) return false;
+    if (![grant.shoots ?? 0, grant.sticks ?? 0].every(value => Number.isSafeInteger(value) && value >= 0)) return false;
+    if (!grant.shoots && !grant.sticks && typeof grant.pet !== "string") return false;
+    const data = load();
+    if (data.wallet.arcadeShards < cost) return false;
+    const ledger = petPurchaseLedger();
+    ledger.shoots += grant.shoots || 0;
+    ledger.sticks += grant.sticks || 0;
+    if (grant.pet && !ledger.unlocked.includes(grant.pet)) ledger.unlocked.push(grant.pet);
+    data.wallet.arcadeShards -= cost;
+    data.wallet.petPurchases = ledger;
+    // The charge and its recoverable grant share one localStorage write.
+    try { save(data); } catch { return false; }
+    window.dispatchEvent(new CustomEvent("emeraldarcade:wallet", { detail: { ...data.wallet } }));
+    return true;
+  }
+
   function spendArcadeShards(amount) {
     const cost = Math.max(0, Math.floor(Number(amount || 0)));
     const data = load();
@@ -1185,6 +1208,8 @@
     todayChallenge,
     awardArcadeShards,
     spendArcadeShards,
+    purchasePetGrant,
+    petPurchaseLedger,
     arcadeShardBalance: () => load().wallet.arcadeShards,
     isPaused: () => runtime.paused,
     isMuted: () => runtime.muted,

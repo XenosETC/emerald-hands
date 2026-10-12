@@ -8,7 +8,7 @@ function tab(saves, wallet) {
   const window={
     addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,[]);listeners.get(type).push(fn);},
     dispatchEvent(event){for(const fn of listeners.get(event.type)||[])fn(event);},
-    EmeraldArcade:{spendArcadeShards(cost){if(wallet.value<cost)return false;wallet.value-=cost;window.dispatchEvent({type:'emeraldarcade:wallet'});return true;}}
+    EmeraldArcade:{petPurchaseLedger(){return wallet.ledger||{shoots:0,sticks:0,unlocked:[]};},purchasePetGrant(cost,grant){if(wallet.value<cost)return false;const ledger=wallet.ledger||{shoots:0,sticks:0,unlocked:[]};wallet.ledger={shoots:ledger.shoots+(grant.shoots||0),sticks:ledger.sticks+(grant.sticks||0),unlocked:[...new Set([...ledger.unlocked,...(grant.pet?[grant.pet]:[])])]};wallet.value-=cost;return true;},spendArcadeShards(cost){if(wallet.value<cost)return false;wallet.value-=cost;window.dispatchEvent({type:'emeraldarcade:wallet'});return true;}}
   };
   const context=vm.createContext({window,document:{readyState:'loading',addEventListener(){},querySelector(){return null;}},localStorage:{getItem:key=>saves.get(key)??null,setItem:(key,value)=>saves.set(key,value)},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},setTimeout(){},clearTimeout(){},setInterval(){},location:{pathname:'/etc-pets.html'}});
   const source=fs.readFileSync(require('node:path').join(__dirname,'../arcade-pet.js'),'utf8').replace(/\}\)\(\);\s*$/,'window.__testRead=expression=>eval(expression);})();');
@@ -138,5 +138,22 @@ test('failed care writes preserve supplies and stats and a retry applies exactly
     assert.equal(after.inventory.bambooSticks,action==='train'?0:1);
     assert.equal(after.inventory.bambooShoots,action==='feed'?1:2);
     assert.equal(after.stats.pepe.aura,action==='train'?8:4);
+  }
+});
+
+
+test('charged supply and unlock grants recover after the pet write fails without redelivery',()=>{
+  for(const kind of ['stick','wojak']) {
+    const saves=new Map(),wallet={value:100};const h=tab(saves,wallet);
+    h.read('window.originalPetWrite=localStorage.setItem;window.writeCount=0;localStorage.setItem=(key,value)=>{if(++window.writeCount>1)throw new Error("quota");window.originalPetWrite(key,value)}');
+    assert.equal((kind==='stick'?h.api.purchaseSupply(kind):h.api.unlock(kind)).ok,true);
+    assert.equal(wallet.value,kind==='stick'?82:10);
+    const recovered=tab(saves,wallet);
+    assert.equal(recovered.api.load().inventory.bambooSticks,kind==='stick'?2:1);
+    assert.equal(recovered.api.load().unlocked.includes('wojak'),kind==='wojak');
+    recovered.api.updatePet('play');
+    const reopened=tab(saves,wallet);
+    assert.equal(reopened.api.load().inventory.bambooSticks,kind==='stick'?2:1);
+    assert.equal(wallet.value,kind==='stick'?82:10);
   }
 });

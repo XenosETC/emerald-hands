@@ -58,6 +58,19 @@
           }];
         })),
       };
+      const ledger = window.EmeraldArcade?.petPurchaseLedger?.();
+      if (ledger) {
+        const applied = migrated.purchaseTotals || { shoots: 0, sticks: 0 };
+        migrated.inventory.bambooShoots += Math.max(0, ledger.shoots - applied.shoots);
+        migrated.inventory.bambooSticks += Math.max(0, ledger.sticks - applied.sticks);
+        migrated.purchaseTotals = { shoots: ledger.shoots, sticks: ledger.sticks };
+        for (const id of ledger.unlocked) {
+          if (pets.some(pet => pet.id === id) && !migrated.unlocked.includes(id)) {
+            migrated.unlocked.push(id);
+            migrated.selected = id;
+          }
+        }
+      }
       if (!migrated.unlocked.includes(migrated.selected)) migrated.selected = "pepe";
       if (saved?.schemaVersion !== SCHEMA_VERSION) localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
       return migrated;
@@ -304,13 +317,13 @@
     const pack = supplyPacks[packId];
     if (!pack) return { ok: false, message: "Unknown bamboo supply." };
     if (!storageReady()) return { ok: false, message: "Purchase stopped: browser storage is unavailable. No shards spent." };
-    if (!window.EmeraldArcade?.spendArcadeShards(pack.cost)) {
-      return { ok: false, message: `You need ${pack.cost} Arcade Shards.` };
+    if (!window.EmeraldArcade?.purchasePetGrant?.(pack.cost, { shoots: pack.shoots, sticks: pack.sticks })) {
+      return { ok: false, message: `Purchase stopped. You need ${pack.cost} Arcade Shards and available browser storage.` };
     }
     data = load();
-    data.inventory.bambooShoots += pack.shoots;
-    data.inventory.bambooSticks += pack.sticks;
-    save();
+    try { save(); } catch {
+      return { ok: true, message: `${pack.name} purchased. Delivery is secured in your wallet; reload when browser storage is available.` };
+    }
     celebrate();
     return { ok: true, message: `${pack.name} added to your sanctuary.` };
   }
@@ -321,12 +334,13 @@
     if (!pet) return { ok:false, message:"Unknown companion." };
     if (data.unlocked.includes(pet.id)) return { ok: true, message: `${pet.name} is already unlocked.` };
     if (!storageReady()) return { ok: false, message: "Unlock stopped: browser storage is unavailable. No shards spent." };
-    if (!window.EmeraldArcade?.spendArcadeShards(pet.unlockCost)) {
-      return { ok: false, message: `You need ${pet.unlockCost} Arcade Shards to unlock ${pet.name}.` };
+    if (!window.EmeraldArcade?.purchasePetGrant?.(pet.unlockCost, { pet: pet.id })) {
+      return { ok: false, message: `Unlock stopped. You need ${pet.unlockCost} Arcade Shards and available browser storage.` };
     }
-    data.unlocked.push(pet.id);
-    data.selected = pet.id;
-    save();
+    data = load();
+    try { save(); } catch {
+      return { ok: true, message: `${pet.name} purchased. Unlock is secured in your wallet; reload when browser storage is available.` };
+    }
     refresh();
     celebrate();
     return { ok: true, message: `${pet.name} joined your arcade roster.` };

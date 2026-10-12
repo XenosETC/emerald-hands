@@ -340,3 +340,22 @@ test('confirmed arcade reset announces the erase and removes Hands recovery whil
   assert.equal(h.saves.get('pepe-soul-world-v1'),'independent-soul');
   assert.equal(h.saves.get('satoshi-system-save-v1'),'{"ticks":99}');
 });
+
+
+test('pet charges and recovery grants persist together and failed wallet writes charge nothing',()=>{
+  const h=harness('etc-pets.html');
+  assert.equal(h.arcade.purchasePetGrant(18,{sticks:1}),true);
+  const saved=JSON.parse(h.saves.get('emerald-arcade-v1'));
+  assert.equal(saved.wallet.arcadeShards,858);
+  assert.equal(saved.wallet.petPurchases.sticks,1);
+  const before=h.saves.get('emerald-arcade-v1');
+  const originalSet=h.saves.set.bind(h.saves);
+  h.saves.set=()=>{throw new Error('quota');};
+  assert.equal(h.arcade.purchasePetGrant(18,{sticks:1}),false);
+  assert.equal(h.saves.get('emerald-arcade-v1'),before);
+  h.saves.set=originalSet;
+  assert.equal(h.arcade.purchasePetGrant(18,{sticks:1}),true);
+  assert.equal(h.arcade.arcadeShardBalance(),840);
+  assert.equal(h.arcade.petPurchaseLedger().sticks,2);
+  assert.equal(h.arcade.purchasePetGrant(1,{sticks:-5}),false);
+});
