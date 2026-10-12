@@ -16,8 +16,14 @@ Tower Defense, Paradox, Wars and Pets descriptions/tags now match their current 
 
 ## Verification
 
-Root smoke and 196 behavior tests pass, including three new actual shared-controller tests with two VM tabs sharing storage. Tests check old roaming cannot write over inventory, pet selection reloads state, exact care consumption and insufficient-funds buying. Against the prior controller these regressions fail, confirming the cause rather than only asserting the new code.
+Root smoke and 202 behavior tests pass, including three new actual shared-controller tests with two VM tabs sharing storage. Tests check old roaming cannot write over inventory, pet selection reloads state, exact care consumption and insufficient-funds buying. Against the prior controller these regressions fail, confirming the cause rather than only asserting the new code.
 
 Native browser checks use an isolated origin and two tabs: starting at 60 shards, buying three sticks, feeding, playing and training leaves six shards, one shoot and three sticks. Reload retains those balances. A second tab's pet picker shows the same counts while its roaming position changes. Desktop and 390px phone layout were inspected; phone page width is 375px without overflow. Physical-device testing remains separate. User-origin saves were not modified during QA.
 
 Evidence: [desktop sanctuary](docs/pets-and-cards-2026-10-12/sanctuary-desktop.png), [phone care controls](docs/pets-and-cards-2026-10-12/supplies-phone.png).
+
+## Blocked-storage spending guard
+
+Supply purchases and pet unlocks now check that the pet store can accept an unchanged write before charging Arcade Shards. Persistent storage failure returns a clear stopped-purchase message and does not invoke wallet spending. A controller fixture verifies both operations preserve the wallet and stored pet state when writes are blocked. Shared script references were updated across consumer pages. Costs, unlocks and successful purchase behavior are unchanged.
+
+This preflight protects persistent unavailability; it is not an atomic transaction across the wallet and pet storage keys and does not guarantee recovery from a failure occurring after the preflight. More comprehensive transaction recovery remains a separate engineering gate.

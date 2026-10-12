@@ -284,9 +284,18 @@
     return { ok: true, stats, message: action === "train" ? `Used 1 training stick · ${data.inventory.bambooSticks} left. Strength reached Level ${stats.strength}.` : action === "feed" ? `Used 1 shoot · ${data.inventory.bambooShoots} left. Training sticks unchanged.` : "Played together · no supplies spent." };
   }
 
+  function storageReady() {
+    try {
+      const existing = localStorage.getItem(STORAGE_KEY);
+      localStorage.setItem(STORAGE_KEY, existing ?? JSON.stringify(defaults()));
+      return true;
+    } catch { return false; }
+  }
+
   function purchaseSupply(packId) {
     const pack = supplyPacks[packId];
     if (!pack) return { ok: false, message: "Unknown bamboo supply." };
+    if (!storageReady()) return { ok: false, message: "Purchase stopped: browser storage is unavailable. No shards spent." };
     if (!window.EmeraldArcade?.spendArcadeShards(pack.cost)) {
       return { ok: false, message: `You need ${pack.cost} Arcade Shards.` };
     }
@@ -302,6 +311,7 @@
     data = load();
     const pet = petById(id);
     if (data.unlocked.includes(pet.id)) return { ok: true, message: `${pet.name} is already unlocked.` };
+    if (!storageReady()) return { ok: false, message: "Unlock stopped: browser storage is unavailable. No shards spent." };
     if (!window.EmeraldArcade?.spendArcadeShards(pet.unlockCost)) {
       return { ok: false, message: `You need ${pet.unlockCost} Arcade Shards to unlock ${pet.name}.` };
     }

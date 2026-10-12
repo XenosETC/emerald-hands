@@ -46,3 +46,14 @@ test('selecting a pet reloads current inventory rather than saving a stale tab s
   shop.api.purchaseSupply('stick');old.api.select('pepe');
   assert.equal(shop.api.load().inventory.bambooSticks,2);
 });
+
+
+test('persistently blocked pet storage stops purchases and unlocks before wallet spending',()=>{
+  const saves=new Map(),wallet={value:100};const h=tab(saves,wallet);
+  const before=saves.get('emerald-arcade-pets-v1');
+  h.read('localStorage.setItem=()=>{throw new Error("blocked")};');
+  assert.equal(h.api.purchaseSupply('stick').ok,false);
+  assert.equal(h.api.unlock('wojak').ok,false);
+  assert.equal(wallet.value,100);
+  assert.equal(saves.get('emerald-arcade-pets-v1'),before);
+});
