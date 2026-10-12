@@ -481,9 +481,32 @@
 
   function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
 
+  async function perform(action, value) {
+    const execute = () => {
+      if (action === "care") return updatePet(value);
+      if (action === "supply") return purchaseSupply(value);
+      if (action === "unlock") return unlock(value);
+      if (action === "select") {
+        if (!readableStore()) return { ok: false, message: "Selection stopped: pet save is unreadable." };
+        data = load();
+        if (!data.unlocked.includes(value)) return { ok: false, message: "Unlock this companion first." };
+        select(value);
+        return { ok: true, message: `${petById(value).name} is now active.` };
+      }
+      return { ok: false, message: "Unknown sanctuary action." };
+    };
+    try {
+      const locks = window.navigator?.locks;
+      return locks?.request ? await locks.request("emerald-pet-sanctuary", execute) : execute();
+    } catch {
+      return { ok: false, message: "Sanctuary action stopped. Check browser storage and try again." };
+    }
+  }
+
   window.ArcadePet = {
     schemaVersion: SCHEMA_VERSION,
     saveReadable: readableStore,
+    perform,
     pets,
     supplyPacks,
     load,

@@ -269,3 +269,26 @@ test('cross-tab wallet changes refresh recovered grants without writing cached p
  open.window.dispatchEvent({type:'storage',key:null});
  assert.equal(updates,2);
 });
+
+
+test('sanctuary actions use a shared lock and reload state when their turn arrives',async()=>{
+ const saves=new Map(),wallet={value:60};const a=tab(saves,wallet),b=tab(saves,wallet);
+ let tail=Promise.resolve();const names=[];
+ const locks={request(name,callback){names.push(name);const next=tail.then(callback);tail=next.catch(()=>{});return next;}};
+ a.window.navigator={locks};b.window.navigator={locks};
+ const results=await Promise.all([a.api.perform('supply','stick'),b.api.perform('supply','stick'),a.api.perform('care','train')]);
+ assert.equal(results.every(result=>result.ok),true);
+ assert.equal(wallet.value,24);
+ assert.equal(a.api.load().inventory.bambooSticks,2);
+ assert.equal(a.api.load().stats.pepe.strength,2);
+ assert.equal(names.every(name=>name==='emerald-pet-sanctuary'),true);
+ assert.equal((await a.api.perform('unknown','stick')).ok,false);
+});
+
+test('sanctuary actions work without locks and rejected locks charge nothing',async()=>{
+ const wallet={value:60};const h=tab(new Map(),wallet);
+ assert.equal((await h.api.perform('supply','stick')).ok,true);
+ h.window.navigator={locks:{request(){return Promise.reject(new Error('blocked'));}}};
+ assert.equal((await h.api.perform('supply','stick')).ok,false);
+ assert.equal(wallet.value,42);
+});

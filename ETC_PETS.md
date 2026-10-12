@@ -82,3 +82,8 @@ An expandable recent-care panel retains the last eight successful feed, play and
 ## Cross-tab sanctuary refresh
 
 The pet storage listener now also refreshes on shared wallet changes and browser-wide storage clear events. This lets another open sanctuary display secured purchase grants even when the purchasing tab could not persist its pet save. Refreshing does not save a cached snapshot over newer state. Unrelated game keys are ignored. The unreadable-save warning clears when a valid pet save is restored and a render runs. This improves synchronization visibility; simultaneous purchase writes are not serialized.
+
+
+## Serialized sanctuary actions
+
+The sanctuary UI routes care, supply purchases, unlocks and selection through a shared Web Lock when available. Each queued action reads current state when its turn arrives, and same-page repeat input receives a wait message. Browsers without Web Locks use the prior synchronous path. Fixtures queue purchases and training across two controllers and verify exact balance and inventory; rejected locks do not spend. This protects cooperating updated sanctuary tabs, not old tabs, direct synchronous API calls, companion pickers or unrelated wallet rewards. Refresh sanctuary tabs to participate.

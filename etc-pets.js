@@ -96,8 +96,17 @@ function render(excited = false) {
   }).join("");
 }
 
-function act(action) {
-  const result = window.ArcadePet.updatePet(action);
+let actionPending = false;
+async function sanctuaryAction(action, value) {
+  if (actionPending) return { ok: false, message: "Please wait for your current sanctuary action." };
+  actionPending = true;
+  els.status.textContent = "Saving sanctuary action…";
+  try { return await window.ArcadePet.perform(action, value); }
+  finally { actionPending = false; }
+}
+
+async function act(action) {
+  const result = await sanctuaryAction("care", action);
   els.status.textContent = result.message || `${action[0].toUpperCase()}${action.slice(1)} complete.`;
   if (!result.ok) return;
   if (!completedSession) window.EmeraldArcade?.beginSession("pets", "etc-pets.html");
@@ -128,26 +137,27 @@ document.querySelector(".pet-actions").addEventListener("click", (event) => {
   if (button) act(button.dataset.action);
 });
 
-document.querySelector(".supply-shop").addEventListener("click", (event) => {
+document.querySelector(".supply-shop").addEventListener("click", async (event) => {
   const button = event.target.closest("[data-supply]");
   if (!button) return;
-  const result = window.ArcadePet.purchaseSupply(button.dataset.supply);
+  const result = await sanctuaryAction("supply", button.dataset.supply);
   els.status.textContent = result.message;
   render(result.ok);
 });
 
-els.roster.addEventListener("click", (event) => {
+els.roster.addEventListener("click", async (event) => {
   const button = event.target.closest("[data-pet]");
   if (!button) return;
   const data = window.ArcadePet.load();
   if (!data.unlocked.includes(button.dataset.pet)) {
-    const result = window.ArcadePet.unlock(button.dataset.pet);
+    const result = await sanctuaryAction("unlock", button.dataset.pet);
     els.status.textContent = result.message;
     render(result.ok);
     return;
   }
-  window.ArcadePet.select(button.dataset.pet);
-  els.status.textContent = `${window.ArcadePet.pets.find((pet) => pet.id === button.dataset.pet).name} is now active.`;
+  const selection = await sanctuaryAction("select", button.dataset.pet);
+  els.status.textContent = selection.message;
+  if (!selection.ok) return;
   clearTimeout(celebrationTimer);
   render(true);
   celebrationTimer = setTimeout(() => render(false), 900);

@@ -289,7 +289,7 @@ for (const pet of ["big-chain-pepe", "mecha-pepe", "berserk-tadpole", "fallen-cr
   check(petSource.includes(`id: "${pet}"`), `ETC Pets roster is missing ${pet}`);
 }
 check(petSource.includes("pet.sheet"), "ETC Pets multi-sheet rendering contract is missing");
-for (const contract of ["data-action", "rankForAura", "ArcadePet.select"]) {
+for (const contract of ["data-action", "rankForAura", "ArcadePet.perform"]) {
   const source = contract === "data-action" ? readFileSync(resolve(root, "etc-pets.html"), "utf8") : petGameSource;
   check(source.includes(contract), `ETC Pets game contract is missing ${contract}`);
 }
