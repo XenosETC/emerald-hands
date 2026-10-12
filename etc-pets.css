@@ -45,3 +45,5 @@
 @media(max-width:680px){.pet-identity{bottom:12px}}
 
 #trainingGoal{color:#c7e2d5;font-size:.8rem;line-height:1.5;margin:0 0 8px}#trainingProgress{width:100%;height:10px;accent-color:#e2bd6a;margin-bottom:12px}
+
+#rosterProgress{font-size:.78rem;line-height:1.5;color:#c7e2d5;margin:0 0 12px}

@@ -75,3 +75,31 @@ test('maxed pet training keeps sticks instead of consuming them without a streng
   assert.equal(h.api.updatePet('train').ok,false);
   assert.equal(h.api.load().inventory.bambooSticks,1);
 });
+
+
+test('pet unlocks charge once and selection keeps individual strength and shared supplies',()=>{
+  const saves=new Map(),wallet={value:500};const h=tab(saves,wallet);
+  h.api.updatePet('train');
+  assert.equal(h.api.unlock('wojak').ok,true);
+  assert.equal(wallet.value,410);
+  assert.equal(h.api.unlock('wojak').ok,true);
+  assert.equal(wallet.value,410);
+  assert.equal(h.api.load().stats.wojak.strength,1);
+  h.api.select('pepe');
+  assert.equal(h.api.load().stats.pepe.strength,2);
+  assert.equal(h.api.load().inventory.bambooSticks,0);
+  h.api.purchaseSupply('stick');h.api.select('wojak');h.api.updatePet('train');
+  assert.equal(h.api.load().stats.wojak.strength,2);
+  assert.equal(h.api.load().stats.pepe.strength,2);
+  assert.equal(h.api.load().inventory.bambooSticks,0);
+  assert.equal(tab(saves,wallet).api.load().selected,'wojak');
+});
+
+test('unknown care actions and companions cannot add aura or charge shards',()=>{
+  const saves=new Map(),wallet={value:500};const h=tab(saves,wallet);
+  const before=saves.get('emerald-arcade-pets-v1');
+  assert.equal(h.api.updatePet('other').ok,false);
+  assert.equal(h.api.unlock('other').ok,false);
+  assert.equal(wallet.value,500);
+  assert.equal(saves.get('emerald-arcade-pets-v1'),before);
+});

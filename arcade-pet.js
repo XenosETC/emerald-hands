@@ -255,6 +255,7 @@
   }
 
   function updatePet(action) {
+    if (!["feed", "play", "train"].includes(action)) return { ok:false, message:"Unknown care action." };
     data = load();
     const stats = data.stats[data.selected];
     if (action === "feed") {
@@ -310,7 +311,8 @@
 
   function unlock(id) {
     data = load();
-    const pet = petById(id);
+    const pet = pets.find(item => item.id === id);
+    if (!pet) return { ok:false, message:"Unknown companion." };
     if (data.unlocked.includes(pet.id)) return { ok: true, message: `${pet.name} is already unlocked.` };
     if (!storageReady()) return { ok: false, message: "Unlock stopped: browser storage is unavailable. No shards spent." };
     if (!window.EmeraldArcade?.spendArcadeShards(pet.unlockCost)) {

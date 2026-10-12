@@ -18,6 +18,7 @@ const els = {
   status: document.querySelector("#petActionStatus"),
   training: document.querySelector("#trainingProgress"),
   trainingGoal: document.querySelector("#trainingGoal"),
+  rosterProgress: document.querySelector("#rosterProgress"),
 };
 
 let completedSession = false;
@@ -59,10 +60,11 @@ function render(excited = false) {
     : stats.hunger < 35
       ? "The aura is fading. Emergency snacks requested."
       : "Ready to farm aura across the arcade.";
+  els.rosterProgress.textContent = `${window.ArcadePet.pets.filter(p => data.unlocked.includes(p.id)).length} / ${window.ArcadePet.pets.length} companions unlocked · supplies are shared, strength is individual.`;
   els.roster.innerHTML = window.ArcadePet.pets.map((item) => {
     const unlocked = data.unlocked.includes(item.id);
     return `
-    <button type="button" class="pet-card${item.id === pet.id ? " is-selected" : ""}${unlocked ? "" : " is-locked"}" data-pet="${item.id}" aria-pressed="${item.id === pet.id}">
+    <button type="button" class="pet-card${item.id === pet.id ? " is-selected" : ""}${unlocked ? "" : " is-locked"}" data-pet="${item.id}" ${!unlocked && balance < item.unlockCost ? "disabled" : ""} aria-pressed="${item.id === pet.id}">
       <i style="background-image:url('${item.sheet}');background-position:${window.ArcadePet.spritePosition(item.id)}"></i>
       <strong>${item.name}</strong><small>${item.title}</small>
       <small class="pet-cost">${unlocked ? `Strength Lv. ${data.stats[item.id].strength}` : `${item.unlockCost} Arcade Shards`}</small>
