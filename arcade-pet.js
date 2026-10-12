@@ -37,6 +37,15 @@
     };
   }
 
+  function safeCount(value, fallback = 0) {
+    const number = Number(value);
+    return Number.isFinite(number) ? Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, Math.floor(number))) : fallback;
+  }
+
+  function careValue(value, fallback) {
+    return value == null || !Number.isFinite(Number(value)) ? fallback : clamp(Number(value), 0, 100);
+  }
+
   function load() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -45,14 +54,21 @@
         ...base,
         ...saved,
         schemaVersion: SCHEMA_VERSION,
-        inventory: { ...base.inventory, ...(saved?.inventory || {}) },
-        unlocked: [...new Set([...base.unlocked, ...(Array.isArray(saved?.unlocked) ? saved.unlocked : [])])],
+        inventory: {
+          bambooShoots: safeCount(saved?.inventory?.bambooShoots ?? base.inventory.bambooShoots),
+          bambooSticks: safeCount(saved?.inventory?.bambooSticks ?? base.inventory.bambooSticks),
+        },
+        unlocked: [...new Set([...base.unlocked, ...(Array.isArray(saved?.unlocked) ? saved.unlocked.filter(id => pets.some(pet => pet.id === id)) : [])])],
         stats: Object.fromEntries(pets.map((pet) => {
           const previous = saved?.stats?.[pet.id] || {};
-          const strengthXp = Math.max(0, Number(previous.strengthXp ?? Math.max(0, Number(previous.training || 1) - 1) * 10));
+          const strengthXp = safeCount(previous.strengthXp ?? Math.max(0, safeCount(previous.training, 1) - 1) * 10);
           return [pet.id, {
             ...base.stats[pet.id],
             ...previous,
+            aura: safeCount(previous.aura),
+            hunger: careValue(previous.hunger, base.stats[pet.id].hunger),
+            joy: careValue(previous.joy, base.stats[pet.id].joy),
+            training: Math.max(1, safeCount(previous.training, 1)),
             strengthXp,
             strength: strengthForXp(strengthXp),
           }];
@@ -60,7 +76,7 @@
       };
       const ledger = window.EmeraldArcade?.petPurchaseLedger?.();
       if (ledger) {
-        const applied = migrated.purchaseTotals || { shoots: 0, sticks: 0 };
+        const applied = { shoots: safeCount(migrated.purchaseTotals?.shoots), sticks: safeCount(migrated.purchaseTotals?.sticks) };
         migrated.inventory.bambooShoots += Math.max(0, ledger.shoots - applied.shoots);
         migrated.inventory.bambooSticks += Math.max(0, ledger.sticks - applied.sticks);
         migrated.purchaseTotals = { shoots: ledger.shoots, sticks: ledger.sticks };

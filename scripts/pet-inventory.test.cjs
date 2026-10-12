@@ -195,3 +195,27 @@ test('real wallet grant survives pet quota failure and cannot be delivered twice
   assert.equal(next.api.load().stats.pepe.strength,2);
   assert.equal(next.window.EmeraldArcade.arcadeShardBalance(),42);
 });
+
+
+test('damaged pet fields normalize while valid legacy progress and supplies survive',()=>{
+  const saves=new Map();const h=tab(saves,{value:0});
+  const saved=h.api.load();
+  saved.inventory={bambooShoots:'7',bambooSticks:-3};
+  saved.unlocked=['pepe','missing'];saved.selected='missing';
+  saved.stats.pepe={hunger:150,joy:'bad',aura:-12,training:'4',strengthXp:'bad',strength:99};
+  saved.stats.wojak={training:5,hunger:0,joy:0};
+  saves.set('emerald-arcade-pets-v1',JSON.stringify(saved));
+  const loaded=h.api.load();
+  assert.equal(loaded.inventory.bambooShoots,7);
+  assert.equal(loaded.inventory.bambooSticks,0);
+  assert.equal(loaded.selected,'pepe');
+  assert.equal(loaded.unlocked.includes('missing'),false);
+  assert.equal(loaded.stats.pepe.hunger,100);
+  assert.equal(loaded.stats.pepe.joy,72);
+  assert.equal(loaded.stats.pepe.strength,1);
+  assert.equal(loaded.stats.pepe.aura,0);
+  assert.equal(loaded.stats.wojak.strengthXp,40);
+  assert.equal(loaded.stats.wojak.strength,3);
+  assert.equal(loaded.stats.wojak.hunger,0);
+  assert.equal(h.api.updatePet('train').ok,false);
+});

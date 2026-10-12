@@ -62,3 +62,8 @@ Native isolated-browser check: buying one stick leaves 42 shards and two sticks 
 ## Companion adventure links and integrated recovery checks
 
 The live assist panel now links directly to Shard Rush, Pepe’s Paradox and Rocket Simulator, with the relevant bonus type beside each destination. Navigation does not write game progress or award shards. Tests now execute both shipped shared controllers together, covering basket purchases, feeding, training, insufficient funds, fresh-tab state and a pet-save quota failure after a real wallet charge. These strengthen recovery evidence without asserting simultaneous-write protection.
+
+
+## Save field validation
+
+Pet loading normalizes supply counts and XP to finite nonnegative integers, clamps food and joy to 0–100, and filters unknown companion IDs. Valid numeric legacy values and training-derived XP remain supported. Invalid XP becomes zero, invalid care uses starter care defaults, and negative supplies become zero; no historical reimbursement is inferred. Regression fixtures cover damaged fields alongside retained valid legacy progress. Malformed whole-file JSON and cross-tab simultaneous writes remain separate recovery limitations.
