@@ -103,3 +103,19 @@ test('unknown care actions and companions cannot add aura or charge shards',()=>
   assert.equal(wallet.value,500);
   assert.equal(saves.get('emerald-arcade-pets-v1'),before);
 });
+
+
+test('pet care restores existing assist strength without changing supplies or game caps',()=>{
+  const saves=new Map(),h=tab(saves,{value:0});
+  const value=h.api.load();value.stats.pepe.strengthXp=160;value.stats.pepe.hunger=10;value.stats.pepe.joy=10;
+  saves.set('emerald-arcade-pets-v1',JSON.stringify(value));
+  assert.equal(h.api.activeBonus('rush').magnetRadius,4);
+  assert.equal(h.api.activeBonus('paradox').collectibleRadius,4);
+  h.api.updatePet('feed');h.api.updatePet('play');
+  assert.equal(h.api.activeBonus('rush').magnetRadius,8);
+  assert.equal(h.api.activeBonus('rocketSimulator').salvageMultiplier,1.04);
+  assert.equal(h.api.load().inventory.bambooSticks,1);
+  const max=h.api.load();max.stats.pepe.strengthXp=5760;saves.set('emerald-arcade-pets-v1',JSON.stringify(max));
+  assert.equal(h.api.activeBonus('rush').magnetRadius,24);
+  assert.equal(h.api.activeBonus('rocketSimulator').salvageMultiplier,1.15);
+});

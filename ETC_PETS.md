@@ -16,7 +16,7 @@ Tower Defense, Paradox, Wars and Pets descriptions/tags now match their current 
 
 ## Verification
 
-Root smoke and 206 behavior tests pass, including three new actual shared-controller tests with two VM tabs sharing storage. Tests check old roaming cannot write over inventory, pet selection reloads state, exact care consumption and insufficient-funds buying. Against the prior controller these regressions fail, confirming the cause rather than only asserting the new code.
+Root smoke and 207 behavior tests pass, including three new actual shared-controller tests with two VM tabs sharing storage. Tests check old roaming cannot write over inventory, pet selection reloads state, exact care consumption and insufficient-funds buying. Against the prior controller these regressions fail, confirming the cause rather than only asserting the new code.
 
 Native browser checks use an isolated origin and two tabs: starting at 60 shards, buying three sticks, feeding, playing and training leaves six shards, one shoot and three sticks. Reload retains those balances. A second tab's pet picker shows the same counts while its roaming position changes. Desktop and 390px phone layout were inspected; phone page width is 375px without overflow. Physical-device testing remains separate. User-origin saves were not modified during QA.
 
@@ -39,3 +39,7 @@ Controller fixtures verify level boundaries, stick requirements and capped train
 The roster reports unlocked companions out of eight and explains shared supplies versus individual strength. Unaffordable locked companions disable. Unknown care actions and companion IDs are rejected without aura gains or spending. Existing unlock prices are unchanged.
 
 A controller fixture uses a 500-shard test budget, trains Pepe, unlocks Wojak for 90 once, switches pets, buys one stick and trains Wojak. Each retains level 2 individually, shared sticks reach zero, and a fresh tab retains the selection. A second fixture verifies unknown actions/IDs leave saves and wallet unchanged. This is fixture-funded unlock evidence, not a native earned-shard unlock journey.
+
+## Visible supported-game assists
+
+The sanctuary displays the selected pet’s actual Rush magnet radius, Paradox collection radius and Rocket salvage percentage, with care-factor feedback and cap wording. This uses existing bonus rules, not new effects. The assist panel remains available on shorter desktop windows. A controller fixture verifies low-care level-five range is four pixels, feed/play restore it to eight, sticks remain unchanged and maximum bonuses stay at 24px / 15%. Fixture XP/care values are seeded, not an earned native progression journey.

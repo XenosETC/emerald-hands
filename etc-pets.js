@@ -19,6 +19,7 @@ const els = {
   training: document.querySelector("#trainingProgress"),
   trainingGoal: document.querySelector("#trainingGoal"),
   rosterProgress: document.querySelector("#rosterProgress"),
+  assist: document.querySelector("#assistReport"),
 };
 
 let completedSession = false;
@@ -55,6 +56,8 @@ function render(excited = false) {
     rocketSimulator: window.ArcadePet.activeBonus("rocketSimulator"),
     paradox: window.ArcadePet.activeBonus("paradox"),
   });
+  const rush = window.ArcadePet.activeBonus("rush"), rocket = window.ArcadePet.activeBonus("rocketSimulator"), paradox = window.ArcadePet.activeBonus("paradox");
+  els.assist.textContent = `Shard Rush: +${rush.magnetRadius}px pickup range · Paradox: +${paradox.collectibleRadius}px relic range · Rocket Simulator: +${Math.round((rocket.salvageMultiplier-1)*100)}% salvage. ${rush.careFactor < 1 ? "Low food or joy is reducing trained power by half. Feed and play to restore full care." : "Full care power active. Bonuses stay within each game’s assist cap."}`;
   els.mood.textContent = stats.joy > 85
     ? "Maximum vibes. Ready to celebrate your next arcade win."
     : stats.hunger < 35
