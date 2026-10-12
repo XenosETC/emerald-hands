@@ -257,6 +257,7 @@
   function updatePet(action) {
     if (!["feed", "play", "train"].includes(action)) return { ok:false, message:"Unknown care action." };
     data = load();
+    const before = JSON.parse(JSON.stringify(data));
     const stats = data.stats[data.selected];
     if (action === "feed") {
       if (data.inventory.bambooShoots < 1) return { ok: false, stats, message: "Buy a bamboo shoot before feeding." };
@@ -281,7 +282,12 @@
     }
     stats.aura += action === "train" ? 8 : 4;
     data.stats[data.selected] = stats;
-    save();
+    try {
+      save();
+    } catch {
+      data = before;
+      return { ok: false, stats: data.stats[data.selected], message: "Care was not saved. Supplies and strength kept. Check browser storage and try again." };
+    }
     celebrate();
     return { ok: true, stats, message: action === "train" ? `Used 1 training stick · ${data.inventory.bambooSticks} left. Strength reached Level ${stats.strength}.` : action === "feed" ? `Used 1 shoot · ${data.inventory.bambooShoots} left. Training sticks unchanged.` : "Played together · no supplies spent." };
   }

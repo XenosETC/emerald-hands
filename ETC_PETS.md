@@ -43,3 +43,8 @@ A controller fixture uses a 500-shard test budget, trains Pepe, unlocks Wojak fo
 ## Visible supported-game assists
 
 The sanctuary displays the selected pet’s actual Rush magnet radius, Paradox collection radius and Rocket salvage percentage, with care-factor feedback and cap wording. This uses existing bonus rules, not new effects. The assist panel remains available on shorter desktop windows. A controller fixture verifies low-care level-five range is four pixels, feed/play restore it to eight, sticks remain unchanged and maximum bonuses stay at 24px / 15%. Fixture XP/care values are seeded, not an earned native progression journey.
+
+
+## Failed care saves
+
+Feed, play and train now return a failed-care receipt when the pet write fails, restoring the controller snapshot. Saved supplies, strength and aura remain intact; retrying after storage recovers applies the action once. Controller fixtures inject quota-style failure for all three actions and verify saved state, in-memory sticks and retries. This does not resolve the separate wallet/pet purchase transaction recovery gate.

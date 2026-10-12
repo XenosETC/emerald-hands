@@ -119,3 +119,24 @@ test('pet care restores existing assist strength without changing supplies or ga
   assert.equal(h.api.activeBonus('rush').magnetRadius,24);
   assert.equal(h.api.activeBonus('rocketSimulator').salvageMultiplier,1.15);
 });
+
+
+test('failed care writes preserve supplies and stats and a retry applies exactly once',()=>{
+  for(const action of ['feed','play','train']) {
+    const saves=new Map();const h=tab(saves,{value:60});
+    const before=saves.get('emerald-arcade-pets-v1');
+    h.read('window.originalPetWrite=localStorage.setItem;localStorage.setItem=()=>{throw new Error("quota")};');
+    const result=h.api.updatePet(action);
+    assert.equal(result.ok,false);
+    assert.match(result.message,/Care was not saved/);
+    assert.equal(saves.get('emerald-arcade-pets-v1'),before);
+    assert.equal(h.read('data.inventory.bambooSticks'),1);
+    assert.equal(result.stats.strength,1);
+    h.read('localStorage.setItem=window.originalPetWrite');
+    assert.equal(h.api.updatePet(action).ok,true);
+    const after=h.api.load();
+    assert.equal(after.inventory.bambooSticks,action==='train'?0:1);
+    assert.equal(after.inventory.bambooShoots,action==='feed'?1:2);
+    assert.equal(after.stats.pepe.aura,action==='train'?8:4);
+  }
+});
