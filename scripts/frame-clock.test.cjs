@@ -27,6 +27,8 @@ function game(file) {
       },
       emit(type, details = {}) { for (const listener of listeners.get(type) || []) listener({ target: this, preventDefault() {}, ...details }); },
       setAttribute() {},
+      querySelector: selector => document.querySelector(selector),
+      querySelectorAll: () => [node(), node()],
       focus() { document.activeElement = this; }, scrollIntoView() {},
     };
   }
@@ -949,4 +951,26 @@ test('Paradox chooses the highest crossed platform when a fall crosses multiple 
   g.read('window.__paradoxRead("player.x=750; player.y=250; player.vy=5000; update(.033)")');
   assert.equal(g.read('window.__paradoxRead("player.y")'),316);
   assert.equal(g.read('window.__paradoxRead("player.grounded")'),true);
+});
+
+
+test('Paradox dialogue, escape, completion and replay follow the actual chapter controller', () => {
+  const g=game('pepes-paradox.js');g.start();
+  g.read('window.__paradoxRead("player.x=2200; update(0)")');
+  assert.equal(g.read('window.__paradoxRead("state.mode")'),'cutscene');
+  assert.equal(g.read('window.__paradoxRead("keys.size")'),0);
+  g.read('window.EmeraldArcade.isPaused=()=>true; window.__paradoxRead("advanceDialogue()")');
+  assert.equal(g.read('window.__paradoxRead("state.cutsceneStep")'),0);
+  g.read('window.EmeraldArcade.isPaused=()=>false; window.__paradoxRead("advanceDialogue(); advanceDialogue(); advanceDialogue(); update(1.6)")');
+  assert.equal(g.read('window.__paradoxRead("state.mode")'),'playing');
+  g.read('window.__paradoxRead("player.x=5101; player.shards=2; player.relics=1; update(0); finish()")');
+  assert.equal(g.read('window.__paradoxRead("state.mode")'),'won');
+  assert.equal(g.records.length,1);
+  assert.equal(g.records[0][1].score,840);
+  assert.match(g.nodes.get('#completionReport').textContent,/840 points.*2\/12 shards/);
+  assert.equal(g.read('window.__paradoxRead("document.activeElement===ui.start")'),true);
+  g.start();
+  assert.equal(g.read('window.__paradoxRead("state.tauntDone")'),false);
+  assert.equal(g.read('window.__paradoxRead("player.shards")'),0);
+  assert.equal(g.nodes.get('#completionReport').hidden,true);
 });

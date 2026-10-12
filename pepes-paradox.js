@@ -8,6 +8,7 @@
     text: document.querySelector("#dialogueText"), name: document.querySelector("#speakerName"),
     portrait: document.querySelector("#speakerPortrait"), sound: document.querySelector("#soundToggle"),
     recovery: document.querySelector("#recoveryStatus"),
+    report: document.querySelector("#completionReport"),
     shards: document.querySelector("#shardCount"), relics: document.querySelector("#relicCount"), frogs: document.querySelector("#frogCount"),
   };
   const loadImage = (src) => { const image = new Image(); image.src = src; return image; };
@@ -42,6 +43,7 @@
   ];
   let checkpoint = {x:180,y:FLOOR-154};
   let falls = 0;
+  let runId = 0;
   const originalWisps = wisps.map(w => ({...w}));
   let audio;
   function clearInput(){keys.clear();player.vx=0;player.dash=0;}
@@ -52,6 +54,7 @@
   }
   function start(){
     if(window.EmeraldArcade?.isPaused?.() || ["playing","cutscene","escape"].includes(state.mode)) return;
+    runId++;ui.report.hidden=true;ui.report.textContent="";
     clearInput(); particles.length=0;
     checkpoint={x:180,y:FLOOR-154};falls=0;ui.recovery.textContent="Falls return you to your last safe footing. Collected items stay collected.";
     wisps.forEach((w,i)=>Object.assign(w,originalWisps[i]));
@@ -73,7 +76,7 @@
     if(state.cutsceneStep<dialogue.length){showLine();tone(120+state.cutsceneStep*35,.08,"square",.02);return;}
     ui.dialogue.hidden=true;clearInput();canvas.focus();state.mode="escape";state.cutsceneClock=0;state.tauntDone=true;tone(520,.1,"triangle");
   }
-  function finish(){ if(state.finished||state.mode!=="playing"||!state.tauntDone)return;clearInput();state.finished=true;state.mode="won";tone(523,.18);setTimeout(()=>tone(659,.18),180);setTimeout(()=>tone(784,.3),360);window.EmeraldArcade?.recordAndNotify("paradox",{score:player.shards*120+player.relics*600+player.frogs*1000,rank:"Mountain Pursuer",shards:player.shards,relics:player.relics,frogs:player.frogs,stage:2,played:true});ui.overlay.querySelector("p:first-child").textContent="Mountain Archive · Rage Bait Survived";ui.overlay.querySelector("h1").textContent="The Ancient Temple has opened.";ui.overlay.querySelectorAll("p")[1].textContent="The bamboo bells speak Pepina's name. Fallen escaped through the temple gate, but the recovered frog sigil remembers the path.";ui.start.textContent="Replay Bamboo Mountains";ui.overlay.classList.remove("is-hidden");ui.start.focus(); }
+  function finish(){ if(state.finished||state.mode!=="playing"||!state.tauntDone)return;clearInput();state.finished=true;state.mode="won";tone(523,.18);const wonRun=runId;setTimeout(()=>{if(runId===wonRun&&state.mode==="won")tone(659,.18);},180);setTimeout(()=>{if(runId===wonRun&&state.mode==="won")tone(784,.3);},360);window.EmeraldArcade?.recordAndNotify("paradox",{score:player.shards*120+player.relics*600+player.frogs*1000,rank:"Mountain Pursuer",shards:player.shards,relics:player.relics,frogs:player.frogs,stage:2,played:true});ui.overlay.querySelector("p:first-child").textContent="Mountain Archive · Rage Bait Survived";ui.overlay.querySelector("h1").textContent="The Ancient Temple has opened.";ui.overlay.querySelectorAll("p")[1].textContent="The bamboo bells speak Pepina's name. Fallen escaped through the temple gate, but the recovered frog sigil remembers the path.";ui.report.textContent=`Bamboo Mountains cleared · ${player.shards*120+player.relics*600+player.frogs*1000} points · ${player.shards}/${shards.length} shards · ${player.relics}/${relics.length} relics · ${player.frogs}/${frogs.length} hidden frogs · ${falls} fall recoveries. The Ancient Temple is the next story lead; this build ends here.`;ui.report.hidden=false;ui.start.textContent="Replay Bamboo Mountains";ui.overlay.classList.remove("is-hidden");ui.start.focus(); }
   function update(dt){
     state.time+=dt;
     if(state.mode==="escape"){rival.x+=660*dt;rival.alpha=Math.max(0,rival.alpha-dt*.28);state.cutsceneClock+=dt;if(state.cutsceneClock>1.5){state.mode="playing";}return;}
