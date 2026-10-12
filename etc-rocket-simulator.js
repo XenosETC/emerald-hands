@@ -115,7 +115,8 @@ function loadSave() {
 }
 
 function persist() {
-  localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); return true; }
+  catch { return false; }
 }
 
 function upgradeCost(key) {
@@ -128,7 +129,13 @@ function buyUpgrade(key) {
   if (save.shards < cost) return;
   save.shards -= cost;
   save.upgrades[key] += 1;
-  persist();
+  if (!persist()) {
+    save.shards += cost;
+    save.upgrades[key] -= 1;
+    els.missionText.textContent = "Upgrade was not saved. Salvage kept; check browser storage and try again.";
+    renderHangar();
+    return;
+  }
   renderHangar();
   playTone(620, 0.12);
   window.ArcadePet?.celebrate();
@@ -221,6 +228,10 @@ function updateFlight(delta) {
 }
 
 function endFlight(reason) {
+  if (state.mode !== "flying") return;
+  state.fuel = clamp(state.fuel, 0, 100);
+  state.heat = clamp(state.heat, 0, 100);
+  state.hull = clamp(state.hull, 0, 100);
   state.mode = "destroyed";
   state.failureReason = reason;
   state.failureTime = 0;
@@ -232,18 +243,18 @@ function endFlight(reason) {
   const petMultiplier = Number(petBonus?.salvageMultiplier || 1);
   const reward = Math.max(25, Math.round(base * (1 + save.upgrades.magnet * 0.13) * petMultiplier));
   save.shards += reward;
-  persist();
+  const saved = persist();
   for (let i = 0; i < Math.min(42, 12 + Math.floor(Math.sqrt(reward))); i += 1) rewardDrops.push(makeRewardDrop(i));
   const rank = rankForDistance(state.distance);
   const score = Math.round(state.distance);
-  window.EmeraldArcade?.recordAndNotify("rocketSimulator", { score, rank, distance: state.distance, shards: reward, played: true });
-  window.ArcadePet?.addAura(Math.max(1, Math.floor(Math.log10(Math.max(10, state.distance)) * 2)));
+  try { window.EmeraldArcade?.recordAndNotify("rocketSimulator", { score, rank, distance: state.distance, shards: reward, played: true }); } catch { /* Local flight completion remains available. */ }
+  try { window.ArcadePet?.addAura(Math.max(1, Math.floor(Math.log10(Math.max(10, state.distance)) * 2))); } catch { /* Companion storage is independent. */ }
   if (petMultiplier > 1) window.ArcadePet?.showAssist("rocketSimulator", true);
   els.launch.disabled = false;
   els.launch.innerHTML = "<span>LAUNCH UPGRADED ROCKET</span><small>Spend salvage, then go farther</small>";
-  els.missionEyebrow.textContent = newRecord ? "New Expedition Record" : "Salvage Secured";
+  els.missionEyebrow.textContent = saved ? (newRecord ? "New Expedition Record" : "Salvage Secured") : "Salvage Not Saved";
   els.missionTitle.textContent = `${reason} at ${distanceText(state.distance)}.`;
-  els.missionText.textContent = "The recovery drones banked every shard. Upgrade the weakest system and launch again.";
+  els.missionText.textContent = saved ? "The recovery drones banked every shard. Upgrade the weakest system and launch again." : "Browser storage is unavailable. Salvage is held only in this tab; reloading may lose it. Restore storage before continuing.";
   els.missionReward.hidden = false;
   els.missionReward.innerHTML = `
     <div><strong>+${reward} ◆</strong><small>salvaged</small></div>
