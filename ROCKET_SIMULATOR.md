@@ -20,3 +20,10 @@ The hangar now displays the next named sector, remaining distance and an accessi
 ## Consistent frame timing
 
 Rocket now advances in fixed 1/120-second simulation steps, carrying fractional time between frames. Equal ten-second flight fixtures match distance, fuel, heat, hull and elapsed time at 30/60/120 FPS. Frames catch up at most 100 ms, so long stalls cannot instantly finish a flight. The shared arcade RAF clock continues excluding paused time. This is active-play simulation, not offline expedition progression; heavily throttled background tabs can still advance slowly. Fixed stepping can slightly change outcomes from the former frame-rate-dependent integration, so human pacing remains open.
+
+
+## Upgrade control clarity
+
+Upgrade buttons expose the named system, target level and exact salvage cost in their accessible names. Native 390px viewport inspection found a 375px page width without horizontal overflow and 44px upgrade tap targets. This viewport check is not physical-device comfort testing.
+
+Native launch followed by shared Pause retained 0 km and the 800-km goal through an independent test-suite run; Resume was activated afterward. Full native expedition completion is still open.

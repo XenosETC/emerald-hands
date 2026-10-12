@@ -151,7 +151,7 @@ function renderHangar() {
     card.className = "upgrade-card";
     card.innerHTML = `
       <div><h3>${def.name}</h3><span class="level">Level ${save.upgrades[key]}</span></div>
-      <button type="button" data-upgrade="${key}" ${state.mode === "flying" || save.shards < cost ? "disabled" : ""}>${cost} ◆</button>
+      <button type="button" data-upgrade="${key}" aria-label="Upgrade ${def.name} to level ${save.upgrades[key] + 1} for ${cost} salvage shards" ${state.mode === "flying" || save.shards < cost ? "disabled" : ""}>${cost} ◆</button>
       <p>${def.copy}</p>
     `;
     els.upgrades.appendChild(card);
