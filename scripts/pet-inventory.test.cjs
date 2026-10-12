@@ -251,3 +251,21 @@ test('care history persists supply receipts, stays bounded, and excludes failed 
  assert.equal(fresh.api.updatePet('feed').ok,false);
  assert.equal(saves.get('emerald-arcade-pets-v1'),before);
 });
+
+
+test('cross-tab wallet changes refresh recovered grants without writing cached pet state',()=>{
+ const saves=new Map(),wallet={value:60};const open=tab(saves,wallet),shop=tab(saves,wallet);
+ let updates=0,seen;
+ open.window.addEventListener('arcadepet:change',event=>{updates++;seen=event.detail;});
+ shop.read('window.originalPetWrite=localStorage.setItem;window.petWrites=0;localStorage.setItem=(key,value)=>{if(++window.petWrites>1)throw new Error("quota");window.originalPetWrite(key,value)}');
+ shop.api.purchaseSupply('stick');
+ const before=saves.get('emerald-arcade-pets-v1');
+ open.window.dispatchEvent({type:'storage',key:'emerald-arcade-v1'});
+ assert.equal(updates,1);
+ assert.equal(seen.inventory.bambooSticks,2);
+ assert.equal(saves.get('emerald-arcade-pets-v1'),before);
+ open.window.dispatchEvent({type:'storage',key:'unrelated-game'});
+ assert.equal(updates,1);
+ open.window.dispatchEvent({type:'storage',key:null});
+ assert.equal(updates,2);
+});

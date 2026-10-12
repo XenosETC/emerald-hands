@@ -501,7 +501,7 @@
     spritePosition,
   };
   window.addEventListener("storage", event => {
-    if (event.key !== STORAGE_KEY) return;
+    if (event.key !== STORAGE_KEY && event.key !== "emerald-arcade-v1" && event.key !== null) return;
     refresh();
     window.dispatchEvent(new CustomEvent("arcadepet:change", { detail: load() }));
   });

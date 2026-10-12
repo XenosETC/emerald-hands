@@ -77,3 +77,8 @@ Malformed JSON, null and array-valued pet saves now block care, selection and pu
 ## Recent care receipts
 
 An expandable recent-care panel retains the last eight successful feed, play and train actions across reloads. Each names the companion, supply spent, resulting strength and remaining supplies. Receipts save with care in the same pet write; failed actions add no receipt. History begins with new actions, not reconstructed past activity. This is a bounded local care history, not a purchase or financial audit log.
+
+
+## Cross-tab sanctuary refresh
+
+The pet storage listener now also refreshes on shared wallet changes and browser-wide storage clear events. This lets another open sanctuary display secured purchase grants even when the purchasing tab could not persist its pet save. Refreshing does not save a cached snapshot over newer state. Unrelated game keys are ignored. The unreadable-save warning clears when a valid pet save is restored and a render runs. This improves synchronization visibility; simultaneous purchase writes are not serialized.

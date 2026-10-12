@@ -25,9 +25,13 @@ const els = {
 
 let completedSession = false;
 let celebrationTimer;
+let showedUnreadableSave = false;
 
 function render(excited = false) {
-  if (!window.ArcadePet.saveReadable()) els.status.textContent = "Your pet save cannot be read. Original data is kept; care and purchases are stopped until a valid save is restored.";
+  const readable = window.ArcadePet.saveReadable();
+  if (!readable) els.status.textContent = "Your pet save cannot be read. Original data is kept; care and purchases are stopped until a valid save is restored.";
+  else if (showedUnreadableSave) els.status.textContent = "Pet save is readable again. Your sanctuary has refreshed.";
+  showedUnreadableSave = !readable;
   const data = window.ArcadePet.load();
   const pet = window.ArcadePet.pets.find((item) => item.id === data.selected);
   const stats = data.stats[data.selected];
