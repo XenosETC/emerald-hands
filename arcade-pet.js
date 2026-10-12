@@ -268,6 +268,7 @@
       stats.hunger = clamp(stats.hunger - 4, 0, 100);
     }
     if (action === "train") {
+      if (stats.strength >= 25) return { ok: false, stats, message: "Strength Level 25 reached. Training sticks kept." };
       if (data.inventory.bambooSticks < 1) return { ok: false, stats, message: "Training needs one bamboo stick." };
       if (stats.hunger < 20) return { ok: false, stats, message: "Feed your pet before training again." };
       data.inventory.bambooSticks -= 1;
@@ -321,6 +322,15 @@
     refresh();
     celebrate();
     return { ok: true, message: `${pet.name} joined your arcade roster.` };
+  }
+
+  function trainingProgress(xp) {
+    const level = strengthForXp(xp);
+    if (level >= 25) return { level, maxed:true, remaining:0, sticks:0, fraction:1 };
+    const floor = (level - 1) ** 2 * 10;
+    const next = level ** 2 * 10;
+    const remaining = Math.max(0, next - xp);
+    return { level, maxed:false, remaining, sticks:Math.ceil(remaining / 10), fraction:clamp((xp-floor)/(next-floor),0,1) };
   }
 
   function strengthForXp(xp) {
@@ -425,6 +435,7 @@
     activeBonus,
     showAssist,
     strengthForXp,
+    trainingProgress,
     addAura,
     celebrate,
     mount,

@@ -8,7 +8,7 @@
     <link rel="preload" href="assets/etc-pets/pet-sanctuary.png" as="image">
     <link rel="preload" href="assets/etc-pets/meme-pets.png" as="image">
     <link rel="preload" href="assets/etc-pets/pepe-variants.png" as="image">
-    <link rel="stylesheet" href="etc-pets.css?v=sanctuary-6">
+    <link rel="stylesheet" href="etc-pets.css?v=training-7">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body data-no-arcade-pet="true" class="arcade-game" data-game="pets">
@@ -55,6 +55,7 @@
             </section>
             <section>
               <p class="eyebrow">Care Actions</p>
+              <p id="trainingGoal"></p><progress id="trainingProgress" value="0" max="1" aria-label="Progress to next strength level"></progress>
               <div class="pet-actions">
                 <button type="button" data-action="feed"><strong>Feed Shoot</strong><small>Costs 1 shoot · +22 fed</small></button>
                 <button type="button" data-action="play"><strong>Play</strong><small>Free · +20 joy</small></button>
@@ -88,8 +89,8 @@
       <div><span class="game-guide__label">Spend with a purpose</span><p>Arcade Shards buy supplies and unlocks. Food and joy affect your pet assist in supported games.</p></div>
     </footer>
     <script src="arcade.js?v=8"></script>
-    <script src="arcade-pet.js?v=6"></script>
-    <script src="etc-pets.js?v=receipts-6"></script>
+    <script src="arcade-pet.js?v=7"></script>
+    <script src="etc-pets.js?v=training-7"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

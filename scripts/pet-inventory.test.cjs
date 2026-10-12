@@ -57,3 +57,21 @@ test('persistently blocked pet storage stops purchases and unlocks before wallet
   assert.equal(wallet.value,100);
   assert.equal(saves.get('emerald-arcade-pets-v1'),before);
 });
+
+
+test('pet training progress matches quadratic level thresholds and ten-XP sticks',()=>{
+  const h=tab(new Map(),{value:0});
+  assert.equal(h.api.trainingProgress(0).sticks,1);
+  assert.equal(h.api.trainingProgress(10).remaining,30);
+  assert.equal(h.api.trainingProgress(10).sticks,3);
+  assert.equal(h.api.trainingProgress(30).sticks,1);
+  assert.equal(h.api.trainingProgress(40).level,3);
+  assert.equal(h.api.trainingProgress(5760).maxed,true);
+});
+
+test('maxed pet training keeps sticks instead of consuming them without a strength gain',()=>{
+  const saves=new Map();const h=tab(saves,{value:0});
+  const value=h.api.load();value.stats.pepe.strengthXp=5760;saves.set('emerald-arcade-pets-v1',JSON.stringify(value));
+  assert.equal(h.api.updatePet('train').ok,false);
+  assert.equal(h.api.load().inventory.bambooSticks,1);
+});

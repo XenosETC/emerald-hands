@@ -16,6 +16,8 @@ const els = {
   shootBalance: document.querySelector("#bambooShootBalance"),
   stickBalance: document.querySelector("#bambooStickBalance"),
   status: document.querySelector("#petActionStatus"),
+  training: document.querySelector("#trainingProgress"),
+  trainingGoal: document.querySelector("#trainingGoal"),
 };
 
 let completedSession = false;
@@ -32,12 +34,15 @@ function render(excited = false) {
   els.hunger.textContent = `${Math.round(stats.hunger)}%`;
   els.joy.textContent = `${Math.round(stats.joy)}%`;
   els.aura.textContent = Math.floor(stats.aura).toLocaleString();
+  const progress = window.ArcadePet.trainingProgress(stats.strengthXp);
+  els.training.value = progress.fraction;
+  els.trainingGoal.textContent = progress.maxed ? "Strength Level 25 complete. Play and feed to keep your companion happy." : `${progress.remaining} XP to Level ${progress.level + 1} · ${progress.sticks} training stick${progress.sticks === 1 ? "" : "s"} needed · each training grants 10 XP.`;
   els.strength.textContent = `Lv. ${stats.strength}`;
   els.shardBalance.textContent = window.EmeraldArcade.arcadeShardBalance().toLocaleString();
   els.shootBalance.textContent = data.inventory.bambooShoots.toLocaleString();
   els.stickBalance.textContent = data.inventory.bambooSticks.toLocaleString();
   document.querySelector('[data-action="feed"]').disabled = data.inventory.bambooShoots < 1;
-  document.querySelector('[data-action="train"]').disabled = data.inventory.bambooSticks < 1 || stats.hunger < 20;
+  document.querySelector('[data-action="train"]').disabled = data.inventory.bambooSticks < 1 || stats.hunger < 20 || progress.maxed;
   const balance = window.EmeraldArcade.arcadeShardBalance();
   document.querySelectorAll('[data-supply]').forEach(button => { button.disabled = balance < window.ArcadePet.supplyPacks[button.dataset.supply].cost; });
   els.hungerBar.style.transform = `scaleX(${stats.hunger / 100})`;

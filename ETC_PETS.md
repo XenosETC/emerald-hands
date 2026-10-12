@@ -16,7 +16,7 @@ Tower Defense, Paradox, Wars and Pets descriptions/tags now match their current 
 
 ## Verification
 
-Root smoke and 202 behavior tests pass, including three new actual shared-controller tests with two VM tabs sharing storage. Tests check old roaming cannot write over inventory, pet selection reloads state, exact care consumption and insufficient-funds buying. Against the prior controller these regressions fail, confirming the cause rather than only asserting the new code.
+Root smoke and 204 behavior tests pass, including three new actual shared-controller tests with two VM tabs sharing storage. Tests check old roaming cannot write over inventory, pet selection reloads state, exact care consumption and insufficient-funds buying. Against the prior controller these regressions fail, confirming the cause rather than only asserting the new code.
 
 Native browser checks use an isolated origin and two tabs: starting at 60 shards, buying three sticks, feeding, playing and training leaves six shards, one shoot and three sticks. Reload retains those balances. A second tab's pet picker shows the same counts while its roaming position changes. Desktop and 390px phone layout were inspected; phone page width is 375px without overflow. Physical-device testing remains separate. User-origin saves were not modified during QA.
 
@@ -27,3 +27,9 @@ Evidence: [desktop sanctuary](docs/pets-and-cards-2026-10-12/sanctuary-desktop.p
 Supply purchases and pet unlocks now check that the pet store can accept an unchanged write before charging Arcade Shards. Persistent storage failure returns a clear stopped-purchase message and does not invoke wallet spending. A controller fixture verifies both operations preserve the wallet and stored pet state when writes are blocked. Shared script references were updated across consumer pages. Costs, unlocks and successful purchase behavior are unchanged.
 
 This preflight protects persistent unavailability; it is not an atomic transaction across the wallet and pet storage keys and does not guarantee recovery from a failure occurring after the preflight. More comprehensive transaction recovery remains a separate engineering gate.
+
+## Visible training progression
+
+The sanctuary now displays XP to the next strength level, the number of ten-XP sticks needed, and an accessible within-level progress meter. It uses the existing quadratic XP thresholds and level-25 cap; costs and XP per training are unchanged. Training at the cap is now rejected without consuming sticks, rather than spending supplies without gaining strength. Play/feed remain available.
+
+Controller fixtures verify level boundaries, stick requirements and capped training preserving inventory. Native training from the starter state consumes its one stick, reaches level 2 and displays 30 XP / three sticks to level 3. Consumer scripts are cache-busted to load the helper and cap guard consistently.
