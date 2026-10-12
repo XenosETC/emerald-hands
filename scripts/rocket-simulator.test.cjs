@@ -51,3 +51,14 @@ test('blocked saves roll back upgrades and still expose flight results and relau
  assert.equal(h.read('state.fuel'),0);
  h.read('launch()');assert.equal(h.read('state.mode'),'flying');
 });
+
+
+test('rocket sector goals advance at actual boundaries and finish at the final sector',()=>{
+ const h=game();
+ assert.match(h.read('sectorGoal(0).text'),/Emerald Belt/);
+ assert.equal(h.read('sectorGoal(400).progress'),.5);
+ assert.match(h.read('sectorGoal(800).text'),/Ancient Satellite Field/);
+ assert.equal(h.read('sectorGoal(800).progress'),0);
+ assert.equal(h.read('sectorGoal(750000).progress'),1);
+ assert.match(h.read('sectorGoal(750000).text'),/all nine sectors/);
+});

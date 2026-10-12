@@ -9,6 +9,8 @@ const els = {
   rocketClass: document.querySelector("#rocketClass"),
   distance: document.querySelector("#distanceLabel"),
   zone: document.querySelector("#zoneLabel"),
+  sectorGoal: document.querySelector("#sectorGoal"),
+  sectorProgress: document.querySelector("#sectorProgress"),
   speed: document.querySelector("#speedLabel"),
   record: document.querySelector("#recordLabel"),
   fuelBar: document.querySelector("#fuelBar"),
@@ -282,7 +284,21 @@ function update(delta) {
   updateHud();
 }
 
+function sectorGoal(distance) {
+  const index = zoneIndexFor(distance);
+  const next = zones[index + 1];
+  if (!next) return { text: "Beyond Canon reached · all nine sectors discovered", progress: 1 };
+  const current = zones[index];
+  return {
+    text: `${next.name} · ${distanceText(Math.max(0, next.at - distance))} to go`,
+    progress: clamp((distance - current.at) / (next.at - current.at), 0, 1),
+  };
+}
+
 function updateHud() {
+  const goal = sectorGoal(state.distance);
+  els.sectorGoal.textContent = goal.text;
+  els.sectorProgress.value = goal.progress;
   els.distance.textContent = distanceText(state.distance);
   els.zone.textContent = zoneFor(state.distance);
   els.speed.textContent = `${state.velocity.toFixed(1)} km/s`;

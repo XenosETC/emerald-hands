@@ -10,3 +10,8 @@ Next gates: actual flight-to-salvage loop, sector transitions, storage write fai
 ## Completion and blocked storage
 
 Flight completion now records once per active flight and clamps terminal telemetry. A failed local save labels salvage as unsaved and held only in this tab, while keeping results and relaunch available. Failed upgrade saves roll back their cost and level. Independent shared-record/companion save errors cannot interrupt completion. The natural starter-controller fixture crosses Emerald Belt, exhausts fuel, banks salvage once, buys fuel and relaunches. A quota fixture verifies upgrade rollback and usable unsaved flight results. This does not guarantee recovery after reload with unavailable storage; cross-tab Rocket writes remain unprotected.
+
+
+## Next-sector objectives
+
+The hangar now displays the next named sector, remaining distance and an accessible within-sector progress bar. Crossing a threshold advances the objective; Beyond Canon marks all nine sectors discovered. These are existing distance thresholds, not new rewards or gameplay requirements. Boundary fixtures cover Emerald Belt, the next target and the final sector.
