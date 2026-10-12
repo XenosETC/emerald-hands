@@ -46,7 +46,17 @@
     return value == null || !Number.isFinite(Number(value)) ? fallback : clamp(Number(value), 0, 100);
   }
 
+  function readableStore() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw === null) return true;
+      const saved = JSON.parse(raw);
+      return saved !== null && typeof saved === "object" && !Array.isArray(saved);
+    } catch { return false; }
+  }
+
   function load() {
+    if (!readableStore()) return defaults();
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
       const base = defaults();
@@ -105,6 +115,7 @@
   let excitedTimer;
 
   function save() {
+    if (!readableStore()) throw new Error("Pet save is unreadable; original data preserved.");
     data.schemaVersion = SCHEMA_VERSION;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     window.dispatchEvent(new CustomEvent("arcadepet:change", { detail: load() }));
@@ -260,6 +271,7 @@
   }
 
   function select(id) {
+    if (!readableStore()) return;
     data = load();
     if (!data.unlocked.includes(id)) return;
     data.selected = id;
@@ -285,6 +297,7 @@
 
   function updatePet(action) {
     if (!["feed", "play", "train"].includes(action)) return { ok:false, message:"Unknown care action." };
+    if (!readableStore()) return { ok: false, message: "Care stopped: your pet save cannot be read. Original data kept; restore your save before continuing." };
     data = load();
     const before = JSON.parse(JSON.stringify(data));
     const stats = data.stats[data.selected];
@@ -322,6 +335,7 @@
   }
 
   function storageReady() {
+    if (!readableStore()) return false;
     try {
       const existing = localStorage.getItem(STORAGE_KEY);
       localStorage.setItem(STORAGE_KEY, existing ?? JSON.stringify(defaults()));
@@ -453,6 +467,7 @@
   }
 
   function addAura(amount) {
+    if (!readableStore()) return;
     data = load();
     data.stats[data.selected].aura += Math.max(0, Number(amount || 0));
     save();
@@ -463,6 +478,7 @@
 
   window.ArcadePet = {
     schemaVersion: SCHEMA_VERSION,
+    saveReadable: readableStore,
     pets,
     supplyPacks,
     load,

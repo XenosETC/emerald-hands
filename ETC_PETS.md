@@ -67,3 +67,8 @@ The live assist panel now links directly to Shard Rush, Pepe’s Paradox and Roc
 ## Save field validation
 
 Pet loading normalizes supply counts and XP to finite nonnegative integers, clamps food and joy to 0–100, and filters unknown companion IDs. Valid numeric legacy values and training-derived XP remain supported. Invalid XP becomes zero, invalid care uses starter care defaults, and negative supplies become zero; no historical reimbursement is inferred. Regression fixtures cover damaged fields alongside retained valid legacy progress. Malformed whole-file JSON and cross-tab simultaneous writes remain separate recovery limitations.
+
+
+## Unreadable save protection
+
+Malformed JSON, null and array-valued pet saves now block care, selection and purchases while retaining the original stored text. Care returns an explicit stopped-action receipt. The display may show starter fallback values, but those are not persisted over the damaged save. Fixtures verify all three malformed shapes retain their exact bytes and wallet balance. Automatic reconstruction is not implemented; restore a known-good save before resuming.

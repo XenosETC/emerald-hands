@@ -219,3 +219,17 @@ test('damaged pet fields normalize while valid legacy progress and supplies surv
   assert.equal(loaded.stats.wojak.hunger,0);
   assert.equal(h.api.updatePet('train').ok,false);
 });
+
+
+test('unreadable whole pet saves remain intact and cannot charge or accept care',()=>{
+  for(const raw of ['{broken','null','[]']) {
+    const saves=new Map([['emerald-arcade-pets-v1',raw]]),wallet={value:100};
+    const h=tab(saves,wallet);
+    assert.equal(h.api.updatePet('train').ok,false);
+    assert.equal(h.api.purchaseSupply('stick').ok,false);
+    assert.equal(h.api.unlock('wojak').ok,false);
+    h.api.select('pepe');
+    assert.equal(saves.get('emerald-arcade-pets-v1'),raw);
+    assert.equal(wallet.value,100);
+  }
+});
