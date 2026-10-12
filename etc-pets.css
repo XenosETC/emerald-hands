@@ -23,3 +23,23 @@
 @media(max-height:720px) and (min-width:981px){
   .pets-topbar>div>p:last-child{display:none}.pets-topbar{padding-block:8px}.pet-stage{bottom:86px;width:min(31vw,43dvh)}.pet-meters{top:10px}.pet-identity{bottom:9px}.pet-console{gap:7px;padding:9px}.pet-actions button{min-height:54px}.companion-note{display:none}
 }
+
+/* Quiet bamboo sanctuary with readable, tactile care controls. */
+.pet-console > section { padding:14px; border:1px solid rgba(112,255,191,.18); border-radius:16px; background:rgba(5,25,17,.76); }
+.pet-console { gap:14px; background:linear-gradient(160deg,#102d20,#04120c); }
+.pet-wallet { position:sticky; top:0; z-index:2; box-shadow:0 10px 28px #0006; background:linear-gradient(135deg,#243522,#102318)!important; }
+.pet-actions button,.supply-shop button { border-radius:12px; min-height:74px; transition:background .15s,transform .15s; }
+.pet-actions button:hover,.supply-shop button:hover { background:#24533c; transform:translateY(-2px); }
+.pet-actions small { font-size:.68rem; line-height:1.4; color:#bfd7c8; }
+.pet-roster { gap:9px; }
+.pet-card { border-radius:13px; padding:8px; }
+.pet-card strong { font-size:.73rem; }.pet-card small { font-size:.62rem; }
+.pet-actions button:focus-visible,.supply-shop button:focus-visible,.pet-card:focus-visible { outline:3px solid #e2bd6a; outline-offset:3px; }
+#petActionStatus { min-height:3em; color:#e3f6ea; }
+@media(max-width:680px){ .pet-wallet { position:static; }.pet-roster { grid-template-columns:repeat(2,minmax(0,1fr)); }.pet-card i{max-height:115px;}.pet-actions,.supply-shop {grid-template-columns:1fr;}.pet-actions button,.supply-shop button{min-height:58px;}.pets-layout{grid-template-rows:430px auto;} }
+@media(prefers-reduced-motion:reduce){.hero-pet,.pet-aura-ring{animation:none}.pet-actions button,.supply-shop button{transition:none}}
+
+.pet-actions button:disabled,.supply-shop button:disabled{opacity:.5;cursor:default;transform:none}.pet-console .eyebrow{font-size:.72rem;letter-spacing:.11em}.pet-roster .pet-card.is-selected{background:#174b32;border-color:#b5ffda}
+
+.pet-roster{grid-template-columns:repeat(2,minmax(0,1fr))}.pet-card i{max-height:110px}.pet-card strong,.pet-card small{white-space:normal;overflow:visible;text-overflow:clip}.pet-identity{bottom:92px}
+@media(max-width:680px){.pet-identity{bottom:12px}}

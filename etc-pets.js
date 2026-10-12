@@ -36,6 +36,10 @@ function render(excited = false) {
   els.shardBalance.textContent = window.EmeraldArcade.arcadeShardBalance().toLocaleString();
   els.shootBalance.textContent = data.inventory.bambooShoots.toLocaleString();
   els.stickBalance.textContent = data.inventory.bambooSticks.toLocaleString();
+  document.querySelector('[data-action="feed"]').disabled = data.inventory.bambooShoots < 1;
+  document.querySelector('[data-action="train"]').disabled = data.inventory.bambooSticks < 1 || stats.hunger < 20;
+  const balance = window.EmeraldArcade.arcadeShardBalance();
+  document.querySelectorAll('[data-supply]').forEach(button => { button.disabled = balance < window.ArcadePet.supplyPacks[button.dataset.supply].cost; });
   els.hungerBar.style.transform = `scaleX(${stats.hunger / 100})`;
   els.joyBar.style.transform = `scaleX(${stats.joy / 100})`;
   els.auraBar.style.transform = `scaleX(${Math.min(1, stats.aura / 100)})`;
@@ -53,7 +57,7 @@ function render(excited = false) {
   els.roster.innerHTML = window.ArcadePet.pets.map((item) => {
     const unlocked = data.unlocked.includes(item.id);
     return `
-    <button type="button" class="pet-card${item.id === pet.id ? " is-selected" : ""}${unlocked ? "" : " is-locked"}" data-pet="${item.id}">
+    <button type="button" class="pet-card${item.id === pet.id ? " is-selected" : ""}${unlocked ? "" : " is-locked"}" data-pet="${item.id}" aria-pressed="${item.id === pet.id}">
       <i style="background-image:url('${item.sheet}');background-position:${window.ArcadePet.spritePosition(item.id)}"></i>
       <strong>${item.name}</strong><small>${item.title}</small>
       <small class="pet-cost">${unlocked ? `Strength Lv. ${data.stats[item.id].strength}` : `${item.unlockCost} Arcade Shards`}</small>

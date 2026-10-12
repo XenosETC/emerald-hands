@@ -651,3 +651,10 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
   .library-options { gap: 4px 16px; }
   .game-art { height: 205px; min-height: 205px; }
 }
+
+/* Current arcade artwork, matched to each playable setting. */
+.game-card--tower-defense .game-art { background: linear-gradient(#02130722,#02130766), url("assets/pepe-tower-defense/emerald-vault-courtyard-v1.png") center/cover; }
+.game-card--tower-defense .game-art::before,.game-card--tower-defense .game-art::after,.game-card--pepe-wars .game-art::before { display:none; }
+.game-card--pepe-wars .game-art::after { width:95px; height:130px; right:12px; bottom:10px; border:0; background:url("assets/pepe-wars/corrupt-citadel-v1.png") center/contain no-repeat; box-shadow:none; }
+.game-card--pepe-wars .game-art img { margin-right:45px; }
+.game-card--pets .game-art img { top:8%; left:20%; width:240%; height:160%; clip-path:inset(0 75% 50% 0); }

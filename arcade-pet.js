@@ -231,6 +231,7 @@
   }
 
   function select(id) {
+    data = load();
     if (!data.unlocked.includes(id)) return;
     data.selected = id;
     save();
@@ -240,8 +241,9 @@
 
   function wander() {
     if (!companion) return;
+    data = load();
     data.x = 12 + Math.random() * 76;
-    save();
+    // Cosmetic wandering must never write a cached inventory across tabs.
     companion.style.setProperty("--pet-x", `${data.x}%`);
   }
 
@@ -279,7 +281,7 @@
     data.stats[data.selected] = stats;
     save();
     celebrate();
-    return { ok: true, stats, message: action === "train" ? `Strength reached Level ${stats.strength}.` : "" };
+    return { ok: true, stats, message: action === "train" ? `Used 1 training stick · ${data.inventory.bambooSticks} left. Strength reached Level ${stats.strength}.` : action === "feed" ? `Used 1 shoot · ${data.inventory.bambooShoots} left. Training sticks unchanged.` : "Played together · no supplies spent." };
   }
 
   function purchaseSupply(packId) {
@@ -418,6 +420,11 @@
     mount,
     spritePosition,
   };
+  window.addEventListener("storage", event => {
+    if (event.key !== STORAGE_KEY) return;
+    refresh();
+    window.dispatchEvent(new CustomEvent("arcadepet:change", { detail: load() }));
+  });
   window.addEventListener("emeraldarcade:wallet", refresh);
   window.addEventListener("arcadepet:change", renderAssistIndicator);
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
