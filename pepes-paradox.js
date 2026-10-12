@@ -25,7 +25,7 @@
   const parallaxRates = { distant:.055, temple:.16, foreground:.32 };
   const spriteAtlas = { idle:[0,0],runA:[1,0],runB:[2,0],rise:[0,1],apex:[1,1],fall:[2,1],dash:[0,2],hurt:[1,2],victory:[2,2] };
   const keys = new Set();
-  const state = { mode:"ready", time:0, camera:0, sound:true, cutsceneStep:0, cutsceneClock:0, tauntDone:false, finished:false, petCollectRadius:0 };
+  const state = { mode:"ready", time:0, platformTime:0, camera:0, sound:true, cutsceneStep:0, cutsceneClock:0, tauntDone:false, finished:false, petCollectRadius:0 };
   const player = { x:180, y:FLOOR-154, w:104, h:154, vx:0, vy:0, grounded:true, facing:1, shards:0, relics:0, frogs:0, dash:0 };
   const rival = { x:2740, y:FLOOR-165, w:112, h:165, facing:-1, alpha:0 };
   const platforms = [
@@ -66,7 +66,7 @@
     window.EmeraldArcade?.beginSession("paradox","pepes-paradox.html");
     const petBonus=window.ArcadePet?.activeBonus("paradox");
     Object.assign(player,{x:180,y:FLOOR-154,vx:0,vy:0,grounded:true,shards:0,relics:0,frogs:0,dash:0,facing:1});
-    Object.assign(state,{mode:"playing",time:0,camera:0,cutsceneStep:0,tauntDone:false,finished:false,petCollectRadius:Number(petBonus?.collectibleRadius||0)});
+    Object.assign(state,{mode:"playing",time:0,platformTime:0,camera:0,cutsceneStep:0,tauntDone:false,finished:false,petCollectRadius:Number(petBonus?.collectibleRadius||0)});
     [...shards,...relics,...frogs].forEach(o=>o.got=false); ui.overlay.classList.add("is-hidden"); ui.dialogue.hidden=true; canvas.focus(); syncHud(); tone(220,.15,"triangle");
   }
   function jump(){ if(!window.EmeraldArcade?.isPaused?.()&&state.mode==="playing"&&player.grounded){player.vy=-740;player.grounded=false;tone(440,.08,"triangle");} }
@@ -83,13 +83,14 @@
     state.time+=dt;
     if(state.mode==="escape"){rival.x+=660*dt;rival.alpha=Math.max(0,rival.alpha-dt*.28);state.cutsceneClock+=dt;if(state.cutsceneClock>1.5){state.mode="playing";}return;}
     if(state.mode!=="playing") return;
+    state.platformTime+=dt;
     const move=(keys.has("ArrowRight")||keys.has("KeyD")?1:0)-(keys.has("ArrowLeft")||keys.has("KeyA")?1:0);
     const dashTime=Math.min(dt,player.dash),walkTime=dt-dashTime;
     const drag=-Math.log(1-11/60)*60,target=move*390,decay=Math.exp(-drag*walkTime);
     const travel=player.vx*dashTime+target*walkTime+(player.vx-target)*(1-decay)/drag;
     player.vx=target+(player.vx-target)*decay;
     player.dash=Math.max(0,player.dash-dt);if(move&&!player.dash)player.facing=move;
-    let carried=0;for(const p of platforms){if(!p.moving)continue;const oldX=p.x;p.x=p.baseX+Math.sin(state.time*p.speed+p.phase)*p.amplitude;p.dx=p.x-oldX;if(player.grounded&&Math.abs(player.y+player.h-p.y)<4&&player.x+player.w>oldX&&player.x<oldX+p.w)carried=p.dx;}
+    let carried=0;for(const p of platforms){if(!p.moving)continue;const oldX=p.x;p.x=p.baseX+Math.sin(state.platformTime*p.speed+p.phase)*p.amplitude;p.dx=p.x-oldX;if(player.grounded&&Math.abs(player.y+player.h-p.y)<4&&player.x+player.w>oldX&&player.x<oldX+p.w)carried=p.dx;}
     const oldBottom=player.y+player.h;player.x=Math.max(0,Math.min(WORLD_W-player.w,player.x+travel+carried));player.y+=player.vy*dt+.5*1850*dt*dt;player.vy+=1850*dt;player.grounded=false;
     let landing=null;
     for(const p of platforms){

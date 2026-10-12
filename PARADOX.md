@@ -8,7 +8,7 @@ In progress. This build is the Bamboo Mountains chapter only; the temple-opening
 - Dialogue clears movement, focuses Continue, and hands focus back to the canvas after its final line. Completion requires the existing taunt sequence and focuses replay.
 - Replay resets the frame baseline; negative frame deltas cannot rewind simulation.
 
-Verification: root smoke and 198 behavior tests pass in the workspace and clean staged copy. Three controller fixtures check audio-failure launch/active launch guard, replay world/input reset and paused jump/dash guards. Private controller access is injected into in-memory test copies only. Native browser checks used an isolated origin to launch, jump, pause and resume; they do not establish a full stage playthrough.
+Verification: root smoke and 199 behavior tests pass in the workspace and clean staged copy. Three controller fixtures check audio-failure launch/active launch guard, replay world/input reset and paused jump/dash guards. Private controller access is injected into in-memory test copies only. Native browser checks used an isolated origin to launch, jump, pause and resume; they do not establish a full stage playthrough.
 
 Next: platform landing, fall recovery, dialogue/escape/completion and collectible progression. Manual jump feel, physical-device comfort and hosted behavior remain open.
 
@@ -35,3 +35,9 @@ A controller fixture collects all twelve shards, two relics and one frog through
 Horizontal steering now integrates drag over elapsed time. Dash frames preserve the portion before and after the 0.24-second dash expires, and facing stays consistent during the active dash. Gravity uses time-based displacement as well. The existing 390 walk speed, 720 dash speed, 740 jump impulse and 1850 gravity are unchanged, but the corrected integration slightly changes the old discrete jump arc; manual feel needs review.
 
 Controller tests match walking, jumping and dash-expiry trajectories over half a second at 30/60/120 Hz. Native launch, Space and Shift inputs were exercised on an isolated origin. This does not establish a complete native stage traversal.
+
+## Moving-platform story handoff
+
+Moving platforms now use an active-play clock rather than visual/story time. Their positions and riders therefore remain stable during dialogue and Fallen’s escape, then resume smoothly without applying a cutscene-sized displacement. Replay resets the new clock along with platform phases.
+
+A controller fixture places Crown on a platform, spends ten seconds in dialogue, advances the full story, completes escape and resumes with a zero-time update. Platform/rider positions remain unchanged, followed by a normal 16ms carry step. This isolates the handoff; it is not a native stage traversal.

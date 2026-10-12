@@ -1004,3 +1004,16 @@ test('Paradox walk, jump and dash trajectories match at 30, 60 and 120 Hz', () =
     for(const outcome of outcomes)for(let axis=0;axis<3;axis++)assert.ok(Math.abs(outcome[axis]-outcomes[0][axis])<.00001,`${action} axis ${axis}: ${JSON.stringify(outcomes)}`);
   }
 });
+
+
+test('Paradox story pauses cannot jump moving platforms or displace their rider on resume', () => {
+  const g=game('pepes-paradox.js');g.start();
+  g.read('window.__paradoxRead("player.x=710; player.y=316; player.grounded=true; beginTaunt(); update(10); advanceDialogue(); advanceDialogue(); advanceDialogue(); update(1.6); update(0)")');
+  assert.equal(g.read('window.__paradoxRead("state.mode")'),'playing');
+  assert.equal(g.read('window.__paradoxRead("state.platformTime")'),0);
+  assert.equal(g.read('window.__paradoxRead("platforms[6].x")'),700);
+  assert.equal(g.read('window.__paradoxRead("player.x")'),710);
+  g.read('window.__paradoxRead("update(.016)")');
+  assert.ok(g.read('window.__paradoxRead("player.x")')>710);
+  assert.ok(g.read('window.__paradoxRead("player.x")')<712.1);
+});
