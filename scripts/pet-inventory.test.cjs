@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 
-function tab(saves, wallet) {
+function tab(saves, wallet, realWallet = false) {
   const listeners=new Map();
   const window={
     addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,[]);listeners.get(type).push(fn);},
@@ -11,6 +11,10 @@ function tab(saves, wallet) {
     EmeraldArcade:{petPurchaseLedger(){return wallet.ledger||{shoots:0,sticks:0,unlocked:[]};},purchasePetGrant(cost,grant){if(wallet.value<cost)return false;const ledger=wallet.ledger||{shoots:0,sticks:0,unlocked:[]};wallet.ledger={shoots:ledger.shoots+(grant.shoots||0),sticks:ledger.sticks+(grant.sticks||0),unlocked:[...new Set([...ledger.unlocked,...(grant.pet?[grant.pet]:[])])]};wallet.value-=cost;return true;},spendArcadeShards(cost){if(wallet.value<cost)return false;wallet.value-=cost;window.dispatchEvent({type:'emeraldarcade:wallet'});return true;}}
   };
   const context=vm.createContext({window,document:{readyState:'loading',addEventListener(){},querySelector(){return null;}},localStorage:{getItem:key=>saves.get(key)??null,setItem:(key,value)=>saves.set(key,value)},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},setTimeout(){},clearTimeout(){},setInterval(){},location:{pathname:'/etc-pets.html'}});
+  if (realWallet) {
+    context.performance = { now: () => 0 };
+    vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../arcade.js'),'utf8'),context);
+  }
   const source=fs.readFileSync(require('node:path').join(__dirname,'../arcade-pet.js'),'utf8').replace(/\}\)\(\);\s*$/,'window.__testRead=expression=>eval(expression);})();');
   vm.runInContext(source,context);
   return {api:window.ArcadePet,window,read:expression=>vm.runInContext(`window.__testRead(${JSON.stringify(expression)})`,context)};
@@ -156,4 +160,38 @@ test('charged supply and unlock grants recover after the pet write fails without
     assert.equal(reopened.api.load().inventory.bambooSticks,kind==='stick'?2:1);
     assert.equal(wallet.value,kind==='stick'?82:10);
   }
+});
+
+
+test('real wallet and pet controllers recover paid baskets across care and fresh tabs',()=>{
+  const saves=new Map();const h=tab(saves,{},true);
+  assert.equal(h.api.purchaseSupply('shoot-bundle').ok,true);
+  assert.equal(h.window.EmeraldArcade.arcadeShardBalance(),25);
+  assert.equal(h.api.load().inventory.bambooShoots,7);
+  h.api.updatePet('feed');
+  assert.equal(h.api.load().inventory.bambooShoots,6);
+  const fresh=tab(saves,{},true);
+  assert.equal(fresh.api.load().inventory.bambooShoots,6);
+  assert.equal(fresh.api.purchaseSupply('stick').ok,true);
+  assert.equal(fresh.window.EmeraldArcade.arcadeShardBalance(),7);
+  assert.equal(fresh.api.updatePet('train').ok,true);
+  assert.equal(tab(saves,{},true).api.load().inventory.bambooSticks,1);
+  assert.equal(fresh.api.purchaseSupply('shoot').ok,false);
+  assert.equal(fresh.window.EmeraldArcade.arcadeShardBalance(),7);
+});
+
+test('real wallet grant survives pet quota failure and cannot be delivered twice after training',()=>{
+  const saves=new Map();const h=tab(saves,{},true);
+  h.read('window.originalPetWrite=localStorage.setItem;window.petWrites=0;localStorage.setItem=(key,value)=>{if(key==="emerald-arcade-pets-v1" && ++window.petWrites>1)throw new Error("quota");window.originalPetWrite(key,value)}');
+  const purchase=h.api.purchaseSupply('stick');
+  assert.equal(purchase.ok,true);
+  assert.match(purchase.message,/secured/);
+  assert.equal(h.window.EmeraldArcade.arcadeShardBalance(),42);
+  const fresh=tab(saves,{},true);
+  assert.equal(fresh.api.load().inventory.bambooSticks,2);
+  assert.equal(fresh.api.updatePet('train').ok,true);
+  const next=tab(saves,{},true);
+  assert.equal(next.api.load().inventory.bambooSticks,1);
+  assert.equal(next.api.load().stats.pepe.strength,2);
+  assert.equal(next.window.EmeraldArcade.arcadeShardBalance(),42);
 });

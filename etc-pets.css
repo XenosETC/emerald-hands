@@ -49,3 +49,5 @@
 #rosterProgress{font-size:.78rem;line-height:1.5;color:#c7e2d5;margin:0 0 12px}
 
 .pet-console .companion-note{display:block;margin-top:0}#assistReport{line-height:1.6;font-size:.78rem}
+
+.pet-adventures{display:grid;gap:8px;margin-top:12px}.pet-adventures a{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border:1px solid rgba(226,189,106,.32);border-radius:9px;color:#f5e2af;background:rgba(6,20,13,.7);text-decoration:none;font-size:.8rem}.pet-adventures a span{color:#b2c8b7;font-size:.7rem}.pet-adventures a:hover{border-color:#8ce6b0;background:rgba(23,64,42,.7)}.pet-adventures a:focus-visible{outline:2px solid #8ce6b0;outline-offset:3px}

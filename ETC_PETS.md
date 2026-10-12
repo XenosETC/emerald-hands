@@ -57,3 +57,8 @@ New purchases save the shard debit and cumulative supply or companion grant toge
 Controller fixtures cover delayed supply/unlock delivery, reloads without duplicate grants, and actual wallet write failure preserving its serialized state. This remains localStorage persistence, not a server transaction: simultaneous writes across tabs, manual deletion of only one save key, and external clearing of browser data remain separate limitations. Normal full arcade reset clears both keys.
 
 Native isolated-browser check: buying one stick leaves 42 shards and two sticks after reload; training leaves one stick, level 2 and the same 42 shards after a second reload. No user-origin saves were changed.
+
+
+## Companion adventure links and integrated recovery checks
+
+The live assist panel now links directly to Shard Rush, Pepe’s Paradox and Rocket Simulator, with the relevant bonus type beside each destination. Navigation does not write game progress or award shards. Tests now execute both shipped shared controllers together, covering basket purchases, feeding, training, insufficient funds, fresh-tab state and a pet-save quota failure after a real wallet charge. These strengthen recovery evidence without asserting simultaneous-write protection.
