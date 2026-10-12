@@ -1,6 +1,6 @@
 # Pepe’s Paradox finishing development — October 11, 2026
 
-In progress. This build is the Bamboo Mountains chapter only; the temple-opening text is a story lead, not a playable next chapter. Keyboard remains required. Existing collectibles, reward values and shared record isolation are unchanged.
+Local finishing candidate. This build is the Bamboo Mountains chapter only; the temple-opening text is a story lead, not a playable next chapter. Keyboard remains required. Existing collectibles, reward values and shared record isolation are unchanged.
 
 - Replay restores displaced wisps, moving-platform phases, rival position/visibility, facing, particles and input. Active play/dialogue cannot be replaced by a duplicate launch.
 - Optional audio failures no longer interrupt startup, jumps or story progression.
@@ -8,7 +8,7 @@ In progress. This build is the Bamboo Mountains chapter only; the temple-opening
 - Dialogue clears movement, focuses Continue, and hands focus back to the canvas after its final line. Completion requires the existing taunt sequence and focuses replay.
 - Replay resets the frame baseline; negative frame deltas cannot rewind simulation.
 
-Verification: root smoke and 199 behavior tests pass in the workspace and clean staged copy. Three controller fixtures check audio-failure launch/active launch guard, replay world/input reset and paused jump/dash guards. Private controller access is injected into in-memory test copies only. Native browser checks used an isolated origin to launch, jump, pause and resume; they do not establish a full stage playthrough.
+Verification: root smoke and 201 behavior tests pass in the workspace and clean staged copy. Three controller fixtures check audio-failure launch/active launch guard, replay world/input reset and paused jump/dash guards. Private controller access is injected into in-memory test copies only. Native browser checks used an isolated origin to launch, jump, pause and resume; they do not establish a full stage playthrough.
 
 Next: platform landing, fall recovery, dialogue/escape/completion and collectible progression. Manual jump feel, physical-device comfort and hosted behavior remain open.
 
@@ -41,3 +41,9 @@ Controller tests match walking, jumping and dash-expiry trajectories over half a
 Moving platforms now use an active-play clock rather than visual/story time. Their positions and riders therefore remain stable during dialogue and Fallen’s escape, then resume smoothly without applying a cutscene-sized displacement. Replay resets the new clock along with platform phases.
 
 A controller fixture places Crown on a platform, spends ten seconds in dialogue, advances the full story, completes escape and resumes with a zero-time update. Platform/rider positions remain unchanged, followed by a normal 16ms carry step. This isolates the handoff; it is not a native stage traversal.
+
+## Traversal baseline and finishing status
+
+A controller input policy holds right, requests a jump only when grounded, and advances visible story lines. It uses actual movement, collision, collection, recovery and story updates without injecting position, rewards, platform changes or collectible flags. It completes the chapter in about 14.3 simulated seconds with zero falls, nine shards, one relic and the hidden frog, and records once. This is synthetic input-policy evidence, not a manual browser win. Human platform timing and full-collection routing remain open.
+
+Objective feedback now distinguishes ready, pursuit, taunt (line count and Continue/Enter), escape and completion. The progress meter exposes a readable percentage. Controller checks verify the story-phase wording. The implemented chapter is a local finishing candidate; keyboard remains required and the temple is not a playable next chapter. Physical-device comfort, hosted behavior and human feel remain release gates. Next in the queue: ETC Pets, building on its inventory maintenance pass.

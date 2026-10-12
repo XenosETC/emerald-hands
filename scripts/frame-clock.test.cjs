@@ -1017,3 +1017,31 @@ test('Paradox story pauses cannot jump moving platforms or displace their rider 
   assert.ok(g.read('window.__paradoxRead("player.x")')>710);
   assert.ok(g.read('window.__paradoxRead("player.x")')<712.1);
 });
+
+
+test('Paradox input policy traverses the chapter through real physics and story transitions', (t) => {
+  const g=game('pepes-paradox.js');g.start();
+  const outcome=JSON.parse(g.read(`window.__paradoxRead(\`
+    let ticks=0;
+    while(state.mode!=="won" && ticks<18000) {
+      if(state.mode==="playing") { keys.add("KeyD"); if(player.grounded)jump(); }
+      if(state.mode==="cutscene")advanceDialogue();
+      update(1/60);ticks++;
+    }
+    JSON.stringify({mode:state.mode,x:player.x,falls,shards:player.shards,relics:player.relics,frogs:player.frogs,seconds:ticks/60});
+  \`)`));
+  t.diagnostic(`Controller input policy only: ${JSON.stringify(outcome)}; human feel remains open.`);
+  assert.equal(outcome.mode,'won',JSON.stringify(outcome));
+  assert.equal(g.records.length,1);
+});
+
+
+test('Paradox trail objective distinguishes dialogue and escape from playable pursuit', () => {
+  const g=game('pepes-paradox.js');g.start();
+  g.read('window.__paradoxRead("beginTaunt(); syncHud()")');
+  assert.match(g.nodes.get('#trailGoal').textContent,/line 1 of 3/);
+  g.read('window.__paradoxRead("advanceDialogue(); advanceDialogue(); advanceDialogue(); syncHud()")');
+  assert.match(g.nodes.get('#trailGoal').textContent,/escaping/);
+  g.read('window.__paradoxRead("update(1.6); syncHud()")');
+  assert.match(g.nodes.get('#trailGoal').textContent,/Reach the temple gate/);
+});
