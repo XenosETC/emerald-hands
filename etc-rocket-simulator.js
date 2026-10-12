@@ -490,10 +490,21 @@ function playTone(frequency, duration, type = "sine", volume = .07) {
 }
 
 function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
-function loop(now) {
-  const delta = Math.min(.033, (now - state.lastFrame) / 1000);
+let frameRemainder = 0;
+const FLIGHT_STEP = 1 / 120;
+function advanceFrame(now) {
+  const elapsed = Math.max(0, Math.min(.1, (now - state.lastFrame) / 1000));
   state.lastFrame = now;
-  update(delta);
+  frameRemainder += elapsed;
+  while (frameRemainder + 1e-10 >= FLIGHT_STEP) {
+    update(FLIGHT_STEP);
+    frameRemainder -= FLIGHT_STEP;
+  }
+  frameRemainder = Math.max(0, frameRemainder);
+}
+
+function loop(now) {
+  advanceFrame(now);
   draw();
   requestAnimationFrame(loop);
 }

@@ -62,3 +62,32 @@ test('rocket sector goals advance at actual boundaries and finish at the final s
  assert.equal(h.read('sectorGoal(750000).progress'),1);
  assert.match(h.read('sectorGoal(750000).text'),/all nine sectors/);
 });
+
+
+test('rocket fixed-step telemetry matches equal flight time at 30, 60 and 120 FPS',()=>{
+ const snapshots=[];
+ for(const fps of [30,60,120]) {
+  const h=game();h.read('launch()');
+  for(let frame=1;frame<=fps*10;frame++)h.read(`advanceFrame(${frame*1000/fps})`);
+  snapshots.push(JSON.parse(h.read('JSON.stringify({distance:state.distance,fuel:state.fuel,heat:state.heat,hull:state.hull,elapsed:state.elapsed})')));
+ }
+ for(const snapshot of snapshots.slice(1))for(const key of Object.keys(snapshot))assert.ok(Math.abs(snapshot[key]-snapshots[0][key])<1e-7,key);
+});
+test('rocket bounded frame gaps cannot fast-forward an expedition',()=>{
+ const h=game();h.read('launch();advanceFrame(10000)');
+ assert.ok(Math.abs(h.read('state.elapsed')-.1)<1e-8);
+ const before=h.read('state.distance');
+ h.read('advanceFrame(10000)');assert.equal(h.read('state.distance'),before);
+});
+
+
+test('rocket full fixed-step flights produce the same failure and salvage across frame rates',()=>{
+ const reports=[];
+ for(const fps of [30,60,120]) {
+  const h=game();h.read('launch()');
+  for(let frame=1;frame<=fps*40 && h.read('state.mode')==='flying';frame++)h.read(`advanceFrame(${frame*1000/fps})`);
+  assert.equal(h.read('state.mode'),'destroyed');
+  reports.push(h.read('JSON.stringify({reason:state.failureReason,distance:state.distance,shards:save.shards,runs:save.runs})'));
+ }
+ assert.equal(reports[1],reports[0]);assert.equal(reports[2],reports[0]);
+});

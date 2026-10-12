@@ -15,3 +15,8 @@ Flight completion now records once per active flight and clamps terminal telemet
 ## Next-sector objectives
 
 The hangar now displays the next named sector, remaining distance and an accessible within-sector progress bar. Crossing a threshold advances the objective; Beyond Canon marks all nine sectors discovered. These are existing distance thresholds, not new rewards or gameplay requirements. Boundary fixtures cover Emerald Belt, the next target and the final sector.
+
+
+## Consistent frame timing
+
+Rocket now advances in fixed 1/120-second simulation steps, carrying fractional time between frames. Equal ten-second flight fixtures match distance, fuel, heat, hull and elapsed time at 30/60/120 FPS. Frames catch up at most 100 ms, so long stalls cannot instantly finish a flight. The shared arcade RAF clock continues excluding paused time. This is active-play simulation, not offline expedition progression; heavily throttled background tabs can still advance slowly. Fixed stepping can slightly change outcomes from the former frame-rate-dependent integration, so human pacing remains open.
