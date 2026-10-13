@@ -90,3 +90,15 @@ Root fixtures cover outstanding rewards, Temple unlock/recovery, active Temple c
 Browser review confirmed Oath fulfilled, level 7 / Academy / 3 seals, the Temple-unlock objective and Revisit journey link in Continue playing. The catalog card also showed the completed label. At 390px the card was readable without horizontal overflow; no error logs were observed. The seeded fixture and its navigation history are confined to the isolated QA origin.
 
 Clean staged release verification passed 255 arcade tests and 174 Soul World tests on October 13, 2026.
+
+## Playable when storage access is blocked — October 13, 2026
+
+The browser controller now resolves localStorage only inside the guarded checkpoint layer. A blocked storage getter no longer aborts startup. Read-access failure shows Storage unavailable / temporary session rather than claiming the save is damaged; the intro also explains that progress only remains in this tab. Read-blocked sessions stay write-protected until reload, even if access returns, so temporary fallback progress cannot overwrite a previously unread checkpoint. Existing write-only retry and damaged-save recovery behavior remain intact.
+
+Fixtures cover deferred access, blocked getters, status distinction, read-protection after access returns and fresh-store recovery. Browser review uses a temporary copy of the real game page with a throwing storage getter on a unique localhost origin; it is a fault-injection fixture and is excluded from release contents.
+
+Actual browser onboarding under blocked storage accepted the oath, landed three player-issued cuts and claimed the first reward: level 2, 12 fragments and one skill point, with the temporary-session warning intact and no error logs. The warning's observed height now offsets the objective strip so its text/buttons remain readable instead of being covered.
+
+390px browser review confirmed no horizontal overflow and an 8px gap between the warning and objective strip. Reload correctly reset the unsaved temporary run to level 1/training 0; this confirms the stated session-only limit. Final responsive proof: docs/soul-world-storage-2026-10-13/phone.png.
+
+Clean staged release verification passed 255 arcade tests and 176 Soul World tests on October 13, 2026.

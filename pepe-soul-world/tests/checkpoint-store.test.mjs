@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {createCheckpointStore} from '../checkpoint-store.js';
+import {createCheckpointStore,createStorageAccess} from '../checkpoint-store.js';
 import {createState,snapshot,readSave,SAVE_KEY} from '../core.js';
 function fixture(raw){const values=new Map([["other-game","kept"]]);if(raw!==undefined)values.set(SAVE_KEY,raw);let blocked=false;const storage={getItem:key=>values.get(key)??null,setItem(key,value){if(blocked)throw Error('quota');values.set(key,value);}};return {values,storage,block(value){blocked=value;},store:createCheckpointStore(storage,SAVE_KEY,value=>readSave(value)!==null)};}
 test('unreadable Soul saves remain byte-identical and recovery stays latched after restoration',()=>{
@@ -57,4 +57,18 @@ test('practice recovery archives and restores only practice data',()=>{
  const store=createCheckpointStore(f.storage,key,value=>readSave(value)!==null);store.load();assert.equal(store.restoreBackup().ok,true);
  assert.equal(f.values.get(SAVE_KEY),normal);assert.equal(f.values.has(SAVE_KEY+':backup'),false);assert.equal(f.values.has(SAVE_KEY+':recovery-original'),false);
  assert.equal(f.values.get(key+':recovery-original'),'{practice damaged');
+});
+test('a blocked storage getter is deferred and becomes a temporary session without declaring damaged data',()=>{
+ let accesses=0;const storage=createStorageAccess(()=>{accesses++;throw Error('SecurityError');});
+ const store=createCheckpointStore(storage,SAVE_KEY,value=>readSave(value)!==null);assert.equal(accesses,0);
+ assert.equal(store.load(),null);assert.equal(store.status.ok,false);assert.equal(store.status.recovery,false);assert.match(store.status.message,/Storage unavailable/);
+ assert.equal(store.write(snapshot(createState())).ok,false);assert.equal(store.backupAvailable,false);
+});
+test('unreadable storage stays write-protected until reload even after access returns',()=>{
+ const original=JSON.stringify(snapshot(createState({version:2,oath:true})));let blocked=true,writes=0;
+ const storage=createStorageAccess(()=>({getItem(){if(blocked)throw Error('blocked');return original;},setItem(){writes++;}}));
+ const store=createCheckpointStore(storage,SAVE_KEY,value=>readSave(value)!==null);store.load();blocked=false;
+ assert.equal(store.write(snapshot(createState())).ok,false);assert.equal(writes,0);
+ const fresh=createCheckpointStore(storage,SAVE_KEY,value=>readSave(value)!==null);assert.equal(fresh.load().oath,true);
+ assert.equal(fresh.write(snapshot(createState({version:2,oath:true,training:3}))).ok,true);assert.equal(writes,2);
 });

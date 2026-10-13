@@ -1,4 +1,4 @@
-import {createCheckpointStore} from './checkpoint-store.js?v=2';
+import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=3';
 import {GuardControls} from './guard-controls.js';
 import {templeCue} from './temple-combat.js';
 import {appendTempleMeter} from './temple-hud.js';
@@ -18,7 +18,7 @@ import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js';
 const storageKey=new URLSearchParams(location.search).get('practice')==='1'?'pepe-soul-world-practice-v1':SAVE_KEY;
 const $=id=>document.getElementById(id),canvas=$('game');
-const checkpointStore=createCheckpointStore(localStorage,storageKey,value=>readSave(value)!==null);
+const checkpointStore=createCheckpointStore(createStorageAccess(()=>window.localStorage),storageKey,value=>readSave(value)!==null);
 const saved=checkpointStore.load();
 const state=createState(saved),keys=new Set(),touchKeys=new PointerControls(),sound=new Sound();
 const guardControls=new GuardControls(state.player,keys,touchKeys);
@@ -29,13 +29,18 @@ function releaseInputs(){keys.clear();touchKeys.clear();walkTarget=null;guardCon
 function message(text){$('toast').textContent=text;$('toast').style.opacity='1';toastUntil=performance.now()+6500;}
 function checkpointStatus(result){
  $('save-state').textContent=result.message;
+ $('intro-save-hint').textContent=result.ok?'Headphones recommended · Progress saves on this device':'Temporary session · Progress stays in this tab until you leave or reload';
  const warning=$('checkpoint-warning');warning.hidden=result.ok;
+ document.querySelector('.viewport').classList.toggle('checkpoint-limited',!result.ok);
  const copy=$('checkpoint-warning-copy');
  if(copy.textContent!==result.message)copy.textContent=result.message;
  $('restore-checkpoint').hidden=!result.recovery||!checkpointStore.backupAvailable;
 }
 function save(){checkpointStatus(checkpointStore.write(snapshot(state)));}
 checkpointStatus(checkpointStore.status);
+new ResizeObserver(()=>{
+ document.querySelector('.viewport').style.setProperty('--checkpoint-height',$('checkpoint-warning').getBoundingClientRect().height+'px');
+}).observe($('checkpoint-warning'));
 let restoreArmed=false;
 $('restore-checkpoint').addEventListener('click',()=>{
  if(!restoreArmed){

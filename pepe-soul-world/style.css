@@ -28,3 +28,5 @@ body:has(.studio){height:auto;overflow:auto}body:has(.studio) main{height:auto;p
 #journal .oath-completion{border-color:#9cdec0;background:linear-gradient(135deg,#18362d,#13222a)}#journal .oath-completion h3{color:#d8f3b5}#journal .oath-completion button{min-height:44px}
 
 #journal .ground-rewards{border-color:#dfc188;background:#29251b}#journal .ground-rewards ul{padding-left:18px;line-height:1.8}#journal .ground-rewards button{min-height:44px}
+
+.checkpoint-limited .quest-strip{top:calc(112px + var(--checkpoint-height,48px) + 8px)}

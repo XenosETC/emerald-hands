@@ -1,11 +1,19 @@
 // Storage boundary only: gameplay snapshots and save keys remain owned by the game.
+export function createStorageAccess(resolve){
+ return {getItem:key=>resolve().getItem(key),setItem:(key,value)=>resolve().setItem(key,value)};
+}
 export function createCheckpointStore(storage,key,accept){
  const backupKey=key+':backup',archiveKey=key+':recovery-original';
  let recovery=false,status={ok:true,message:'Local save ready'};
  const validRaw=raw=>{try{return raw!==null&&accept(JSON.parse(raw));}catch{return false;}};
  const unreadable=()=>{recovery=true;status={ok:false,recovery:true,message:'Unreadable save kept · temporary session. Restore a valid save and reload.'};return null;};
  function read(){
-  try{const raw=storage.getItem(key);if(raw===null)return null;const value=JSON.parse(raw);if(!accept(value))return unreadable();return value;}catch{return unreadable();}
+  let raw;
+  try{raw=storage.getItem(key);}catch{
+   recovery=true;status={ok:false,recovery:false,message:'Storage unavailable · temporary session. Reload after enabling storage; progress in this tab will not be saved.'};return null;
+  }
+  if(raw===null)return null;
+  try{const value=JSON.parse(raw);if(!accept(value))return unreadable();return value;}catch{return unreadable();}
  }
  return {
   load:read,
