@@ -91,3 +91,16 @@ test('rocket full fixed-step flights produce the same failure and salvage across
  }
  assert.equal(reports[1],reports[0]);assert.equal(reports[2],reports[0]);
 });
+
+
+test('rocket debrief points to the failed system with actual upgrade cost and affordability',()=>{
+ const h=game({shards:0});
+ assert.equal(h.read('recommendedUpgrade("Fuel lattice exhausted")'),'fuel');
+ assert.equal(h.read('recommendedUpgrade("Reactor heat exceeded cooling")'),'cooling');
+ assert.equal(h.read('recommendedUpgrade("Frame could not support velocity")'),'frame');
+ assert.match(h.read('flightAdvice("Fuel lattice exhausted")'),/75 more salvage shards needed/);
+ h.read('save.shards=75');
+ assert.match(h.read('flightAdvice("Fuel lattice exhausted")'),/You can afford/);
+ h.read('buyUpgrade("fuel")');
+ assert.match(h.read('flightAdvice("Fuel lattice exhausted")'),/Level 3 costs 114/);
+});

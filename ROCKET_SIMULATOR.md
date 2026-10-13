@@ -27,3 +27,11 @@ Rocket now advances in fixed 1/120-second simulation steps, carrying fractional 
 Upgrade buttons expose the named system, target level and exact salvage cost in their accessible names. Native 390px viewport inspection found a 375px page width without horizontal overflow and 44px upgrade tap targets. This viewport check is not physical-device comfort testing.
 
 Native launch followed by shared Pause retained 0 km and the 800-km goal through an independent test-suite run; Resume was activated afterward. Full native expedition completion is still open.
+
+
+## Actionable flight debrief
+
+Successful salvage results explain the system that ended the flight: fuel recommends Fuel Lattice, heat recommends Void Cooling and structural failure recommends Obsidian Frame. The debrief uses the existing next-level price and current affordability; the matching hangar card is highlighted until relaunch. Recommendations guide review, not guarantee the best build or a particular distance. Costs, upgrades and rewards are unchanged. Fixtures verify all failure mappings and next-level pricing.
+
+
+Native clean-URL starter expedition completed at 8.07K km with fuel exhaustion in Ancient Satellite Field, awarding 395 salvage for a 575 balance. Buying Fuel Lattice level 2 for 75 left 500; reload retained level 2 and the 114-shard next price. Relaunch displayed active telemetry. This native run began before the debrief copy changed and verifies the existing flight/reward/upgrade loop; debrief mappings are verified separately by controller tests. [Starter result screenshot](docs/rocket-finishing-2026-10-12/starter-completion.png). No user-origin saves were changed.

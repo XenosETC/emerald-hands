@@ -148,7 +148,7 @@ function renderHangar() {
   for (const [key, def] of Object.entries(upgradeDefs)) {
     const cost = upgradeCost(key);
     const card = document.createElement("article");
-    card.className = "upgrade-card";
+    card.className = `upgrade-card${state.mode === "destroyed" && recommendedUpgrade(state.failureReason) === key ? " is-recommended" : ""}`;
     card.innerHTML = `
       <div><h3>${def.name}</h3><span class="level">Level ${save.upgrades[key]}</span></div>
       <button type="button" data-upgrade="${key}" aria-label="Upgrade ${def.name} to level ${save.upgrades[key] + 1} for ${cost} salvage shards" ${state.mode === "flying" || save.shards < cost ? "disabled" : ""}>${cost} ◆</button>
@@ -229,6 +229,20 @@ function updateFlight(delta) {
   else if (state.hull <= 0) endFlight("Frame could not support velocity");
 }
 
+function recommendedUpgrade(reason) {
+  if (reason === "Fuel lattice exhausted") return "fuel";
+  if (reason === "Reactor heat exceeded cooling") return "cooling";
+  if (reason === "Frame could not support velocity") return "frame";
+  return null;
+}
+
+function flightAdvice(reason) {
+  const key = recommendedUpgrade(reason);
+  if (!key) return "Review your build and launch again.";
+  const cost = upgradeCost(key);
+  return `${upgradeDefs[key].name} is the next system to review. ${upgradeDefs[key].copy} Level ${save.upgrades[key] + 1} costs ${cost} salvage shards. ${save.shards >= cost ? "You can afford this upgrade." : `${Math.ceil(cost - save.shards)} more salvage shards needed.`}`;
+}
+
 function endFlight(reason) {
   if (state.mode !== "flying") return;
   state.fuel = clamp(state.fuel, 0, 100);
@@ -256,7 +270,7 @@ function endFlight(reason) {
   els.launch.innerHTML = "<span>LAUNCH UPGRADED ROCKET</span><small>Spend salvage, then go farther</small>";
   els.missionEyebrow.textContent = saved ? (newRecord ? "New Expedition Record" : "Salvage Secured") : "Salvage Not Saved";
   els.missionTitle.textContent = `${reason} at ${distanceText(state.distance)}.`;
-  els.missionText.textContent = saved ? "The recovery drones banked every shard. Upgrade the weakest system and launch again." : "Browser storage is unavailable. Salvage is held only in this tab; reloading may lose it. Restore storage before continuing.";
+  els.missionText.textContent = saved ? `The recovery drones banked every shard. ${flightAdvice(reason)}` : "Browser storage is unavailable. Salvage is held only in this tab; reloading may lose it. Restore storage before continuing.";
   els.missionReward.hidden = false;
   els.missionReward.innerHTML = `
     <div><strong>+${reward} ◆</strong><small>salvaged</small></div>
