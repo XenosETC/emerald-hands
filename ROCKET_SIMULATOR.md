@@ -35,3 +35,8 @@ Successful salvage results explain the system that ended the flight: fuel recomm
 
 
 Native clean-URL starter expedition completed at 8.07K km with fuel exhaustion in Ancient Satellite Field, awarding 395 salvage for a 575 balance. Buying Fuel Lattice level 2 for 75 left 500; reload retained level 2 and the 114-shard next price. Relaunch displayed active telemetry. This native run began before the debrief copy changed and verifies the existing flight/reward/upgrade loop; debrief mappings are verified separately by controller tests. [Starter result screenshot](docs/rocket-finishing-2026-10-12/starter-completion.png). No user-origin saves were changed.
+
+
+## Desktop hangar layout
+
+At widths above 980px, the mission report and pet assist flow below the 16:9 canvas rather than occupying an extended overlay stage. A wider two-column hangar groups the six upgrades into three rows, each with a full-width 44px purchase control. Existing phone stacking remains. Native 1360px review measured a 1345px page without overflow, a 509px canvas and 732px stage including report and assist. [Desktop proof](docs/rocket-layout-2026-10-12/desktop.png). Gameplay and save behavior are unchanged.
