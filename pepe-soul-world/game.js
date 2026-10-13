@@ -1,3 +1,4 @@
+import {createCheckpointStore} from './checkpoint-store.js?v=1';
 import {GuardControls} from './guard-controls.js';
 import {templeCue} from './temple-combat.js';
 import {appendTempleMeter} from './temple-hud.js';
@@ -12,20 +13,27 @@ import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
 import {createJournal} from './journal.js';
 import {ITEMS,stats,useItem} from './systems.js';
-import {SAVE_KEY,GROUND,WORLDS,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,riftInput,canDomain,abilityReady,domainReady,DOMAIN} from './core.js';
+import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,riftInput,canDomain,abilityReady,domainReady,DOMAIN} from './core.js';
 import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js';
 const storageKey=new URLSearchParams(location.search).get('practice')==='1'?'pepe-soul-world-practice-v1':SAVE_KEY;
 const $=id=>document.getElementById(id),canvas=$('game');
-let saved=null;try{saved=JSON.parse(localStorage.getItem(storageKey));}catch{}
+const checkpointStore=createCheckpointStore(localStorage,storageKey,value=>readSave(value)!==null);
+const saved=checkpointStore.load();
 const state=createState(saved),keys=new Set(),touchKeys=new PointerControls(),sound=new Sound();
 const guardControls=new GuardControls(state.player,keys,touchKeys);
 let journalOpen=false,journal,lastCheckpoint=0;
-let begun=false,paused=false,ready=false,renderer,last=0,accumulator=0,toastUntil=0,lastUI=0,walkTarget=null,storageAvailable=true;
+let begun=false,paused=false,ready=false,renderer,last=0,accumulator=0,toastUntil=0,lastUI=0,walkTarget=null;
 const actions={Space:'jump',KeyW:'jump',ArrowUp:'jump',KeyJ:'attack',KeyK:'dash',KeyL:'wave',KeyE:'interact',KeyR:'release',KeyF:'domain'};
 function releaseInputs(){keys.clear();touchKeys.clear();walkTarget=null;guardControls.reset();}
 function message(text){$('toast').textContent=text;$('toast').style.opacity='1';toastUntil=performance.now()+6500;}
-function save(){try{localStorage.setItem(storageKey,JSON.stringify(snapshot(state)));$('save-state').textContent='Progress saved on this device';}catch{storageAvailable=false;$('save-state').textContent='Session only · storage unavailable';}}
+function checkpointStatus(result){
+ $('save-state').textContent=result.message;
+ const warning=$('checkpoint-warning');warning.hidden=result.ok;
+ if(warning.textContent!==result.message)warning.textContent=result.message;
+}
+function save(){checkpointStatus(checkpointStore.write(snapshot(state)));}
+checkpointStatus(checkpointStore.status);
 function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){$('death-screen').hidden=false;$('revive').textContent=state.discoveries.includes(state.world)?'Return to the echo shrine →':'Return to Kek Academy →';releaseInputs();}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;}
 function setPaused(value){paused=value;releaseInputs();accumulator=0;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));if(!value)canvas.focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
@@ -83,4 +91,4 @@ function updateUI(){const p=state.player,l=levelFor(state.xp),world=WORLDS.find(
 }
 function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;if(ready){if(begun&&!paused&&!journalOpen&&!state.dead){accumulator+=dt;if(renderer.freeze>0){accumulator=0;}else{while(accumulator>=1/60){const p=state.player;if(walkTarget!==null && Math.abs(walkTarget-p.x)<10)walkTarget=null;const left=keys.has('KeyA')||keys.has('ArrowLeft')||touchKeys.has('KeyA')||(walkTarget!==null && walkTarget<p.x),right=keys.has('KeyD')||keys.has('ArrowRight')||touchKeys.has('KeyD')||(walkTarget!==null && walkTarget>p.x);step(state,{left,right,guard:guardControls.held},1/60);accumulator-=1/60;flush();if(state.dead)break;}}renderer.update(dt,state);}else if(!begun){state.time+=dt;}renderer.draw(state);if(begun&&!state.dead&&now-lastCheckpoint>5000){save();lastCheckpoint=now;}if(now-lastUI>100){updateUI();lastUI=now;}if(now>toastUntil)$('toast').style.opacity='.15';}requestAnimationFrame(frame);}
 try{const art=await loadArt();renderer=new Renderer(canvas,art);applyMotion();ready=true;$('begin').disabled=false;$('begin').innerHTML='Enter Kek Academy <span>→</span>';updateUI();requestAnimationFrame(frame);}catch(error){console.error(error);$('begin').textContent='Artwork could not load';message('An artwork file could not load. Reload after the assets finish downloading.');$('save-state').textContent='Preview loading failed';}
-window.addEventListener('pagehide',()=>{if(begun && storageAvailable)save();});
+window.addEventListener('pagehide',()=>{if(begun)save();});

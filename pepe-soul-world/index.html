@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1118">
   <meta name="description" content="Train at Kek Academy. Master your soul blade. Cross three haunted realms in an animated 2D action RPG.">
   <title>Pepe Soul World · Kek Academy</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=checkpoint-20261013">
 </head>
 <body>
   <header class="masthead"><a href="../index.html">✦ EMERALD ARCADE</a><span class="edition">A NEW CHAPTER / 2D ACTION RPG</span><button id="sound" aria-pressed="false">Sound off</button></header>
@@ -18,6 +18,7 @@
         <div class="viewport">
           <canvas id="game" width="1280" height="720" tabindex="0" aria-label="Pepe Soul World. Move with A and D, jump with Space, slash with J, Warp Step with K, spirit wave with L, hold S or Down to block, interact with E."></canvas>
           <div class="hud"><div class="portrait"><img src="assets/crown-face.png" alt="Crown Pepe"></div><div class="vitals"><strong>CROWN PEPE <span id="weapon">Ribbit Fang</span></strong><label>HP <progress id="health" max="100" value="100"></progress><span id="health-number">100</span></label><label>SP <progress id="spirit" max="100" value="100"></progress><span id="spirit-number">100</span></label></div></div>
+          <div id="checkpoint-warning" class="checkpoint-warning" role="status" aria-live="polite" hidden></div>
           <div id="toast" role="status" aria-live="polite">Welcome to Kek Academy.</div>
           <div class="interaction" id="interaction"></div>
           <div class="veil" id="intro"><p class="eyebrow">THE FIRST OATH</p><h2>Your story<br>survives you.</h2><p>Enter Kek Academy. Train your blade.<br>Bring three lost seals home.</p><button id="begin">Enter Kek Academy <span>→</span></button><small>Headphones recommended · Progress saves on this device</small></div>
@@ -35,7 +36,7 @@
     </div>
     <footer><span>HAND-PAINTED WORLDS / FRAME-ANIMATED COMBAT</span><button id="motion" aria-pressed="false">Reduce effects</button><a href="animation.html">Animation studio ↗</a><span id="save-state">Local save ready</span></footer>
   </main>
-  <script type="module" src="game.js?v=finishing-20261013"></script>
+  <script type="module" src="game.js?v=checkpoint-20261013"></script>
 <script src="../arcade-library.js?v=library-2"></script><script src="../arcade-visit.js?v=library-2"></script>
 </body>
 </html>
