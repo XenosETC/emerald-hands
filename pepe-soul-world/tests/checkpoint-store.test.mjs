@@ -14,3 +14,47 @@ test('write recovery saves the current earned checkpoint without touching other 
 test('practice checkpoint writes stay separate from normal campaign saves',()=>{
  const f=fixture(JSON.stringify(snapshot(createState())));const before=f.values.get(SAVE_KEY);const practice=createCheckpointStore(f.storage,'pepe-soul-world-practice-v1',value=>readSave(value)!==null);practice.load();assert.equal(practice.write(snapshot(createState({version:2,oath:true,training:3}))).ok,true);assert.equal(f.values.get(SAVE_KEY),before);
 });
+
+test('changed checkpoints retain the previous valid save and unchanged writes do not rotate it',()=>{
+ const first=JSON.stringify(snapshot(createState())),f=fixture(first),s=createState({version:2,oath:true,training:3});
+ const current=snapshot(s);assert.equal(f.store.write(current).ok,true);
+ assert.equal(f.values.get(SAVE_KEY+':backup'),first);
+ assert.equal(f.store.write(current).ok,true);assert.equal(f.values.get(SAVE_KEY+':backup'),first);
+});
+test('explicit recovery archives damaged bytes, restores a valid backup and requires a fresh store',()=>{
+ const f=fixture(),s=createState({version:2,oath:true,training:3,seals:['frozen'],bossRewards:['frozen'],fragments:25});
+ const backup=JSON.stringify(snapshot(s));f.values.set(SAVE_KEY+':backup',backup);f.values.set(SAVE_KEY,'{damaged');
+ assert.equal(f.store.load(),null);assert.equal(f.store.backupAvailable,true);
+ assert.equal(f.store.restoreBackup().ok,true);assert.equal(f.values.get(SAVE_KEY+':recovery-original'),'{damaged');
+ assert.equal(f.values.get(SAVE_KEY),backup);assert.equal(f.store.write(snapshot(createState())).ok,false);
+ const fresh=createCheckpointStore(f.storage,SAVE_KEY,value=>readSave(value)!==null);
+ const restored=createState(fresh.load());assert.deepEqual(restored.seals,['frozen']);assert.equal(restored.fragments,25);
+ assert.equal(f.values.get('other-game'),'kept');
+});
+test('recovery refuses unreadable backups, readable primaries and conflicting archives',()=>{
+ const f=fixture('{damaged'),good=JSON.stringify(snapshot(createState()));
+ f.values.set(SAVE_KEY+':backup','[]');assert.equal(f.store.backupAvailable,false);assert.equal(f.store.restoreBackup().ok,false);
+ f.values.set(SAVE_KEY+':backup',good);f.values.set(SAVE_KEY,good);assert.equal(f.store.restoreBackup().ok,false);
+ f.values.set(SAVE_KEY,'{damaged');f.values.set(SAVE_KEY+':recovery-original','other damaged bytes');assert.equal(f.store.restoreBackup().ok,false);
+ assert.equal(f.values.get(SAVE_KEY),'{damaged');assert.equal(f.values.get(SAVE_KEY+':recovery-original'),'other damaged bytes');
+});
+test('failed backup and recovery writes preserve the primary, backup and other games',()=>{
+ const good=JSON.stringify(snapshot(createState())),f=fixture(good);f.block(true);
+ assert.equal(f.store.write(snapshot(createState({version:2,oath:true}))).ok,false);assert.equal(f.values.get(SAVE_KEY),good);
+ f.values.set(SAVE_KEY,'{damaged');f.values.set(SAVE_KEY+':backup',good);assert.equal(f.store.restoreBackup().ok,false);
+ assert.equal(f.values.get(SAVE_KEY),'{damaged');assert.equal(f.values.get(SAVE_KEY+':backup'),good);assert.equal(f.values.get('other-game'),'kept');
+});
+test('a primary-write failure after archiving is retryable without losing damaged data',()=>{
+ const values=new Map([[SAVE_KEY,'{damaged'],[SAVE_KEY+':backup',JSON.stringify(snapshot(createState()))]]);let fail=true;
+ const storage={getItem:key=>values.get(key)??null,setItem(key,value){if(key===SAVE_KEY&&fail)throw Error('quota');values.set(key,value);}};
+ const store=createCheckpointStore(storage,SAVE_KEY,value=>readSave(value)!==null);store.load();
+ assert.equal(store.restoreBackup().ok,false);assert.equal(values.get(SAVE_KEY),'{damaged');assert.equal(values.get(SAVE_KEY+':recovery-original'),'{damaged');
+ fail=false;assert.equal(store.restoreBackup().ok,true);assert.equal(values.get(SAVE_KEY),values.get(SAVE_KEY+':backup'));
+});
+test('practice recovery archives and restores only practice data',()=>{
+ const f=fixture(JSON.stringify(snapshot(createState()))),normal=f.values.get(SAVE_KEY),key='pepe-soul-world-practice-v1';
+ f.values.set(key,'{practice damaged');f.values.set(key+':backup',JSON.stringify(snapshot(createState({version:2,oath:true}))));
+ const store=createCheckpointStore(f.storage,key,value=>readSave(value)!==null);store.load();assert.equal(store.restoreBackup().ok,true);
+ assert.equal(f.values.get(SAVE_KEY),normal);assert.equal(f.values.has(SAVE_KEY+':backup'),false);assert.equal(f.values.has(SAVE_KEY+':recovery-original'),false);
+ assert.equal(f.values.get(key+':recovery-original'),'{practice damaged');
+});

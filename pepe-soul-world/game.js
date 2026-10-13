@@ -1,4 +1,4 @@
-import {createCheckpointStore} from './checkpoint-store.js?v=1';
+import {createCheckpointStore} from './checkpoint-store.js?v=2';
 import {GuardControls} from './guard-controls.js';
 import {templeCue} from './temple-combat.js';
 import {appendTempleMeter} from './temple-hud.js';
@@ -30,10 +30,26 @@ function message(text){$('toast').textContent=text;$('toast').style.opacity='1';
 function checkpointStatus(result){
  $('save-state').textContent=result.message;
  const warning=$('checkpoint-warning');warning.hidden=result.ok;
- if(warning.textContent!==result.message)warning.textContent=result.message;
+ const copy=$('checkpoint-warning-copy');
+ if(copy.textContent!==result.message)copy.textContent=result.message;
+ $('restore-checkpoint').hidden=!result.recovery||!checkpointStore.backupAvailable;
 }
 function save(){checkpointStatus(checkpointStore.write(snapshot(state)));}
 checkpointStatus(checkpointStore.status);
+let restoreArmed=false;
+$('restore-checkpoint').addEventListener('click',()=>{
+ if(!restoreArmed){
+  restoreArmed=true;
+  if(begun&&!state.dead)setPaused(true);
+  $('restore-checkpoint').textContent='Confirm recovery and reload';
+  $('recovery-copy').textContent='This restores your previous checkpoint and ends this temporary session. Damaged save data will be kept.';
+  return;
+ }
+ const result=checkpointStore.restoreBackup();
+ $('recovery-copy').textContent=result.message;
+ if(result.ok)location.reload();
+ else{restoreArmed=false;$('restore-checkpoint').textContent='Recover previous checkpoint';}
+});
 function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){$('death-screen').hidden=false;$('revive').textContent=reviveDestination(state)==='cleared-arena'?'Recover in the cleared arena →':reviveDestination(state)==='shrine'?'Return to the echo shrine →':'Return to Kek Academy →';releaseInputs();}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;}
 function setPaused(value){paused=value;releaseInputs();accumulator=0;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));if(!value)canvas.focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}

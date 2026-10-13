@@ -26,3 +26,13 @@ The objective strip now offers walking to Goribbit, a safe side of the effigy or
 2026-10-13 verification: 157 Soul World tests and 253 arcade tests passed. A fresh isolated practice browser run walked to Goribbit, accepted the oath, walked into effigy range, landed three player-issued cuts, claimed the first reward (level 2, 12 fragments), walked to the gate and entered Frozen District. No save/state injection was used. Full oath completion and physical-device combat remain open finishing gates.
 
 Phone viewport review at 390px found no horizontal overflow and a 44px trail tap target; tapping it began normal walking. Proof: docs/soul-world-trails-2026-10-13/phone.png. This is browser responsive QA, not physical-device multitouch validation.
+
+## Previous-checkpoint recovery — October 13, 2026
+
+Changed checkpoints now keep the preceding readable snapshot under the same game's :backup key; identical writes leave that backup intact. An unreadable primary save offers a two-click recovery control in the visible warning panel. Recovery archives damaged bytes under :recovery-original before restoring the validated backup, then reloads. A readable current save, conflicting archive, unreadable backup or write failure cancels recovery safely. The existing session remains latched until reload. Practice backup and archive keys stay separate from normal campaign saves. Backup rotation can fail when storage is full; the current checkpoint stays untouched and the existing unsaved-progress warning appears. A backup becomes available after two distinct successful checkpoints; this does not add cloud or file-based backup.
+
+Store fixtures cover changed/unchanged writes, damaged-byte preservation, restoration, write failure at both archive and primary steps, archive conflicts and practice isolation. Browser recovery review uses a deliberately seeded damaged practice save and valid level-2/training-3 backup on a unique localhost origin; it is recovery UI evidence, not earned campaign evidence. Full oath completion and physical-device combat remain open.
+
+Browser verification restored the seeded level-2 checkpoint with training 3/3, 12 fragments and one skill point; no error logs were observed. At 390px the recovery confirmation has a 44px button and no horizontal overflow. Screenshots: docs/soul-world-recovery-2026-10-13/. Test fixture setup is excluded from the web release.
+
+Clean staged release verification passed 253 arcade tests and 163 Soul World tests on October 13, 2026.
