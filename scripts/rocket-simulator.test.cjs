@@ -104,3 +104,25 @@ test('rocket debrief points to the failed system with actual upgrade cost and af
  h.read('buyUpgrade("fuel")');
  assert.match(h.read('flightAdvice("Fuel lattice exhausted")'),/Level 3 costs 114/);
 });
+
+
+test('rocket build telemetry shares actual flight system formulas',()=>{
+ const h=game();
+ assert.equal(h.read('rocketSystems().capacity'),27.5);
+ assert.equal(h.read('rocketSystems().topSpeed'),103);
+ assert.match(h.nodes.get('#buildTelemetry').textContent,/frame stress begins above 41/);
+ h.read('buyUpgrade("fuel")');
+ assert.equal(h.read('rocketSystems().capacity'),35);
+ assert.match(h.nodes.get('#buildTelemetry').textContent,/Fuel duration 35.0s/);
+});
+test('a supplied late-game rocket reaches all sectors through natural flight physics',()=>{
+ const h=game({shards:0,upgrades:{engine:1,fuel:30,frame:14,cooling:10,nav:24,magnet:1}});
+ h.read('launch()');
+ h.read('for(let step=0;step<40000 && state.mode==="flying";step++)updateFlight(1/120)');
+ assert.equal(h.read('state.mode'),'destroyed');
+ assert.equal(h.read('state.zoneIndex'),8);
+ assert.equal(h.read('state.failureReason'),'Fuel lattice exhausted');
+ assert.ok(h.read('state.distance')>=750000);
+ assert.match(h.read('sectorGoal(state.distance).text'),/all nine sectors/);
+ assert.equal(h.read('save.runs'),1);
+});

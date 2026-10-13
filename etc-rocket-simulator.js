@@ -11,6 +11,7 @@ const els = {
   zone: document.querySelector("#zoneLabel"),
   sectorGoal: document.querySelector("#sectorGoal"),
   sectorProgress: document.querySelector("#sectorProgress"),
+  buildTelemetry: document.querySelector("#buildTelemetry"),
   speed: document.querySelector("#speedLabel"),
   record: document.querySelector("#recordLabel"),
   fuelBar: document.querySelector("#fuelBar"),
@@ -143,7 +144,21 @@ function buyUpgrade(key) {
   window.ArcadePet?.celebrate();
 }
 
+function rocketSystems() {
+  const u = save.upgrades;
+  return {
+    thrust: 120 + u.engine * 42,
+    efficiency: 1 + u.nav * .12,
+    support: 900 + u.frame * 760,
+    cooling: 4.8 + u.cooling * 1.3,
+    capacity: 20 + u.fuel * 7.5,
+    topSpeed: 65 + u.engine * 38,
+  };
+}
+
 function renderHangar() {
+  const systems = rocketSystems();
+  els.buildTelemetry.textContent = `Fuel duration ${systems.capacity.toFixed(1)}s · top speed ${systems.topSpeed.toFixed(0)} km/s · frame stress begins above ${Math.sqrt(systems.support).toFixed(0)} km/s. Fuel, heat and hull still determine actual flight duration.`;
   els.upgrades.innerHTML = "";
   for (const [key, def] of Object.entries(upgradeDefs)) {
     const cost = upgradeCost(key);
@@ -203,14 +218,9 @@ function launch() {
 function updateFlight(delta) {
   if (state.mode !== "flying") return;
   state.elapsed += delta;
-  const u = save.upgrades;
-  const thrust = 120 + u.engine * 42;
-  const efficiency = 1 + u.nav * 0.12;
-  const support = 900 + u.frame * 760;
-  const cooling = 4.8 + u.cooling * 1.3;
-  const capacity = 20 + u.fuel * 7.5;
+  const { thrust, efficiency, support, cooling, capacity, topSpeed } = rocketSystems();
   state.velocity += (thrust / 85) * delta;
-  state.velocity = Math.min(state.velocity, 65 + u.engine * 38);
+  state.velocity = Math.min(state.velocity, topSpeed);
   state.distance += state.velocity * efficiency * delta * 10;
   const reachedZone = zoneIndexFor(state.distance);
   if (reachedZone !== state.zoneIndex) {

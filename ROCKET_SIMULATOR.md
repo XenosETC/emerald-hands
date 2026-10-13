@@ -40,3 +40,10 @@ Native clean-URL starter expedition completed at 8.07K km with fuel exhaustion i
 ## Desktop hangar layout
 
 At widths above 980px, the mission report and pet assist flow below the 16:9 canvas rather than occupying an extended overlay stage. A wider two-column hangar groups the six upgrades into three rows, each with a full-width 44px purchase control. Existing phone stacking remains. Native 1360px review measured a 1345px page without overflow, a 509px canvas and 732px stage including report and assist. [Desktop proof](docs/rocket-layout-2026-10-12/desktop.png). Gameplay and save behavior are unchanged.
+
+
+## Build telemetry and late sectors
+
+The hangar now explains the current build’s fuel duration, top speed and velocity where frame stress begins. Flight physics and the readout use the same system calculation; these are limits, not a promised expedition result.
+
+A supplied-upgrade fixture (engine 1, fuel 30, frame 14, cooling 10, guidance 24, magnet 1) runs natural flight physics through Beyond Canon and ends by fuel exhaustion, without injected distance or rewards. This verifies late-sector traversal, not earned affordability. A separate exploratory 150-flight cheapest-upgrade policy using only starter and earned salvage reached about 71K km; it did not reach the final sector. Progression pacing and a practical earned route remain open, and costs/rewards are unchanged.

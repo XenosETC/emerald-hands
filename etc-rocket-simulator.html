@@ -8,7 +8,7 @@
     <link rel="preload" href="assets/etc-rocket-simulator/sector-low-orbit.webp" as="image">
     <link rel="preload" href="assets/etc-rocket-simulator/rocket-tiers.png" as="image">
     <link rel="preload" href="assets/etc-rocket-simulator/salvage.png" as="image">
-    <link rel="stylesheet" href="etc-rocket-simulator.css?v=5">
+    <link rel="stylesheet" href="etc-rocket-simulator.css?v=6">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="rocket">
@@ -60,6 +60,7 @@
             <div class="sector-goal">
               <small>Next sector</small><p id="sectorGoal">Emerald Belt · 800 km to go</p>
               <progress id="sectorProgress" max="1" value="0" aria-label="Progress to next sector"></progress>
+              <p id="buildTelemetry" class="build-telemetry"></p>
             </div>
             <div class="upgrade-list" id="upgradeList"></div>
             <button class="launch-button" id="launchButton" type="button">
@@ -79,7 +80,7 @@
     </footer>
     <script src="arcade.js?v=9"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="etc-rocket-simulator.js?v=10"></script>
+    <script src="etc-rocket-simulator.js?v=11"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>
