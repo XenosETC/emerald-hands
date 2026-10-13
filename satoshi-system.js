@@ -96,6 +96,7 @@ const els = {
   buildCards: [...document.querySelectorAll("[data-build-card]")],
   buyButtons: [...document.querySelectorAll("[data-buy]")],
   resetButton: document.querySelector("#resetButton"),
+  saveStatus: document.querySelector("#saveStatus"),
 };
 
 function defaultState() {
@@ -198,7 +199,17 @@ let audioContext;
 function saveState() {
   state.version = STATE_VERSION;
   state.circulation = state.globalIssued - state.treasury;
-  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    if (els.saveStatus.textContent !== "Saved on this device.") els.saveStatus.textContent = "Saved on this device.";
+    els.saveStatus.classList.remove("is-warning");
+    return true;
+  } catch {
+    const message = "Progress is held only in this tab. Saving is unavailable; reloading can lose this run.";
+    if (els.saveStatus.textContent !== message) els.saveStatus.textContent = message;
+    els.saveStatus.classList.add("is-warning");
+    return false;
+  }
 }
 
 function epochForTick(tick = state.ticks) {
@@ -422,8 +433,10 @@ function setEvent(title, text, tone = "neutral") {
 
 function beginSession() {
   if (sessionStarted) return;
-  sessionStarted = true;
-  window.EmeraldArcade?.beginSession("satoshiSystem", "satoshi-system.html");
+  try {
+    window.EmeraldArcade?.beginSession("satoshiSystem", "satoshi-system.html");
+    sessionStarted = true;
+  } catch { /* Navigation-session storage cannot stop the independent simulation. */ }
 }
 
 function advanceTick(event) {
@@ -576,8 +589,10 @@ function checkGoal() {
   state.goalComplete = true;
   setEvent("Genesis Orbit stabilized", "Three productive worlds are connected beyond the first contraction with supported expansion.", "good");
   if (!state.arcadeRecorded) {
-    state.arcadeRecorded = true;
-    window.EmeraldArcade?.recordAndNotify("satoshiSystem", arcadePayload(true));
+    try {
+      window.EmeraldArcade?.recordAndNotify("satoshiSystem", arcadePayload(true));
+      state.arcadeRecorded = true;
+    } catch { setEvent("Genesis Orbit complete · record unavailable", "The independent simulation completed, but its arcade record could not be saved.", "warning"); }
   }
 }
 
@@ -828,6 +843,7 @@ function playTone(frequency, duration) {
   if (window.EmeraldArcade?.isMuted()) return;
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return;
+  try {
   audioContext ||= new AudioContext();
   const oscillator = audioContext.createOscillator();
   const gain = audioContext.createGain();
@@ -838,6 +854,7 @@ function playTone(frequency, duration) {
   oscillator.connect(gain).connect(audioContext.destination);
   oscillator.start();
   oscillator.stop(audioContext.currentTime + duration);
+  } catch { /* Optional sound cannot interrupt progression. */ }
 }
 
 els.genesisStar.addEventListener("click", advanceTick);

@@ -5,7 +5,7 @@
   "description": "Static ETC-inspired mini-game arcade",
   "scripts": {
     "dev": "node scripts/dev-server.mjs",
-    "test": "node scripts/smoke.mjs && node --test scripts/unstable-launch.test.cjs scripts/rocket-simulator.test.cjs scripts/pet-inventory.test.cjs scripts/relic-rumble.test.cjs scripts/galactic-heroes.test.cjs scripts/library.test.cjs scripts/arcade-progress.test.mjs scripts/emerald-hands.test.cjs scripts/shard-rush.test.cjs scripts/shard-rush-challenges.test.cjs scripts/shard-rush-ghost.test.cjs scripts/arcade-runtime.test.cjs scripts/frame-clock.test.cjs scripts/animation-clock.test.cjs",
+    "test": "node scripts/smoke.mjs && node --test scripts/satoshi-system.test.cjs scripts/unstable-launch.test.cjs scripts/rocket-simulator.test.cjs scripts/pet-inventory.test.cjs scripts/relic-rumble.test.cjs scripts/galactic-heroes.test.cjs scripts/library.test.cjs scripts/arcade-progress.test.mjs scripts/emerald-hands.test.cjs scripts/shard-rush.test.cjs scripts/shard-rush-challenges.test.cjs scripts/shard-rush-ghost.test.cjs scripts/arcade-runtime.test.cjs scripts/frame-clock.test.cjs scripts/animation-clock.test.cjs",
     "smoke": "node scripts/smoke.mjs"
   }
 }

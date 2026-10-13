@@ -256,3 +256,5 @@ body[data-regime] .arcade-runtime-dock button { border-color: #71533a; backgroun
   html { scroll-behavior: auto; }
   .star-corona, .commerce-route { animation: none; }
 }
+
+.save-status{margin:0;padding:10px 18px;color:#bda78c;background:#17140e;font-size:.78rem;line-height:1.5;border-bottom:1px solid #b88a4933}.save-status.is-warning{color:#ffd1a0;background:#352214}
