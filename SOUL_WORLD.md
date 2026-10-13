@@ -126,3 +126,13 @@ Fixtures compare status readiness to combat readiness over multiple player state
 Native seeded-checkpoint review found grounded Wave ready at 30 SP, then Jump switched L to disabled Kek Rift with Need 40 SP. After normal Release and Wave casts, Warp was disabled with Need 20 SP while Wave showed its independent 1.2s cooldown. No error logs were observed. The phone screenshot records the controls layout; the short-lived low-Spirit status was verified through the live button state and combat-status text.
 
 Clean staged release verification passed 255 arcade tests and 181 Soul World tests on October 13, 2026.
+
+## Optional sound failures cannot stop play — October 13, 2026
+
+Audio construction/resume and note playback are now contained inside the optional Sound layer. A failed start or playback disables sound, cleans up its own nodes/context where possible, and leaves the game running silently. The toggle waits for successful resume, reports Sound unavailable with retry guidance on failure, and cannot be switched back on by a late resume after an off request. The master connection is reused instead of reconnecting on each enable. Local synthesized waveforms, volume and timing remain unchanged; no network audio or automatic opt-in is added.
+
+Fixtures cover opt-in, unknown events, constructor/resume/suspended-context failures, retry, playback exceptions and delayed-resume cancellation. Native browser fault review uses a temporary copy of the real page with a deliberately throwing AudioContext constructor on an isolated practice origin. That fixture is excluded from the release.
+
+Browser fault verification showed Sound unavailable with aria-pressed false and retry guidance, then earned academy training and the first reward normally (level 2, 12 fragments, one skill point). At 390px there was no horizontal overflow. In a normal page, Sound on enabled successfully, a Jump event left it enabled, and Sound off muted it; no error logs were observed. This verifies control/runtime behavior, not human listening quality. Final proof: docs/soul-world-audio-2026-10-13/phone.png.
+
+Clean staged release verification passed 255 arcade tests and 185 Soul World tests on October 13, 2026.

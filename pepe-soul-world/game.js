@@ -16,7 +16,7 @@ import {createJournal} from './journal.js?v=keyboard-20261013';
 import {ITEMS,stats,useItem} from './systems.js';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=shrine-20261013';
 import {loadArt,Renderer} from './render.js';
-import {Sound} from './audio.js';
+import {Sound} from './audio.js?v=safe-20261013';
 const storageKey=new URLSearchParams(location.search).get('practice')==='1'?'pepe-soul-world-practice-v1':SAVE_KEY;
 const $=id=>document.getElementById(id),canvas=$('game');
 const checkpointStore=createCheckpointStore(createStorageAccess(()=>window.localStorage),storageKey,value=>readSave(value)!==null);
@@ -74,7 +74,18 @@ $('begin').disabled=true;$('begin').textContent='Painting your world…';
 $('begin').addEventListener('click',()=>{if(!ready)return;begun=true;$('intro').hidden=true;canvas.focus({preventScroll:true});message(state.oath?'Your journey continues. Tab opens the Soul Journal. K performs Warp Step.':'Walk to Goribbit and press E. Click the ground to walk, or use A / D.');});
 $('pause').addEventListener('click',()=>{if(begun)setPaused(!paused);});$('resume').addEventListener('click',()=>setPaused(false));
 $('revive').addEventListener('click',()=>{revive(state);$('death-screen').hidden=true;setPaused(false);flush();canvas.focus({preventScroll:true});});
-$('sound').addEventListener('click',()=>{sound.enable(!sound.enabled);$('sound').textContent=sound.enabled?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(sound.enabled));});
+let soundBusy=false;
+function soundControl(){
+ if(soundBusy)return;
+ $('sound').textContent=sound.failed?'Sound unavailable':sound.enabled?'Sound on':'Sound off';
+ $('sound').title=sound.failed?'Tap to retry. The game continues silently.':sound.enabled?'Turn sound off':'Turn sound on';
+ $('sound').setAttribute('aria-pressed',String(sound.enabled));
+}
+$('sound').addEventListener('click',async()=>{
+ if(soundBusy)return;
+ soundBusy=true;$('sound').disabled=true;$('sound').textContent='Starting sound…';
+ try{await sound.enable(!sound.enabled);}finally{soundBusy=false;$('sound').disabled=false;soundControl();}
+});
 const warpStatus=document.createElement('span');warpStatus.id='warp-status';warpStatus.className='warp-status';document.querySelector('.viewport').append(warpStatus);
 const combatReadout=document.createElement('div');combatReadout.id='combat-readout';combatReadout.className='combat-readout';combatReadout.hidden=true;document.querySelector('.viewport').append(combatReadout);
 const launches=document.createElement('div');launches.className='journal-launch';for(const name of ['Map','Quests','Skills','Inventory','Gear']){const b=document.createElement('button');b.textContent=name;b.onclick=()=>toggleJournal(!journalOpen,name);launches.append(b);}document.querySelector('.viewport').append(launches);
@@ -96,7 +107,7 @@ for(const w of WORLDS){const b=document.createElement('button');b.className='rea
 const domainButton=document.createElement('button');domainButton.className='domain-action';domainButton.onclick=()=>{press('KeyF');keys.delete('KeyF');};document.querySelector('.viewport').append(domainButton);
 const guardButton=document.createElement('button');guardButton.className='guard-action';guardButton.title='Hold S or ↓ to guard, or click to toggle. Front attacks cost Spirit. Ground hazards and rear attacks bypass.';guardButton.onclick=()=>{if(!begun||paused||journalOpen||state.dead)return;guardControls.toggle();walkTarget=null;canvas.focus({preventScroll:true});};document.querySelector('.viewport').append(guardButton);
 const castReadout=document.createElement('div');castReadout.className='domain-cast';castReadout.hidden=true;const castLabel=document.createElement('span'),castProgress=document.createElement('progress');castProgress.max=1;castProgress.setAttribute('aria-label','Kek Domain cast progress');castReadout.append(castLabel,castProgress);document.querySelector('.viewport').append(castReadout);
-function updateUI(){const p=state.player,l=levelFor(state.xp),world=WORLDS.find(w=>w.id===state.world);$('world-label').textContent=world.name.toUpperCase()+(state.world!=='academy'?(state.world==='temple'?(state.zone==='arena'?' · INNER SANCTUARY':' · APPROACH'):state.zone==='arena'?' · GUARDIAN ARENA':state.zone==='approach2'?' · APPROACH II':' · APPROACH I'):'');$('rank').textContent=`${state.complete?'GUARDIAN':l.level>=3?'ADEPT':'INITIATE'} / LV. ${l.level}`;$('health').max=maxHealth(state);$('health').value=p.hp;$('health-number').textContent=Math.ceil(p.hp);$('spirit').max=stats(state).spirit;$('spirit').value=p.sp;$('spirit-number').textContent=Math.floor(p.sp);$('xp').max=l.need;$('xp').value=l.remaining;$('xp-label').textContent=`${l.remaining} / ${l.need} XP · LEVEL ${l.level}`;
+function updateUI(){soundControl();const p=state.player,l=levelFor(state.xp),world=WORLDS.find(w=>w.id===state.world);$('world-label').textContent=world.name.toUpperCase()+(state.world!=='academy'?(state.world==='temple'?(state.zone==='arena'?' · INNER SANCTUARY':' · APPROACH'):state.zone==='arena'?' · GUARDIAN ARENA':state.zone==='approach2'?' · APPROACH II':' · APPROACH I'):'');$('rank').textContent=`${state.complete?'GUARDIAN':l.level>=3?'ADEPT':'INITIATE'} / LV. ${l.level}`;$('health').max=maxHealth(state);$('health').value=p.hp;$('health-number').textContent=Math.ceil(p.hp);$('spirit').max=stats(state).spirit;$('spirit').value=p.sp;$('spirit-number').textContent=Math.floor(p.sp);$('xp').max=l.need;$('xp').value=l.remaining;$('xp-label').textContent=`${l.remaining} / ${l.need} XP · LEVEL ${l.level}`;
   const gate=Math.abs(p.x-2250)<=200;for(const b of document.querySelectorAll('.realm')){b.classList.toggle('active',b.dataset.world===state.world);b.setAttribute('aria-current',b.dataset.world===state.world?'location':'false');b.disabled=!begun||paused||state.dead||b.dataset.world===state.world||(b.dataset.world==='academy'&&state.zone==='arena'&&(!state.guardianDefeated||!gate))||(b.dataset.world!=='academy' && (state.world!=='academy'||!gate||state.training<3||!state.oath));}
   for(const [i,id] of ['frozen','crimson','void'].entries())$('seals').children[i].classList.toggle('collected',state.seals.includes(id));
   const guidance=questGuidance(state);$('quest-copy').textContent=guidance.text;const trail=academyTrail(state);academyWalk.hidden=!begun||!trail||Math.abs(p.x-trail.x)<10;academyWalk.disabled=paused||journalOpen||state.dead;academyWalk.textContent=trail?'Walk to '+trail.label:'';const questLaunch=launches.querySelectorAll('button')[1];questLaunch.textContent=guidance.ready?'Quests · '+guidance.ready:'Quests';
