@@ -36,3 +36,15 @@ Store fixtures cover changed/unchanged writes, damaged-byte preservation, restor
 Browser verification restored the seeded level-2 checkpoint with training 3/3, 12 fragments and one skill point; no error logs were observed. At 390px the recovery confirmation has a 44px button and no horizontal overflow. Screenshots: docs/soul-world-recovery-2026-10-13/. Test fixture setup is excluded from the web release.
 
 Clean staged release verification passed 253 arcade tests and 163 Soul World tests on October 13, 2026.
+
+## Earned oath route and completion journal — October 13, 2026
+
+A new fresh-state route test uses movement, timed attacks, healing items, earned quest claims/equipment/skills and checkpoint reconstruction to finish Frozen District, Crimson Marsh and Void Swamp. It grants no XP, positions, invulnerability, health or rewards. Result: 113 simulated seconds, 58 combat cuts, one healing flask, all three seals/guardian gear receipts, six quest claims, 981 XP and 312 fragments. Repeated mentor interaction/claims do not duplicate rewards. The strategy uses continuous attacks with exact simulation observations; it proves reachability, not human difficulty or native combat feel.
+
+Map and Quests now show a guardian completion card derived from saved progress: Kek Domain controls, Emerald Temple access, claimed reward count and pending claims. The card links to the map or skill details. Completed quests no longer suggest an unfinished next oath when every reward is claimed. This adds no combat or reward rules. Native presentation review uses a seeded isolated practice save; it is separate from the earned simulation route. Full native campaign completion, human pacing and sustained physical-device combat remain open gates.
+
+Completion-panel desktop review verified the reward count, Temple directions and links from Quests to Map to Kek Domain details with no error logs. Proofs are stored under docs/soul-world-oath-2026-10-13/. The seeded browser fixture is excluded from release contents.
+
+390px responsive review confirmed no horizontal overflow, readable completion copy and a 44px navigation button. Physical-device testing remains outstanding.
+
+Clean staged release checks passed 253 arcade tests and 166 Soul World tests on October 13, 2026.
