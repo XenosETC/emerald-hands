@@ -70,3 +70,13 @@ Fixtures verify non-mutating reward summaries, reminder removal after collection
 Native browser review showed both seeded drop locations, normal Warp pickup reducing the list to one, and the second pickup clearing the card/reminder. Totals were 10 fragments and three healing flasks. At 390px there was no horizontal overflow and the return button was 44px high; no error logs were observed. Desktop/phone proofs: docs/soul-world-reward-map-2026-10-13/. This is seeded presentation/pickup QA, not native campaign completion.
 
 Clean staged release verification passed 253 arcade tests and 172 Soul World tests on October 13, 2026.
+
+## Death reload follows shrine retry — October 13, 2026
+
+A new regression reproduced that an unfinished attuned death offered a shrine retry in the live session but saved an Academy destination for reload. Death snapshots now use the existing retry destination: attuned approaches retain their realm, cleared patrols and pending drops at shrine position 1360; living guardian deaths fall back to Approach II (Temple uses its single approach); cleared guardian arenas stay cleared. HP/SP and saved technique cooldowns match normal retry. Unattuned deaths still return to Academy. Snapshot creation does not revive or mutate the current dead session. Combat, rewards and save version stay unchanged.
+
+Fixtures compare reload and explicit retry across all four realms and unfinished phases, verify pending patrol loot and immutable dead state, and retain Academy fallback checks. Native browser review uses a seeded attuned one-HP practice encounter and an actual enemy knockout; it is not an earned shrine or full campaign receipt.
+
+Browser verification observed the seeded one-HP encounter die to a normal enemy hit and show Return to the echo shrine. Reload before pressing retry restored Frozen District / Approach I at position 1360, HP/SP 100, 25 fragments, two living patrol enemies and the pending 5-fragment drop at 800. No error logs were observed. Proof: docs/soul-world-shrine-2026-10-13/death-reload.png. Fixture setup remains outside the release.
+
+Clean staged release verification passed 253 arcade tests and 174 Soul World tests on October 13, 2026.

@@ -42,7 +42,21 @@ export function abilityReady(s,key){
  return false;
 }
 export function domainReady(s){const p=s.player;return canDomain(s)&&!s.dead&&!p.guarding&&p.hurt<=0&&!p.domain&&!p.rift&&!p.riftQueued&&p.y>=GROUND&&p.attack<=0&&p.dash<=0&&(p.domainCooldown||0)<=0&&p.sp>=DOMAIN.cost;}
-export function snapshot(s){const clearedRecovery=s.dead&&reviveDestination(s)==='cleared-arena';return {version:2,pendingLoot:snapshotPatrolLoot(s),zone:s.zone,approachCleared:[...s.approachCleared],guardianDefeated:s.guardianDefeated,xp:s.xp,oath:s.oath,training:s.training,seals:[...s.seals],complete:s.complete,inventory:{...s.inventory},equipped:{...s.equipped},skills:{...s.skills},gearLevels:{...s.gearLevels},fragments:s.fragments,kills:{...s.kills},discoveries:[...s.discoveries],bossRewards:[...s.bossRewards],claimedQuests:[...s.claimedQuests],world:s.dead&&!clearedRecovery?'academy':s.world,x:s.dead?(clearedRecovery?1360:420):s.player.x,hp:s.dead?maxHealth(s):s.player.hp,sp:s.dead?maxSpirit(s):s.player.sp,riftCooldown:s.player.riftCooldown||0,domainCooldown:s.player.domainCooldown||0};}
+export function snapshot(s){
+ const checkpoint={version:2,pendingLoot:snapshotPatrolLoot(s),zone:s.zone,approachCleared:[...s.approachCleared],guardianDefeated:s.guardianDefeated,xp:s.xp,oath:s.oath,training:s.training,seals:[...s.seals],complete:s.complete,inventory:{...s.inventory},equipped:{...s.equipped},skills:{...s.skills},gearLevels:{...s.gearLevels},fragments:s.fragments,kills:{...s.kills},discoveries:[...s.discoveries],bossRewards:[...s.bossRewards],claimedQuests:[...s.claimedQuests],world:s.world,x:s.player.x,hp:s.player.hp,sp:s.player.sp,riftCooldown:s.player.riftCooldown||0,domainCooldown:s.player.domainCooldown||0};
+ if(s.dead){
+  const destination=reviveDestination(s),academy=destination==='academy';
+  checkpoint.world=academy?'academy':s.world;
+  checkpoint.x=academy?420:1360;
+  checkpoint.hp=maxHealth(s);checkpoint.sp=maxSpirit(s);
+  checkpoint.riftCooldown=0;checkpoint.domainCooldown=0;
+  if(destination==='shrine'&&s.zone==='arena'){
+   checkpoint.zone=s.world==='temple'?'approach':'approach2';
+   checkpoint.guardianDefeated=false;
+  }
+ }
+ return checkpoint;
+}
 function enemy(id,x,world,boss=false){return {id,x,y:GROUND,hp:boss?210:65,maxHp:boss?210:65,boss,world,face:-1,mode:'idle',timer:.4+id*.08,stun:0,anim:0,hitFlash:0,dead:false,death:0,attackCount:0};}
 export function createState(saved){const v=readSave(saved);const s={...sanitizeProgress(v||{version:1}),time:0,zone:v?.zone||'approach',approachCleared:v?.approachCleared||[],guardianDefeated:v?.guardianDefeated||false,world:v?.world||'academy',oath:v?.oath||false,training:v?.training||0,seals:v?.seals||[],complete:v?.complete||false,events:[],enemies:[],rifts:[],projectiles:[],drops:[],player:{guarding:false,guardTime:0,guardHit:0,guardLower:0,guardBroken:0,guardMustRelease:false,x:v?.x||320,y:GROUND,vx:0,vy:0,face:1,hp:100,sp:100,mode:'idle',anim:0,attack:0,combo:0,comboUntil:0,queued:false,dash:0,warp:null,dashCooldown:0,waveCooldown:0,invuln:0,hurt:0,release:0,releaseCooldown:0,riftQueued:null,rift:null,riftCooldown:v?.riftCooldown||0,domain:null,domainCooldown:v?.domainCooldown||0},dead:false};s.player.hp=clamp(v?.hp??maxHealth(s),1,maxHealth(s));s.player.sp=clamp(v?.sp??maxSpirit(s),0,maxSpirit(s));if(s.world==='academy'){s.zone='approach';s.approachCleared=[];s.guardianDefeated=false;}populate(s,v?.pendingLoot||[]);return s;}
 function emit(s,type,data={}){s.events.push({type,...data});}

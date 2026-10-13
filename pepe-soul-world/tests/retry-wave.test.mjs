@@ -27,3 +27,23 @@ test('revival destinations preserve living-guardian and unattuned academy retry 
  s.discoveries=['frozen'];assert.equal(reviveDestination(s),'shrine');
  s.dead=true;s.player.hp=0;revive(s);assert.equal(s.zone,'approach2');assert.equal(s.guardianDefeated,false);
 });
+test('death reload matches the attuned shrine retry destination in every unfinished phase',()=>{
+ for(const world of ['frozen','crimson','void','temple'])for(const zone of ['approach','approach2','arena']){
+  if(world==='temple'&&zone==='approach2')continue;
+  const cleared=zone==='approach'?[1]:zone==='approach2'?[1,2,3,5]:[1,2,3,5,6,7];
+  const s=createState({version:2,world,zone,approachCleared:cleared,oath:true,training:3,complete:world==='temple',discoveries:[world],fragments:25});
+  s.dead=true;s.player.hp=0;s.player.riftCooldown=7;s.player.domainCooldown=20;
+  const loaded=createState(snapshot(s));assert.equal(loaded.world,world,'Reload lost the attuned realm');
+  revive(s);const retried=createState(snapshot(s));
+  for(const key of ['world','zone','guardianDefeated','approachCleared','fragments','discoveries'])assert.deepEqual(loaded[key],retried[key],`${world}/${zone}: ${key}`);
+  for(const key of ['x','hp','sp','riftCooldown','domainCooldown'])assert.equal(loaded.player[key],retried.player[key],`${world}/${zone}: player ${key}`);
+ }
+});
+test('attuned death checkpoint preserves pending patrol loot without changing the dead session',()=>{
+ const s=createState({version:2,world:'frozen',oath:true,training:3,discoveries:['frozen'],approachCleared:[1],pendingLoot:[{id:1,x:800}],fragments:25});
+ s.dead=true;s.player.hp=0;s.player.riftCooldown=7;
+ const loaded=createState(snapshot(s));assert.equal(loaded.player.x,1360);assert.equal(loaded.world,'frozen');assert.equal(loaded.drops.length,1);assert.equal(loaded.drops[0].sourceId,1);assert.equal(loaded.fragments,25);
+ assert.equal(s.dead,true);assert.equal(s.player.hp,0);assert.equal(s.player.riftCooldown,7);assert.equal(s.drops.length,1);
+ const unattuned=createState({version:2,world:'frozen',oath:true,training:3,approachCleared:[1]});unattuned.dead=true;unattuned.player.hp=0;
+ const home=createState(snapshot(unattuned));assert.equal(home.world,'academy');assert.equal(home.player.x,420);assert.deepEqual(home.approachCleared,[]);
+});
