@@ -8,7 +8,7 @@
     <link rel="preload" href="assets/etc-rocket-simulator/sector-low-orbit.webp" as="image">
     <link rel="preload" href="assets/etc-rocket-simulator/rocket-tiers.png" as="image">
     <link rel="preload" href="assets/etc-rocket-simulator/salvage.png" as="image">
-    <link rel="stylesheet" href="etc-rocket-simulator.css?v=6">
+    <link rel="stylesheet" href="etc-rocket-simulator.css?v=7">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="rocket">
@@ -62,6 +62,11 @@
               <progress id="sectorProgress" max="1" value="0" aria-label="Progress to next sector"></progress>
               <p id="buildTelemetry" class="build-telemetry"></p>
             </div>
+            <details class="sector-journal">
+              <summary>Sector journal <span id="sectorCount">1 / 9</span></summary>
+              <p>Recorded from your best expedition. New sectors are banked when a flight ends; failed saves may not survive reload.</p>
+              <ol id="sectorJournal"></ol>
+            </details>
             <div class="upgrade-list" id="upgradeList"></div>
             <button class="launch-button" id="launchButton" type="button">
               <span>BEGIN EXPEDITION</span>
@@ -80,7 +85,7 @@
     </footer>
     <script src="arcade.js?v=9"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="etc-rocket-simulator.js?v=12"></script>
+    <script src="etc-rocket-simulator.js?v=13"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

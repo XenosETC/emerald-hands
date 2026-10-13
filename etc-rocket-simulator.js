@@ -14,6 +14,8 @@ const els = {
   sectorGoal: document.querySelector("#sectorGoal"),
   sectorProgress: document.querySelector("#sectorProgress"),
   buildTelemetry: document.querySelector("#buildTelemetry"),
+  sectorJournal: document.querySelector("#sectorJournal"),
+  sectorCount: document.querySelector("#sectorCount"),
   speed: document.querySelector("#speedLabel"),
   record: document.querySelector("#recordLabel"),
   fuelBar: document.querySelector("#fuelBar"),
@@ -168,7 +170,18 @@ function upgradePreview(key) {
   return `Base salvage multiplier ${(1 + save.upgrades.magnet * .13).toFixed(2)}× → ${(1 + (save.upgrades.magnet + 1) * .13).toFixed(2)}×.`;
 }
 
+function sectorRecords() {
+  return zones.map(zone => ({ ...zone, reached: save.bestDistance >= zone.at }));
+}
+
+function renderSectorJournal() {
+  const records = sectorRecords();
+  els.sectorCount.textContent = `${records.filter(zone => zone.reached).length} / ${records.length}`;
+  els.sectorJournal.innerHTML = records.map(zone => `<li class="${zone.reached ? "is-reached" : ""}"><strong>${zone.name}</strong><span>${zone.reached ? "Reached" : "Not yet reached"} · ${distanceText(zone.at)}</span></li>`).join("");
+}
+
 function renderHangar() {
+  renderSectorJournal();
   const systems = rocketSystems();
   els.buildTelemetry.textContent = `Fuel duration ${(systems.capacity / EXPEDITION_RATE).toFixed(1)}s at ${EXPEDITION_RATE}× expedition speed · top speed ${systems.topSpeed.toFixed(0)} km/s · frame stress begins above ${Math.sqrt(systems.support).toFixed(0)} km/s. Fuel, heat and hull still determine actual flight duration.`;
   els.upgrades.innerHTML = "";

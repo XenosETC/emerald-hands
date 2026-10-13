@@ -94,3 +94,5 @@ canvas { display: block; width: 100%; height: 100%; min-height: 720px; }
 }
 
 .sector-goal .build-telemetry{margin:10px 0 0;font-size:.75rem;color:var(--muted);line-height:1.5}
+
+.sector-journal{border:1px solid var(--line);border-radius:10px;padding:0 12px;background:rgba(0,10,7,.7)}.sector-journal summary{min-height:44px;padding:12px 0;cursor:pointer;color:var(--green-soft)}.sector-journal summary span{float:right;color:var(--gold)}.sector-journal>p{color:var(--muted);font-size:.75rem;line-height:1.5}.sector-journal ol{list-style:none;padding:0;margin:0 0 12px}.sector-journal li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:.75rem;line-height:1.5}.sector-journal li span{color:var(--muted);text-align:right}.sector-journal li.is-reached strong{color:var(--green-soft)}.sector-journal summary:focus-visible{outline:2px solid var(--green-soft);outline-offset:3px}

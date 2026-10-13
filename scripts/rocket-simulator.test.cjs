@@ -146,3 +146,17 @@ test('rocket upgrade previews show existing speed, range and salvage tradeoffs',
  assert.match(h.read('upgradePreview("nav")'),/1.12× → 1.24×/);
  assert.match(h.read('upgradePreview("magnet")'),/1.13× → 1.26×/);
 });
+
+
+test('rocket sector journal derives legacy discoveries and keeps completed flights after reload',()=>{
+ const legacy=game({shards:0,bestDistance:3000});
+ assert.equal(legacy.read('sectorRecords().filter(zone=>zone.reached).length'),3);
+ assert.equal(legacy.nodes.get('#sectorCount').textContent,'3 / 9');
+ const h=game();h.read('launch();for(let step=0;step<10000 && state.mode==="flying";step++)updateFlight(1/120)');
+ assert.equal(h.nodes.get('#sectorCount').textContent,'3 / 9');
+ const fresh=game(JSON.parse(h.saves.get('etc-rocket-simulator-v1')));
+ assert.equal(fresh.nodes.get('#sectorCount').textContent,'3 / 9');
+ assert.match(fresh.nodes.get('#sectorJournal').innerHTML,/Ancient Satellite Field/);
+ const complete=game({bestDistance:750000});
+ assert.equal(complete.nodes.get('#sectorCount').textContent,'9 / 9');
+});
