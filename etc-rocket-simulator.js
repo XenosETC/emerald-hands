@@ -1,6 +1,8 @@
 const canvas = document.querySelector("#rocketCanvas");
 const ctx = canvas.getContext("2d");
 const SAVE_KEY = "etc-rocket-simulator-v1";
+const BACKUP_KEY = `${SAVE_KEY}-previous`;
+const RECOVERY_KEY = `${SAVE_KEY}-before-restore`;
 const UPGRADE_PRICE_GROWTH = 1.22;
 const EXPEDITION_RATE = 3;
 
@@ -14,6 +16,8 @@ const els = {
   sectorGoal: document.querySelector("#sectorGoal"),
   sectorProgress: document.querySelector("#sectorProgress"),
   buildTelemetry: document.querySelector("#buildTelemetry"),
+  restore: document.querySelector("#restoreRocketBackup"),
+  backupStatus: document.querySelector("#rocketBackupStatus"),
   sectorJournal: document.querySelector("#sectorJournal"),
   sectorCount: document.querySelector("#sectorCount"),
   speed: document.querySelector("#speedLabel"),
@@ -143,8 +147,37 @@ function showRecoveryNotice() {
 
 function persist() {
   if (!canUseSave()) return false;
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); return true; }
+  try {
+    localStorage.setItem(BACKUP_KEY, JSON.stringify(loadSave()));
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+    return true;
+  }
   catch { return false; }
+}
+
+function readBackup() {
+  try {
+    const raw = localStorage.getItem(BACKUP_KEY);
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    if (![value.shards, value.bestDistance, value.runs].every(number => Number.isFinite(number) && number >= 0)) return null;
+    if (!Number.isInteger(value.runs)) return null;
+    if (!Object.keys(upgradeDefs).every(key => Number.isInteger(value.upgrades?.[key]) && value.upgrades[key] >= 1)) return null;
+    return { raw, value };
+  } catch { return null; }
+}
+
+function restoreBackup() {
+  if (state.mode === "flying") return { ok: false, message: "Finish the current flight before restoring." };
+  const backup = readBackup();
+  if (!backup) return { ok: false, message: "No readable previous save is available." };
+  try {
+    const current = localStorage.getItem(SAVE_KEY);
+    if (current !== null) localStorage.setItem(RECOVERY_KEY, current);
+    localStorage.setItem(SAVE_KEY, backup.raw);
+    recoveryRequired = true;
+    return { ok: true, message: "Previous save restored. Reloading; replaced data was preserved." };
+  } catch { return { ok: false, message: "Restore stopped: browser storage is unavailable. Current save kept." }; }
 }
 
 function upgradeCost(key) {
@@ -204,6 +237,9 @@ function renderSectorJournal() {
 
 function renderHangar() {
   const readable = canUseSave();
+  const backup = readBackup();
+  els.restore.disabled = !backup || state.mode === "flying";
+  els.backupStatus.textContent = backup ? `Previous save: ${Math.floor(backup.value.shards)} shards · ${distanceText(backup.value.bestDistance)} best · ${backup.value.runs} flights. Restoring rolls back to this snapshot and preserves replaced data.` : "A previous good save will be kept when an upgrade or flight saves successfully.";
   if (!readable) showRecoveryNotice();
   els.launch.disabled = !readable || state.mode === "flying";
   renderSectorJournal();
@@ -585,6 +621,11 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
+els.restore.addEventListener("click", () => {
+  const result = restoreBackup();
+  els.backupStatus.textContent = result.message;
+  if (result.ok) location.reload();
+});
 els.launch.addEventListener("click", launch);
 els.upgrades.addEventListener("click", (event) => {
   const button = event.target.closest("[data-upgrade]");

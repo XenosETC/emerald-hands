@@ -183,3 +183,23 @@ test('rocket corruption during an open session latches recovery until a fresh lo
  const fresh=game(restored);fresh.read('launch()');
  assert.equal(fresh.read('save.shards'),77);assert.equal(fresh.read('state.mode'),'flying');
 });
+
+
+test('rocket backup restore preserves damaged data and reloads the prior good snapshot',()=>{
+ const h=game({shards:90});h.read('buyUpgrade("engine")');
+ assert.equal(h.read('readBackup().value.shards'),90);
+ h.saves.set('etc-rocket-simulator-v1','{damaged');h.read('launch()');
+ assert.equal(h.read('restoreBackup().ok'),true);
+ assert.equal(h.saves.get('etc-rocket-simulator-v1-before-restore'),'{damaged');
+ const restored=JSON.parse(h.saves.get('etc-rocket-simulator-v1'));
+ assert.equal(restored.shards,90);assert.equal(restored.upgrades.engine,1);
+ assert.equal(game(restored).read('recoveryRequired'),false);
+});
+test('rocket restore rejects invalid backups, active flights and preservation write failures',()=>{
+ const h=game();assert.equal(h.read('restoreBackup().ok'),false);
+ h.read('buyUpgrade("fuel");launch()');assert.equal(h.read('restoreBackup().ok'),false);
+ h.read('state.mode="ready"');const before=h.saves.get('etc-rocket-simulator-v1');
+ h.read('localStorage.setItem=()=>{throw new Error("quota")};');
+ assert.equal(h.read('restoreBackup().ok'),false);
+ assert.equal(h.saves.get('etc-rocket-simulator-v1'),before);
+});

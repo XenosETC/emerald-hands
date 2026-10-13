@@ -8,7 +8,7 @@
     <link rel="preload" href="assets/etc-rocket-simulator/sector-low-orbit.webp" as="image">
     <link rel="preload" href="assets/etc-rocket-simulator/rocket-tiers.png" as="image">
     <link rel="preload" href="assets/etc-rocket-simulator/salvage.png" as="image">
-    <link rel="stylesheet" href="etc-rocket-simulator.css?v=7">
+    <link rel="stylesheet" href="etc-rocket-simulator.css?v=8">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="rocket">
@@ -72,6 +72,11 @@
               <span>BEGIN EXPEDITION</span>
               <small>3× automatic expedition · salvage recovered</small>
             </button>
+            <details class="rocket-recovery sector-journal">
+              <summary>Save recovery</summary>
+              <p id="rocketBackupStatus" aria-live="polite"></p>
+              <button id="restoreRocketBackup" type="button" disabled>Restore previous save and reload</button>
+            </details>
             <p class="forgiving-note">Destruction ends the expedition, not your progress. Every run banks its salvage automatically.</p>
           </aside>
         </div>
@@ -83,9 +88,9 @@
       <div id="game-controls"><span class="game-guide__label">Controls</span><p>Choose upgrades, then <strong>Begin Expedition</strong>. Flight runs automatically; watch fuel, heat, and hull.</p></div>
       <div><span class="game-guide__label">Progress survives the wreck</span><p>Each expedition banks its salvage. Buy a stronger build and push toward the next sector.</p></div>
     </footer>
-    <script src="arcade.js?v=9"></script>
+    <script src="arcade.js?v=10"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="etc-rocket-simulator.js?v=14"></script>
+    <script src="etc-rocket-simulator.js?v=15"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

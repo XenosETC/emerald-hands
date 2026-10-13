@@ -10,6 +10,8 @@
     "emerald-hands-v1",
     "emerald-hands-v1-previous",
     "etc-rocket-simulator-v1",
+    "etc-rocket-simulator-v1-previous",
+    "etc-rocket-simulator-v1-before-restore",
     "pepe-space-unchained-best-v1",
     "pepe-tower-defense-best-v1",
     "pepe-tower-defense-mastery-v1",

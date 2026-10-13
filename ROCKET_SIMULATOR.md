@@ -64,3 +64,8 @@ An expandable sector journal lists all nine sector names, distance thresholds an
 ## Unreadable save recovery guard
 
 Malformed JSON and non-object whole-file saves now latch recovery mode. The original stored text is retained; launch, upgrades and persistence stop, with a visible restore-and-reload notice. Reload is required after restoration so the old fallback snapshot cannot overwrite the recovered save. Missing saves still receive the existing starter state. Controller fixtures cover invalid shapes, corruption appearing during an open session, blocked mutation after restoration and successful fresh-load recovery. No automatic reconstruction or refunds are inferred. Cross-tab Rocket mutation serialization remains a separate limitation.
+
+
+## Previous-save restore
+
+Each successful upgrade/flight save first retains the previously loaded normalized state in `etc-rocket-simulator-v1-previous`. The expandable Save recovery panel describes that snapshot and provides an explicit restore-and-reload control. Restore validates the backup, blocks active flights, and preserves replaced raw data in `etc-rocket-simulator-v1-before-restore` before writing the previous snapshot. Failed preservation prevents replacement. Recovery history is bounded to one previous snapshot and one replaced snapshot; it is not cloud backup or guaranteed after storage clearing. Full arcade reset includes both recovery keys. Controller fixtures cover damaged-data preservation, validation, active-flight rejection and blocked writes.
