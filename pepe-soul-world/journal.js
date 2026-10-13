@@ -7,10 +7,19 @@ import {WORLDS,enterWorld,enterArena,approachRemaining,levelFor,DOMAIN,canDomain
 export function createJournal(state,changed,toggle){
  const panel=document.createElement('section');panel.id='journal';panel.hidden=true;panel.setAttribute('aria-label','Soul journal');panel.innerHTML='<header><div><small>CROWN’S JOURNEY</small><h2>Soul journal</h2></div><a href="animation.html">Motion studio ↗</a><button id="close-journal">Close · Esc</button></header><nav></nav><div class="journal-content"></div>';document.querySelector('.viewport').append(panel);
  let tab='Map';const content=panel.querySelector('.journal-content'),nav=panel.querySelector('nav');
+ function background(value){document.querySelectorAll('.masthead,.stage-top,.viewport > :not(#journal),.controls,.touch,aside,main > footer').forEach(el=>{el.inert=value;});}
+ panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');
+ panel.addEventListener('keydown',e=>{
+  if(e.code!=='Tab')return;
+  const controls=[...panel.querySelectorAll('a[href],button:not([disabled])')].filter(el=>el.getClientRects().length);
+  const first=controls[0],last=controls.at(-1);
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}
+ });
  for(const name of ['Map','Quests','Skills','Inventory','Gear']){const b=document.createElement('button');b.textContent=name;b.onclick=()=>{tab=name;render();};nav.append(b);}
  panel.querySelector('#close-journal').onclick=()=>toggle(false);
  function icon(id){const i=ITEMS[id].icon;return `<span class="item-icon" style="background-position:${i%4/3*100}% ${Math.floor(i/4)/2*100}%"></span>`;}
- function button(text,fn,disabled=false){const b=document.createElement('button');b.textContent=text;b.disabled=disabled;b.onclick=()=>{fn();changed();render();};return b;}
+ function button(text,fn,disabled=false){const b=document.createElement('button');b.textContent=text;b.disabled=disabled;b.onclick=()=>{fn();changed();render();if(!panel.hidden&&!panel.contains(document.activeElement))panel.querySelector('#close-journal').focus();};return b;}
  function card(html){const c=document.createElement('article');c.innerHTML=html;content.append(c);return c;}
  function comparison(id){const preview=compareGear(state,id);if(!preview)return '';const labels={attack:'Sword bonus',health:'Maximum HP',defense:'Defense',regen:'Spirit / second',warpRange:'Warp reach',wave:'Wave damage'};if(preview.current===id)return '<p class="gear-comparison">Currently equipped</p>';const entries=Object.entries(preview.changes);return `<div class="gear-comparison"><small>VERSUS ${ITEMS[preview.current].name.toUpperCase()}</small>${entries.length?entries.map(([key,delta])=>`<p class="${delta>0?'gear-gain':'gear-loss'}">${labels[key]} ${delta>0?'+':''}${delta} → ${preview.after[key]}</p>`).join(''):'<p>Same combat stats</p>'}${preview.after.health<state.player.hp?'<p>Equipping lowers your current HP to the new maximum.</p>':''}</div>`;}
  function render(){nav.querySelectorAll('button').forEach(b=>b.classList.toggle('selected',b.textContent===tab));content.replaceChildren();const st=stats(state),level=levelFor(state.xp).level;
@@ -50,5 +59,5 @@ export function createJournal(state,changed,toggle){
  else if(tab==='Inventory'){for(const [id,item] of Object.entries(ITEMS)){const count=state.inventory[id]||0;if(!count)continue;const c=card(`${icon(id)}<h3>${item.name}${item.slot==='weapon'?' +'+state.gearLevels[id]:''} ${count>1?'×'+count:''}</h3><p>${item.description}</p>${comparison(id)}`);c.append(button(item.slot==='consumable'?'Use '+item.name:state.equipped[item.slot]===id?'Equipped':'Equip '+item.name,()=>item.slot==='consumable'?useItem(state,id):equip(state,id),state.equipped[item.slot]===id));}}
  else {card(`<h3>Your spirit</h3><p>Maximum HP ${st.health} · Spirit ${st.spirit}<br>Sword bonus +${st.attack} · Defense ${st.defense}<br>Warp reach ${st.warpRange} · Cost ${st.warpCost} SP<br>Spirit regeneration ${st.regen} / second</p>`);for(const [slot,id] of Object.entries(state.equipped))card(`${icon(id)}<small>${slot.toUpperCase()}</small><h3>${ITEMS[id].name}${slot==='weapon'?' +'+state.gearLevels[id]:''}</h3><p>${ITEMS[id].description}</p>`);const rank=state.gearLevels[state.equipped.weapon],cost=(rank+1)*20,c=card(`<h3>Goribbit’s forge</h3><p>Stand beside Goribbit to temper your equipped blade or buy supplies. Each temper adds 4 sword damage. Maximum +3.</p><p>${atMentor(state)?'The forge is ready.':'Return to Goribbit at Kek Academy.'}</p>`);c.append(button(rank>=3?'Fully tempered':`Temper blade · ${cost} fragments`,()=>upgradeGear(state),!atMentor(state)||rank>=3||state.fragments<cost));for(const id of ['healthFlask','spiritFlask'])c.append(button(`Buy ${ITEMS[id].name} · 8 fragments`,()=>buyItem(state,id),!atMentor(state)||state.fragments<8));}
  }
- return {open(name){if(name)tab=name;panel.hidden=false;render();},close(){panel.hidden=true;},render};
+ return {open(name){if(name)tab=name;panel.hidden=false;background(true);render();panel.querySelector('#close-journal').focus();},close(){panel.hidden=true;background(false);},render};
 }

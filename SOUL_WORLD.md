@@ -102,3 +102,17 @@ Actual browser onboarding under blocked storage accepted the oath, landed three 
 390px browser review confirmed no horizontal overflow and an 8px gap between the warning and objective strip. Reload correctly reset the unsaved temporary run to level 1/training 0; this confirms the stated session-only limit. Final responsive proof: docs/soul-world-storage-2026-10-13/phone.png.
 
 Clean staged release verification passed 255 arcade tests and 176 Soul World tests on October 13, 2026.
+
+## Keyboard-safe journal navigation — October 13, 2026
+
+Global Tab interception previously prevented keyboard traversal before the game began. Tab-to-Map now requires active play with focus on the canvas; Shift+Tab, startup, paused/dead play and already-open journal navigation retain normal traversal. Letter shortcuts remain available during active play. The journal now exposes modal dialog semantics, focuses its Close control when opened, wraps Tab/Shift+Tab at its visible enabled controls, and recovers focus after a reward/action re-renders content. Escape still closes it and restores canvas focus. No combat, economy or checkpoint rules change.
+
+Shortcut fixtures cover startup, active canvas, reverse navigation, paused/dead state and letter shortcuts. Native browser checks use a fresh isolated practice origin with no seeded progression.
+
+Desktop keyboard review confirmed startup Tab reaches Enter Kek Academy; Enter begins play; canvas Tab focuses Close in the modal journal; forward/reverse traversal wraps at visible controls; Escape restores canvas focus; Shift+Tab returns to Pause; and paused L did not spend Spirit. Tab reached the resume button and Enter resumed. No error logs were observed. Proofs: docs/soul-world-keyboard-2026-10-13/.
+
+390px keyboard review wrapped Shift+Tab from Close to the last visible control. An earned native academy reward was activated with Enter; after the claim re-render, focus returned to Close instead of leaving the dialog. No horizontal overflow was observed. Background controls are inert while the journal is open and restored when it closes.
+
+Final modal review confirmed the canvas and header become inert on open, lose inert on close, and focus returns to the game. Existing checkpoints remain isolated; no seeded campaign state was used for keyboard onboarding.
+
+Clean staged release verification passed 255 arcade tests and 178 Soul World tests on October 13, 2026.

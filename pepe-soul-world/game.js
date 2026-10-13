@@ -1,5 +1,6 @@
 import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=3';
 import {GuardControls} from './guard-controls.js';
+import {journalShortcut} from './journal-input.js?v=1';
 import {templeCue} from './temple-combat.js';
 import {appendTempleMeter} from './temple-hud.js';
 import {combatCue} from './combat-cues.js';
@@ -11,7 +12,7 @@ import {RIFT} from './kek-rift.js';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
-import {createJournal} from './journal.js?v=rewards-20261013';
+import {createJournal} from './journal.js?v=keyboard-20261013';
 import {ITEMS,stats,useItem} from './systems.js';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,riftInput,canDomain,abilityReady,domainReady,DOMAIN} from './core.js?v=shrine-20261013';
 import {loadArt,Renderer} from './render.js';
@@ -59,7 +60,7 @@ function flush(){for(const e of state.events){renderer?.effect(e,state);sound.pl
 function setPaused(value){paused=value;releaseInputs();accumulator=0;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));if(!value)canvas.focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
 function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){act(state,actions[code]);flush();}}
-window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement)return;if(e.code==='Escape'){if(journalOpen)toggleJournal(false);else if(begun)setPaused(!paused);return;}const journalKeys={Tab:'Map',KeyM:'Map',KeyQ:'Quests',KeyC:'Skills',KeyI:'Inventory',KeyG:'Gear'};if(journalKeys[e.code]&&!(e.code==='Tab'&&journalOpen)){e.preventDefault();toggleJournal(!journalOpen,journalKeys[e.code]);return;}if(e.code==='Digit1'||e.code==='Digit2'){if(begun&&!paused&&!journalOpen){useItem(state,e.code==='Digit1'?'healthFlask':'spiritFlask');flush();}return;}if(e.target instanceof HTMLButtonElement && (e.code==='Space'||e.code==='Enter'))return;if(actions[e.code]||['KeyA','KeyD','ArrowLeft','ArrowRight','KeyS','ArrowDown'].includes(e.code)){e.preventDefault();if(!e.repeat){walkTarget=null;press(e.code);}}});
+window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement)return;if(e.code==='Escape'){if(journalOpen)toggleJournal(false);else if(begun)setPaused(!paused);return;}const journalTab=journalShortcut(e.code,{begun,ready,paused,dead:state.dead,journalOpen,canvasFocused:e.target===canvas,shiftKey:e.shiftKey});if(journalTab){e.preventDefault();toggleJournal(!journalOpen,journalTab);return;}if(e.code==='Digit1'||e.code==='Digit2'){if(begun&&!paused&&!journalOpen){useItem(state,e.code==='Digit1'?'healthFlask':'spiritFlask');flush();}return;}if(e.target instanceof HTMLButtonElement && (e.code==='Space'||e.code==='Enter'))return;if(actions[e.code]||['KeyA','KeyD','ArrowLeft','ArrowRight','KeyS','ArrowDown'].includes(e.code)){e.preventDefault();if(!e.repeat){walkTarget=null;press(e.code);}}});
 window.addEventListener('keyup',e=>{keys.delete(e.code);guardControls.sync();});
 window.addEventListener('blur',()=>{keys.clear();touchKeys.clear();if(begun && !state.dead)setPaused(true);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden && begun && !state.dead)setPaused(true);});
