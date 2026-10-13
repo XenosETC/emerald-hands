@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {createState} from '../core.js';import {questGuidance} from '../quest-guidance.js';
+import {createState,step,act,enterWorld} from '../core.js';import {questGuidance,academyTrail} from '../quest-guidance.js';
+import {claimQuest} from '../systems.js';
 test('reward reminders take priority and disappear after claiming',()=>{
  const s=createState();s.oath=true;s.training=3;assert.equal(questGuidance(s).ready,1);
  s.claimedQuests.push('firstCut');assert.equal(questGuidance(s).ready,0);assert.match(questGuidance(s).text,/2250/);
@@ -29,4 +30,22 @@ test('guardian return guidance matches remaining saved seal and gear drops in al
   if(seal&&!gear)assert.match(guidance.text,/Collect guardian gear/);
   if(!seal&&gear)assert.doesNotMatch(guidance.text,/and guardian gear/);
  }
+});
+
+
+test('academy trails guide a real movement, oath, training and first reward route without position grants',()=>{
+ const s=createState();
+ const walk=()=>{const trail=academyTrail(s);assert.ok(trail);for(let i=0;i<1000&&Math.abs(s.player.x-trail.x)>=10;i++)step(s,{left:s.player.x>trail.x,right:s.player.x<trail.x},1/60);assert.ok(Math.abs(s.player.x-trail.x)<10);};
+ assert.equal(academyTrail(s).label,'Goribbit');walk();act(s,'interact');assert.equal(s.oath,true);
+ assert.equal(academyTrail(s).label,'the training effigy');walk();
+ for(let cut=0;cut<3;cut++){act(s,'attack');for(let i=0;i<40;i++)step(s,{},1/60);}
+ assert.equal(s.training,3);assert.equal(academyTrail(s),null);
+ assert.equal(claimQuest(s,'firstCut'),true);assert.equal(s.xp,60);
+ assert.equal(academyTrail(s).label,'the veil gate');walk();assert.equal(enterWorld(s,'frozen'),true);
+ assert.equal(academyTrail(s),null);
+});
+test('academy trail approaches the effigy from either side and never steers dead or completed players',()=>{
+ const s=createState({version:2,oath:true});s.player.x=1100;assert.equal(academyTrail(s).x,970);s.player.x=600;assert.equal(academyTrail(s).x,770);
+ s.player.x=800;assert.equal(academyTrail(s),null);s.dead=true;assert.equal(academyTrail(s),null);
+ s.dead=false;s.training=3;s.complete=true;s.claimedQuests=['firstCut'];assert.equal(academyTrail(s),null);
 });

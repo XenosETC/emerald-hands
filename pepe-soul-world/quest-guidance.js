@@ -21,3 +21,15 @@ export function questGuidance(s){
  if(s.complete){const pending=QUESTS.find(q=>!s.claimedQuests.includes(q.id));return {text:pending?`Oath fulfilled · ${pending.name}. Open Quests for your remaining objective.`:'All quests claimed. Revisit the realms, temper your blade, and master your skills.',ready:0};}
  return {text:`Seals ${s.seals.length} / 3 · ${s.world==='academy'?'Reach the veil gate at 2250, then open Map.':'Open Map to return to the academy for your next crossing.'}`,ready:0};
 }
+
+
+export function academyTrail(s){
+ if(s.world!=='academy'||s.dead||QUESTS.some(q=>questReady(s,q)))return null;
+ if(!s.oath)return {x:490,label:'Goribbit'};
+ if(s.training<3){
+  if(Math.abs(s.player.x-870)<=140)return null;
+  return {x:s.player.x<870?770:970,label:'the training effigy'};
+ }
+ if(s.seals.length===3&&!s.complete)return {x:490,label:'Goribbit'};
+ return s.complete?null:{x:2250,label:'the veil gate'};
+}
