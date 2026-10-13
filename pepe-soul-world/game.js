@@ -13,7 +13,7 @@ import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
 import {createJournal} from './journal.js?v=oath-20261013';
 import {ITEMS,stats,useItem} from './systems.js';
-import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,riftInput,canDomain,abilityReady,domainReady,DOMAIN} from './core.js?v=retry-20261013';
+import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,riftInput,canDomain,abilityReady,domainReady,DOMAIN} from './core.js?v=loot-20261013';
 import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js';
 const storageKey=new URLSearchParams(location.search).get('practice')==='1'?'pepe-soul-world-practice-v1':SAVE_KEY;

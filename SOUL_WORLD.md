@@ -48,3 +48,15 @@ Completion-panel desktop review verified the reward count, Temple directions and
 390px responsive review confirmed no horizontal overflow, readable completion copy and a 44px navigation button. Physical-device testing remains outstanding.
 
 Clean staged release checks passed 253 arcade tests and 166 Soul World tests on October 13, 2026.
+
+## Patrol loot survives approach reloads — October 13, 2026
+
+A ranged patrol defeat reproduced a loss: cleared enemies survived the checkpoint but their uncollected fragments/flask did not. Checkpoints now include pending ordinary drops with source enemy IDs and bounded positions. Loading accepts only unique IDs backed by cleared enemies in the current approach; fixed reward amounts/items are reconstructed from game rules, never imported from save fields. Collecting removes the pending record, preventing replay after another reload. Older saves without pending records add no retroactive loot. Realm/phase transitions retain their existing behavior; this fix covers reloads within a living approach and does not change death destinations, combat or reward values.
+
+Fixtures cover a real ranged defeat from a seeded onboarding encounter, collection/reload, fixed flask rewards, wrong-phase/uncleared/duplicate/malformed records and old saves. The fresh oath route now reloads after every cleared combat phase before collecting pending drops: 111 simulated seconds, 58 cuts, one healing flask, 981 XP and 312 fragments. These are simulation receipts, not a native full campaign. Browser review uses an isolated practice encounter with seeded onboarding progress and normal live enemy health.
+
+The first live browser encounter was knocked out while awaiting UI inspection; it is not a successful native ranged-clear receipt. The browser reload/collection fixture instead earns the first ranged defeat through the same normal simulation actions before loading that checkpoint into the isolated practice page.
+
+Browser verification loaded the simulated earned pending drop, collected it using normal Warp movement, observed 5 fragments and 22 XP, then reloaded again. The reward remained 5 fragments, XP remained 22 and the patrol count remained 2/3; no error logs were observed. Proof: docs/soul-world-loot-2026-10-13/collected-after-reload.png. Test fixture setup is excluded from the release.
+
+Clean staged release checks passed 253 arcade tests and 169 Soul World tests on October 13, 2026.

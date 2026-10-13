@@ -17,6 +17,7 @@ test('fresh oath route earns all seals, gear and quests through movement and com
    tick({left:dx<0,right:dx>0});
   }
   assert.ok(s.enemies.every(e=>e.dead),`Combat timed out in ${s.world}/${s.zone}`);
+  s=createState(snapshot(s));
   for(const drop of [...s.drops])walk(drop.x);
   rewards();
  };
