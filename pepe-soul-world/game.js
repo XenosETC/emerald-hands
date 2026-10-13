@@ -13,7 +13,7 @@ import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
 import {createJournal} from './journal.js';
 import {ITEMS,stats,useItem} from './systems.js';
-import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,riftInput,canDomain,abilityReady,domainReady,DOMAIN} from './core.js';
+import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,riftInput,canDomain,abilityReady,domainReady,DOMAIN} from './core.js?v=retry-20261013';
 import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js';
 const storageKey=new URLSearchParams(location.search).get('practice')==='1'?'pepe-soul-world-practice-v1':SAVE_KEY;
@@ -34,7 +34,7 @@ function checkpointStatus(result){
 }
 function save(){checkpointStatus(checkpointStore.write(snapshot(state)));}
 checkpointStatus(checkpointStore.status);
-function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){$('death-screen').hidden=false;$('revive').textContent=state.discoveries.includes(state.world)?'Return to the echo shrine →':'Return to Kek Academy →';releaseInputs();}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;}
+function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){$('death-screen').hidden=false;$('revive').textContent=reviveDestination(state)==='cleared-arena'?'Recover in the cleared arena →':reviveDestination(state)==='shrine'?'Return to the echo shrine →':'Return to Kek Academy →';releaseInputs();}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;}
 function setPaused(value){paused=value;releaseInputs();accumulator=0;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));if(!value)canvas.focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
 function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){act(state,actions[code]);flush();}}
