@@ -73,7 +73,8 @@ function buildTimeline() {
 }
 
 function loadBest() {
-  const best = window.EmeraldArcade?.load()?.best?.unstableLaunch;
+  let best;
+  try { best = window.EmeraldArcade?.load()?.best?.unstableLaunch; } catch { /* Optional arcade storage. */ }
   els.bestPrice.textContent = money(best?.lockedPrice || 0);
   els.bestRank.textContent = best?.rank || "Ground Crew";
 }
@@ -93,6 +94,7 @@ function chooseCrashPrice() {
 }
 
 function startLaunch() {
+  if (state.mode === "launching" || window.EmeraldArcade?.isPaused()) return;
   window.EmeraldArcade?.beginSession("unstableLaunch", "etc-unstable-launch.html");
   Object.assign(state, {
     mode: "launching",
@@ -158,13 +160,13 @@ function finishRun(success) {
     <div><strong>${state.velocity.toFixed(2)}x</strong><small>velocity</small></div>
     <div><strong>${formatScore(score)}</strong><small>score</small></div>
   `;
-  window.EmeraldArcade?.recordAndNotify("unstableLaunch", {
+  try { window.EmeraldArcade?.recordAndNotify("unstableLaunch", {
     score,
     rank,
     lockedPrice: success ? state.lockedPrice : 0,
     peakPrice: state.peakPrice,
     played: true,
-  });
+  }); } catch { els.resultText.textContent += " Arcade record could not be saved; this result is held in the current tab."; }
   loadBest();
 }
 
@@ -431,13 +433,18 @@ function clamp(value, min, max) {
 }
 
 function ensureAudio() {
+  if (window.EmeraldArcade?.isMuted()) return null;
+  try {
   audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
-  if (audioContext.state === "suspended") audioContext.resume();
+  if (audioContext.state === "suspended") audioContext.resume()?.catch?.(() => {});
   return audioContext;
+  } catch { return null; }
 }
 
 function startEngine() {
   const audio = ensureAudio();
+  if (!audio) return;
+  try {
   stopEngine();
   engineOscillator = audio.createOscillator();
   engineGain = audio.createGain();
@@ -448,17 +455,22 @@ function startEngine() {
   engineGain.gain.exponentialRampToValueAtTime(0.055, audio.currentTime + 0.18);
   engineOscillator.connect(engineGain).connect(audio.destination);
   engineOscillator.start();
+  } catch { stopEngine(); }
 }
 
 function stopEngine() {
   if (!engineOscillator || !audioContext) return;
+  try {
   engineGain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.08);
   engineOscillator.stop(audioContext.currentTime + 0.1);
+  } catch { /* Optional audio teardown. */ }
   engineOscillator = null;
 }
 
 function playTone(frequency, duration, type = "sine", volume = 0.08, delay = 0) {
   const audio = ensureAudio();
+  if (!audio) return;
+  try {
   const osc = audio.createOscillator();
   const gain = audio.createGain();
   osc.type = type;
@@ -469,6 +481,7 @@ function playTone(frequency, duration, type = "sine", volume = 0.08, delay = 0) 
   osc.connect(gain).connect(audio.destination);
   osc.start(audio.currentTime + delay);
   osc.stop(audio.currentTime + delay + duration + 0.03);
+  } catch { /* Sound cannot interrupt a run result. */ }
 }
 
 function playLockSound() {
@@ -483,6 +496,7 @@ function playExplosionSound() {
 }
 
 function handleAction() {
+  if (window.EmeraldArcade?.isPaused()) return;
   if (state.mode === "launching") lockPrice();
   else startLaunch();
 }
@@ -497,7 +511,7 @@ function loop(now) {
 
 els.button.addEventListener("click", handleAction);
 window.addEventListener("keydown", (event) => {
-  if (event.code === "Space") {
+  if (event.code === "Space" && !event.repeat && !event.target?.closest?.("button, a, input, select, textarea, [contenteditable]")) {
     event.preventDefault();
     handleAction();
   }
