@@ -136,3 +136,15 @@ Fixtures cover opt-in, unknown events, constructor/resume/suspended-context fail
 Browser fault verification showed Sound unavailable with aria-pressed false and retry guidance, then earned academy training and the first reward normally (level 2, 12 fragments, one skill point). At 390px there was no horizontal overflow. In a normal page, Sound on enabled successfully, a Jump event left it enabled, and Sound off muted it; no error logs were observed. This verifies control/runtime behavior, not human listening quality. Final proof: docs/soul-world-audio-2026-10-13/phone.png.
 
 Clean staged release verification passed 255 arcade tests and 185 Soul World tests on October 13, 2026.
+
+## Earned Emerald Temple route and accurate reward receipts — October 13, 2026
+
+The fresh-state oath route now continues through the unlocked Temple approach, shrine attunement, Jade Abbot, reward pickup, checkpoint reload and return to Goribbit. It still uses normal movement/attacks, earned gear/skills and one healing flask; no positions, health, XP, invulnerability or rewards are assigned. Result: 135 simulated seconds, 64 combat cuts, 1117 XP, 357 fragments, all six quests and all four guardian reward receipts. Reload and repeat mentor interaction do not duplicate the final rewards. The controller has exact simulation observations and continuous attacks; this establishes reachability, not human combat pacing or native full-campaign completion.
+
+Guardian first-clear reward definitions are now shared by combat drops, reload reconstruction and journal receipts. Values are unchanged: three realm blades and Temple's Healing Flask, each with 20 fragments. The journal lists exact reward types and describes these as receipt history, so a consumed flask is not presented as currently owned equipment. The prior generic blade wording incorrectly included Temple supplies. Definitions and non-mutating history have regression fixtures.
+
+Browser review loads the actual checkpoint emitted by the simulation test on an isolated practice origin. It is an earned simulation checkpoint viewed natively, not a native-earned full campaign. Inspectable route/checkpoint receipt: docs/soul-world-temple-2026-10-13/earned-route.json.
+
+Native checkpoint-display review confirmed Temple completed, six quest claims, level 8, 357 fragments and six healing flasks. The reward journal now names each blade and Temple's Healing Flask separately. Its receipt card uses the full journal width, with a responsive list; 390px review showed no horizontal overflow. These are native display checks of the simulation-earned checkpoint. Human feel, sustained physical-device play and a native-earned complete campaign remain open, so game 14 remains finishing in progress.
+
+Clean staged release verification passed 255 arcade tests and 187 Soul World tests on October 13, 2026.

@@ -30,3 +30,5 @@ body:has(.studio){height:auto;overflow:auto}body:has(.studio) main{height:auto;p
 #journal .ground-rewards{border-color:#dfc188;background:#29251b}#journal .ground-rewards ul{padding-left:18px;line-height:1.8}#journal .ground-rewards button{min-height:44px}
 
 .checkpoint-limited .quest-strip{top:calc(112px + var(--checkpoint-height,48px) + 8px)}
+
+#journal .guardian-receipts{grid-column:1/-1}#journal .guardian-receipts ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px 22px;padding-left:20px}

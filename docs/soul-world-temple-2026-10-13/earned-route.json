@@ -1,0 +1,96 @@
+{
+  "route": "fresh-oath-plus-temple",
+  "seconds": 135,
+  "cuts": 64,
+  "heals": 1,
+  "xp": 1117,
+  "fragments": 357,
+  "bossRewards": [
+    "frozen",
+    "crimson",
+    "void",
+    "temple"
+  ],
+  "checkpoint": {
+    "version": 2,
+    "pendingLoot": [],
+    "zone": "approach",
+    "approachCleared": [],
+    "guardianDefeated": false,
+    "xp": 1117,
+    "oath": true,
+    "training": 3,
+    "seals": [
+      "frozen",
+      "crimson",
+      "void"
+    ],
+    "complete": true,
+    "inventory": {
+      "ribbitFang": 1,
+      "academyRobe": 1,
+      "jadeBeads": 1,
+      "healthFlask": 6,
+      "spiritFlask": 1,
+      "frostFang": 1,
+      "emberFang": 1,
+      "voidFang": 1,
+      "frostRobe": 1,
+      "emberRobe": 1,
+      "voidRobe": 1,
+      "veilTalisman": 1
+    },
+    "equipped": {
+      "weapon": "voidFang",
+      "robe": "voidRobe",
+      "charm": "veilTalisman"
+    },
+    "skills": {
+      "blade": 3,
+      "warp": 0,
+      "wave": 0,
+      "vitality": 0,
+      "spirit": 0,
+      "awakening": 0
+    },
+    "gearLevels": {
+      "ribbitFang": 0,
+      "frostFang": 0,
+      "emberFang": 0,
+      "voidFang": 0
+    },
+    "fragments": 357,
+    "kills": {
+      "frozen": 6,
+      "crimson": 6,
+      "void": 6,
+      "temple": 3
+    },
+    "discoveries": [
+      "frozen",
+      "crimson",
+      "void",
+      "temple"
+    ],
+    "bossRewards": [
+      "frozen",
+      "crimson",
+      "void",
+      "temple"
+    ],
+    "claimedQuests": [
+      "firstCut",
+      "frostBounty",
+      "emberBounty",
+      "voidBounty",
+      "echoes",
+      "guardian"
+    ],
+    "world": "academy",
+    "x": 486.5,
+    "hp": 225,
+    "sp": 100,
+    "riftCooldown": 0,
+    "domainCooldown": 0
+  }
+}

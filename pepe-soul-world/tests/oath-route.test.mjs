@@ -4,7 +4,7 @@ import {createState,step,act,enterWorld,enterArena,snapshot,canDomain,maxHealth}
 import {QUESTS,claimQuest,questReady,equip,learn,useItem} from '../systems.js';
 import {oathSummary} from '../oath-summary.js';
 
-test('fresh oath route earns all seals, gear and quests through movement and combat without state grants',()=>{
+test('fresh oath and Temple route earns seals, gear and quests through movement and combat without state grants',()=>{
  let s=createState();let frames=0,cuts=0,heals=0;
  const tick=input=>{step(s,input,1/60);frames++;assert.equal(s.dead,false,`Knocked out in ${s.world}/${s.zone} at ${s.player.x}`);s.events.length=0;};
  const walk=x=>{for(let i=0;i<2400&&Math.abs(s.player.x-x)>8;i++)tick({left:s.player.x>x,right:s.player.x<x});assert.ok(Math.abs(s.player.x-x)<=8,`Could not walk to ${x}`);};
@@ -39,4 +39,12 @@ test('fresh oath route earns all seals, gear and quests through movement and com
  assert.ok(frames/60<600,`Route exceeded ten simulated minutes: ${frames/60}`);
  const earned=snapshot(s);act(s,'interact');rewards();assert.equal(s.xp,earned.xp);assert.equal(s.fragments,earned.fragments);
  console.log(JSON.stringify({route:'fresh-oath',seconds:Math.round(frames/60),cuts,heals,xp:s.xp,fragments:s.fragments,seals:s.seals,quests:s.claimedQuests}));
+ walk(2250);assert.equal(enterWorld(s,'temple'),true);fight();
+ walk(1360);act(s,'interact');assert.ok(s.discoveries.includes('temple'));
+ walk(2250);assert.equal(enterArena(s),true);assert.equal(s.zone,'arena');fight();
+ assert.equal(s.guardianDefeated,true);assert.ok(s.bossRewards.includes('temple'));assert.equal(oathSummary(s).templeCleared,true);
+ const collected=snapshot(s);s=createState(collected);assert.equal(s.drops.length,0);assert.equal(s.fragments,collected.fragments);assert.equal(s.inventory.healthFlask,collected.inventory.healthFlask);
+ walk(2250);assert.equal(enterWorld(s,'academy'),true);walk(490);act(s,'interact');rewards();
+ assert.equal(s.xp,collected.xp);assert.equal(s.fragments,collected.fragments);assert.equal(s.claimedQuests.length,QUESTS.length);
+ assert.ok(frames/60<600);console.log(JSON.stringify({route:'fresh-oath-plus-temple',seconds:Math.round(frames/60),cuts,heals,xp:s.xp,fragments:s.fragments,bossRewards:s.bossRewards,checkpoint:snapshot(s)}));
 });
