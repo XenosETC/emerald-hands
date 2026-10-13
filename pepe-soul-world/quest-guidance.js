@@ -1,6 +1,11 @@
 import {QUESTS,questReady} from './systems.js';
 import {WORLDS,approachRemaining} from './core.js';
+import {groundRewards} from './ground-rewards.js?v=1';
 export function questGuidance(s){
+ if(s.world!=='academy'&&s.zone!=='arena'&&approachRemaining(s)===0){
+  const rewards=groundRewards(s);
+  if(rewards.length)return {text:`Approach cleared · ${rewards.length} ground reward${rewards.length===1?' remains':'s remain'}. Collect before crossing; nearest at ${rewards[0].x}. Map lists each drop.`,ready:0};
+ }
  if(s.world==='temple'){
   const left=approachRemaining(s),returnText=s.bossRewards.includes('temple')?'Jade Abbot defeated · Reward already recovered. E at 2250 to return home.':'Jade Abbot defeated · Collect your fragments and flask, then return home at 2250.';
   return {text:s.zone==='arena'?(s.guardianDefeated?returnText:'Inner Sanctuary · Defeat the Jade Abbot to open your return portal.'):(left?'Temple Approach · '+left+' / 3 disciples remain. Clear them to open the sanctuary.':'Temple Approach cleared · E at 2250 to enter the Inner Sanctuary.'),ready:0};

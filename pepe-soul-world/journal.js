@@ -1,6 +1,7 @@
 import {RIFT} from './kek-rift.js';
 import {oathSummary} from './oath-summary.js?v=1';
-import {questGuidance} from './quest-guidance.js';
+import {groundRewards} from './ground-rewards.js?v=1';
+import {questGuidance} from './quest-guidance.js?v=4';
 import {ITEMS,SKILLS,QUESTS,stats,compareGear,skillPreview,skillPoints,equip,learn,useItem,claimQuest,questReady,atMentor,buyItem,upgradeGear} from './systems.js';
 import {WORLDS,enterWorld,enterArena,approachRemaining,levelFor,DOMAIN,canDomain,canRift} from './core.js';
 export function createJournal(state,changed,toggle){
@@ -21,6 +22,14 @@ export function createJournal(state,changed,toggle){
   c.append(button(tab==='Quests'?'View unlocked realm':'View Kek Domain',()=>{tab=tab==='Quests'?'Map':'Skills';}));
  }
  if(tab==='Map'){
+ const rewards=groundRewards(state);
+ if(rewards.length){
+  const c=card('<h3>Rewards on the ground</h3><p>Walk into each drop to collect it. Collect patrol loot before leaving this approach.</p>');
+  c.className='ground-rewards';
+  const list=document.createElement('ul');
+  for(const reward of rewards){const row=document.createElement('li');row.textContent=reward.label+' · Position '+reward.x;list.append(row);}
+  c.append(list,button('Return to collect',()=>toggle(false)));
+ }
  const w=WORLDS.find(w=>w.id===state.world);card(`<h3>${w.name}</h3><p>${w.subtitle}</p><div class="route"><span>Gate / mentor</span><span>Training / enemies</span><span>Shrine</span><span>Guardian passage</span><i style="left:${state.player.x/2600*100}%">◆</i></div><p>◆ Crown’s position · ${Math.round(state.player.x)} / 2600</p><p>${state.world==='academy'?'Goribbit 490 · Effigy 870 · Veil Gate 2250':state.zone==='arena'?'Guardian starts at 2070 · Return portal 2250 (opens on defeat)':'Return gate 230 · Enemies 800 / 1160 / 1540 · Shrine 1360 · Passage 2250'}</p>`);
  for(const world of WORLDS){
  const current=world.id===state.world,academy=world.id==='academy',arena=state.zone==='arena',returnLocked=arena&&(!state.guardianDefeated||Math.abs(state.player.x-2250)>200);
@@ -29,7 +38,7 @@ export function createJournal(state,changed,toggle){
  const c=card(`<div class="map-art" style="background-image:url(assets/${world.art}.webp)"></div><h3>${world.name}</h3><p>${academy?'Train, restore, buy flasks and temper your blade.':world.boss}</p>${academy?'<p>Oath '+(state.oath?'accepted':'awaiting Goribbit')+' · Training '+state.training+' / 3</p>':'<div class="gear-comparison"><p>'+ (world.id==='temple'?'Temple challenge · '+(state.bossRewards.includes('temple')?'Completed':'Unfinished'):'Seal · '+(state.seals.includes(world.id)?'Recovered':'Still missing'))+'</p><p>Shrine · '+(state.discoveries.includes(world.id)?'Attuned':'Undiscovered')+'</p><p>Guardian reward · '+(state.bossRewards.includes(world.id)?'Recovered':'Not recovered')+'</p></div>'}<p>${reason}</p>`);
  c.append(button(current?'You are here':academy?'Return to Academy':'Travel to '+world.name,()=>{if(enterWorld(state,world.id))toggle(false);},locked));
  }
- if(state.world!=='academy'){const arena=state.zone==='arena',remaining=approachRemaining(state),c=card('<h3>'+(state.world==='temple'?(arena?'Inner Sanctuary':'Temple Approach'):arena?'Guardian arena':state.zone==='approach2'?'Approach II · Elite patrol':'Approach I · Outer patrol')+'</h3><p>'+(state.world==='temple'?questGuidance(state).text:arena?'Defeat the guardian, collect your rewards, then use the portal at 2250.':remaining+' / 3 enemies remain. Clear them, then reach the passage at 2250.')+'</p>');if(!arena)c.append(button(state.zone==='approach2'||state.world==='temple'?'Enter guardian arena':'Enter Approach II',()=>{if(enterArena(state))toggle(false);},remaining>0||Math.abs(state.player.x-2250)>200||state.dead));}card('<h3>Crossing the veil</h3><p>Enemy realms are reached from the academy veil gate. Emerald Temple opens after your completed oath and has one approach leading directly to its guardian. The other realms have an outer patrol, an elite approach, and a third map for its guardian. Returning to the academy restores health and spirit; recovered seals, gear and shrine attunements stay saved.</p>');
+ if(state.world!=='academy'){const arena=state.zone==='arena',remaining=approachRemaining(state),c=card('<h3>'+(state.world==='temple'?(arena?'Inner Sanctuary':'Temple Approach'):arena?'Guardian arena':state.zone==='approach2'?'Approach II · Elite patrol':'Approach I · Outer patrol')+'</h3><p>'+questGuidance(state).text+'</p>');if(!arena)c.append(button(state.zone==='approach2'||state.world==='temple'?'Enter guardian arena':'Enter Approach II',()=>{if(enterArena(state))toggle(false);},remaining>0||Math.abs(state.player.x-2250)>200||state.dead));}card('<h3>Crossing the veil</h3><p>Enemy realms are reached from the academy veil gate. Emerald Temple opens after your completed oath and has one approach leading directly to its guardian. The other realms have an outer patrol, an elite approach, and a third map for its guardian. Returning to the academy restores health and spirit; recovered seals, gear and shrine attunements stay saved.</p>');
  }else if(tab==='Quests'){
  const ready=QUESTS.filter(q=>questReady(state,q));
  card(`<h3>${ready.length?ready.length+' reward'+(ready.length===1?'':'s')+' ready to claim':oath?.claimed===QUESTS.length?'All quest rewards claimed':'Your next oath'}</h3><p>${ready.length?'Claim the completed quests below. Gear rewards enter your inventory; equip them in Gear or Inventory.':oath?.claimed===QUESTS.length?'Your rewards are in your pack. Equip your gear, temper your blade or take on Emerald Temple.':'Follow an unfinished quest below. Rewards stay available until you claim them.'}</p>`);

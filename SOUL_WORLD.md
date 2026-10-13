@@ -60,3 +60,13 @@ The first live browser encounter was knocked out while awaiting UI inspection; i
 Browser verification loaded the simulated earned pending drop, collected it using normal Warp movement, observed 5 fragments and 22 XP, then reloaded again. The reward remained 5 fragments, XP remained 22 and the patrol count remained 2/3; no error logs were observed. Proof: docs/soul-world-loot-2026-10-13/collected-after-reload.png. Test fixture setup is excluded from the release.
 
 Clean staged release checks passed 253 arcade tests and 169 Soul World tests on October 13, 2026.
+
+## Ground reward map — October 13, 2026
+
+Map now lists current ground rewards nearest-first with pickup coordinates, fixed fragment/item labels, and a Return to collect button. Cleared approaches with pending loot remind players to collect it before crossing and point to the nearest drop. Active combat and guardian-return guidance retain priority. This is presentation only: walking into a drop remains the collection action, and travel stays available. It does not grant loot or introduce a departure lock.
+
+Fixtures verify non-mutating reward summaries, reminder removal after collection, combat priority, and combined guardian seal/gear labels. Browser review uses a seeded cleared-approach practice fixture; it verifies map display and normal Warp pickup separately from the earned simulation campaign.
+
+Native browser review showed both seeded drop locations, normal Warp pickup reducing the list to one, and the second pickup clearing the card/reminder. Totals were 10 fragments and three healing flasks. At 390px there was no horizontal overflow and the return button was 44px high; no error logs were observed. Desktop/phone proofs: docs/soul-world-reward-map-2026-10-13/. This is seeded presentation/pickup QA, not native campaign completion.
+
+Clean staged release verification passed 253 arcade tests and 172 Soul World tests on October 13, 2026.

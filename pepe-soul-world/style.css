@@ -26,3 +26,5 @@ body:has(.studio){height:auto;overflow:auto}body:has(.studio) main{height:auto;p
 .checkpoint-warning button{display:block;pointer-events:auto;min-height:44px;margin:8px 0;background:#3b301b;border-color:#e4bc68}.checkpoint-warning button[hidden]{display:none}#recovery-copy:not(:empty){display:block;margin-top:6px}
 
 #journal .oath-completion{border-color:#9cdec0;background:linear-gradient(135deg,#18362d,#13222a)}#journal .oath-completion h3{color:#d8f3b5}#journal .oath-completion button{min-height:44px}
+
+#journal .ground-rewards{border-color:#dfc188;background:#29251b}#journal .ground-rewards ul{padding-left:18px;line-height:1.8}#journal .ground-rewards button{min-height:44px}
