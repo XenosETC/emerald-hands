@@ -80,3 +80,13 @@ Fixtures compare reload and explicit retry across all four realms and unfinished
 Browser verification observed the seeded one-HP encounter die to a normal enemy hit and show Return to the echo shrine. Reload before pressing retry restored Frozen District / Approach I at position 1360, HP/SP 100, 25 fragments, two living patrol enemies and the pending 5-fragment drop at 800. No error logs were observed. Proof: docs/soul-world-shrine-2026-10-13/death-reload.png. Fixture setup remains outside the release.
 
 Clean staged release verification passed 253 arcade tests and 174 Soul World tests on October 13, 2026.
+
+## Arcade hub completion handoff — October 13, 2026
+
+The hub's existing read-only Soul World checkpoint projection now labels completed oaths, gives ready quest rewards priority in Academy, and points fully claimed runs to Emerald Temple or replay/build refinement after the Temple reward is recovered. Active realm combat still uses the game's current objective and Continue journey action. No save writes, shared currencies, rewards or practice-save reads are added. Existing incomplete, invalid and legacy-save behavior is preserved.
+
+Root fixtures cover outstanding rewards, Temple unlock/recovery, active Temple combat and pending patrol pickup guidance. Browser presentation review uses a seeded completed checkpoint on a unique localhost origin; it verifies the hub card, not earned completion or a hosted deployment. Proofs: docs/soul-world-hub-2026-10-13/.
+
+Browser review confirmed Oath fulfilled, level 7 / Academy / 3 seals, the Temple-unlock objective and Revisit journey link in Continue playing. The catalog card also showed the completed label. At 390px the card was readable without horizontal overflow; no error logs were observed. The seeded fixture and its navigation history are confined to the isolated QA origin.
+
+Clean staged release verification passed 255 arcade tests and 174 Soul World tests on October 13, 2026.

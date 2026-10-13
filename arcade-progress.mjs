@@ -1,5 +1,6 @@
-import {SAVE_KEY as soulKey, readSave, createState, WORLDS, levelFor} from './pepe-soul-world/core.js';
-import {questGuidance} from './pepe-soul-world/quest-guidance.js';
+import {SAVE_KEY as soulKey, readSave, createState, WORLDS, levelFor} from './pepe-soul-world/core.js?v=shrine-20261013';
+import {questGuidance} from './pepe-soul-world/quest-guidance.js?v=4';
+import {oathSummary} from './pepe-soul-world/oath-summary.js?v=1';
 import {SAVE_KEY as campaignKey, migrateSave} from './pepe-feudalism/campaign.js';
 import {hydrateAdventure, QUESTS} from './pepe-feudalism/adventure.js';
 import {NODES} from './pepe-feudalism/world-data.js';
@@ -15,9 +16,12 @@ export function summarize(id, value) {
     // Reuse the game's restore rules and quest guidance. This is an in-memory
     // projection of the saved checkpoint, never a running game or a save write.
     const state = createState(value);
-    return {status: 'saved', label: 'Saved checkpoint',
+    const oath=oathSummary(state),allClaimed=!!oath&&oath.claimed===oath.total,atHome=state.world==='academy';
+    const goal=allClaimed&&atHome?(oath.templeCleared?'Oath and Emerald Temple complete. Revisit realms or refine your build.':
+      'Emerald Temple unlocked. Reach the academy gate to challenge the Jade Abbot.'):questGuidance(state).text;
+    return {status: 'saved', label: oath?'Oath fulfilled':'Saved checkpoint',
       summary: `Level ${levelFor(state.xp).level} · ${WORLDS.find(world => world.id === state.world).name} · ${state.seals.length}/3 seals`,
-      goal: questGuidance(state).text, action: 'Continue journey'};
+      goal, action: atHome&&oath?.ready?'Review rewards':atHome&&allClaimed?'Revisit journey':'Continue journey'};
   }
   if (id === 'feudalism') {
     const restored = migrateSave(value);

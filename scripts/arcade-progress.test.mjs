@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {keys, read, summarize} from '../arcade-progress.mjs';
 import {createState, snapshot} from '../pepe-soul-world/core.js';
+import {QUESTS as SOUL_QUESTS} from '../pepe-soul-world/systems.js';
 import {newCampaign} from '../pepe-feudalism/campaign.js';
 import {hydrateAdventure} from '../pepe-feudalism/adventure.js';
 
@@ -24,6 +25,18 @@ test('Soul World legacy saves obey its real academy gate and quest readiness rul
   assert.match(academy.summary, /3\/3 seals/);
   assert.notEqual(academy.status, 'empty');
   assert.equal(summarize('soulWorld', {version:99}).status, 'unavailable');
+});
+test('Soul World completed oath prioritizes outstanding rewards then Temple and replay',()=>{
+ const value=snapshot(createState({version:2,oath:true,training:3,complete:true,seals:['frozen','crimson','void']}));
+ const before=JSON.stringify(value),pending=summarize('soulWorld',value);
+ assert.equal(pending.label,'Oath fulfilled');assert.equal(pending.action,'Review rewards');assert.match(pending.goal,/quest reward.*ready/);assert.equal(JSON.stringify(value),before);
+ value.claimedQuests=SOUL_QUESTS.map(q=>q.id);const unlocked=summarize('soulWorld',value);assert.match(unlocked.goal,/Emerald Temple unlocked/);assert.equal(unlocked.action,'Revisit journey');
+ value.bossRewards=['temple'];assert.match(summarize('soulWorld',value).goal,/Oath and Emerald Temple complete/);
+ value.world='temple';const combat=summarize('soulWorld',value);assert.match(combat.goal,/Temple Approach.*3 \/ 3 disciples remain/);assert.equal(combat.action,'Continue journey');
+});
+test('Soul World hub retains checkpoint combat and pending loot guidance before oath completion',()=>{
+ const value=snapshot(createState({version:2,oath:true,training:3,world:'frozen',zone:'approach',approachCleared:[1,2,3],pendingLoot:[{id:1,x:800}]}));
+ const info=summarize('soulWorld',value);assert.equal(info.label,'Saved checkpoint');assert.match(info.goal,/1 ground reward remains/);assert.equal(info.action,'Continue journey');
 });
 
 test('Feudalism shows its saved warband and gives ready contracts priority over active contracts', () => {
