@@ -374,3 +374,17 @@ test('Unstable Launch retains highest lock/rank independently from score and cra
  best=h.arcade.load().best.unstableLaunch;
  assert.equal(best.lockedPrice,1000);assert.equal(best.rank,'Chainbreaker');assert.equal(best.score,2000);
 });
+
+
+test('Satoshi completion records and retries do not award shared XP, shards, badges or pet progression',()=>{
+ const h=harness('satoshi-system.html');h.saves.set('emerald-arcade-pets-v1','pet-state');
+ const before=h.arcade.load();
+ const payload={score:2173,rank:'World Builder',ticks:123,connectedPlanets:3,treasurySats:51,epoch:2};
+ h.arcade.record('satoshiSystem',{...payload,played:true});
+ h.arcade.record('satoshiSystem',{...payload,played:false});
+ const after=h.arcade.load();
+ assert.equal(after.xp,before.xp);assert.deepEqual(after.wallet,before.wallet);
+ assert.deepEqual(after.badges,before.badges);assert.equal(h.saves.get('emerald-arcade-pets-v1'),'pet-state');
+ assert.equal(after.gamesPlayed,before.gamesPlayed+1);
+ assert.equal(after.best.satoshiSystem.connectedPlanets,3);
+});

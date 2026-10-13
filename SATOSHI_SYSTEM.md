@@ -17,3 +17,10 @@ Unreadable JSON and non-object whole-file saves now latch a recovery mode. The f
 The goal panel now shows five existing completion conditions in a checklist and progress meter. Its next action follows world/build prerequisites before waiting for the first contraction, with the current cost and remaining fictional sats. Completed objectives remain marked after the existing completion flag is latched. No costs, yields or goal rules change. An actual-controller policy buys three Routing levels, Relay, Merchant, Resilience, Expansion and Forge using only clicked/earned sats, completing within 150 ticks while checking ledger conservation after every cycle. Exploration completed at 123 ticks; this is a deterministic policy, not a human pacing result or financial advice.
 
 Native isolated-browser check routed eight star clicks, bought Relay Moon, and advanced the goal text to Merchant Planet at its existing 240-sat cost while the save status remained successful. User-origin saves were untouched.
+
+
+## Completion-record retry and guest boundary
+
+A failed optional arcade completion record now exposes Retry arcade record after Genesis Orbit completion. It retries best-record metadata with `played:false`, sets the local recorded flag only after success and then hides. This prevents another played-game count if the first attempt wrote before failing; if that first write failed entirely, the retry updates the best without adding the missing played count. There is no two-key atomic transaction guarantee. The goal stays complete independently, and recovery-mode temporary progress cannot record.
+
+Controller fixtures reach the goal through earned actions, reject its first record, retry successfully and verify the local flag persists. A separate actual shared-controller test records completion plus retry and confirms no shared XP, shard, badge or pet progression awards.

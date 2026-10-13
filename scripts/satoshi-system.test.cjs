@@ -9,7 +9,7 @@ function game(blocked=false,raw=null){
  const document={body:node(),activeElement:null,querySelector(selector){if(!nodes.has(selector))nodes.set(selector,node());return nodes.get(selector);},querySelectorAll:()=>[],createElement:node,addEventListener(){}};
  const context=vm.createContext({window,document,localStorage:{getItem:key=>saves.get(key)??null,setItem:(key,value)=>{if(blocked)throw Error('quota');saves.set(key,value);},removeItem:key=>saves.delete(key)},confirm:()=>true});
  vm.runInContext(fs.readFileSync(path.join(__dirname,'../satoshi-system.js'),'utf8'),context);
- return {saves,nodes,unblock(){blocked=false;},read:expression=>vm.runInContext(expression,context)};
+ return {saves,nodes,window,unblock(){blocked=false;},read:expression=>vm.runInContext(expression,context)};
 }
 test('Satoshi blocked writes and unavailable audio leave a balanced playable tab and warning',()=>{
  const h=game(true);
@@ -54,4 +54,19 @@ test('Satoshi guided goal starts with the first world and completes through earn
  assert.equal(result.complete,true);assert.ok(result.ticks<=150);assert.equal(result.steps,5);assert.ok(result.coverage>=3);
  assert.equal(h.nodes.get('#goalProgress').value,5);
  assert.equal(h.saves.get('emerald-arcade-v1'),'unrelated-arcade');
+});
+
+
+test('Satoshi completion record retry refreshes once without another played-game count',()=>{
+ const h=game();const calls=[];
+ h.window.EmeraldArcade.recordAndNotify=()=>{throw Error('blocked');};
+ h.read("const goalPlan=['routing','routing','routing','relay','merchant','resilience','expansion','forge'];let goalIndex=0;for(let i=0;i<500&&!state.goalComplete;i++){advanceTick();while(goalIndex<goalPlan.length&&unlockState(goalPlan[goalIndex]).unlocked&&state.treasury>=costFor(goalPlan[goalIndex]))buy(goalPlan[goalIndex++]);}");
+ assert.equal(h.read('state.goalComplete'),true);assert.equal(h.read('state.arcadeRecorded'),false);
+ assert.equal(h.nodes.get('#retryArcadeRecord').hidden,false);
+ h.window.EmeraldArcade.recordAndNotify=(game,payload)=>calls.push({game,payload});
+ assert.equal(h.read('recordCompletion(false)'),true);h.read('saveState();render()');
+ assert.equal(h.nodes.get('#retryArcadeRecord').hidden,true);
+ assert.equal(h.read('recordCompletion(false)'),false);assert.equal(calls.length,1);
+ assert.equal(calls[0].game,'satoshiSystem');assert.equal(calls[0].payload.played,false);
+ assert.equal(JSON.parse(h.saves.get('satoshi-system-save-v1')).arcadeRecorded,true);
 });

@@ -94,6 +94,7 @@ const els = {
   goalText: document.querySelector("#goalText"),
   goalProgress: document.querySelector("#goalProgress"),
   goalChecklist: document.querySelector("#goalChecklist"),
+  retryArcadeRecord: document.querySelector("#retryArcadeRecord"),
   goalCard: document.querySelector(".goal-card"),
   gateNode: document.querySelector("#gateNode"),
   buildCards: [...document.querySelectorAll("[data-build-card]")],
@@ -639,11 +640,18 @@ function checkGoal() {
   if (!complete || state.goalComplete) return;
   state.goalComplete = true;
   setEvent("Genesis Orbit stabilized", "Three productive worlds are connected beyond the first contraction with supported expansion.", "good");
-  if (!state.arcadeRecorded && !recoveryRequired) {
-    try {
-      window.EmeraldArcade?.recordAndNotify("satoshiSystem", arcadePayload(true));
-      state.arcadeRecorded = true;
-    } catch { setEvent("Genesis Orbit complete · record unavailable", "The independent simulation completed, but its arcade record could not be saved.", "warning"); }
+  recordCompletion(true);
+}
+
+function recordCompletion(played = false) {
+  if (!state.goalComplete || state.arcadeRecorded || recoveryRequired || window.EmeraldArcade?.isPaused() || !window.EmeraldArcade?.recordAndNotify) return false;
+  try {
+    window.EmeraldArcade.recordAndNotify("satoshiSystem", arcadePayload(played));
+    state.arcadeRecorded = true;
+    return true;
+  } catch {
+    setEvent("Genesis Orbit complete · record unavailable", "Your simulation completed. Retry the arcade record when browser storage is available; retries add no extra played-game count.", "warning");
+    return false;
   }
 }
 
@@ -810,6 +818,7 @@ function renderStatus() {
   els.goalText.textContent = state.goalComplete ? "Genesis Orbit complete. Grow your worlds and explore later fictional market cycles." : goalAdvice();
   const steps = goalSteps();
   els.goalProgress.value = steps.filter(step => step.done).length;
+  els.retryArcadeRecord.hidden = !state.goalComplete || state.arcadeRecorded || recoveryRequired;
   els.goalChecklist.innerHTML = steps.map(step => `<li>${step.done ? "Complete" : "Pending"} · ${step.label}</li>`).join("");
   els.goalCard.classList.toggle("is-complete", state.goalComplete);
 }
@@ -905,6 +914,11 @@ function playTone(frequency, duration) {
   } catch { /* Optional sound cannot interrupt progression. */ }
 }
 
+els.retryArcadeRecord.addEventListener("click", () => {
+  if (recordCompletion(false)) setEvent("Genesis Orbit record saved", "Your arcade best was updated without shared currency, XP or badge rewards.", "good");
+  saveState();
+  render();
+});
 els.genesisStar.addEventListener("click", advanceTick);
 for (const button of els.buyButtons) button.addEventListener("click", () => buy(button.dataset.buy));
 
