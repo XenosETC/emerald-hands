@@ -148,3 +148,15 @@ Browser review loads the actual checkpoint emitted by the simulation test on an 
 Native checkpoint-display review confirmed Temple completed, six quest claims, level 8, 357 fragments and six healing flasks. The reward journal now names each blade and Temple's Healing Flask separately. Its receipt card uses the full journal width, with a responsive list; 390px review showed no horizontal overflow. These are native display checks of the simulation-earned checkpoint. Human feel, sustained physical-device play and a native-earned complete campaign remain open, so game 14 remains finishing in progress.
 
 Clean staged release verification passed 255 arcade tests and 187 Soul World tests on October 13, 2026.
+
+## Portable file checkpoints — October 13, 2026
+
+The journal now has a Save tab. Download backup exports the current session, including pending loot and earned receipts, even when browser storage cannot save. A chosen Soul World file is validated and previewed with level, realm, seals and fragments; it does not write anything until Restore this backup and reload is pressed. Cancel discards the preview. Restore keeps the existing readable primary as the previous checkpoint, or archives damaged bytes before writing; conflicting damaged archives and failed writes leave the current session open. Practice operations use only practice keys. Backup files carry a Soul World format marker and a 250 KB limit, preventing accidental foreign-game imports. Existing restore normalization is reused; this is local portability, not cloud sync or tamper protection.
+
+Fixtures cover file roundtrip, malformed/foreign/unsupported/oversized files, primary rollback, damaged archives, failed writes and practice isolation. Browser review imports the previous earned simulation checkpoint into an isolated practice origin, separately from native-earned campaign proof.
+
+Browser download produced a valid format-1 Soul World file for the original level-1 session. Preview showed the selected earned level-8 checkpoint without changing the current run; Cancel retained level 1. The first native restore exposed a pagehide race that rewrote the pre-import session. Successful import now latches old-session writes until reload, with a regression for that exact sequence. Repeated native restore then loaded level 8, three seals and 357 fragments correctly. Previous-checkpoint rollback follows the normal rotating backup policy; the preview advises downloading first for a permanent copy.
+
+Final 390px review showed no horizontal overflow, and Escape from the file control closed the journal and returned focus to the canvas. No browser error logs were observed. Proofs: docs/soul-world-files-2026-10-13/. Download/cancel/restore were tested on the isolated practice origin; the normal campaign was never imported or overwritten.
+
+Clean staged release verification passed 255 arcade tests and 192 Soul World tests on October 13, 2026.

@@ -72,3 +72,19 @@ test('unreadable storage stays write-protected until reload even after access re
  const fresh=createCheckpointStore(storage,SAVE_KEY,value=>readSave(value)!==null);assert.equal(fresh.load().oath,true);
  assert.equal(fresh.write(snapshot(createState({version:2,oath:true,training:3}))).ok,true);assert.equal(writes,2);
 });
+test('explicit file import keeps the current readable checkpoint as rollback and leaves other games alone',()=>{
+ const original=JSON.stringify(snapshot(createState())),f=fixture(original),imported=snapshot(createState({version:2,oath:true,training:3,seals:['frozen'],fragments:25}));
+ assert.equal(f.store.importCheckpoint(imported).ok,true);assert.equal(f.values.get(SAVE_KEY+':backup'),original);assert.deepEqual(JSON.parse(f.values.get(SAVE_KEY)),imported);assert.equal(f.values.get('other-game'),'kept');
+ assert.equal(f.store.write(snapshot(createState())).ok,false,'Old-session pagehide must not overwrite the import');assert.deepEqual(JSON.parse(f.values.get(SAVE_KEY)),imported);
+});
+test('import validation, write failure and conflicting damaged archives preserve the primary',()=>{
+ const original=JSON.stringify(snapshot(createState())),f=fixture(original),imported=snapshot(createState({version:2,oath:true}));
+ assert.equal(f.store.importCheckpoint({version:99}).ok,false);assert.equal(f.values.get(SAVE_KEY),original);
+ f.block(true);assert.equal(f.store.importCheckpoint(imported).ok,false);assert.equal(f.values.get(SAVE_KEY),original);
+ f.block(false);f.values.set(SAVE_KEY,'{damaged');f.values.set(SAVE_KEY+':recovery-original','other damage');assert.equal(f.store.importCheckpoint(imported).ok,false);assert.equal(f.values.get(SAVE_KEY),'{damaged');
+ f.values.delete(SAVE_KEY+':recovery-original');assert.equal(f.store.importCheckpoint(imported).ok,true);assert.equal(f.values.get(SAVE_KEY+':recovery-original'),'{damaged');
+});
+test('practice file imports keep normal campaign, backup and archive keys untouched',()=>{
+ const f=fixture(JSON.stringify(snapshot(createState()))),before=[...f.values],practice=createCheckpointStore(f.storage,'pepe-soul-world-practice-v1',value=>readSave(value)!==null);
+ assert.equal(practice.importCheckpoint(snapshot(createState({version:2,oath:true}))).ok,true);for(const [key,value] of before)assert.equal(f.values.get(key),value);assert.equal(f.values.has(SAVE_KEY+':backup'),false);
+});

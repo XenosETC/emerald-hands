@@ -5,19 +5,19 @@ import {groundRewards} from './ground-rewards.js?v=1';
 import {questGuidance} from './quest-guidance.js?v=4';
 import {ITEMS,SKILLS,QUESTS,stats,compareGear,skillPreview,skillPoints,equip,learn,useItem,claimQuest,questReady,atMentor,buyItem,upgradeGear} from './systems.js';
 import {WORLDS,enterWorld,enterArena,approachRemaining,levelFor,DOMAIN,canDomain,canRift} from './core.js';
-export function createJournal(state,changed,toggle){
+export function createJournal(state,changed,toggle,savePanel){
  const panel=document.createElement('section');panel.id='journal';panel.hidden=true;panel.setAttribute('aria-label','Soul journal');panel.innerHTML='<header><div><small>CROWN’S JOURNEY</small><h2>Soul journal</h2></div><a href="animation.html">Motion studio ↗</a><button id="close-journal">Close · Esc</button></header><nav></nav><div class="journal-content"></div>';document.querySelector('.viewport').append(panel);
  let tab='Map';const content=panel.querySelector('.journal-content'),nav=panel.querySelector('nav');
  function background(value){document.querySelectorAll('.masthead,.stage-top,.viewport > :not(#journal),.controls,.touch,aside,main > footer').forEach(el=>{el.inert=value;});}
  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');
  panel.addEventListener('keydown',e=>{
   if(e.code!=='Tab')return;
-  const controls=[...panel.querySelectorAll('a[href],button:not([disabled])')].filter(el=>el.getClientRects().length);
+  const controls=[...panel.querySelectorAll('a[href],button:not([disabled]),input:not([disabled])')].filter(el=>el.getClientRects().length);
   const first=controls[0],last=controls.at(-1);
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}
   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}
  });
- for(const name of ['Map','Quests','Skills','Inventory','Gear']){const b=document.createElement('button');b.textContent=name;b.onclick=()=>{tab=name;render();};nav.append(b);}
+ for(const name of ['Map','Quests','Skills','Inventory','Gear',...(savePanel?['Save']:[])]){const b=document.createElement('button');b.textContent=name;b.onclick=()=>{tab=name;render();};nav.append(b);}
  panel.querySelector('#close-journal').onclick=()=>toggle(false);
  function icon(id){const i=ITEMS[id].icon;return `<span class="item-icon" style="background-position:${i%4/3*100}% ${Math.floor(i/4)/2*100}%"></span>`;}
  function button(text,fn,disabled=false){const b=document.createElement('button');b.textContent=text;b.disabled=disabled;b.onclick=()=>{fn();changed();render();if(!panel.hidden&&!panel.contains(document.activeElement))panel.querySelector('#close-journal').focus();};return b;}
@@ -31,6 +31,7 @@ export function createJournal(state,changed,toggle){
   c.className='oath-completion';c.setAttribute('aria-label','Oath fulfilled');
   c.append(button(tab==='Quests'?'View unlocked realm':'View Kek Domain',()=>{tab=tab==='Quests'?'Map':'Skills';}));
  }
+ if(tab==='Save'&&savePanel){content.append(savePanel());return;}
  if(tab==='Map'){
  const rewards=groundRewards(state);
  if(rewards.length){

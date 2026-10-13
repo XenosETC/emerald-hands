@@ -1,4 +1,5 @@
-import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=3';
+import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=5';
+import {createCheckpointPanel} from './checkpoint-panel.js?v=1';
 import {GuardControls} from './guard-controls.js';
 import {journalShortcut} from './journal-input.js?v=1';
 import {templeCue} from './temple-combat.js';
@@ -12,7 +13,7 @@ import {questGuidance,academyTrail} from './quest-guidance.js?v=4';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
-import {createJournal} from './journal.js?v=temple-20261013';
+import {createJournal} from './journal.js?v=files-20261013';
 import {ITEMS,stats,useItem} from './systems.js';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=temple-20261013';
 import {loadArt,Renderer} from './render.js';
@@ -60,7 +61,7 @@ function flush(){for(const e of state.events){renderer?.effect(e,state);sound.pl
 function setPaused(value){paused=value;releaseInputs();accumulator=0;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));if(!value)canvas.focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
 function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){act(state,actions[code]);flush();}}
-window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement)return;if(e.code==='Escape'){if(journalOpen)toggleJournal(false);else if(begun)setPaused(!paused);return;}const journalTab=journalShortcut(e.code,{begun,ready,paused,dead:state.dead,journalOpen,canvasFocused:e.target===canvas,shiftKey:e.shiftKey});if(journalTab){e.preventDefault();toggleJournal(!journalOpen,journalTab);return;}if(e.code==='Digit1'||e.code==='Digit2'){if(begun&&!paused&&!journalOpen){useItem(state,e.code==='Digit1'?'healthFlask':'spiritFlask');flush();}return;}if(e.target instanceof HTMLButtonElement && (e.code==='Space'||e.code==='Enter'))return;if(actions[e.code]||['KeyA','KeyD','ArrowLeft','ArrowRight','KeyS','ArrowDown'].includes(e.code)){e.preventDefault();if(!e.repeat){walkTarget=null;press(e.code);}}});
+window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement&&e.code!=='Escape')return;if(e.code==='Escape'){if(journalOpen)toggleJournal(false);else if(begun)setPaused(!paused);return;}const journalTab=journalShortcut(e.code,{begun,ready,paused,dead:state.dead,journalOpen,canvasFocused:e.target===canvas,shiftKey:e.shiftKey});if(journalTab){e.preventDefault();toggleJournal(!journalOpen,journalTab);return;}if(e.code==='Digit1'||e.code==='Digit2'){if(begun&&!paused&&!journalOpen){useItem(state,e.code==='Digit1'?'healthFlask':'spiritFlask');flush();}return;}if(e.target instanceof HTMLButtonElement && (e.code==='Space'||e.code==='Enter'))return;if(actions[e.code]||['KeyA','KeyD','ArrowLeft','ArrowRight','KeyS','ArrowDown'].includes(e.code)){e.preventDefault();if(!e.repeat){walkTarget=null;press(e.code);}}});
 window.addEventListener('keyup',e=>{keys.delete(e.code);guardControls.sync();});
 window.addEventListener('blur',()=>{keys.clear();touchKeys.clear();if(begun && !state.dead)setPaused(true);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden && begun && !state.dead)setPaused(true);});
@@ -98,7 +99,7 @@ academyWalk.addEventListener('click',()=>{
  walkTarget=trail.x;message('Walking to '+trail.label+'. Movement controls or a ground click can steer you.');canvas.focus({preventScroll:true});
 });
 
-journal=createJournal(state,()=>{flush();updateUI();},toggleJournal);document.querySelector('#journal header').append($('motion'));
+journal=createJournal(state,()=>{flush();updateUI();},toggleJournal,createCheckpointPanel(state,checkpointStore,()=>location.reload(),storageKey!==SAVE_KEY));document.querySelector('#journal header').append($('motion'));
 function resize(){const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;const scale=Math.min(1600,Math.max(1000,rect.width))/rect.width;canvas.width=Math.round(rect.width*scale);canvas.height=Math.round(rect.height*scale);if(renderer)renderer.camera=Math.max(0,Math.min(2600-canvas.width,renderer.camera));}new ResizeObserver(resize).observe(canvas);resize();
 let reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function applyMotion(){document.body.classList.toggle('effects-reduced',reduced);if(renderer)renderer.reduced=reduced;$('motion').setAttribute('aria-pressed',String(reduced));$('motion').textContent=reduced?'Effects reduced':'Reduce effects';}

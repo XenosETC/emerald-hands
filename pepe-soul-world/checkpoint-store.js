@@ -19,6 +19,22 @@ export function createCheckpointStore(storage,key,accept){
   load:read,
   get status(){return {...status};},
   get backupAvailable(){try{return validRaw(storage.getItem(backupKey));}catch{return false;}},
+  importCheckpoint(value){
+   try{
+    if(!accept(value))return {ok:false,message:'Backup rejected. Current progress was kept.'};
+    const original=storage.getItem(key);
+    if(validRaw(original))storage.setItem(backupKey,original);
+    else if(original!==null){
+     const archive=storage.getItem(archiveKey);
+     if(archive!==null&&archive!==original)return {ok:false,message:'A different damaged save is already preserved. Import cancelled to keep both saves.'};
+     storage.setItem(archiveKey,original);
+    }
+    storage.setItem(key,JSON.stringify(value));
+    // pagehide still tries to save the old running session during reload.
+    recovery=true;status={ok:false,recovery:false,message:'Backup restored · reload to continue.'};
+    return {ok:true,message:'Backup restored. Reload to continue.'};
+   }catch{return {ok:false,message:'Backup could not be saved. Your current session stays open.'};}
+  },
   restoreBackup(){
    try{
     const backup=storage.getItem(backupKey),original=storage.getItem(key);
