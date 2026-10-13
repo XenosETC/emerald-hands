@@ -14,3 +14,19 @@ test('Temple return guidance never promises a second copy of its saved reward',(
  assert.match(questGuidance(s).text,/Collect your fragments and flask/);s.bossRewards.push('temple');assert.match(questGuidance(s).text,/Reward already recovered/);assert.doesNotMatch(questGuidance(s).text,/Collect/);
  s.guardianDefeated=false;assert.match(questGuidance(s).text,/Defeat the Jade Abbot/);
 });
+
+
+test('guardian return guidance matches remaining saved seal and gear drops in all three realms',()=>{
+ for(const world of ['frozen','crimson','void'])for(const seal of [false,true])for(const gear of [false,true]){
+  const s=createState({version:2,oath:true,training:3,world,zone:'arena',approachCleared:[1,2,3],guardianDefeated:true,seals:seal?[world]:[],bossRewards:gear?[world]:[]});
+  const guidance=questGuidance(s);
+  assert.equal(s.drops.some(drop=>drop.kind==='seal'),!seal);
+  assert.equal(s.drops.some(drop=>drop.kind==='loot'),!gear);
+  assert.match(guidance.text,/return portal/);
+  if(!seal)assert.match(guidance.text,/Collect the seal/);
+  if(!gear)assert.match(guidance.text,/guardian gear/);
+  if(seal&&gear){assert.match(guidance.text,/already recovered/);assert.doesNotMatch(guidance.text,/Collect/);}
+  if(seal&&!gear)assert.match(guidance.text,/Collect guardian gear/);
+  if(!seal&&gear)assert.doesNotMatch(guidance.text,/and guardian gear/);
+ }
+});

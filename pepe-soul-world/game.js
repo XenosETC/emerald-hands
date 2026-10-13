@@ -5,7 +5,7 @@ import {combatCue} from './combat-cues.js';
 import {eliteSpec} from './realm-enemies.js';
 import {PointerControls} from './pointer-controls.js';
 import {combatFocus} from './combat-focus.js';
-import {questGuidance} from './quest-guidance.js';
+import {questGuidance} from './quest-guidance.js?v=2';
 import {RIFT} from './kek-rift.js';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
