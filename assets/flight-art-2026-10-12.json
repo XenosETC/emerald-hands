@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-12",
+  "mode": "built-in image_gen",
+  "assets": [
+    {
+      "key": "unstableCard",
+      "src": "exec-23418011-ad07-462c-8308-efcd52a5b09b.png",
+      "dest": "assets/etc-unstable-launch/launch-cover-v1.png",
+      "prompt": "Use case: stylized-concept. Create one original high-quality 16:9 landscape game cover illustration for ETC: Unstable Launch, an emerald-space points-only arcade timing game. A single upright black obsidian rocket with gold filigree, a faceted luminous emerald nose and a large diamond green reactor on its fuselage races upward through deep dark space. Three broad fins, long green exhaust. The reactor is beginning to fracture with a few hot amber-orange cracks and sparks, expressing tense timing rather than destruction. Premium hand-painted 3D fantasy arcade finish, sharply readable silhouette, detailed metal and crystal, green/gold light against charcoal space with restrained purple distant nebula. Rocket centered within the middle 60% so a wide thumbnail crop remains coherent. Dynamic diagonal distant stars, subtle gold orbital arcs around the edges. No other rockets, no people, no text, logos, currency symbols, charts, HUD or border. This is a single finished cover image, not a sprite sheet or collage."
+    },
+    {
+      "key": "rocketCard",
+      "src": "exec-e8f8dd92-a0db-4ae8-bb33-74e7dcf9bf72.png",
+      "dest": "assets/etc-rocket-simulator/expedition-cover-v1.png",
+      "prompt": "Use case: stylized-concept. Create one original high-quality 16:9 landscape game cover illustration for ETC Rocket Simulator, a jade-space exploration arcade game. A single upright sleek black obsidian and emerald rocket with fine gold trim, luminous faceted emerald nose, diamond reactor and three broad fins glides above the curved horizon of a huge jade-green planet. A precise green engine flame trails below; elegant alien star navigation rings and tiny distant ancient orbital ruins frame the outer edges. Calm aspirational exploration, premium hand-painted 3D fantasy game key art, crisp material detail, sophisticated dark green and gold palette, subtle blue-purple depth. Rocket centered within middle 60% for a landscape arcade-card crop. Different from a frantic reactor-crash scene: stable, polished and confident. No text, logos, currency symbols, graphs, UI, people, additional foreground rockets, panels, grid or sprite sheet. One finished cover image."
+    },
+    {
+      "key": "unstableBackdrop",
+      "src": "exec-44c7cd91-ab88-4da7-b9d6-95813eb2090d.png",
+      "dest": "assets/etc-unstable-launch/flight-corridor-v1.png",
+      "prompt": "Use case: stylized-concept. Create one original premium 16:9 landscape game background for an emerald-space rocket arcade flight, with NO rocket or foreground subject because the game draws its own animated rocket. A deep obsidian-black star corridor with misty jade-green nebula streams, small crisp distant stars, faint violet depth, sparse angular emerald crystal fragments only near the far left and right edges, and subtle ruined gold orbital structures near the corners. The central 45% is dark, open and low contrast, leaving clean space for a bright upright rocket and HUD overlays. Painterly 3D fantasy game finish with rich atmospheric depth and restrained bloom; beautiful but gameplay-legible. Avoid strong horizon lines; top and bottom both fade to near-black star mist so vertically repeating the image creates a subtle transition. No text, numbers, logos, currency, graphs, UI, planets dominating center, rockets, characters, borders or collage. One cohesive gameplay environment image."
+    }
+  ]
+}

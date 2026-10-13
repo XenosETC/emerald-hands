@@ -532,9 +532,13 @@
 
     if (game === "unstableLaunch") {
       const current = data.best.unstableLaunch;
-      if ((payload.lockedPrice || 0) > current.lockedPrice || (payload.score || 0) > current.score) {
-        data.best.unstableLaunch = { ...current, ...payload };
-      }
+      data.best.unstableLaunch = {
+        ...current,
+        lockedPrice: Math.max(current.lockedPrice || 0, payload.lockedPrice || 0),
+        score: Math.max(current.score || 0, payload.score || 0),
+        peakPrice: Math.max(current.peakPrice || 0, payload.peakPrice || 0),
+        rank: (payload.lockedPrice || 0) > (current.lockedPrice || 0) ? (payload.rank || current.rank) : current.rank,
+      };
       data.xp += Math.floor((payload.score || 0) / 55) + Math.floor(Math.log10(Math.max(1, payload.peakPrice || 1)) * 90);
       if ((payload.lockedPrice || 0) >= 30000) uniquePush(data.badges, "emerald-singularity");
     }

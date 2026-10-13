@@ -278,14 +278,7 @@ h1 em { font-weight: 600; color: #d2efa7; font-style: normal; }
 }
 
 .game-card--unstable-launch .game-art img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  width: 200%;
-  height: 200%;
-  object-fit: fill;
-  filter: drop-shadow(0 0 18px rgba(42, 255, 157, 0.78));
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center;
 }
 
 @keyframes launch-card-scan {
@@ -302,13 +295,7 @@ h1 em { font-weight: 600; color: #d2efa7; font-style: normal; }
 }
 
 .game-card--rocket-simulator .game-art img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 200%;
-  height: 200%;
-  object-fit: fill;
-  filter: drop-shadow(0 0 22px rgba(53, 244, 162, .68));
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center;
 }
 
 .game-card--pets .game-art {
@@ -658,3 +645,5 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
 .game-card--pepe-wars .game-art::after { width:95px; height:130px; right:12px; bottom:10px; border:0; background:url("assets/pepe-wars/corrupt-citadel-v1.png") center/contain no-repeat; box-shadow:none; }
 .game-card--pepe-wars .game-art img { margin-right:45px; }
 .game-card--pets .game-art img { top:8%; left:20%; width:240%; height:160%; clip-path:inset(0 75% 50% 0); }
+
+.game-card--unstable-launch .game-art::after{display:none}

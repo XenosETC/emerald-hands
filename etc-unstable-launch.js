@@ -33,7 +33,7 @@ const milestones = [
 ];
 
 const background = new Image();
-background.src = "assets/etc-unstable-launch/emerald-space.png";
+background.src = "assets/etc-unstable-launch/flight-corridor-v1.png";
 const rocketSource = new Image();
 rocketSource.src = "assets/etc-unstable-launch/etc-rocket-sheet.png";
 const explosionSource = new Image();
@@ -259,10 +259,8 @@ function drawInfiniteSpace() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     return;
   }
-  for (let i = -1; i <= 1; i += 1) {
-    const y = i * canvas.height + state.backgroundOffset;
-    drawCover(background, 0, y, canvas.width, canvas.height);
-  }
+  const drift = Math.sin(state.backgroundOffset / canvas.height * Math.PI * 2) * 14;
+  drawCover(background, -12, drift - 16, canvas.width + 24, canvas.height + 32);
   const veil = ctx.createLinearGradient(0, 0, canvas.width, 0);
   veil.addColorStop(0, "rgba(0,0,0,.2)");
   veil.addColorStop(0.5, "rgba(0,8,5,.38)");

@@ -359,3 +359,18 @@ test('pet charges and recovery grants persist together and failed wallet writes 
   assert.equal(h.arcade.petPurchaseLedger().sticks,2);
   assert.equal(h.arcade.purchasePetGrant(1,{sticks:-5}),false);
 });
+
+
+test('Unstable Launch retains highest lock/rank independently from score and crash peak',()=>{
+ const h=harness('etc-unstable-launch.html');
+ h.arcade.record('unstableLaunch',{lockedPrice:500,peakPrice:500,score:1000,rank:'Vault Escape',played:true});
+ h.arcade.record('unstableLaunch',{lockedPrice:100,peakPrice:100,score:2000,rank:'Emerald Century',played:true});
+ let best=h.arcade.load().best.unstableLaunch;
+ assert.equal(best.lockedPrice,500);assert.equal(best.rank,'Vault Escape');assert.equal(best.score,2000);
+ h.arcade.record('unstableLaunch',{lockedPrice:0,peakPrice:10000,score:0,rank:'Ground Crew',played:true});
+ best=h.arcade.load().best.unstableLaunch;
+ assert.equal(best.lockedPrice,500);assert.equal(best.score,2000);assert.equal(best.peakPrice,10000);
+ h.arcade.record('unstableLaunch',{lockedPrice:1000,peakPrice:1000,score:1800,rank:'Chainbreaker',played:true});
+ best=h.arcade.load().best.unstableLaunch;
+ assert.equal(best.lockedPrice,1000);assert.equal(best.rank,'Chainbreaker');assert.equal(best.score,2000);
+});

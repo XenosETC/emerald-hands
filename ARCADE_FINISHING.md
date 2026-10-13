@@ -15,7 +15,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 9 | Pepe's Paradox | July 14, 2026 · `0e9cec9` | [Finishing candidate](PARADOX.md); real-physics traversal fixture, story handoff and safe recovery |
 | 10 | ETC Pets | July 18, 2026 · `68c2492` | [Finishing candidate](ETC_PETS.md); care receipts, purchase recovery and cooperating sanctuary locks |
 | 11 | ETC Rocket Simulator | July 18, 2026 · `68c2492` | [Finishing candidate](ROCKET_SIMULATOR.md); earned-route fixture, sector completion and save restore |
-| 12 | ETC: Unstable Launch | July 18, 2026 · `68c2492` | Same-commit cohort |
+| 12 | ETC: Unstable Launch | July 18, 2026 · `68c2492` | [Finishing candidate](UNSTABLE_LAUNCH.md); original flight art, exact crashes, milestones and record protection |
 | 13 | Satoshi System | October 5, 2026 · `7e1f161` | Imported build; earlier separate development |
 | 14 | Pepe Soul World | October 5, 2026 · `7e1f161` | Same import cohort |
 | 15 | Pepe Temple Run | October 5, 2026 · `7e1f161` | Same import cohort |
@@ -32,6 +32,6 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 
 “Finishing candidate” means the implemented loop passed its documented local checks. Physical-device comfort, human pacing, hosted behavior and asset rights for commercial release remain separate gates before calling a game fully release-ready. Native Unreal/Godot projects are outside this browser-game queue.
 
-## Next: ETC: Unstable Launch
+## Queued next: Satoshi System
 
-Review Unstable Launch timing, launch/cash-out outcomes, rewards, restart and save compatibility. The first eleven games have documented local finishing candidates. Automated runs do not replace manual feel, physical-device or hosted-release review.
+The flight-art milestone and Unstable Launch local review are closed. Satoshi System is queued next, but its next milestone has not been initiated. The first twelve games have documented local finishing candidates. Automated runs do not replace manual feel, physical-device or hosted-release review.

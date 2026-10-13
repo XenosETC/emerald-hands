@@ -3,7 +3,10 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 function game(roll = .1) {
  const nodes=new Map(),listeners=new Map(),records=[];
- const node=()=>({dataset:{},style:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},appendChild(){},querySelectorAll(){return [];},getContext(){return {};}});
+ const node=()=>{
+  const children=[],classes=new Set();
+  return {children,classes,dataset:{},style:{},classList:{add(name){classes.add(name);},remove(name){classes.delete(name);},toggle(name,force){if(force??!classes.has(name))classes.add(name);else classes.delete(name);}},addEventListener(){},appendChild(child){children.push(child);},querySelectorAll(){return children;},getContext(){return {};}};
+ };
  const window={addEventListener(type,fn){listeners.set(type,fn);},AudioContext:class{constructor(){throw new Error('audio unavailable');}},EmeraldArcade:{load:()=>({}),beginSession(){},recordAndNotify:(game,record)=>records.push(record),isMuted:()=>false,isPaused:()=>false}};
  const math=Object.create(Math);math.random=()=>roll;
  const context=vm.createContext({window,document:{querySelector(selector){if(!nodes.has(selector))nodes.set(selector,node());return nodes.get(selector);},createElement:node},Image:class{addEventListener(){}},performance:{now:()=>0},requestAnimationFrame(){},Math:math});
@@ -62,4 +65,16 @@ test('equal-time lock outcomes match across frame rates and long gaps stay bound
  assert.equal(reports[1],reports[0]);assert.equal(reports[2],reports[0]);
  const stalled=game();stalled.read('startLaunch();advanceFrame(10000)');
  assert.ok(Math.abs(stalled.read('state.elapsed')-.1)<1e-8);
+});
+
+
+test('a late instability seed permits a natural Beyond Canon lock and crosses all milestones',()=>{
+ const h=game(.995);h.read('startLaunch();for(let i=0;i<5000 && state.mode==="launching" && state.price<1000000;i++)update(1/120);lockPrice();updateHud()');
+ assert.equal(h.read('state.mode'),'locked');assert.equal(h.records[0].rank,'Beyond Canon');
+ assert.ok(h.records[0].lockedPrice>=1000000);
+ assert.equal(h.nodes.get('#timeline').children.length,10);
+ assert.equal(h.nodes.get('#timeline').children.filter(node=>node.classes.has('is-crossed')).length,10);
+ assert.equal(h.records.length,1);
+ h.read('handleAction()');assert.equal(h.read('state.mode'),'launching');
+ assert.equal(h.nodes.get('#timeline').children.filter(node=>node.classes.has('is-crossed')).length,0);
 });
