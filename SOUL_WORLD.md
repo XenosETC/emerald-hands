@@ -116,3 +116,13 @@ Desktop keyboard review confirmed startup Tab reaches Enter Kek Academy; Enter b
 Final modal review confirmed the canvas and header become inert on open, lose inert on close, and focus returns to the game. Existing checkpoints remain isolated; no seeded campaign state was used for keyboard onboarding.
 
 Clean staged release verification passed 255 arcade tests and 178 Soul World tests on October 13, 2026.
+
+## Ability requirements and recovery cues — October 13, 2026
+
+A small read-only status helper now explains the same combat gates used by the simulation. Touch ability hints and idle combat status identify Spirit cost, cooldown, guard release, hit recovery, current-technique recovery, unlock and grounded requirements. Airborne L reports Kek Rift's separate 40-SP cost and cooldown rather than the grounded Wave requirement. Upgraded Warp costs come from current stats. Domain uses its actual readiness and grounded rules. Existing guard, cut and Rift animation cues retain priority. No damage, costs, timing or unlock rules change.
+
+Fixtures compare status readiness to combat readiness over multiple player states and verify that producing messages leaves the complete simulation state unchanged. Browser review uses a seeded unlocked 30-SP practice checkpoint on an isolated origin; it checks live Jump/Wave input feedback, not earned unlock or full campaign completion.
+
+Native seeded-checkpoint review found grounded Wave ready at 30 SP, then Jump switched L to disabled Kek Rift with Need 40 SP. After normal Release and Wave casts, Warp was disabled with Need 20 SP while Wave showed its independent 1.2s cooldown. No error logs were observed. The phone screenshot records the controls layout; the short-lived low-Spirit status was verified through the live button state and combat-status text.
+
+Clean staged release verification passed 255 arcade tests and 181 Soul World tests on October 13, 2026.

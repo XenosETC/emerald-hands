@@ -3,18 +3,18 @@ import {GuardControls} from './guard-controls.js';
 import {journalShortcut} from './journal-input.js?v=1';
 import {templeCue} from './temple-combat.js';
 import {appendTempleMeter} from './temple-hud.js';
-import {combatCue} from './combat-cues.js';
+import {combatCue} from './combat-cues.js?v=ability-20261013';
+import {abilityStatus} from './ability-status.js?v=1';
 import {eliteSpec} from './realm-enemies.js';
 import {PointerControls} from './pointer-controls.js';
 import {combatFocus} from './combat-focus.js';
 import {questGuidance,academyTrail} from './quest-guidance.js?v=4';
-import {RIFT} from './kek-rift.js';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
 import {createJournal} from './journal.js?v=keyboard-20261013';
 import {ITEMS,stats,useItem} from './systems.js';
-import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,riftInput,canDomain,abilityReady,domainReady,DOMAIN} from './core.js?v=shrine-20261013';
+import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=shrine-20261013';
 import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js';
 const storageKey=new URLSearchParams(location.search).get('practice')==='1'?'pepe-soul-world-practice-v1':SAVE_KEY;
@@ -109,14 +109,14 @@ function updateUI(){const p=state.player,l=levelFor(state.xp),world=WORLDS.find(
   guardButton.textContent=p.guardBroken>0?'Guard broken':p.guarding?'Sword guard · Release':guardControls.latched?'Guard queued · Cancel':'S · Sword guard';guardButton.setAttribute('aria-pressed',String(!!p.guarding||guardControls.latched));guardButton.disabled=!begun||paused||journalOpen||state.dead;
   const touchGuard=document.querySelector('[data-key="KeyS"]');touchGuard.setAttribute('aria-pressed',String(!!p.guarding));touchGuard.textContent=p.guarding?'Guarding':'Hold guard';touchGuard.disabled=!begun||paused||journalOpen||state.dead;
   for(const button of document.querySelectorAll('[data-item]')){const id=button.dataset.item,item=ITEMS[id],count=state.inventory[id]||0,full=item.heal?p.hp>=stats(state).health:p.sp>=stats(state).spirit;button.textContent=(item.heal?'Heal':'Spirit')+' ×'+count;button.disabled=!begun||paused||journalOpen||state.dead||count===0||full;button.title=count===0?'No flasks remaining':full?'Already full':item.description;}
-  for(const [key,action,name,cooldown,cost] of [['KeyK','dash','Warp Step',p.dashCooldown,stats(state).warpCost],['KeyL','wave','Kek Wave',p.waveCooldown,28],['KeyR','release','Release',p.releaseCooldown,55]]){
-   const button=document.querySelector(`[data-key="${key}"]`);button.disabled=!begun||paused||journalOpen||!abilityReady(state,action);
-   const airRift=action==='wave'&&riftInput(state);
-   if(airRift){button.textContent=p.riftCooldown>0?'Rift '+p.riftCooldown.toFixed(1)+'s':'Kek Rift';button.title=RIFT.cost+' SP · Jump + L';continue;}
-   button.textContent=action==='release'&&p.release>0?'Awakened '+Math.ceil(p.release)+'s':cooldown>0?name+' '+cooldown.toFixed(1)+'s':name;
-   button.title=action==='release'&&!canRelease(state)?'Reach level 3 and recover a seal':cooldown>0?'Recovering':p.sp<cost?'Requires '+cost+' SP':!abilityReady(state,action)?'Finish combat recovery':cost+' SP';
+  for(const [key,action,name] of [['KeyK','dash','Warp Step'],['KeyL','wave','Kek Wave'],['KeyR','release','Release']]){
+   const button=document.querySelector(`[data-key="${key}"]`),info=abilityStatus(state,action);
+   button.disabled=!begun||paused||journalOpen||!info.ready;
+   const label=info.key==='rift'?'Kek Rift':name;
+   button.textContent=action==='release'&&p.release>0?'Awakened '+Math.ceil(p.release)+'s':info.cooldown>0?label+' '+info.cooldown.toFixed(1)+'s':label;
+   button.title=info.reason;
   }
-  const touchDomain=document.querySelector('[data-key="KeyF"]');touchDomain.disabled=domainButton.disabled;touchDomain.textContent=p.domain?'Casting':p.domainCooldown>0?'Domain '+Math.ceil(p.domainCooldown)+'s':'Domain';touchDomain.title=canDomain(state)?'Requires grounded recovery and 80 SP':'Complete the three-seal oath';
+  const touchDomain=document.querySelector('[data-key="KeyF"]');touchDomain.disabled=domainButton.disabled;touchDomain.textContent=p.domain?'Casting':p.domainCooldown>0?'Domain '+Math.ceil(p.domainCooldown)+'s':'Domain';touchDomain.title=abilityStatus(state,'domain').reason;domainButton.title=touchDomain.title;
   canvas.setAttribute('aria-label',`${world.name}. ${state.zone}. Crown Pepe at ${Math.round(p.x)}, ${p.y<GROUND-1?'airborne':p.mode}. HP ${Math.ceil(p.hp)}. Level ${l.level}. Training ${state.training} of 3. Seals ${state.seals.length} of 3.`);
 }
 function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;if(ready){if(begun&&!paused&&!journalOpen&&!state.dead){accumulator+=dt;if(renderer.freeze>0){accumulator=0;}else{while(accumulator>=1/60){const p=state.player;if(walkTarget!==null && Math.abs(walkTarget-p.x)<10)walkTarget=null;const left=keys.has('KeyA')||keys.has('ArrowLeft')||touchKeys.has('KeyA')||(walkTarget!==null && walkTarget<p.x),right=keys.has('KeyD')||keys.has('ArrowRight')||touchKeys.has('KeyD')||(walkTarget!==null && walkTarget>p.x);step(state,{left,right,guard:guardControls.held},1/60);accumulator-=1/60;flush();if(state.dead)break;}}renderer.update(dt,state);}else if(!begun){state.time+=dt;}renderer.draw(state);if(begun&&!state.dead&&now-lastCheckpoint>5000){save();lastCheckpoint=now;}if(now-lastUI>100){updateUI();lastUI=now;}if(now>toastUntil)$('toast').style.opacity='.15';}requestAnimationFrame(frame);}
