@@ -1,5 +1,6 @@
 const SAVE_KEY = "satoshi-system-save-v1";
 const STATE_VERSION = 2;
+let recoveryRequired = false;
 const MAX_SUPPLY = 2_100_000_000_000_000;
 const START_ISSUED = 1_500_000_000_000_000;
 const PRICE_ANCHOR = 40_000;
@@ -140,8 +141,10 @@ function whole(value, fallback = 0) {
 
 function loadState() {
   try {
-    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (!saved || typeof saved !== "object") return defaultState();
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw === null) return defaultState();
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== "object" || Array.isArray(saved)) throw new Error("Unreadable simulation save");
     const next = defaultState();
     next.ticks = whole(saved.ticks);
     next.globalIssued = Math.min(MAX_SUPPLY, Math.max(START_ISSUED, whole(saved.globalIssued, START_ISSUED)));
@@ -188,6 +191,7 @@ function loadState() {
     }
     return next;
   } catch {
+    recoveryRequired = true;
     return defaultState();
   }
 }
@@ -196,7 +200,23 @@ let state = loadState();
 let sessionStarted = false;
 let audioContext;
 
+function readableSavedState() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw !== null) {
+      const saved = JSON.parse(raw);
+      if (!saved || typeof saved !== "object" || Array.isArray(saved)) recoveryRequired = true;
+    }
+  } catch { recoveryRequired = true; }
+  return !recoveryRequired;
+}
+
 function saveState() {
+  if (!readableSavedState()) {
+    els.saveStatus.textContent = "Original save cannot be read and is kept. This tab’s progress is temporary; restore a valid save and reload before saving.";
+    els.saveStatus.classList.add("is-warning");
+    return false;
+  }
   state.version = STATE_VERSION;
   state.circulation = state.globalIssued - state.treasury;
   try {
@@ -440,6 +460,7 @@ function beginSession() {
 }
 
 function advanceTick(event) {
+  readableSavedState();
   if (window.EmeraldArcade?.isPaused()) return;
   beginSession();
   const priorEpoch = epochForTick().index;
@@ -512,6 +533,7 @@ function isCompleteBuild(key) {
 }
 
 function buy(key) {
+  readableSavedState();
   if (window.EmeraldArcade?.isPaused()) return;
   const unlock = unlockState(key);
   const cost = costFor(key);
@@ -588,7 +610,7 @@ function checkGoal() {
   if (!complete || state.goalComplete) return;
   state.goalComplete = true;
   setEvent("Genesis Orbit stabilized", "Three productive worlds are connected beyond the first contraction with supported expansion.", "good");
-  if (!state.arcadeRecorded) {
+  if (!state.arcadeRecorded && !recoveryRequired) {
     try {
       window.EmeraldArcade?.recordAndNotify("satoshiSystem", arcadePayload(true));
       state.arcadeRecorded = true;
@@ -869,6 +891,7 @@ document.addEventListener("keydown", (event) => {
 els.resetButton.addEventListener("click", () => {
   if (!confirm("Reset this fictional Satoshi System simulation?")) return;
   localStorage.removeItem(SAVE_KEY);
+  recoveryRequired = false;
   state = defaultState();
   sessionStarted = false;
   saveState();

@@ -1,8 +1,9 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
-function game(blocked=false){
+function game(blocked=false,raw=null){
  const saves=new Map([['emerald-arcade-v1','unrelated-arcade'],['emerald-arcade-pets-v1','unrelated-pet']]),nodes=new Map();
+ if(raw!==null)saves.set("satoshi-system-save-v1",raw);
  const node=()=>({dataset:{},style:{setProperty(){}},classList:{add(){},remove(){},toggle(){}},setAttribute(){},addEventListener(){},getBoundingClientRect:()=>({left:0,top:0,width:100,height:100}),appendChild(){},remove(){}});
  const window={setTimeout(){},addEventListener(){},AudioContext:class{constructor(){throw Error('no audio');}},EmeraldArcade:{isPaused:()=>false,isMuted:()=>false,beginSession(){throw Error('session unavailable');}}};
  const document={body:node(),activeElement:null,querySelector(selector){if(!nodes.has(selector))nodes.set(selector,node());return nodes.get(selector);},querySelectorAll:()=>[],createElement:node,addEventListener(){}};
@@ -24,4 +25,24 @@ test('Satoshi storage recovery saves current tab progress and clears the warning
  h.unblock();h.read('saveState()');
  assert.equal(h.nodes.get('#saveStatus').textContent,'Saved on this device.');
  assert.equal(JSON.parse(h.saves.get('satoshi-system-save-v1')).ticks,2);
+});
+
+
+test('Satoshi fallback simulation preserves unreadable original saves through actions and save attempts',()=>{
+ for(const raw of ['{broken','null','[]','"not-a-save"']) {
+  const h=game(false,raw);
+  assert.match(h.nodes.get('#saveStatus').textContent,/Original save cannot be read/);
+  h.read('for(let i=0;i<8;i++)advanceTick();buy("relay");saveState()');
+  assert.equal(h.read('state.worlds.relay'),1);
+  assert.equal(h.read('window.__satoshiSystemDebug.invariantHolds()'),true);
+  assert.equal(h.saves.get('satoshi-system-save-v1'),raw);
+ }
+});
+test('Satoshi requires a fresh load after restoration so temporary progress cannot overwrite recovery',()=>{
+ const h=game(false,'{broken');h.read('advanceTick()');
+ const valid=game().saves.get('satoshi-system-save-v1');
+ h.saves.set('satoshi-system-save-v1',valid);h.read('advanceTick();saveState()');
+ assert.equal(h.saves.get('satoshi-system-save-v1'),valid);
+ const fresh=game(false,valid);assert.equal(fresh.read('recoveryRequired'),false);
+ fresh.read('advanceTick()');assert.equal(JSON.parse(fresh.saves.get('satoshi-system-save-v1')).ticks,1);
 });
