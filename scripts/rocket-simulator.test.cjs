@@ -121,6 +121,10 @@ test('a supplied late-game rocket reaches all sectors through natural flight phy
  h.read('for(let step=0;step<40000 && state.mode==="flying";step++)updateFlight(1/120)');
  assert.equal(h.read('state.mode'),'destroyed');
  assert.equal(h.read('state.zoneIndex'),8);
+ assert.equal(h.nodes.get('#missionEyebrow').textContent,'Expedition Campaign Complete');
+ assert.match(h.nodes.get('#missionTitle').textContent,/Beyond Canon reached/);
+ assert.match(h.nodes.get('#missionText').textContent,/All nine sectors discovered/);
+ assert.equal(h.nodes.get('#launchButton').disabled,false);
  assert.equal(h.read('state.failureReason'),'Fuel lattice exhausted');
  assert.ok(h.read('state.distance')>=750000);
  assert.match(h.read('sectorGoal(state.distance).text'),/all nine sectors/);

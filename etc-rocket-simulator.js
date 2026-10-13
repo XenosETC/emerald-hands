@@ -349,6 +349,7 @@ function endFlight(reason) {
   state.mode = "destroyed";
   state.failureReason = reason;
   state.failureTime = 0;
+  const campaignComplete = state.distance >= zones[zones.length - 1].at;
   const newRecord = state.distance > save.bestDistance;
   save.bestDistance = Math.max(save.bestDistance, state.distance);
   save.runs += 1;
@@ -366,9 +367,9 @@ function endFlight(reason) {
   if (petMultiplier > 1) window.ArcadePet?.showAssist("rocketSimulator", true);
   els.launch.disabled = false;
   els.launch.innerHTML = "<span>LAUNCH UPGRADED ROCKET</span><small>Spend salvage, then go farther</small>";
-  els.missionEyebrow.textContent = saved ? (newRecord ? "New Expedition Record" : "Salvage Secured") : "Salvage Not Saved";
-  els.missionTitle.textContent = `${reason} at ${distanceText(state.distance)}.`;
-  els.missionText.textContent = saved ? `The recovery drones banked every shard. ${flightAdvice(reason)}` : "Browser storage is unavailable. Salvage is held only in this tab; reloading may lose it. Restore storage before continuing.";
+  els.missionEyebrow.textContent = saved ? (campaignComplete ? "Expedition Campaign Complete" : newRecord ? "New Expedition Record" : "Salvage Secured") : "Salvage Not Saved";
+  els.missionTitle.textContent = campaignComplete ? `Beyond Canon reached at ${distanceText(state.distance)}.` : `${reason} at ${distanceText(state.distance)}.`;
+  els.missionText.textContent = saved ? (campaignComplete ? `${reason}. All nine sectors discovered and salvage banked. Your hangar remains available for upgrades and personal-record expeditions.` : `The recovery drones banked every shard. ${flightAdvice(reason)}`) : "Browser storage is unavailable. Salvage is held only in this tab; reloading may lose it. Restore storage before continuing.";
   els.missionReward.hidden = false;
   els.missionReward.innerHTML = `
     <div><strong>+${reward} ◆</strong><small>salvaged</small></div>

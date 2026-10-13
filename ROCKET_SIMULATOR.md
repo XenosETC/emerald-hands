@@ -1,4 +1,4 @@
-# Rocket Simulator finishing work — October 12, 2026
+# Rocket Simulator local finishing candidate — October 12, 2026
 
 Stored zero shards now remain zero on reload; only missing balances receive the existing 180 starter shards. Finite save normalization prevents negative balances and invalid distance/run/upgrade values from breaking the hangar. Unknown upgrade IDs are ignored. Audio creation failures no longer interrupt upgrade feedback; shared mute is honored.
 
@@ -69,3 +69,12 @@ Malformed JSON and non-object whole-file saves now latch recovery mode. The orig
 ## Previous-save restore
 
 Each successful upgrade/flight save first retains the previously loaded normalized state in `etc-rocket-simulator-v1-previous`. The expandable Save recovery panel describes that snapshot and provides an explicit restore-and-reload control. Restore validates the backup, blocks active flights, and preserves replaced raw data in `etc-rocket-simulator-v1-before-restore` before writing the previous snapshot. Failed preservation prevents replacement. Recovery history is bounded to one previous snapshot and one replaced snapshot; it is not cloud backup or guaranteed after storage clearing. Full arcade reset includes both recovery keys. Controller fixtures cover damaged-data preservation, validation, active-flight rejection and blocked writes.
+
+
+## Local finishing candidate
+
+A completed flight reaching the existing Beyond Canon threshold now reports campaign completion and all nine discovered sectors, while preserving the failure reason, salvage and continued record chasing. No extra completion reward is introduced. The natural-physics late-build fixture verifies the completion report and enabled relaunch; the earned-policy fixture verifies a route from starter funds.
+
+The implemented local loop covers launch, sector progression, salvage, upgrades, failure/relaunch, final-sector completion, sector records, optional audio, consistent frame timing and previous-save restore. Native clean-URL starter flight, upgrade/reload/relaunch, pause/resume, 390px layout and recovery-button checks are documented above. Whole-campaign native human play is not claimed. The 3×/1.22× campaign tuning remains provisional; deterministic policy timing is not human decision time.
+
+Remaining gates: human strategy/pacing, physical-device comfort, hosted behavior, asset-rights review for commercial release, and cross-tab Rocket write serialization. Local recovery retains only bounded browser snapshots and cannot survive clearing storage. This is a local finishing candidate, not full production readiness. The oldest-to-newest queue advances to ETC: Unstable Launch.
