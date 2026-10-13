@@ -6,7 +6,7 @@
     <meta name="description" content="Satoshi System: a fictional, local-only monetary systems clicker with no live data or financial activity.">
     <title>Satoshi System</title>
     <link rel="preload" href="assets/satoshi-system/monetary-cosmos.png" as="image">
-    <link rel="stylesheet" href="satoshi-system.css?v=records-6">
+    <link rel="stylesheet" href="satoshi-system.css?v=recovery-7">
   </head>
   <body data-regime="balanced">
     <a class="skip-link" href="#genesisStar">Skip to the Genesis Star</a>
@@ -26,6 +26,7 @@
         </nav>
       </header>
       <p class="save-status" id="saveStatus" aria-live="polite">Checking local save…</p>
+      <details class="save-recovery"><summary>Save recovery</summary><p id="satoshiBackupStatus" aria-live="polite"></p><button id="restoreSatoshiBackup" type="button" disabled>Restore previous checkpoint and reload</button></details>
 
       <aside class="boundary-notice" aria-label="Simulation disclosure">
         <strong>Fictional closed-loop simulation</strong>
@@ -118,7 +119,7 @@
 
       <footer class="system-footer"><p><strong>Gameplay model only.</strong> The supply cap, emissions, price paths, businesses, affordability curve, and outcomes are simplified fictional mechanics.</p><span>Local save only · no offline income · no network connection</span></footer>
     </main>
-    <script src="arcade.js?v=11"></script><script src="satoshi-system.js?v=6"></script>
+    <script src="arcade.js?v=11"></script><script src="satoshi-system.js?v=7"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

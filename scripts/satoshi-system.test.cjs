@@ -2,14 +2,14 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 function game(blocked=false,raw=null){
- const saves=new Map([['emerald-arcade-v1','unrelated-arcade'],['emerald-arcade-pets-v1','unrelated-pet']]),nodes=new Map();
+ const saves=new Map([['emerald-arcade-v1','unrelated-arcade'],['emerald-arcade-pets-v1','unrelated-pet']]),nodes=new Map(),keyHandlers={};
  if(raw!==null)saves.set("satoshi-system-save-v1",raw);
  const node=()=>({dataset:{},style:{setProperty(){}},classList:{add(){},remove(){},toggle(){}},setAttribute(){},addEventListener(){},getBoundingClientRect:()=>({left:0,top:0,width:100,height:100}),appendChild(){},remove(){}});
  const window={setTimeout(){},addEventListener(){},AudioContext:class{constructor(){throw Error('no audio');}},EmeraldArcade:{isPaused:()=>false,isMuted:()=>false,beginSession(){throw Error('session unavailable');}}};
- const document={body:node(),activeElement:null,querySelector(selector){if(!nodes.has(selector))nodes.set(selector,node());return nodes.get(selector);},querySelectorAll:()=>[],createElement:node,addEventListener(){}};
+ const document={body:node(),activeElement:null,querySelector(selector){if(!nodes.has(selector))nodes.set(selector,node());return nodes.get(selector);},querySelectorAll:()=>[],createElement:node,addEventListener(type,handler){keyHandlers[type]=handler;}};
  const context=vm.createContext({window,document,localStorage:{getItem:key=>saves.get(key)??null,setItem:(key,value)=>{if(blocked)throw Error('quota');saves.set(key,value);},removeItem:key=>saves.delete(key)},confirm:()=>true});
  vm.runInContext(fs.readFileSync(path.join(__dirname,'../satoshi-system.js'),'utf8'),context);
- return {saves,nodes,window,unblock(){blocked=false;},read:expression=>vm.runInContext(expression,context)};
+ return {saves,nodes,window,keyHandlers,unblock(){blocked=false;},read:expression=>vm.runInContext(expression,context)};
 }
 test('Satoshi blocked writes and unavailable audio leave a balanced playable tab and warning',()=>{
  const h=game(true);
@@ -69,4 +69,40 @@ test('Satoshi completion record retry refreshes once without another played-game
  assert.equal(h.read('recordCompletion(false)'),false);assert.equal(calls.length,1);
  assert.equal(calls[0].game,'satoshiSystem');assert.equal(calls[0].payload.played,false);
  assert.equal(JSON.parse(h.saves.get('satoshi-system-save-v1')).arcadeRecorded,true);
+});
+
+
+test('Satoshi previous checkpoint survives unchanged saves and repairs corruption while retaining replaced data',()=>{
+ const h=game();h.read('advanceTick();advanceTick()');
+ const backup=h.saves.get('satoshi-system-save-v1-previous');
+ assert.equal(JSON.parse(backup).ticks,1);
+ h.read('saveState()');assert.equal(h.saves.get('satoshi-system-save-v1-previous'),backup);
+ h.saves.set('satoshi-system-save-v1','{damaged');h.read('saveState()');
+ assert.equal(h.read('restorePreviousSave().ok'),true);
+ assert.equal(h.saves.get('satoshi-system-save-v1-before-restore'),'{damaged');
+ assert.equal(h.read('restorePreviousSave().ok'),false);
+ assert.equal(h.saves.get('satoshi-system-save-v1-before-restore'),'{damaged');
+ assert.equal(h.saves.get('satoshi-system-save-v1'),backup);
+ h.read('saveState()');assert.equal(h.saves.get('satoshi-system-save-v1'),backup);
+ const fresh=game(false,backup);assert.equal(fresh.read('state.ticks'),1);
+ assert.equal(h.saves.get('emerald-arcade-v1'),'unrelated-arcade');
+});
+test('Satoshi restore rejects invalid ledgers and blocked preservation writes',()=>{
+ const h=game();assert.equal(h.read('restorePreviousSave().ok'),false);
+ h.read('advanceTick();advanceTick()');const before=h.saves.get('satoshi-system-save-v1');
+ h.read('localStorage.setItem=()=>{throw Error("quota")};');
+ assert.equal(h.read('restorePreviousSave().ok'),false);
+ assert.equal(h.saves.get('satoshi-system-save-v1'),before);
+ const bad=JSON.parse(h.saves.get('satoshi-system-save-v1-previous'));bad.treasury+=1;
+ h.saves.set('satoshi-system-save-v1-previous',JSON.stringify(bad));
+ assert.equal(h.read('readBackup()'),null);
+});
+
+
+test('Satoshi Space on disclosure controls does not route a game tick',()=>{
+ const h=game();
+ h.keyHandlers.keydown({code:'Space',repeat:false,target:{closest(){return {};}}});
+ assert.equal(h.read('state.ticks'),0);
+ h.keyHandlers.keydown({code:'Space',repeat:false,preventDefault(){}});
+ assert.equal(h.read('state.ticks'),1);
 });

@@ -262,3 +262,5 @@ body[data-regime] .arcade-runtime-dock button { border-color: #71533a; backgroun
 .goal-card progress{display:block;width:100%;height:10px;margin-top:12px;accent-color:#edbd7c}.goal-steps{margin-top:8px;color:#d3bfa3;font-size:.75rem}.goal-steps summary{min-height:44px;padding:12px 0;cursor:pointer}.goal-steps ol{padding-left:18px;margin:0;line-height:1.7}.goal-steps li{margin-bottom:6px}
 
 #retryArcadeRecord{min-height:44px;margin-top:8px;padding:10px 14px;border:1px solid #d2a66c;border-radius:8px;background:#2b2116;color:#f0d3aa;cursor:pointer}#retryArcadeRecord[hidden]{display:none}
+
+.save-recovery{padding:0 18px;background:#17140e;color:#d3bfa3;border-bottom:1px solid #b88a4933;font-size:.78rem}.save-recovery summary{min-height:44px;padding:12px 0;cursor:pointer}.save-recovery p{line-height:1.5}.save-recovery button{min-height:44px;padding:10px 14px;margin-bottom:12px;border:1px solid #d2a66c;border-radius:8px;background:#2b2116;color:#f0d3aa;cursor:pointer}.save-recovery button:disabled{opacity:.4;cursor:not-allowed}

@@ -1,4 +1,6 @@
 const SAVE_KEY = "satoshi-system-save-v1";
+const BACKUP_KEY = `${SAVE_KEY}-previous`;
+const REPLACED_KEY = `${SAVE_KEY}-before-restore`;
 const STATE_VERSION = 2;
 let recoveryRequired = false;
 const MAX_SUPPLY = 2_100_000_000_000_000;
@@ -101,6 +103,8 @@ const els = {
   buyButtons: [...document.querySelectorAll("[data-buy]")],
   resetButton: document.querySelector("#resetButton"),
   saveStatus: document.querySelector("#saveStatus"),
+  restoreBackup: document.querySelector("#restoreSatoshiBackup"),
+  backupStatus: document.querySelector("#satoshiBackupStatus"),
 };
 
 function defaultState() {
@@ -223,7 +227,10 @@ function saveState() {
   state.version = STATE_VERSION;
   state.circulation = state.globalIssued - state.treasury;
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    const serialized = JSON.stringify(state);
+    const previous = localStorage.getItem(SAVE_KEY);
+    if (previous !== null && previous !== serialized) localStorage.setItem(BACKUP_KEY, previous);
+    localStorage.setItem(SAVE_KEY, serialized);
     if (els.saveStatus.textContent !== "Saved on this device.") els.saveStatus.textContent = "Saved on this device.";
     els.saveStatus.classList.remove("is-warning");
     return true;
@@ -233,6 +240,33 @@ function saveState() {
     els.saveStatus.classList.add("is-warning");
     return false;
   }
+}
+
+function readBackup() {
+  try {
+    const raw = localStorage.getItem(BACKUP_KEY), value = JSON.parse(raw);
+    if (!value || value.version !== STATE_VERSION) return null;
+    const wholeFields = ["ticks", "treasury", "circulation", "globalIssued", "routing", "resilience"];
+    if (!wholeFields.every(key => Number.isSafeInteger(value[key]) && value[key] >= 0)) return null;
+    if (value.globalIssued > MAX_SUPPLY || value.globalIssued !== value.circulation + value.treasury) return null;
+    if (value.routing > ROUTING_DEF.max || value.resilience > 2) return null;
+    if (!Object.entries(WORLD_DEFS).every(([key,def]) => Number.isInteger(value.worlds?.[key]) && value.worlds[key] >= 0 && value.worlds[key] <= def.max)) return null;
+    return { raw, value };
+  } catch { return null; }
+}
+
+function restorePreviousSave() {
+  if (window.EmeraldArcade?.isPaused()) return { ok:false, message:"Resume before restoring the simulation." };
+  const backup = readBackup();
+  if (!backup) return { ok:false, message:"No readable previous checkpoint is available." };
+  try {
+    const current = localStorage.getItem(SAVE_KEY);
+    if (current === backup.raw) return { ok:false, message:"This checkpoint is already loaded. Preserved replacement data is unchanged." };
+    if (current !== null) localStorage.setItem(REPLACED_KEY, current);
+    localStorage.setItem(SAVE_KEY, backup.raw);
+    recoveryRequired = true;
+    return { ok:true, message:"Previous checkpoint restored. Replaced data was preserved; reloading now." };
+  } catch { return { ok:false, message:"Restore stopped: storage is unavailable. Current save kept." }; }
 }
 
 function epochForTick(tick = state.ticks) {
@@ -824,6 +858,9 @@ function renderStatus() {
 }
 
 function render() {
+  const backup = readBackup();
+  els.restoreBackup.disabled = !backup;
+  els.backupStatus.textContent = backup ? `Previous checkpoint: ${formatWhole(backup.value.ticks)} ${backup.value.ticks === 1 ? "tick" : "ticks"} · ${formatWhole(backup.value.treasury)} fictional sats. Restore rolls back to this snapshot and preserves replaced data.` : "A previous checkpoint is kept after progress changes and saves successfully.";
   const epoch = epochForTick();
   const load = operatingLoad();
   const coverage = reserveCoverage();
@@ -923,14 +960,21 @@ els.genesisStar.addEventListener("click", advanceTick);
 for (const button of els.buyButtons) button.addEventListener("click", () => buy(button.dataset.buy));
 
 document.addEventListener("keydown", (event) => {
-  if (event.code !== "Space" || event.repeat || ["INPUT", "TEXTAREA", "BUTTON"].includes(document.activeElement?.tagName)) return;
+  if (event.code !== "Space" || event.repeat || event.target?.closest?.("button, a, input, textarea, select, summary, [contenteditable]") || ["INPUT", "TEXTAREA", "BUTTON", "SELECT", "A", "SUMMARY"].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
   event.preventDefault();
   advanceTick(event);
 });
 
+els.restoreBackup.addEventListener("click", () => {
+  const result = restorePreviousSave();
+  els.backupStatus.textContent = result.message;
+  if (result.ok) location.reload();
+});
 els.resetButton.addEventListener("click", () => {
-  if (!confirm("Reset this fictional Satoshi System simulation?")) return;
+  if (!confirm("Reset this fictional Satoshi System simulation and its local recovery copies?")) return;
   localStorage.removeItem(SAVE_KEY);
+  localStorage.removeItem(BACKUP_KEY);
+  localStorage.removeItem(REPLACED_KEY);
   recoveryRequired = false;
   state = defaultState();
   sessionStarted = false;

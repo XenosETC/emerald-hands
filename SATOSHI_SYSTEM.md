@@ -24,3 +24,12 @@ Native isolated-browser check routed eight star clicks, bought Relay Moon, and a
 A failed optional arcade completion record now exposes Retry arcade record after Genesis Orbit completion. It retries best-record metadata with `played:false`, sets the local recorded flag only after success and then hides. This prevents another played-game count if the first attempt wrote before failing; if that first write failed entirely, the retry updates the best without adding the missing played count. There is no two-key atomic transaction guarantee. The goal stays complete independently, and recovery-mode temporary progress cannot record.
 
 Controller fixtures reach the goal through earned actions, reject its first record, retry successfully and verify the local flag persists. A separate actual shared-controller test records completion plus retry and confirms no shared XP, shard, badge or pet progression awards.
+
+
+## Previous checkpoint restore — October 13, 2026
+
+Changed saves retain the previous serialized state in `satoshi-system-save-v1-previous`; identical saves, reload initialization and unload do not rotate it. Save recovery shows that snapshot’s ticks and Treasury and provides an explicit restore-and-reload button. Restore checks version, balanced safe-integer ledgers and capped build levels, preserves replaced raw data in `satoshi-system-save-v1-before-restore`, then writes the checkpoint. Failed preservation stops replacement. Confirmed guest reset clears only these three Satoshi keys. Recovery is bounded local storage, not cloud backup; browser data clearing still removes it. Fixtures cover unchanged writes, corruption repair, latch protection, invalid ledgers and blocked writes.
+
+Native isolated restore check: two clicks created a one-tick/eight-sat checkpoint; restoring reloaded at eight fictional sats, 119 ticks to contraction and a successful save status. Space on disclosure/interactive controls now leaves gameplay ticks alone. User-origin saves were untouched.
+
+Restoring an already-loaded checkpoint is a no-op and retains the prior replaced-data copy. The regression verifies repeated restore cannot discard that preserved original.
