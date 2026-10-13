@@ -47,3 +47,10 @@ At widths above 980px, the mission report and pet assist flow below the 16:9 can
 The hangar now explains the current build’s fuel duration, top speed and velocity where frame stress begins. Flight physics and the readout use the same system calculation; these are limits, not a promised expedition result.
 
 A supplied-upgrade fixture (engine 1, fuel 30, frame 14, cooling 10, guidance 24, magnet 1) runs natural flight physics through Beyond Canon and ends by fuel exhaustion, without injected distance or rewards. This verifies late-sector traversal, not earned affordability. A separate exploratory 150-flight cheapest-upgrade policy using only starter and earned salvage reached about 71K km; it did not reach the final sector. Progression pacing and a practical earned route remain open, and costs/rewards are unchanged.
+
+
+## Provisional arcade campaign tuning
+
+Following user authorization to choose the pace, automatic expeditions now simulate at 3× speed and upgrade prices grow by 1.22× per level (formerly 1.52×). First-level costs, saved levels, balances, sector thresholds and salvage formula remain unchanged. Existing saves receive current prices without refunds for past spending. Fuel-duration readouts show active-play seconds at the new rate, and upgrade cards preview concrete effects and engine strain tradeoffs.
+
+A deterministic focused route spends only starter and earned salvage, leaves engine level 1, caps frame purchases at 13 and cooling at 9, and otherwise buys affordable cheapest fuel/guidance/magnet/support upgrades. Candidate exploration reached Beyond Canon in 27 flights and about 21 minutes of automatic flight time; shipped-controller regression requires completion within 35 flights and 30 minutes. Decision time, browser throttling and human strategy add time. This is one viable policy, not optimality or human balance proof. Blind engine-heavy purchasing can still cause structural walls; pacing remains provisional pending human play. Earlier timing and price observations above are historical pre-tuning receipts.

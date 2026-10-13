@@ -1,6 +1,8 @@
 const canvas = document.querySelector("#rocketCanvas");
 const ctx = canvas.getContext("2d");
 const SAVE_KEY = "etc-rocket-simulator-v1";
+const UPGRADE_PRICE_GROWTH = 1.22;
+const EXPEDITION_RATE = 3;
 
 const els = {
   launch: document.querySelector("#launchButton"),
@@ -29,7 +31,7 @@ const els = {
 };
 
 const upgradeDefs = {
-  engine: { name: "Emerald Engine", copy: "More thrust and distance speed.", base: 90 },
+  engine: { name: "Emerald Engine", copy: "More thrust and speed; raises frame and cooling demands.", base: 90 },
   fuel: { name: "Fuel Lattice", copy: "Extends expedition duration.", base: 75 },
   frame: { name: "Obsidian Frame", copy: "Supports higher velocity and mass.", base: 105 },
   cooling: { name: "Void Cooling", copy: "Controls reactor heat buildup.", base: 95 },
@@ -123,7 +125,7 @@ function persist() {
 }
 
 function upgradeCost(key) {
-  return Math.round(upgradeDefs[key].base * Math.pow(1.52, save.upgrades[key] - 1));
+  return Math.round(upgradeDefs[key].base * Math.pow(UPGRADE_PRICE_GROWTH, save.upgrades[key] - 1));
 }
 
 function buyUpgrade(key) {
@@ -144,8 +146,7 @@ function buyUpgrade(key) {
   window.ArcadePet?.celebrate();
 }
 
-function rocketSystems() {
-  const u = save.upgrades;
+function rocketSystems(u = save.upgrades) {
   return {
     thrust: 120 + u.engine * 42,
     efficiency: 1 + u.nav * .12,
@@ -156,9 +157,20 @@ function rocketSystems() {
   };
 }
 
+function upgradePreview(key) {
+  const current = rocketSystems();
+  const next = rocketSystems({ ...save.upgrades, [key]: save.upgrades[key] + 1 });
+  if (key === "engine") return `Top speed ${current.topSpeed} → ${next.topSpeed} km/s; review frame and cooling.`;
+  if (key === "fuel") return `Fuel duration ${(current.capacity / EXPEDITION_RATE).toFixed(1)} → ${(next.capacity / EXPEDITION_RATE).toFixed(1)}s.`;
+  if (key === "frame") return `Stress threshold ${Math.sqrt(current.support).toFixed(0)} → ${Math.sqrt(next.support).toFixed(0)} km/s.`;
+  if (key === "cooling") return `Cooling strength ${current.cooling.toFixed(1)} → ${next.cooling.toFixed(1)}.`;
+  if (key === "nav") return `Range efficiency ${current.efficiency.toFixed(2)}× → ${next.efficiency.toFixed(2)}×.`;
+  return `Base salvage multiplier ${(1 + save.upgrades.magnet * .13).toFixed(2)}× → ${(1 + (save.upgrades.magnet + 1) * .13).toFixed(2)}×.`;
+}
+
 function renderHangar() {
   const systems = rocketSystems();
-  els.buildTelemetry.textContent = `Fuel duration ${systems.capacity.toFixed(1)}s · top speed ${systems.topSpeed.toFixed(0)} km/s · frame stress begins above ${Math.sqrt(systems.support).toFixed(0)} km/s. Fuel, heat and hull still determine actual flight duration.`;
+  els.buildTelemetry.textContent = `Fuel duration ${(systems.capacity / EXPEDITION_RATE).toFixed(1)}s at ${EXPEDITION_RATE}× expedition speed · top speed ${systems.topSpeed.toFixed(0)} km/s · frame stress begins above ${Math.sqrt(systems.support).toFixed(0)} km/s. Fuel, heat and hull still determine actual flight duration.`;
   els.upgrades.innerHTML = "";
   for (const [key, def] of Object.entries(upgradeDefs)) {
     const cost = upgradeCost(key);
@@ -167,7 +179,7 @@ function renderHangar() {
     card.innerHTML = `
       <div><h3>${def.name}</h3><span class="level">Level ${save.upgrades[key]}</span></div>
       <button type="button" data-upgrade="${key}" aria-label="Upgrade ${def.name} to level ${save.upgrades[key] + 1} for ${cost} salvage shards" ${state.mode === "flying" || save.shards < cost ? "disabled" : ""}>${cost} ◆</button>
-      <p>${def.copy}</p>
+      <p>${def.copy}</p><p class="upgrade-effect">${upgradePreview(key)}</p>
     `;
     els.upgrades.appendChild(card);
   }
@@ -217,6 +229,7 @@ function launch() {
 
 function updateFlight(delta) {
   if (state.mode !== "flying") return;
+  delta *= EXPEDITION_RATE;
   state.elapsed += delta;
   const { thrust, efficiency, support, cooling, capacity, topSpeed } = rocketSystems();
   state.velocity += (thrust / 85) * delta;

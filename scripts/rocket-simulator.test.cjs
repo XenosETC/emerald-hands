@@ -75,7 +75,7 @@ test('rocket fixed-step telemetry matches equal flight time at 30, 60 and 120 FP
 });
 test('rocket bounded frame gaps cannot fast-forward an expedition',()=>{
  const h=game();h.read('launch();advanceFrame(10000)');
- assert.ok(Math.abs(h.read('state.elapsed')-.1)<1e-8);
+ assert.ok(Math.abs(h.read('state.elapsed')-.3)<1e-8);
  const before=h.read('state.distance');
  h.read('advanceFrame(10000)');assert.equal(h.read('state.distance'),before);
 });
@@ -102,7 +102,7 @@ test('rocket debrief points to the failed system with actual upgrade cost and af
  h.read('save.shards=75');
  assert.match(h.read('flightAdvice("Fuel lattice exhausted")'),/You can afford/);
  h.read('buyUpgrade("fuel")');
- assert.match(h.read('flightAdvice("Fuel lattice exhausted")'),/Level 3 costs 114/);
+ assert.match(h.read('flightAdvice("Fuel lattice exhausted")'),/Level 3 costs 92/);
 });
 
 
@@ -113,7 +113,7 @@ test('rocket build telemetry shares actual flight system formulas',()=>{
  assert.match(h.nodes.get('#buildTelemetry').textContent,/frame stress begins above 41/);
  h.read('buyUpgrade("fuel")');
  assert.equal(h.read('rocketSystems().capacity'),35);
- assert.match(h.nodes.get('#buildTelemetry').textContent,/Fuel duration 35.0s/);
+ assert.match(h.nodes.get('#buildTelemetry').textContent,/Fuel duration 11.7s/);
 });
 test('a supplied late-game rocket reaches all sectors through natural flight physics',()=>{
  const h=game({shards:0,upgrades:{engine:1,fuel:30,frame:14,cooling:10,nav:24,magnet:1}});
@@ -125,4 +125,24 @@ test('a supplied late-game rocket reaches all sectors through natural flight phy
  assert.ok(h.read('state.distance')>=750000);
  assert.match(h.read('sectorGoal(state.distance).text'),/all nine sectors/);
  assert.equal(h.read('save.runs'),1);
+});
+
+
+test('a focused earned-salvage route reaches Beyond Canon within a bounded arcade campaign',()=>{
+ const h=game();
+ const result=h.read(`(()=>{let activeTime=0;for(let run=1;run<=40;run++){
+  while(true){const keys=['fuel','nav','magnet','frame','cooling'].filter(k=>k!=='frame'||save.upgrades.frame<13).filter(k=>k!=='cooling'||save.upgrades.cooling<9).sort((a,b)=>upgradeCost(a)-upgradeCost(b));const key=keys.find(k=>upgradeCost(k)<=save.shards);if(!key)break;buyUpgrade(key)}
+  launch();for(let step=0;step<120000 && state.mode==='flying';step++)updateFlight(1/120);
+  activeTime+=state.elapsed/EXPEDITION_RATE;
+  if(state.distance>=750000)return {runs:run,activeTime,distance:state.distance};
+ }return null})()`);
+ assert.ok(result,'earned route should reach final sector');
+ assert.ok(result.runs<=35);assert.ok(result.activeTime<1800);
+ assert.ok(result.distance>=750000);
+});
+test('rocket upgrade previews show existing speed, range and salvage tradeoffs',()=>{
+ const h=game();
+ assert.match(h.read('upgradePreview("engine")'),/103 → 141/);
+ assert.match(h.read('upgradePreview("nav")'),/1.12× → 1.24×/);
+ assert.match(h.read('upgradePreview("magnet")'),/1.13× → 1.26×/);
 });
