@@ -10,3 +10,10 @@ Remaining gates: damaged-save preservation/recovery, natural goal progression, c
 ## Damaged-save preservation
 
 Unreadable JSON and non-object whole-file saves now latch a recovery mode. The fallback simulation remains playable and balanced in the tab, but its writes cannot replace the original stored text. The save-status notice explains temporary progress and the need to restore a valid save then reload. The latch remains after external restoration, preventing stale fallback state from overwriting recovery. Explicit confirmed Reset Simulation retains its existing behavior and starts a fresh isolated save. Temporary recovery progress does not send a completion record to the arcade. Fixtures cover invalid shapes, actions without overwriting, restored-save protection and valid fresh-load continuation. Automatic reconstruction or a backup restore interface is not implemented yet.
+
+
+## Guided Genesis Orbit progression
+
+The goal panel now shows five existing completion conditions in a checklist and progress meter. Its next action follows world/build prerequisites before waiting for the first contraction, with the current cost and remaining fictional sats. Completed objectives remain marked after the existing completion flag is latched. No costs, yields or goal rules change. An actual-controller policy buys three Routing levels, Relay, Merchant, Resilience, Expansion and Forge using only clicked/earned sats, completing within 150 ticks while checking ledger conservation after every cycle. Exploration completed at 123 ticks; this is a deterministic policy, not a human pacing result or financial advice.
+
+Native isolated-browser check routed eight star clicks, bought Relay Moon, and advanced the goal text to Merchant Planet at its existing 240-sat cost while the save status remained successful. User-origin saves were untouched.

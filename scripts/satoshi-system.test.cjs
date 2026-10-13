@@ -46,3 +46,12 @@ test('Satoshi requires a fresh load after restoration so temporary progress cann
  const fresh=game(false,valid);assert.equal(fresh.read('recoveryRequired'),false);
  fresh.read('advanceTick()');assert.equal(JSON.parse(fresh.saves.get('satoshi-system-save-v1')).ticks,1);
 });
+
+
+test('Satoshi guided goal starts with the first world and completes through earned clicks and purchases',()=>{
+ const h=game();assert.match(h.read('goalAdvice()'),/Relay Moon/);
+ const result=h.read(`(()=>{const plan=['routing','routing','routing','relay','merchant','resilience','expansion','forge'];let index=0;for(let ticks=0;ticks<500&&!state.goalComplete;ticks++){advanceTick();while(index<plan.length && unlockState(plan[index]).unlocked && state.treasury>=costFor(plan[index]))buy(plan[index++]);if(!window.__satoshiSystemDebug.invariantHolds())throw Error('ledger');}return {ticks:state.ticks,complete:state.goalComplete,steps:goalSteps().filter(step=>step.done).length,coverage:reserveCoverage()}})()`);
+ assert.equal(result.complete,true);assert.ok(result.ticks<=150);assert.equal(result.steps,5);assert.ok(result.coverage>=3);
+ assert.equal(h.nodes.get('#goalProgress').value,5);
+ assert.equal(h.saves.get('emerald-arcade-v1'),'unrelated-arcade');
+});

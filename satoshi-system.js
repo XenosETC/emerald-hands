@@ -92,6 +92,8 @@ const els = {
   statusText: document.querySelector("#statusText"),
   goalTitle: document.querySelector("#goalTitle"),
   goalText: document.querySelector("#goalText"),
+  goalProgress: document.querySelector("#goalProgress"),
+  goalChecklist: document.querySelector("#goalChecklist"),
   goalCard: document.querySelector(".goal-card"),
   gateNode: document.querySelector("#gateNode"),
   buildCards: [...document.querySelectorAll("[data-build-card]")],
@@ -605,6 +607,33 @@ function postureForAllocation() {
   }[largest];
 }
 
+function goalSteps() {
+  return [
+    { label: "Connect three productive worlds", done: connectedWorlds() === 3 },
+    { label: "Pass the first contraction", done: epochForTick().index >= 1 },
+    { label: "Open the Expansion Gate", done: state.expansion },
+    { label: "Build Resilience Level 1", done: state.resilience >= 1 },
+    { label: "Support the expanded orbit", done: state.expansion && !isOverloaded() },
+  ].map(step => ({ ...step, done: state.goalComplete || step.done }));
+}
+
+function goalAdvice() {
+  let key;
+  if (!state.worlds.relay) key = "relay";
+  else if (!state.worlds.merchant) key = "merchant";
+  else if (state.resilience < 1) key = "resilience";
+  else if (!state.expansion) key = "expansion";
+  else if (!state.worlds.forge) key = "forge";
+  if (key) {
+    const name = WORLD_DEFS[key]?.name || (key === "resilience" ? "Resilience Grid" : "Expansion Gate");
+    const cost = costFor(key);
+    return `Next: ${name} · ${formatWhole(cost)} fictional sats · ${formatWhole(Math.max(0, cost - state.treasury))} still needed.`;
+  }
+  if (epochForTick().index < 1) return `Next: advance ${FIRST_CONTRACTION_TICK - state.ticks} ticks to the first contraction.`;
+  if (isOverloaded()) return "Next: retain three operating cycles of reserve coverage to support expansion.";
+  return "Next: stabilize the system.";
+}
+
 function checkGoal() {
   const complete = connectedWorlds() === 3 && epochForTick().index >= 1 && state.expansion && state.resilience >= 1 && !isOverloaded();
   if (!complete || state.goalComplete) return;
@@ -778,13 +807,10 @@ function renderStatus() {
 
   const worlds = connectedWorlds();
   els.goalTitle.textContent = `Connect ${worlds} / 3 productive worlds`;
-  const remaining = [];
-  if (epochForTick().index < 1) remaining.push("pass the first contraction");
-  if (!state.expansion) remaining.push("open the Expansion Gate");
-  if (state.resilience < 1) remaining.push("build Resilience Level 1");
-  if (isOverloaded() && state.resilience >= 1) remaining.push("hold three cycles of reserve coverage");
-  if (worlds < 3) remaining.push(`connect ${3 - worlds} more world${3 - worlds === 1 ? "" : "s"}`);
-  els.goalText.textContent = state.goalComplete ? "Genesis Orbit complete. Grow your worlds and explore later fictional market cycles." : `Next: ${remaining[0] || "stabilize the system"}.`;
+  els.goalText.textContent = state.goalComplete ? "Genesis Orbit complete. Grow your worlds and explore later fictional market cycles." : goalAdvice();
+  const steps = goalSteps();
+  els.goalProgress.value = steps.filter(step => step.done).length;
+  els.goalChecklist.innerHTML = steps.map(step => `<li>${step.done ? "Complete" : "Pending"} · ${step.label}</li>`).join("");
   els.goalCard.classList.toggle("is-complete", state.goalComplete);
 }
 
