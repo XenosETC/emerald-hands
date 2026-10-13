@@ -135,6 +135,7 @@ function explode() {
   state.peakPrice = state.price;
   state.explosionTime = 0;
   state.screenShake = 24;
+  state.stability = 0;
   spawnExplosionParticles();
   stopEngine();
   playExplosionSound();
@@ -170,21 +171,33 @@ function finishRun(success) {
   loadBest();
 }
 
+function priceAtElapsed(elapsed) {
+  const growth = .72 + Math.min(.19, elapsed * .009);
+  return START_PRICE * Math.exp(elapsed * growth);
+}
+
+function crashTimeForPrice(price) {
+  const logRatio = Math.log(price / START_PRICE);
+  const cappedAt = .19 / .009;
+  return logRatio <= cappedAt * .91 ? (-.72 + Math.sqrt(.72 ** 2 + .036 * logRatio)) / .018 : logRatio / .91;
+}
+
 function update(delta) {
   const speed = state.mode === "launching" ? 190 + Math.log10(Math.max(1, state.price)) * 95 : 55;
   state.backgroundOffset = (state.backgroundOffset + speed * delta) % canvas.height;
   updateShards(delta, speed);
 
   if (state.mode === "launching") {
-    state.elapsed += delta;
-    const growth = 0.72 + Math.min(0.19, state.elapsed * 0.009);
-    state.price = START_PRICE * Math.exp(state.elapsed * growth);
+    const crashAt = crashTimeForPrice(state.crashPrice);
+    const crashed = state.elapsed + delta >= crashAt;
+    state.elapsed = Math.min(state.elapsed + delta, crashAt);
+    state.price = crashed ? state.crashPrice : priceAtElapsed(state.elapsed);
     state.peakPrice = Math.max(state.peakPrice, state.price);
     state.velocity = 1 + Math.log10(state.price / START_PRICE) * 2.45;
     const progress = Math.log(state.price / START_PRICE) / Math.log(state.crashPrice / START_PRICE);
     const warningNoise = Math.sin(state.elapsed * 11) * Math.max(0, progress - 0.62) * 8;
     state.stability = clamp(104 - progress * 100 + warningNoise, 0, 100);
-    if (state.price >= state.crashPrice) explode();
+    if (crashed) explode();
   }
 
   if (state.mode === "exploded") {
@@ -501,10 +514,21 @@ function handleAction() {
   else startLaunch();
 }
 
-function loop(now) {
-  const delta = Math.min(0.033, (now - state.lastFrame) / 1000);
+let frameRemainder = 0;
+const LAUNCH_STEP = 1 / 120;
+function advanceFrame(now) {
+  const elapsed = Math.max(0, Math.min(.1, (now - state.lastFrame) / 1000));
   state.lastFrame = now;
-  update(delta);
+  frameRemainder += elapsed;
+  while (frameRemainder + 1e-10 >= LAUNCH_STEP) {
+    update(LAUNCH_STEP);
+    frameRemainder -= LAUNCH_STEP;
+  }
+  frameRemainder = Math.max(0, frameRemainder);
+}
+
+function loop(now) {
+  advanceFrame(now);
   draw();
   requestAnimationFrame(loop);
 }
