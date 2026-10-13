@@ -53,6 +53,7 @@ test('Satoshi guided goal starts with the first world and completes through earn
  const result=h.read(`(()=>{const plan=['routing','routing','routing','relay','merchant','resilience','expansion','forge'];let index=0;for(let ticks=0;ticks<500&&!state.goalComplete;ticks++){advanceTick();while(index<plan.length && unlockState(plan[index]).unlocked && state.treasury>=costFor(plan[index]))buy(plan[index++]);if(!window.__satoshiSystemDebug.invariantHolds())throw Error('ledger');}return {ticks:state.ticks,complete:state.goalComplete,steps:goalSteps().filter(step=>step.done).length,coverage:reserveCoverage()}})()`);
  assert.equal(result.complete,true);assert.ok(result.ticks<=150);assert.equal(result.steps,5);assert.ok(result.coverage>=3);
  assert.equal(h.nodes.get('#goalProgress').value,5);
+ assert.equal(h.nodes.get('#goalTitle').textContent,'Genesis Orbit complete');
  assert.equal(h.saves.get('emerald-arcade-v1'),'unrelated-arcade');
 });
 

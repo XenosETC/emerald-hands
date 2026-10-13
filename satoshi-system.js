@@ -848,7 +848,7 @@ function renderStatus() {
   els.statusCard.classList.toggle("is-good", event.tone === "good");
 
   const worlds = connectedWorlds();
-  els.goalTitle.textContent = `Connect ${worlds} / 3 productive worlds`;
+  els.goalTitle.textContent = state.goalComplete ? "Genesis Orbit complete" : `Connect ${worlds} / 3 productive worlds`;
   els.goalText.textContent = state.goalComplete ? "Genesis Orbit complete. Grow your worlds and explore later fictional market cycles." : goalAdvice();
   const steps = goalSteps();
   els.goalProgress.value = steps.filter(step => step.done).length;

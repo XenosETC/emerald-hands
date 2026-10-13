@@ -6,7 +6,7 @@ Open `index.html` for the ETC Mini Games Lab hub. `emerald-hands.html` opens the
 
 ## Finishing the collection — oldest first
 
-Work now follows the [oldest-to-newest finishing queue](ARCADE_FINISHING.md): The first twelve games now have documented local finishing candidates; Satoshi System finishing work is underway after the closed flight-art milestone. Emerald Hands has a finishing candidate with guided objectives, bulk buying, protected cycle restarts, save backup/recovery, a cycle journal, and completion at its existing Emerald Sovereign rank. See [EMERALD_HANDS.md](EMERALD_HANDS.md) for behavior and verification. Local checks do not replace human balance, physical-device, hosted-release or asset-rights gates.
+Work now follows the [oldest-to-newest finishing queue](ARCADE_FINISHING.md): The first thirteen games now have documented local finishing candidates; Pepe Soul World is next. Emerald Hands has a finishing candidate with guided objectives, bulk buying, protected cycle restarts, save backup/recovery, a cycle journal, and completion at its existing Emerald Sovereign rank. See [EMERALD_HANDS.md](EMERALD_HANDS.md) for behavior and verification. Local checks do not replace human balance, physical-device, hosted-release or asset-rights gates.
 
 ## Browser game release — October 5, 2026
 
