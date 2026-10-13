@@ -59,3 +59,8 @@ A deterministic focused route spends only starter and earned salvage, leaves eng
 ## Sector journal
 
 An expandable sector journal lists all nine sector names, distance thresholds and whether the best completed expedition reached each. It derives discoveries from the existing best-distance save, so legacy records work without a new save format. It updates on flight completion and survives reload when persistence succeeds. Live crossings remain transient until completion; a failed save can lose that tab’s new record on reload. Fixtures verify legacy boundary records, natural starter completion/reload and all-nine records. No new sector rewards are added.
+
+
+## Unreadable save recovery guard
+
+Malformed JSON and non-object whole-file saves now latch recovery mode. The original stored text is retained; launch, upgrades and persistence stop, with a visible restore-and-reload notice. Reload is required after restoration so the old fallback snapshot cannot overwrite the recovered save. Missing saves still receive the existing starter state. Controller fixtures cover invalid shapes, corruption appearing during an open session, blocked mutation after restoration and successful fresh-load recovery. No automatic reconstruction or refunds are inferred. Cross-tab Rocket mutation serialization remains a separate limitation.

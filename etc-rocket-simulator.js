@@ -69,6 +69,7 @@ salvage.src = "assets/etc-rocket-simulator/salvage.png";
 const explosion = new Image();
 explosion.src = "assets/etc-unstable-launch/emerald-explosion-sheet.png";
 
+let recoveryRequired = false;
 const save = loadSave();
 const stars = Array.from({ length: 60 }, () => makeStar(true));
 const rewardDrops = [];
@@ -109,7 +110,9 @@ function savedNumber(value, fallback, minimum = 0) {
 
 function loadSave() {
   try {
-    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+    const raw = localStorage.getItem(SAVE_KEY);
+    const saved = raw === null ? null : JSON.parse(raw);
+    if (raw !== null && (!saved || typeof saved !== "object" || Array.isArray(saved))) throw new Error("Invalid rocket save shape");
     return {
       shards: savedNumber(saved?.shards, 180),
       bestDistance: savedNumber(saved?.bestDistance, 0),
@@ -117,11 +120,29 @@ function loadSave() {
       upgrades: Object.fromEntries(Object.keys(upgradeDefs).map((key) => [key, Math.floor(savedNumber(saved?.upgrades?.[key], 1, 1))])),
     };
   } catch {
+    recoveryRequired = true;
     return { shards: 180, bestDistance: 0, runs: 0, upgrades: Object.fromEntries(Object.keys(upgradeDefs).map((key) => [key, 1])) };
   }
 }
 
+function canUseSave() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw !== null) {
+      const value = JSON.parse(raw);
+      if (!value || typeof value !== "object" || Array.isArray(value)) recoveryRequired = true;
+    }
+  } catch { recoveryRequired = true; }
+  return !recoveryRequired;
+}
+
+function showRecoveryNotice() {
+  els.missionEyebrow.textContent = "Save Recovery Needed";
+  els.missionText.textContent = "Your rocket save cannot be read. Original data is kept; launch and upgrades are stopped. Restore a valid save, then reload before continuing.";
+}
+
 function persist() {
+  if (!canUseSave()) return false;
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); return true; }
   catch { return false; }
 }
@@ -131,6 +152,7 @@ function upgradeCost(key) {
 }
 
 function buyUpgrade(key) {
+  if (!canUseSave()) { showRecoveryNotice(); renderHangar(); return; }
   if (state.mode === "flying" || !Object.hasOwn(upgradeDefs, key)) return;
   const cost = upgradeCost(key);
   if (save.shards < cost) return;
@@ -181,6 +203,9 @@ function renderSectorJournal() {
 }
 
 function renderHangar() {
+  const readable = canUseSave();
+  if (!readable) showRecoveryNotice();
+  els.launch.disabled = !readable || state.mode === "flying";
   renderSectorJournal();
   const systems = rocketSystems();
   els.buildTelemetry.textContent = `Fuel duration ${(systems.capacity / EXPEDITION_RATE).toFixed(1)}s at ${EXPEDITION_RATE}× expedition speed · top speed ${systems.topSpeed.toFixed(0)} km/s · frame stress begins above ${Math.sqrt(systems.support).toFixed(0)} km/s. Fuel, heat and hull still determine actual flight duration.`;
@@ -191,7 +216,7 @@ function renderHangar() {
     card.className = `upgrade-card${state.mode === "destroyed" && recommendedUpgrade(state.failureReason) === key ? " is-recommended" : ""}`;
     card.innerHTML = `
       <div><h3>${def.name}</h3><span class="level">Level ${save.upgrades[key]}</span></div>
-      <button type="button" data-upgrade="${key}" aria-label="Upgrade ${def.name} to level ${save.upgrades[key] + 1} for ${cost} salvage shards" ${state.mode === "flying" || save.shards < cost ? "disabled" : ""}>${cost} ◆</button>
+      <button type="button" data-upgrade="${key}" aria-label="Upgrade ${def.name} to level ${save.upgrades[key] + 1} for ${cost} salvage shards" ${!readable || state.mode === "flying" || save.shards < cost ? "disabled" : ""}>${cost} ◆</button>
       <p>${def.copy}</p><p class="upgrade-effect">${upgradePreview(key)}</p>
     `;
     els.upgrades.appendChild(card);
@@ -215,6 +240,7 @@ function rocketTier() {
 }
 
 function launch() {
+  if (!canUseSave()) { showRecoveryNotice(); renderHangar(); return; }
   if (state.mode === "flying") return;
   window.EmeraldArcade?.beginSession("rocketSimulator", "etc-rocket-simulator.html");
   Object.assign(state, {

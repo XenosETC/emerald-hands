@@ -160,3 +160,26 @@ test('rocket sector journal derives legacy discoveries and keeps completed fligh
  const complete=game({bestDistance:750000});
  assert.equal(complete.nodes.get('#sectorCount').textContent,'9 / 9');
 });
+
+
+test('rocket unreadable save shapes block launch and spending without replacing original data',()=>{
+ for(const saved of [null,[],"broken"]) {
+  const h=game(saved);const raw=h.saves.get('etc-rocket-simulator-v1');
+  h.read('launch();buyUpgrade("engine")');
+  assert.equal(h.read('state.mode'),'ready');
+  assert.equal(h.saves.get('etc-rocket-simulator-v1'),raw);
+  assert.equal(h.nodes.get('#launchButton').disabled,true);
+  assert.equal(h.nodes.get('#missionEyebrow').textContent,'Save Recovery Needed');
+ }
+});
+test('rocket corruption during an open session latches recovery until a fresh load',()=>{
+ const h=game();h.saves.set('etc-rocket-simulator-v1','{broken');
+ h.read('buyUpgrade("engine");launch()');
+ assert.equal(h.saves.get('etc-rocket-simulator-v1'),'{broken');
+ const restored={shards:77,bestDistance:3000};
+ h.saves.set('etc-rocket-simulator-v1',JSON.stringify(restored));
+ h.read('buyUpgrade("fuel");launch()');
+ assert.equal(h.saves.get('etc-rocket-simulator-v1'),JSON.stringify(restored));
+ const fresh=game(restored);fresh.read('launch()');
+ assert.equal(fresh.read('save.shards'),77);assert.equal(fresh.read('state.mode'),'flying');
+});
