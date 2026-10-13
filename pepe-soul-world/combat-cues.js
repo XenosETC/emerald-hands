@@ -2,7 +2,7 @@ import {abilityReady} from './core.js';
 import {riftPhase} from './kek-rift.js';
 import {abilityStatus} from './ability-status.js?v=1';
 import {attackCue} from './attack-motion.js';
-import {guardCue} from './sword-guard.js';
+import {guardCue} from './sword-guard.js?v=status-20261013';
 export function combatCue(s){
  const p=s.player;
  const guard=guardCue(p);if(guard)return guard;

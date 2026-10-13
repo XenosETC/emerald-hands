@@ -1,10 +1,11 @@
 import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=5';
 import {createCheckpointPanel} from './checkpoint-panel.js?v=1';
 import {GuardControls} from './guard-controls.js';
+import {guardStatus} from './sword-guard.js?v=status-20261013';
 import {journalShortcut} from './journal-input.js?v=1';
 import {templeCue} from './temple-combat.js';
 import {appendTempleMeter} from './temple-hud.js';
-import {combatCue} from './combat-cues.js?v=ability-20261013';
+import {combatCue} from './combat-cues.js?v=guard-status-20261013';
 import {abilityStatus} from './ability-status.js?v=1';
 import {eliteSpec} from './realm-enemies.js';
 import {PointerControls} from './pointer-controls.js';
@@ -117,9 +118,11 @@ function updateUI(){soundControl();const p=state.player,l=levelFor(state.xp),wor
   const {foe,others}=combatFocus(state.enemies,p,state.world);$('combat-readout').hidden=!foe;if(foe){$('combat-readout').replaceChildren();const name=document.createElement('strong');name.textContent=foe.boss?world.boss:eliteSpec(foe)?.name||world.enemy;const bar=document.createElement('progress');bar.max=foe.maxHp;bar.value=foe.hp;const cue=document.createElement('span');cue.textContent=((foe.world==='temple'?templeCue(foe):null)||(foe.mode==='windup'?(foe.boss&&foe.attackCount%2===1?GUARDIAN_STYLE[foe.world].wave+' · Jump or Warp through':(eliteSpec(foe)?eliteSpec(foe).cue+' · Jump or Warp away':'Incoming cut · Warp past the blade')):foe.mode==='recover'?'Recovery · opening for a cut':'J · cut / L · wave'))+' · '+foe.hp+' / '+foe.maxHp+' HP'+(others?' · +'+others+' nearby':'');$('combat-readout').append(name,bar,cue);if(foe.world==='temple')appendTempleMeter(combatReadout,foe);}
   castReadout.hidden=!p.domain;if(p.domain){const cue=domainCue(p.domain.elapsed);castLabel.textContent='KEK DOMAIN · '+cue.label.toUpperCase();castProgress.value=cue.progress;}
   domainButton.disabled=!begun||paused||journalOpen||!domainReady(state);domainButton.textContent=!canDomain(state)?'Kek Domain · Complete the oath':p.domain?'KEK DOMAIN · Manifesting':p.domainCooldown>0?'F · Kek Domain · '+Math.ceil(p.domainCooldown)+'s':'F · Kek Domain · 80 SP';
-  $('warp-status').textContent=combatCue(state);
+  const guardInfo=guardStatus(p,GROUND);
+  $('warp-status').textContent=guardControls.held&&!p.guarding&&!p.attack&&!p.rift&&!p.riftQueued&&!p.domain?'GUARD QUEUED · '+guardInfo.reason:combatCue(state);
   guardButton.textContent=p.guardBroken>0?'Guard broken':p.guarding?'Sword guard · Release':guardControls.latched?'Guard queued · Cancel':'S · Sword guard';guardButton.setAttribute('aria-pressed',String(!!p.guarding||guardControls.latched));guardButton.disabled=!begun||paused||journalOpen||state.dead;
-  const touchGuard=document.querySelector('[data-key="KeyS"]');touchGuard.setAttribute('aria-pressed',String(!!p.guarding));touchGuard.textContent=p.guarding?'Guarding':'Hold guard';touchGuard.disabled=!begun||paused||journalOpen||state.dead;
+  guardButton.title=guardInfo.reason+'. Hold S or Down, or click to toggle. Rear attacks and ground hazards bypass guard.';
+  const touchGuard=document.querySelector('[data-key="KeyS"]');touchGuard.setAttribute('aria-pressed',String(!!p.guarding));touchGuard.textContent=p.guarding?'Guard on':'Hold guard';touchGuard.title=guardInfo.reason+'. Hold to guard; rear attacks and ground hazards bypass.';touchGuard.disabled=!begun||paused||journalOpen||state.dead;
   for(const button of document.querySelectorAll('[data-item]')){const id=button.dataset.item,item=ITEMS[id],count=state.inventory[id]||0,full=item.heal?p.hp>=stats(state).health:p.sp>=stats(state).spirit;button.textContent=(item.heal?'Heal':'Spirit')+' ×'+count;button.disabled=!begun||paused||journalOpen||state.dead||count===0||full;button.title=count===0?'No flasks remaining':full?'Already full':item.description;}
   for(const [key,action,name] of [['KeyK','dash','Warp Step'],['KeyL','wave','Kek Wave'],['KeyR','release','Release']]){
    const button=document.querySelector(`[data-key="${key}"]`),info=abilityStatus(state,action);

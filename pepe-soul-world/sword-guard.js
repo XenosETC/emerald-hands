@@ -4,6 +4,22 @@ const smooth=t=>{const n=Math.max(0,Math.min(1,t));return n*n*(3-2*n);};
 export function canGuard(p,ground){
  return p.y>=ground-.1&&p.vy===0&&p.hurt<=0&&p.attack<=0&&p.dash<=0&&!p.warp&&!p.rift&&!p.riftQueued&&!p.domain&&p.waveCooldown<=.92&&(p.guardBroken||0)<=0&&!p.guardMustRelease&&(p.guarding||p.sp>=GUARD.minCost);
 }
+export function guardStatus(p,ground){
+ const ready=canGuard(p,ground);
+ let reason;
+ if((p.guardBroken||0)>0)reason='Guard broken · '+p.guardBroken.toFixed(1)+'s';
+ else if(p.guardMustRelease)reason='Release guard to rearm';
+ else if(p.y<ground-.1||p.vy!==0)reason='Land first';
+ else if(p.hurt>0)reason='Recover from the hit';
+ else if(p.attack>0)reason='Finish the cut';
+ else if(p.dash>0||p.warp)reason='Finish Warp';
+ else if(p.rift||p.riftQueued||p.domain)reason='Finish the current technique';
+ else if(p.waveCooldown>.92)reason='Finish the wave release';
+ else if(!p.guarding&&p.sp<GUARD.minCost)reason='Need '+GUARD.minCost+' SP to raise guard';
+ else if(p.guarding&&p.sp<GUARD.minCost)reason='Spirit low · release to recover';
+ else reason='Frontal hits spend Spirit · release to attack';
+ return {ready,reason};
+}
 export function dropGuard(p,animate=false){
  if(p.guarding&&animate){p.guardLower=GUARD.lower;p.guardLowerFrame=p.guardHit>.08?2:1;}
  else if(!animate)p.guardLower=0;
@@ -45,7 +61,7 @@ export function guardCounterPose(p,reduced=false){
 export function guardCue(p){
  if(p.guardBroken>0)return 'GUARD BROKEN · '+p.guardBroken.toFixed(1)+'s · Release guard';
  if(p.guardMustRelease)return 'Release guard to raise your sword again';
- if(p.guarding)return p.guardTime<GUARD.raise?'SWORD GUARD · Raising blade':p.guardHit>0?'SWORD BLOCK · Spirit absorbed the hit':'SWORD GUARD · Front protected · Release to attack · K to Warp';
+ if(p.guarding)return p.guardTime<GUARD.raise?'SWORD GUARD · Raising blade':p.guardHit>0?'SWORD BLOCK · Spirit absorbed the hit':p.sp<GUARD.minCost?'SWORD GUARD · Spirit low · Release to recover':'SWORD GUARD · Frontal hits spend Spirit · Release to attack · K to Warp';
  return null;
 }
 export function drawGuardImpact(ctx,f,reduced=false){

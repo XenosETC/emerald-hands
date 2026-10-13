@@ -160,3 +160,15 @@ Browser download produced a valid format-1 Soul World file for the original leve
 Final 390px review showed no horizontal overflow, and Escape from the file control closed the journal and returned focus to the canvas. No browser error logs were observed. Proofs: docs/soul-world-files-2026-10-13/. Download/cancel/restore were tested on the isolated practice origin; the normal campaign was never imported or overwritten.
 
 Clean staged release verification passed 255 arcade tests and 192 Soul World tests on October 13, 2026.
+
+## Guard readiness and recovery feedback — October 13, 2026
+
+Guard status now explains the existing raise gates: minimum Spirit, landing, hit/cut/Warp/technique recovery, wave release and break/rearm. Held inputs remain available to queue guard; presentation never disables them merely for temporary readiness. The combat strip describes queued guard when no cut/Rift/Domain cue has priority. Active guard now says frontal hits spend Spirit, with a low-Spirit release-to-recover message instead of an unconditional protection claim. Desktop and touch controls share the same explanation and retain rear-hit/ground-hazard guidance. Ownership, raise timing, costs, break rules and damage remain unchanged.
+
+Fixtures check readiness agreement, complete state immutability, actual regeneration while held and release/rearm distinctions. Native review uses a seeded zero-Spirit practice checkpoint and ordinary control inputs on an isolated origin; it is not earned campaign evidence.
+
+Native seeded-checkpoint review displayed GUARD QUEUED / Need 8 SP, then raised the latched guard through normal regeneration. The active cue described Spirit-funded frontal hits. Clicking release followed immediately by J produced an attack pose without a stuck guard; no error logs were observed. This verifies ordinary controller transitions, not enemy block success or physical-device multitouch. Proofs: docs/soul-world-guard-status-2026-10-13/.
+
+Responsive active-guard review at 390px showed the full Spirit-funded cue and touch explanation without horizontal overflow. The active touch label is Guard on so it wraps cleanly within its narrow button. Physical-device sustained hold/multitouch remains a separate gate.
+
+Clean staged release verification passed 255 arcade tests and 195 Soul World tests on October 13, 2026.
