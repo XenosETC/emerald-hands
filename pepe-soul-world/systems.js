@@ -27,7 +27,7 @@ export const QUESTS = Object.freeze([
   {id:'frostBounty',name:'The frostbound watch',description:'Defeat three Frostbound Tads.',need:3,progress:s=>s.kills.frozen,xp:35,fragments:15,item:'frostRobe'},
   {id:'emberBounty',name:'Ashes of the oath',description:'Defeat three Ashen Ronin.',need:3,progress:s=>s.kills.crimson,xp:45,fragments:18,item:'emberRobe'},
   {id:'voidBounty',name:'Names in the dark',description:'Defeat three Lost Ones.',need:3,progress:s=>s.kills.void,xp:55,fragments:22,item:'voidRobe'},
-  {id:'echoes',name:'Echoes beyond the lantern',description:'Attune to the shrine in each enemy realm. Press E beside it.',need:3,progress:s=>s.discoveries.length,xp:60,fragments:25,item:'veilTalisman'},
+  {id:'echoes',name:'Echoes beyond the lantern',description:'Attune three realm shrines. Press E beside each. Emerald Temple also counts after the oath.',need:3,progress:s=>s.discoveries.length,xp:60,fragments:25,item:'veilTalisman'},
   {id:'guardian',name:'An unbroken oath',description:'Recover all three seals and return to Goribbit.',need:1,progress:s=>s.complete?1:0,xp:0,fragments:40},
 ]);
 export const STARTER_ITEMS = Object.freeze({ribbitFang:1,academyRobe:1,jadeBeads:1,healthFlask:2,spiritFlask:1});

@@ -22,7 +22,7 @@ import {journeyTrail} from './journey-trail.js?v=2';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
-import {createJournal} from './journal.js?v=travel-confirmation-20261014';
+import {createJournal} from './journal.js?v=quest-checklist-20261014';
 import {ITEMS,stats,useItem,consumablePreview} from './systems.js?v=flasks-20261013';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=academy-cuts-20261014';
 import {loadArt,Renderer} from './render.js';

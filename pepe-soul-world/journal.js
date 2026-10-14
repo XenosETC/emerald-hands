@@ -4,7 +4,8 @@ import {guardianReceipts} from './reward-receipts.js?v=1';
 import {groundRewards} from './ground-rewards.js?v=1';
 import {releaseInfo} from './release-info.js?v=1';
 import {questGuidance} from './quest-guidance.js?v=6';
-import {ITEMS,SKILLS,QUESTS,stats,compareGear,skillPreview,skillPoints,consumablePreview,purchasePreview,forgePreview,equip,learn,useItem,claimQuest,questReady,buyItem,upgradeGear} from './systems.js?v=shop-20261014';
+import {questChecklist} from './quest-checklist.js?v=1';
+import {ITEMS,SKILLS,QUESTS,stats,compareGear,skillPreview,skillPoints,consumablePreview,purchasePreview,forgePreview,equip,learn,useItem,claimQuest,questReady,buyItem,upgradeGear} from './systems.js?v=quest-checklist-20261014';
 import {WORLDS,enterWorld,enterArena,approachRemaining,levelFor,DOMAIN,canDomain,canRift} from './core.js';
 export function createJournal(state,changed,toggle,savePanel,requestTravel=travel=>travel()){
  const panel=document.createElement('section');panel.id='journal';panel.hidden=true;panel.setAttribute('aria-label','Soul journal');panel.innerHTML='<header><div><small>CROWN’S JOURNEY</small><h2>Soul journal</h2></div><a href="animation.html">Motion studio ↗</a><button id="close-journal">Close · Esc</button></header><nav></nav><div class="journal-content"></div>';document.querySelector('.viewport').append(panel);
@@ -23,6 +24,16 @@ export function createJournal(state,changed,toggle,savePanel,requestTravel=trave
  function icon(id){const i=ITEMS[id].icon;return `<span class="item-icon" style="background-position:${i%4/3*100}% ${Math.floor(i/4)/2*100}%"></span>`;}
  function button(text,fn,disabled=false){const b=document.createElement('button');b.textContent=text;b.disabled=disabled;b.onclick=()=>{fn();changed();render();if(!panel.hidden&&!panel.contains(document.activeElement))panel.querySelector('#close-journal').focus();};return b;}
  function card(html){const c=document.createElement('article');c.innerHTML=html;content.append(c);return c;}
+ function appendChecklist(c,q){
+  const checks=questChecklist(state,q.id);if(!checks.length)return;
+  const list=document.createElement('ul');list.className='quest-checklist';list.setAttribute('aria-label',q.name+' objectives');
+  for(const check of checks){
+   const row=document.createElement('li');row.classList.toggle('done',check.done);
+   const status=check.done?'Complete: ':q.id==='echoes'?'Not attuned: ':'Remaining: ';
+   row.textContent=status+check.label+' · '+check.detail;list.append(row);
+  }
+  c.append(list);
+ }
  function comparison(id){const preview=compareGear(state,id);if(!preview)return '';const labels={attack:'Sword bonus',health:'Maximum HP',defense:'Defense',regen:'Spirit / second',warpRange:'Warp reach',wave:'Wave damage'};if(preview.current===id)return '<p class="gear-comparison">Currently equipped</p>';const entries=Object.entries(preview.changes);return `<div class="gear-comparison"><small>VERSUS ${ITEMS[preview.current].name.toUpperCase()}</small>${entries.length?entries.map(([key,delta])=>`<p class="${delta>0?'gear-gain':'gear-loss'}">${labels[key]} ${delta>0?'+':''}${delta} → ${preview.after[key]}</p>`).join(''):'<p>Same combat stats</p>'}${preview.after.health<state.player.hp?'<p>Equipping lowers your current HP to the new maximum.</p>':''}</div>`;}
  function render(){panel.querySelector('h2').textContent='Soul journal · '+tab;nav.querySelectorAll('button').forEach(b=>{const selected=b.textContent===tab;b.classList.toggle('selected',selected);if(selected)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});content.replaceChildren();const st=stats(state),level=levelFor(state.xp).level;
  const summary=document.createElement('p');summary.className='journal-summary';summary.textContent=`Level ${level} · ${state.fragments} spirit fragments · ${skillPoints(state)} skill points`;content.append(summary);
@@ -55,7 +66,7 @@ export function createJournal(state,changed,toggle,savePanel,requestTravel=trave
  const ready=QUESTS.filter(q=>questReady(state,q));
  card(`<h3>${ready.length?ready.length+' reward'+(ready.length===1?'':'s')+' ready to claim':oath?.claimed===QUESTS.length?'All quest rewards claimed':'Your next oath'}</h3><p>${ready.length?'Claim the completed quests below. Gear rewards enter your inventory; equip them in Gear or Inventory.':oath?.claimed===QUESTS.length?'Your rewards are in your pack. Equip your gear, temper your blade or take on Emerald Temple.':'Follow an unfinished quest below. Rewards stay available until you claim them.'}</p>`);
  const ordered=[...QUESTS].sort((a,b)=>Number(questReady(state,b))-Number(questReady(state,a))||Number(state.claimedQuests.includes(a.id))-Number(state.claimedQuests.includes(b.id)));
- for(const q of ordered){const claimed=state.claimedQuests.includes(q.id),ready=questReady(state,q),c=card(`<small>${claimed?'REWARD RECEIVED':ready?'READY TO CLAIM':'IN PROGRESS'}</small><h3>${q.name}</h3><p>${q.description}</p><progress max="${q.need}" value="${q.progress(state)}"></progress><p>${Math.min(q.need,q.progress(state))} / ${q.need} · ${q.xp} XP · ${q.fragments} fragments${q.item?' · '+ITEMS[q.item].name:''}</p>`);c.append(button(claimed?'Completed':ready?'Claim reward':'Quest unfinished',()=>claimQuest(state,q.id),!ready));if(claimed&&q.item)c.append(button('View reward in Inventory',()=>{tab='Inventory';}));}
+ for(const q of ordered){const claimed=state.claimedQuests.includes(q.id),ready=questReady(state,q),c=card(`<small>${claimed?'REWARD RECEIVED':ready?'READY TO CLAIM':'IN PROGRESS'}</small><h3>${q.name}</h3><p>${q.description}</p><progress max="${q.need}" value="${q.progress(state)}"></progress><p>${Math.min(q.need,q.progress(state))} / ${q.need} · ${q.xp} XP · ${q.fragments} fragments${q.item?' · '+ITEMS[q.item].name:''}</p>`);appendChecklist(c,q);c.append(button(claimed?'Completed':ready?'Claim reward':'Quest unfinished',()=>claimQuest(state,q.id),!ready));if(claimed&&q.item)c.append(button('View reward in Inventory',()=>{tab='Inventory';}));}
  const receipts=guardianReceipts(state);
  if(receipts.length){
   const c=card('<h3>Guardian rewards recovered</h3><p>First-clear receipts. Supplies may already be used; owned gear can be compared in Inventory.</p>');
