@@ -28,6 +28,8 @@ export function createCheckpointPanel(state,store,reload,practice){
  };
  cancel.onclick=()=>{clear();notice.textContent='Restore cancelled. Current progress is unchanged.';input.focus();};
  confirm.onclick=()=>{if(!pending)return;const result=store.importCheckpoint(pending);notice.textContent=result.message;if(result.ok)reload();};
- panel.append(title,current,scope,download,label,preview,confirm,cancel,notice);
+ const campaign=document.createElement('a');campaign.href=practice?'index.html':'index.html?practice=1';campaign.textContent=practice?'Return to normal campaign →':'Open separate practice campaign →';
+ const campaignHelp=document.createElement('p');campaignHelp.textContent=practice?'Return to your normal saved journey on this device.':'Practice has its own saved journey. Opening it resumes that journey if one exists.';
+ panel.append(title,current,scope,download,label,preview,confirm,cancel,notice,campaignHelp,campaign);
  return ()=>{current.textContent='Current: '+checkpointSummary(snapshot(state));return panel;};
 }

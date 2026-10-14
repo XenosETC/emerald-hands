@@ -1,5 +1,5 @@
 import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=6';
-import {createCheckpointPanel} from './checkpoint-panel.js?v=2';
+import {createCheckpointPanel} from './checkpoint-panel.js?v=3';
 import {GuardControls} from './guard-controls.js';
 import {guardStatus} from './sword-guard.js?v=status-20261013';
 import {keyboardIntent} from './keyboard-input.js?v=1';
@@ -19,13 +19,17 @@ import {journeyTrail} from './journey-trail.js?v=1';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
-import {createJournal} from './journal.js?v=shop-20261014';
+import {createJournal} from './journal.js?v=practice-20261014';
 import {ITEMS,stats,useItem,consumablePreview} from './systems.js?v=flasks-20261013';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=checkpoint-timers-20261013';
 import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js?v=safe-20261013';
-const storageKey=new URLSearchParams(location.search).get('practice')==='1'?'pepe-soul-world-practice-v1':SAVE_KEY;
+const practice=new URLSearchParams(location.search).get('practice')==='1';
+const storageKey=practice?'pepe-soul-world-practice-v1':SAVE_KEY;
 const $=id=>document.getElementById(id),canvas=$('game');
+$('practice-notice').hidden=!practice;
+if(practice)document.title='Practice · '+document.title;
+const campaignEntry=document.createElement('a');campaignEntry.href=practice?'index.html':'index.html?practice=1';campaignEntry.textContent=practice?'Return to normal campaign →':'Open separate practice campaign →';$('intro').append(campaignEntry);
 const checkpointStore=createCheckpointStore(createStorageAccess(()=>window.localStorage),storageKey,value=>readSave(value)!==null);
 const saved=checkpointStore.load();
 const state=createState(saved),keys=new Set(),touchKeys=new PointerControls(),sound=new Sound();
@@ -37,7 +41,7 @@ function releaseInputs(){keys.clear();touchKeys.clear();walkTarget=null;guardCon
 function message(text){$('toast').textContent=text;$('toast').style.opacity='1';toastUntil=performance.now()+6500;}
 function checkpointStatus(result){
  $('save-state').textContent=result.message;
- $('intro-save-hint').textContent=result.ok?'Headphones recommended · Progress saves on this device':'Temporary session · Progress stays in this tab until you leave or reload';
+ $('intro-save-hint').textContent=result.ok?(practice?'Practice progress saves separately on this device':'Headphones recommended · Progress saves on this device'):'Temporary session · Progress stays in this tab until you leave or reload';
  const warning=$('checkpoint-warning');warning.hidden=result.ok;
  document.querySelector('.viewport').classList.toggle('checkpoint-limited',!result.ok);
  const copy=$('checkpoint-warning-copy');

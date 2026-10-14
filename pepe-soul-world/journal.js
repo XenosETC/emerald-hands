@@ -9,7 +9,7 @@ import {WORLDS,enterWorld,enterArena,approachRemaining,levelFor,DOMAIN,canDomain
 export function createJournal(state,changed,toggle,savePanel){
  const panel=document.createElement('section');panel.id='journal';panel.hidden=true;panel.setAttribute('aria-label','Soul journal');panel.innerHTML='<header><div><small>CROWN’S JOURNEY</small><h2>Soul journal</h2></div><a href="animation.html">Motion studio ↗</a><button id="close-journal">Close · Esc</button></header><nav></nav><div class="journal-content"></div>';document.querySelector('.viewport').append(panel);
  let tab='Map';const content=panel.querySelector('.journal-content'),nav=panel.querySelector('nav');
- function background(value){document.querySelectorAll('.masthead,.stage-top,.viewport > :not(#journal),.controls,.touch,aside,main > footer').forEach(el=>{el.inert=value;});}
+ function background(value){document.querySelectorAll('.masthead,.stage-top,#practice-notice,.viewport > :not(#journal),.controls,.touch,aside,main > footer').forEach(el=>{el.inert=value;});}
  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');
  panel.addEventListener('keydown',e=>{
   if(e.code!=='Tab')return;
