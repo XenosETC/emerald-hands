@@ -1,4 +1,4 @@
-import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=5';
+import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=6';
 import {createCheckpointPanel} from './checkpoint-panel.js?v=1';
 import {GuardControls} from './guard-controls.js';
 import {guardStatus} from './sword-guard.js?v=status-20261013';
@@ -41,6 +41,7 @@ function checkpointStatus(result){
 }
 function save(){checkpointStatus(checkpointStore.write(snapshot(state)));}
 checkpointStatus(checkpointStore.status);
+window.addEventListener('storage',event=>{if(event.key===storageKey||event.key===null)checkpointStatus(checkpointStore.check());});
 new ResizeObserver(()=>{
  document.querySelector('.viewport').style.setProperty('--checkpoint-height',$('checkpoint-warning').getBoundingClientRect().height+'px');
 }).observe($('checkpoint-warning'));

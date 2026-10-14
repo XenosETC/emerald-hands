@@ -180,3 +180,13 @@ Keyboard dispatch now ignores Ctrl/Alt/Meta commands and composition input, so b
 Four regression fixtures cover modified commands, repeated menu/flask keys, an actual regeneration-and-flask sequence, movement scrolling suppression, and startup/modal/button ownership. Browser review on a practice origin confirmed Ctrl+M leaves the journal closed, Q opens it, Escape returns canvas focus, Escape pauses, Enter on Resume resumes, and J produces an attack pose; no browser errors were observed. This is controller verification, not a native-earned campaign or physical-keyboard sustained-hold test. Proof: docs/soul-world-keyboard-safety-2026-10-13/paused.png.
 
 Clean staged release verification passed 255 arcade tests and 199 Soul World tests on October 13, 2026.
+
+## Checkpoint changes across tabs — October 13, 2026
+
+Each checkpoint store now remembers its last observed primary bytes. Before saving, a different primary (including creation or deletion) stops that session's writes until reload. Storage notifications check immediately without changing the live run or writing anything. The warning directs players to Journal → Save to download their current session before reloading the saved checkpoint. Older sessions no longer rotate the newer backup or overwrite a detected external save. Practice keys remain separate. Explicit file restore remains a deliberate replacement action; successful file and previous-checkpoint restores both block old-session pagehide writes until reload.
+
+Five fixtures cover competing stores, initially empty tabs, storage notifications/deletion, unchanged own writes, practice isolation, explicit import and recovery before load. This is change detection, not an atomic cross-process lock: a change between the final read and write remains a limitation of this localStorage boundary.
+
+Two actual browser practice sessions shared an isolated origin. The second walked toward Goribbit and accepted the oath normally. The first retained its pre-oath run, displayed the external-change warning, kept Download backup enabled and refused a journal-triggered save. Reloading the first session then loaded the second's oath and position (467), with no browser errors. The desktop warning and objective had an 8px gap and no horizontal overflow. The attempted phone override remained at 1280px, so no phone-width claim is made for this warning. Proof: docs/soul-world-checkpoint-tabs-2026-10-13/conflict.png. This does not establish a full native-earned campaign.
+
+Clean staged release verification passed 255 arcade tests and 204 Soul World tests on October 13, 2026.
