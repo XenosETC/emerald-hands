@@ -1,5 +1,5 @@
-import {checkpointFile,parseCheckpointFile,checkpointSummary,MAX_BACKUP_SIZE} from './checkpoint-file.js?v=5';
-import {snapshot,createState} from './core.js?v=combat-bounds-20261014';
+import {checkpointFile,parseCheckpointFile,checkpointSummary,MAX_BACKUP_SIZE} from './checkpoint-file.js?v=6';
+import {snapshot,createState} from './core.js?v=enemy-timing-20261014';
 export function createCheckpointPanel(state,store,reload,practice){
  const panel=document.createElement('article');panel.className='checkpoint-panel';
  const title=document.createElement('h3');title.textContent='Protect your journey';

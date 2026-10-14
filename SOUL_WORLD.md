@@ -362,3 +362,17 @@ This turn also completed a native browser stage from a default fresh practice in
 Frequent pauses supported inspection. This verifies native onboarding, first patrol combat and earned save continuity; it does not close the uninterrupted human-feel, native elite/guardian/Temple campaign, physical multitouch or hosted-release gates. The finishing queue remains on Soul World.
 
 Working-tree and clean staged-copy validation passed 255 arcade tests and 251 Soul World tests on October 14, 2026.
+
+## Realm enemy timing meters and native elite clear — October 14, 2026
+
+Ordinary realm enemies, elites and guardians now show their actual windup, released attack and counterattack window in the existing combat readout. The simulation and meter share the previous phase durations; no attack speed, damage or movement tuning changed. Stagger shows its remaining lock time rather than a frozen windup timer. Temple retains its specific attack names and tells. On phone, the readout was raised to clear the Domain button; a 390px browser check measured 15px between them, with no horizontal overflow or console errors. Final layout proof: docs/soul-world-native-elites-2026-10-14/phone.png (seeded visual fixture on a separate origin).
+
+Three regression tests compare live simulation transitions for patrol, melee elite, caster and guardian in Frozen, Crimson and Void; cover stagger timing/presentation purity; and preserve Temple telegraph parity. Existing simulation-earned full oath and Temple tests still pass.
+
+The native campaign continued the previous turn’s earned practice save without progress grants. Its earned skill point upgraded Soul Edge, and Wave casts cleared Frozen Approach II. One Healing Flask was used during the elite fight. Normal walking collected all three drops, bringing fragments from 52 to 67. Reload retained level 3, the cleared elite approach, the shrine and 67 fragments. Earned DOM receipt: docs/soul-world-native-elites-2026-10-14/earned-map.txt.
+
+The same run then used its two remaining earned Healing Flasks and entered the Rime Warden arena. Manual movement, Warp and Wave attacks reduced the guardian from 210 to 30 HP. Later recovery-blocked inputs and damage ended the attempt in defeat; this was not a guardian victory. The new live windup meter appeared during that attempt (docs/soul-world-native-elites-2026-10-14/native-attempt.png, before the phone spacing adjustment). Native shrine revival and reload returned to cleared Approach II at 1360 with full 150 HP, level 3 and 67 fragments; the guardian attempt reset and no seal/reward was granted. Recovery receipt: docs/soul-world-native-elites-2026-10-14/recovery-map.txt.
+
+Frequent inspection pauses mean this remains a native progression/recovery check, not uninterrupted human combat-feel approval. Native guardian victory, remaining realms/Temple, physical-device comfort and hosted behavior remain open finishing gates.
+
+Working-tree and clean staged-copy validation passed 255 arcade tests and 254 Soul World tests on October 14, 2026.

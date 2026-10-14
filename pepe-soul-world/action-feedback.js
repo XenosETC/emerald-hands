@@ -1,4 +1,4 @@
-import {act} from './core.js?v=combat-bounds-20261014';
+import {act} from './core.js?v=enemy-timing-20261014';
 import {abilityStatus} from './ability-status.js?v=1';
 
 const TECHNIQUES=new Set(['dash','wave','rift','release','domain']);

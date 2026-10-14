@@ -1,4 +1,5 @@
 import {stepTempleEnemy,staggerTempleEnemy} from './temple-combat.js';
+import {realmAttackTiming} from './enemy-timing.js?v=1';
 import {stepGuard,guardHit,dropGuard} from './sword-guard.js';
 import {pendingPatrolLoot,snapshotPatrolLoot} from './patrol-loot.js?v=2';
 import {GUARDIAN_REWARDS} from './guardian-rewards.js?v=1';
@@ -161,11 +162,11 @@ export function step(s,input,dt){
   for(const e of s.enemies){if((e.vy||0)!==0||e.y<GROUND){e.vy=(e.vy||0)+dt*1700;e.y+=e.vy*dt;if(e.y>=GROUND){e.y=GROUND;e.vy=0;}}e.anim+=dt;e.hitFlash=Math.max(0,e.hitFlash-dt);e.stun=Math.max(0,e.stun-dt);if(e.dead){e.death=Math.max(0,e.death-dt);continue;}if(e.world==='academy')continue;if(e.stun>0)continue;
     if(e.world==='temple'){for(const action of stepTempleEnemy(e,p,dt,GROUND)){if(action.type==='damage')damagePlayer(s,action,action.amount);else if(action.type==='projectile'){s.projectiles.push(action);emit(s,'enemyWave',{world:'temple',x:action.x,y:action.y,face:Math.sign(action.vx)});}else emit(s,action.type,action);}continue;}
     const spec=eliteSpec(e),dx=p.x-e.x,dist=Math.abs(dx),range=spec?.range||(e.boss?155:110);if(e.mode==='idle')e.face=dx<0?-1:1;e.timer-=dt;
-    if(e.mode==='windup' && e.timer<=0){e.mode='strike';e.timer=.18;e.attackCount++;emit(s,'enemySwing',{x:e.x,y:GROUND-70,boss:e.boss,face:e.face});if(e.elite==='caster'){if(e.world==='frozen'){if(Math.abs(p.x-e.targetX)<75&&p.y>GROUND-100)damagePlayer(s,{...e,unblockable:true},20);emit(s,'enemySwing',{x:e.targetX,y:GROUND-30,face:e.face});}else s.projectiles.push({x:e.x+e.face*55,y:GROUND-40,vx:e.face*(e.world==='void'?240:280),life:3,damage:18,friendly:false,world:e.world});}else{if(e.elite==='melee'&&e.world!=='crimson')e.x=clamp(e.x+e.face*65,100,WIDTH-100);if((p.x-e.x)*e.face>=-25&&Math.abs(p.x-e.x)<(spec?spec.range:e.boss?165:115)&&p.y>GROUND-135)damagePlayer(s,e,spec?18:e.boss?24:12);}
+    if(e.mode==='windup' && e.timer<=0){e.mode='strike';e.timer=realmAttackTiming(e).strike;e.attackCount++;emit(s,'enemySwing',{x:e.x,y:GROUND-70,boss:e.boss,face:e.face});if(e.elite==='caster'){if(e.world==='frozen'){if(Math.abs(p.x-e.targetX)<75&&p.y>GROUND-100)damagePlayer(s,{...e,unblockable:true},20);emit(s,'enemySwing',{x:e.targetX,y:GROUND-30,face:e.face});}else s.projectiles.push({x:e.x+e.face*55,y:GROUND-40,vx:e.face*(e.world==='void'?240:280),life:3,damage:18,friendly:false,world:e.world});}else{if(e.elite==='melee'&&e.world!=='crimson')e.x=clamp(e.x+e.face*65,100,WIDTH-100);if((p.x-e.x)*e.face>=-25&&Math.abs(p.x-e.x)<(spec?spec.range:e.boss?165:115)&&p.y>GROUND-135)damagePlayer(s,e,spec?18:e.boss?24:12);}
       if(e.boss && e.attackCount%2===0){s.projectiles.push({x:e.x,y:GROUND-40,vx:e.face*360,life:2.6,friendly:false,world:e.world,hit:[]});emit(s,'enemyWave',{world:e.world,x:e.x,y:GROUND-40,face:e.face});}
-    }else if(e.mode==='strike' && e.timer<=0){e.mode='recover';e.timer=e.boss?.9:.8;}
+    }else if(e.mode==='strike' && e.timer<=0){e.mode='recover';e.timer=realmAttackTiming(e).recovery;e.recoveryDuration=e.timer;}
     else if(e.mode==='recover' && e.timer<=0){e.mode='idle';e.timer=.2;}
-    else if(e.mode==='idle' && dist<620){if(dist<range && e.timer<=0){e.mode='windup';e.timer=spec?.9:e.boss?.65:.55;e.targetX=p.x;emit(s,'telegraph',{x:e.x,y:GROUND-110});}else if(dist>(e.elite==='caster'?300:85)){e.x+=e.face*dt*(spec?.speed||(e.boss?75:105));}}
+    else if(e.mode==='idle' && dist<620){if(dist<range && e.timer<=0){e.mode='windup';e.timer=realmAttackTiming(e).windup;e.windupDuration=e.timer;e.targetX=p.x;emit(s,'telegraph',{x:e.x,y:GROUND-110});}else if(dist>(e.elite==='caster'?300:85)){e.x+=e.face*dt*(spec?.speed||(e.boss?75:105));}}
   }
   for(const q of s.projectiles){
     if(q.life<=0)continue;

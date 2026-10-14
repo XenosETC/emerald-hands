@@ -1,0 +1,116 @@
+- banner:
+  - link "✦ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Sound off"
+- main:
+  - region "Game":
+    - generic: FROZEN DISTRICT · APPROACH II
+    - generic: ADEPT / LV. 3
+    - button "Pause"
+    - generic: Practice campaign · separate save
+    - link "Normal campaign →":
+      - /url: index.html
+    - generic "Frozen District. approach2. Crown Pepe at 1360, idle. HP 150. Level 3. Training 3 of 3. Seals 0 of 3."
+    - strong:
+      - text: CROWN PEPE
+      - generic: Ribbit Fang
+    - text: HP
+    - progressbar
+    - generic: "150"
+    - text: SP
+    - progressbar
+    - generic: "100"
+    - status: The shrine remembers you. Rise with your oath intact.
+    - generic: Echo shrine · checkpoint attuned
+    - generic: K · Warp · 20 SP / L · Kek Wave · 28 SP
+    - button "Map"
+    - button "Quests"
+    - button "Skills"
+    - button "Inventory"
+    - button "Gear"
+    - paragraph: "Approach II cleared · E at 2250 to enter the third map: guardian arena."
+    - text: 92 / 120 XP · LEVEL 3
+    - progressbar
+    - button "Walk to the guardian passage" [disabled]
+    - dialog "Soul journal":
+      - text: CROWN’S JOURNEY
+      - heading "Soul journal · Map" [level=2]
+      - button "Close · Esc" [active]
+      - button "Reduce effects"
+      - navigation:
+        - button "Map"
+        - button "Quests"
+        - button "Skills"
+        - button "Inventory"
+        - button "Gear"
+        - button "Save"
+      - paragraph: Level 3 · 67 spirit fragments · 0 skill points
+      - article:
+        - heading "Frozen District" [level=3]
+        - paragraph: An oath buried beneath the frost
+        - generic: Gate / mentor
+        - generic: Training / enemies
+        - generic: Shrine
+        - generic: Guardian passage
+        - generic: ◆
+        - paragraph: ◆ Crown’s position · 1360 / 2600
+        - paragraph: Return gate 230 · Enemies 800 / 1160 / 1540 · Shrine 1360 · Passage 2250
+      - article:
+        - heading "Kek Academy" [level=3]
+        - paragraph: Train, restore, buy flasks and temper your blade.
+        - paragraph: Oath accepted · Training 3 / 3
+        - paragraph: Return to Goribbit
+        - button "Return to Academy"
+      - article:
+        - heading "Frozen District" [level=3]
+        - paragraph: The Rime Warden
+        - paragraph: Seal · Still missing
+        - paragraph: Shrine · Attuned
+        - paragraph: Guardian reward · Not recovered
+        - paragraph: You are here
+        - button "You are here" [disabled]
+      - article:
+        - heading "Crimson Marsh" [level=3]
+        - paragraph: The Ember Keeper
+        - paragraph: Seal · Still missing
+        - paragraph: Shrine · Undiscovered
+        - paragraph: Guardian reward · Not recovered
+        - paragraph: Return to Kek Academy first
+        - button "Travel to Crimson Marsh" [disabled]
+      - article:
+        - heading "Emerald Temple" [level=3]
+        - paragraph: The Jade Abbot
+        - paragraph: Temple challenge · Unfinished
+        - paragraph: Shrine · Undiscovered
+        - paragraph: Guardian reward · Not recovered
+        - paragraph: Complete the three-seal oath to enter Emerald Temple
+        - button "Travel to Emerald Temple" [disabled]
+      - article:
+        - heading "Void Swamp" [level=3]
+        - paragraph: The Unnamed
+        - paragraph: Seal · Still missing
+        - paragraph: Shrine · Undiscovered
+        - paragraph: Guardian reward · Not recovered
+        - paragraph: Return to Kek Academy first
+        - button "Travel to Void Swamp" [disabled]
+      - article:
+        - heading "Approach II · Elite patrol" [level=3]
+        - paragraph: "Approach II cleared · E at 2250 to enter the third map: guardian arena."
+        - button "Enter guardian arena" [disabled]
+      - article:
+        - heading "Crossing the veil" [level=3]
+        - paragraph: Enemy realms are reached from the academy veil gate. Emerald Temple opens after your completed oath and has one approach leading directly to its guardian. The other realms have an outer patrol, an elite approach, and a third map for its guardian. Returning to the academy restores health and spirit; recovered seals, gear and shrine attunements stay saved.
+    - button "Kek Domain · Complete the oath" [disabled]
+    - generic "Touch controls":
+      - button "Move left" [disabled]: ←
+      - button "Move right" [disabled]: →
+      - button "Jump"
+      - button "Slash"
+      - button "Hold guard" [disabled]
+      - button "Warp Step" [disabled]
+      - button "Kek Wave" [disabled]
+      - button "Talk"
+      - button "Release" [disabled]
+      - button "Domain" [disabled]
+      - button "Heal ×0" [disabled]
+      - button "Spirit ×1" [disabled]

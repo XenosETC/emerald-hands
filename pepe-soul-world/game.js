@@ -1,14 +1,14 @@
 import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=6';
-import {createCheckpointPanel} from './checkpoint-panel.js?v=7';
+import {createCheckpointPanel} from './checkpoint-panel.js?v=8';
 import {GuardControls} from './guard-controls.js';
 import {guardStatus} from './sword-guard.js?v=status-20261013';
 import {keyboardIntent} from './keyboard-input.js?v=1';
 import {journalRequest} from './journal-input.js?v=2';
 import {templeCue} from './temple-combat.js';
-import {appendTempleMeter} from './temple-hud.js';
+import {appendEnemyMeter} from './temple-hud.js?v=2';
 import {combatCue} from './combat-cues.js?v=guard-status-20261013';
 import {abilityStatus} from './ability-status.js?v=1';
-import {attemptAction} from './action-feedback.js?v=2';
+import {attemptAction} from './action-feedback.js?v=3';
 import {confirmTravel,interactionLeavesArea} from './travel-confirmation.js?v=1';
 import {createTravelDialog} from './travel-dialog.js?v=1';
 import {releaseInfo} from './release-info.js?v=1';
@@ -25,7 +25,7 @@ import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
 import {createJournal} from './journal.js?v=quest-checklist-20261014';
 import {ITEMS,stats,useItem,consumablePreview} from './systems.js?v=flasks-20261013';
-import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=combat-bounds-20261014';
+import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=enemy-timing-20261014';
 import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js?v=safe-20261013';
 const practice=new URLSearchParams(location.search).get('practice')==='1';
@@ -160,7 +160,7 @@ function updateUI(){soundControl();const p=state.player,l=levelFor(state.xp),wor
   const guidance=questGuidance(state);$('quest-copy').textContent=guidance.text;const trail=journeyTrail(state);journeyWalk.hidden=!begun||!trail||Math.abs(p.x-trail.x)<10;journeyWalk.disabled=paused||journalOpen||state.dead;journeyWalk.textContent=trail?'Walk to '+trail.label:'';const questLaunch=launches.querySelectorAll('button')[1];questLaunch.textContent=guidance.ready?'Quests · '+guidance.ready:'Quests';
   const awakening=releaseInfo(state);$('weapon').textContent=ITEMS[state.equipped.weapon].name+(p.release>0?' · Awakened '+Math.ceil(p.release)+'s':'');$('release-label').classList.toggle('active',awakening.unlocked);$('blade-copy').textContent=awakening.text;
   let hint='';if(state.world==='academy'){if(Math.abs(p.x-490)<180)hint='E · Speak to Master Goribbit';else if(Math.abs(p.x-870)<185)hint='J · Practice your sword cuts';else if(gate)hint=state.training===3?'M · Choose a realm':'Train at the academy first';}else if(state.zone==='arena')hint=state.guardianDefeated&&Math.abs(p.x-2250)<=200?'E · Return portal':'';else if(Math.abs(p.x-2250)<=200)hint=state.enemies.every(e=>e.dead)?(state.zone==='approach2'||state.world==='temple'?'E · Enter guardian arena':'E · Enter Approach II'):'Clear the approach first';else if(Math.abs(p.x-1360)<170)hint=state.discoveries.includes(state.world)?'Echo shrine · checkpoint attuned':'E · Attune to the echo shrine';else if(p.x<470)hint='E · Return to Kek Academy';$('interaction').textContent=hint;
-  const {foe,others}=combatFocus(state.enemies,p,state.world);$('combat-readout').hidden=!foe;if(foe){$('combat-readout').replaceChildren();const name=document.createElement('strong');name.textContent=foe.boss?world.boss:eliteSpec(foe)?.name||world.enemy;const bar=document.createElement('progress');bar.max=foe.maxHp;bar.value=foe.hp;const cue=document.createElement('span');cue.textContent=((foe.world==='temple'?templeCue(foe):null)||(foe.mode==='windup'?(foe.boss&&foe.attackCount%2===1?GUARDIAN_STYLE[foe.world].wave+' · Jump or Warp through':(eliteSpec(foe)?eliteSpec(foe).cue+' · Jump or Warp away':'Incoming cut · Warp past the blade')):foe.mode==='recover'?'Recovery · opening for a cut':'J · cut / L · wave'))+' · '+foe.hp+' / '+foe.maxHp+' HP'+(others?' · +'+others+' nearby':'');$('combat-readout').append(name,bar,cue);if(foe.world==='temple')appendTempleMeter(combatReadout,foe);}
+  const {foe,others}=combatFocus(state.enemies,p,state.world);$('combat-readout').hidden=!foe;if(foe){$('combat-readout').replaceChildren();const name=document.createElement('strong');name.textContent=foe.boss?world.boss:eliteSpec(foe)?.name||world.enemy;const bar=document.createElement('progress');bar.max=foe.maxHp;bar.value=foe.hp;const cue=document.createElement('span');cue.textContent=((foe.world==='temple'?templeCue(foe):null)||(foe.mode==='windup'?(foe.boss&&foe.attackCount%2===1?GUARDIAN_STYLE[foe.world].wave+' · Jump or Warp through':(eliteSpec(foe)?eliteSpec(foe).cue+' · Jump or Warp away':'Incoming cut · Warp past the blade')):foe.mode==='recover'?'Recovery · opening for a cut':'J · cut / L · wave'))+' · '+foe.hp+' / '+foe.maxHp+' HP'+(others?' · +'+others+' nearby':'');$('combat-readout').append(name,bar,cue);appendEnemyMeter(combatReadout,foe);}
   castReadout.hidden=!p.domain;if(p.domain){const cue=domainCue(p.domain.elapsed);castLabel.textContent='KEK DOMAIN · '+cue.label.toUpperCase();castProgress.value=cue.progress;}
   domainButton.disabled=!begun||paused||journalOpen||!domainReady(state);domainButton.textContent=!canDomain(state)?'Kek Domain · Complete the oath':p.domain?'KEK DOMAIN · Manifesting':p.domainCooldown>0?'F · Kek Domain · '+Math.ceil(p.domainCooldown)+'s':'F · Kek Domain · 80 SP';
   const guardInfo=guardStatus(p,GROUND);
