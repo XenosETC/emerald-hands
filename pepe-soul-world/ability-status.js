@@ -1,11 +1,12 @@
 import {abilityReady,domainReady,canDomain,canRelease,canRift,riftInput,GROUND,DOMAIN} from './core.js';
 import {stats} from './systems.js';
 import {RIFT} from './kek-rift.js';
+import {RELEASE} from './release-spec.js';
 
 // Explain existing action gates; never spend Spirit or alter combat state.
 export function abilityStatus(s,input){
  const key=input==='wave'&&riftInput(s)?'rift':input,p=s.player;
- const cost={dash:stats(s).warpCost,wave:28,rift:RIFT.cost,release:55,domain:DOMAIN.cost}[key];
+ const cost={dash:stats(s).warpCost,wave:28,rift:RIFT.cost,release:RELEASE.cost,domain:DOMAIN.cost}[key];
  const name={dash:'Warp',wave:'Kek Wave',rift:'Kek Rift',release:'Release',domain:'Kek Domain'}[key];
  const ready=key==='domain'?domainReady(s):abilityReady(s,key);
  const cooldown=p[{dash:'dashCooldown',wave:'waveCooldown',rift:'riftCooldown',release:'releaseCooldown',domain:'domainCooldown'}[key]]||0;

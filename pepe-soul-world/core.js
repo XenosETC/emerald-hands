@@ -2,6 +2,7 @@ import {stepTempleEnemy,staggerTempleEnemy} from './temple-combat.js';
 import {stepGuard,guardHit,dropGuard} from './sword-guard.js';
 import {pendingPatrolLoot,snapshotPatrolLoot} from './patrol-loot.js?v=1';
 import {GUARDIAN_REWARDS} from './guardian-rewards.js?v=1';
+import {RELEASE} from './release-spec.js';
 // Deterministic simulation. Rendering, audio and browser storage stay outside this module.
 import {sanitizeProgress,levelFor,stats,addItem} from './systems.js';
 import {RIFT,riftHit} from './kek-rift.js';
@@ -39,7 +40,7 @@ export function abilityReady(s,key){
  if(key==='dash')return p.dashCooldown<=0&&p.sp>=st.warpCost&&p.attack<=.18;
  if(key==='wave'&&riftInput(s))return abilityReady(s,'rift');
  if(key==='wave')return p.waveCooldown<=0&&p.sp>=28&&p.attack<=0&&p.dash<=0;
- if(key==='release')return canRelease(s)&&p.sp>=55&&p.releaseCooldown<=0&&p.dash<=0;
+ if(key==='release')return canRelease(s)&&p.sp>=RELEASE.cost&&p.releaseCooldown<=0&&p.dash<=0;
  return false;
 }
 export function domainReady(s){const p=s.player;return canDomain(s)&&!s.dead&&!p.guarding&&p.hurt<=0&&!p.domain&&!p.rift&&!p.riftQueued&&p.y>=GROUND&&p.attack<=0&&p.dash<=0&&(p.domainCooldown||0)<=0&&p.sp>=DOMAIN.cost;}
@@ -120,7 +121,7 @@ export function act(s,key){
   // The active cut must connect before Warp can cancel its recovery.
   if(key==='dash' && abilityReady(s,'dash')){dropGuard(p);p.attack=0;p.queued=false;p.sp-=st.warpCost;p.dash=.34;p.dashCooldown=st.warpCooldown;p.invuln=.27;p.mode='warp';p.warp={elapsed:0,from:p.x,to:clamp(p.x+p.face*st.warpRange,100,WIDTH-100),duration:.34,y:p.y};emit(s,'warp',{from:p.warp.from,to:p.warp.to,y:p.y,face:p.face});return true;}
   if(key==='wave' && abilityReady(s,'wave')){p.sp-=28;p.waveCooldown=1.2;s.projectiles.push({x:p.x+p.face*75,y:p.y-75,vx:p.face*650,life:1.35+s.skills.wave*.1,age:0,hit:[],friendly:true});emit(s,'wave',{x:p.x+p.face*75,y:p.y-75,face:p.face});return true;}
-  if(key==='release' && abilityReady(s,'release')){p.sp-=55;p.release=st.releaseDuration;p.releaseCooldown=16;p.invuln=.8;emit(s,'release');emit(s,'message',{text:`${ITEM_NAME(s)} · AWAKENED — ${st.releaseDuration} seconds of spirit-powered cuts.`});return true;}
+  if(key==='release' && abilityReady(s,'release')){p.sp-=RELEASE.cost;p.release=st.releaseDuration;p.releaseCooldown=RELEASE.cooldown;p.invuln=.8;emit(s,'release');emit(s,'message',{text:`${ITEM_NAME(s)} · AWAKENED — ${st.releaseDuration} seconds of spirit-powered cuts.`});return true;}
   if(key==='release' && !canRelease(s)){emit(s,'message',{text:'Reach level 3 and recover a seal to awaken Ribbit Fang.'});}
   return false;
 }
@@ -143,7 +144,7 @@ export function step(s,input,dt){
   if(p.rift){const cast=p.rift;cast.elapsed+=dt;if(!cast.impacted&&cast.elapsed>=RIFT.windup+RIFT.slam){cast.impacted=true;p.y=GROUND;p.vy=0;s.rifts.push({x:cast.x,face:cast.face,elapsed:0,hit:[],damage:RIFT.damage+levelFor(s.xp).level*3});emit(s,'riftImpact',{x:cast.x,y:GROUND,face:cast.face});}if(cast.elapsed>=RIFT.windup+RIFT.slam+RIFT.recovery)p.rift=null;}
   for(const r of s.rifts){r.elapsed+=dt;for(const e of s.enemies)if(riftHit(r,e,GROUND)){r.hit.push(e.id);damageEnemy(s,e,r.damage,r.face);if(!e.dead){if(e.world==='temple')staggerTempleEnemy(e);else{e.mode='recover';e.timer=.8;}e.stun=e.boss?.4:.8;if(!e.boss)e.vy=-420;}emit(s,'riftHit',{x:e.x,y:e.y,boss:e.boss});}}s.rifts=s.rifts.filter(r=>r.elapsed<RIFT.range/RIFT.speed+.25);
   stepGuard(p,!!input.guard,dt,GROUND);const st=stats(s);p.sp=clamp(p.sp+(p.guarding?0:dt*st.regen),0,st.spirit);p.anim+=dt;
-  if(p.attack>0){const before=p.attack;p.attack=Math.max(0,p.attack-dt);if(before>.22 && p.attack<=.22){for(const e of s.enemies){const dx=e.x-p.x;if(!e.dead && dx*p.face>-35 && dx*p.face<180 && Math.abs(p.y-e.y)<135)damageEnemy(s,e,(p.release>0?34+st.releaseAttack:22)+levelFor(s.xp).level*3+p.combo*3+st.attack,p.face);}}if(p.attack===0 && p.queued){p.queued=false;act(s,'attack');}}
+  if(p.attack>0){const before=p.attack;p.attack=Math.max(0,p.attack-dt);if(before>.22 && p.attack<=.22){for(const e of s.enemies){const dx=e.x-p.x;if(!e.dead && dx*p.face>-35 && dx*p.face<180 && Math.abs(p.y-e.y)<135)damageEnemy(s,e,(p.release>0?22+RELEASE.attackBonus+st.releaseAttack:22)+levelFor(s.xp).level*3+p.combo*3+st.attack,p.face);}}if(p.attack===0 && p.queued){p.queued=false;act(s,'attack');}}
   const moving=(input.right?1:0)-(input.left?1:0);
   if(p.rift){p.vx=0;p.x=p.rift.x;p.face=p.rift.face;p.mode='rift';}
   else if(p.domain){p.vx=0;p.x=p.domain.x;p.mode='domain';}

@@ -208,3 +208,11 @@ The fresh-state simulation route now checks this handoff immediately after its e
 At an actual 390px viewport, the new walking button was 44px tall, its objective was readable and the page had no horizontal overflow. Proof: docs/soul-world-temple-trail-2026-10-13/phone.png. Physical-device comfort and combat feel remain separate checks.
 
 Clean staged release verification passed 255 arcade tests and 207 Soul World tests on October 13, 2026.
+
+## Accurate Soul Release guidance — October 13, 2026
+
+Release balance now has a shared immutable definition used by combat, awakening upgrades and ability guidance: 55 Spirit, 16-second cooldown, eight base seconds and 12 additional cut damage, plus two seconds and six damage per awakening rank (two ranks maximum). Values are unchanged. The blade description follows the actual rank instead of promising eight seconds for every build. The HUD names the remaining awakened seconds, and Skills now explains Release alongside Wave, Rift and Domain. Active guidance reads the existing timer; opening the journal still suspends gameplay.
+
+Fixtures compare every supported rank's explanation against an actual cast and actual additional melee damage, and check locked/non-mutating presentation. Browser review reused the isolated practice run from the simulation-earned oath checkpoint, spent its earned skill points through normal Learn Soul Release buttons, and verified rank two describes 12 seconds and +24 cut damage. A normal R cast followed by opening Skills showed the same active timer in the card, HUD and blade description, with no browser errors. This is upgraded-ability controller verification from simulation-earned progress, not a native-earned campaign. Proof: docs/soul-world-release-info-2026-10-13/phone.png.
+
+The Skills card fit at an actual 390px viewport without horizontal overflow. Clean staged release verification passed 255 arcade tests and 210 Soul World tests on October 13, 2026.
