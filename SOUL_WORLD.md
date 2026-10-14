@@ -340,3 +340,13 @@ Quests now lists the shrine status of all four eligible realms and separates the
 Regression coverage checks all four three-shrine combinations, unchanged state during presentation, normal claims, reload deduplication and partially recovered seals versus mentor completion. Native browser review used a seeded practice checkpoint with Frozen, Crimson and Temple shrines: Quests showed 3/3, Void remained Not attuned, and claiming granted the existing 60 XP, 25 fragments and Echo Talisman. Reload retained Reward received and Completed. This is presentation/claim verification, not native-earned progression. The 390px checklist wraps without horizontal overflow; no browser errors were observed. Proof: docs/soul-world-quest-checklist-2026-10-14/phone.png. Full native campaign and physical phone feel remain open finishing gates.
 
 Clean staged-copy validation passed 255 arcade tests and 243 Soul World tests on October 14, 2026.
+
+## Combat and loot area boundaries — October 14, 2026
+
+Enemies already pursue players outside the old inner 530–2400 range, but hit knockback and elite lunges still clamped there. A left-facing cut on an enemy at 300 could snap it rightward to 530 instead of moving it left by 32. Hit movement and elite lunges now use the same 100–2500 playable bounds as Crown Pepe and Temple pursuit. Pending patrol loot uses those bounds too, so drops near either edge retain their actual position across reload. Ordinary/guardian knockback distances, damage, lunge distances and reward amounts remain unchanged. Previously valid saved positions remain valid; this does not reconstruct positions already lost by an older save.
+
+Three new regression cases failed before the fix and passed afterward. Coverage includes cuts from both directions, edge defeats, one-time collection after reload, normal unmodified patrol pursuit followed by a wave hit, the guardian’s smaller knockback and elite lunges at both edges. The full simulation-earned oath and Temple route continues to pass; native full-campaign feel remains an open finishing gate.
+
+Browser verification on an isolated seeded practice checkpoint showed a pending reward at position 100 before and after reload. Following the normal walking trail collected 5 fragments; a second reload retained exactly 5 fragments and no pending ground reward. This is boundary/collection verification, not a native-earned defeat. At 390px the Map fit without horizontal overflow and no console errors were observed. Proof: docs/soul-world-combat-bounds-2026-10-14/phone.png.
+
+Working-tree and clean staged-copy validation passed 255 arcade tests and 248 Soul World tests on October 14, 2026.

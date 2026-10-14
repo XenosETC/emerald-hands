@@ -13,7 +13,7 @@ test('an earned patrol drop survives reload and can be collected only once',()=>
 });
 test('pending patrol saves reject invented, duplicate, wrong-phase and nonfinite drops',()=>{
  const s={world:'frozen',zone:'approach',approachCleared:[1,2,3]};
- assert.deepEqual(pendingPatrolLoot([{id:1,x:800},{id:1,x:900},{id:2,x:Infinity},{id:4,x:2070},{id:5,x:900},{id:3,x:99999}],s),[{id:1,x:800},{id:3,x:2400}]);
+ assert.deepEqual(pendingPatrolLoot([{id:1,x:800},{id:1,x:900},{id:2,x:Infinity},{id:4,x:2070},{id:5,x:900},{id:3,x:99999}],s),[{id:1,x:800},{id:3,x:2500}]);
  assert.deepEqual(pendingPatrolLoot([{id:1,x:800}],{...s,approachCleared:[]}),[]);
  for(const zone of ['arena','unknown'])assert.deepEqual(pendingPatrolLoot([{id:1,x:800}],{...s,zone}),[]);
  assert.deepEqual(pendingPatrolLoot([{id:1,x:800}],{...s,world:'academy'}),[]);

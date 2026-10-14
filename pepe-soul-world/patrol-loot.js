@@ -5,7 +5,7 @@ export function pendingPatrolLoot(value,s){
  return value.slice(0,6).filter(d=>{
   if(!d||!ids.includes(d.id)||!s.approachCleared.includes(d.id)||seen.has(d.id)||!Number.isFinite(d.x))return false;
   seen.add(d.id);return true;
- }).map(d=>({id:d.id,x:Math.max(530,Math.min(2400,d.x))}));
+ }).map(d=>({id:d.id,x:Math.max(100,Math.min(2500,d.x))}));
 }
 export function snapshotPatrolLoot(s){
  return pendingPatrolLoot(s.drops.filter(d=>d.kind==='loot'&&!d.boss).map(d=>({id:d.sourceId,x:d.x})),s);
