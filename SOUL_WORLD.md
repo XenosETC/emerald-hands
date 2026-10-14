@@ -388,3 +388,17 @@ This closes the native fresh-start-through-Frozen-realm stage, including the pre
 First-seal notice QA used a separate seeded fixture so the earned campaign stayed intact. At 390px the explanation remained after both seal/weapon pickups, had no horizontal overflow, and did not replay after reload. No console errors were observed. Notice screenshot (seeded UI check): docs/soul-world-native-frozen-2026-10-14/phone.png.
 
 Working-tree and clean staged-copy validation passed 255 arcade tests and 257 Soul World tests on October 14, 2026.
+
+## Consistent session controls and native Crimson patrols — October 14, 2026
+
+Jump, Slash and Talk previously stayed visually enabled during pause, journal and defeat while their handlers rejected input. All ten touch action/movement buttons now share one session lock covering loading, intro, pause, journal, pending travel confirmation and defeat. Healing/Spirit items and desktop guard/Domain controls use the same lock plus their existing readiness rules. Initial HUD/control state is applied before artwork loads. During active play unavailable techniques remain tappable to explain their requirements; costs, unlocks, combat timing and save format are unchanged.
+
+Browser checks verified intro, journal and pause locking, re-enabled movement/Jump/Slash/Talk after resume, and disabled consumables at full health/Spirit. Desktop 1440px and phone 390px had no horizontal overflow or observed console errors. A separate seeded one-HP encounter on QA origin 4183 reached defeat through the actual simulation and verified all twelve phone controls disabled; it was a control-presentation check, not earned campaign evidence. Proof: docs/soul-world-native-crimson-2026-10-14/seeded-defeat.png and seeded-defeat.txt. The earned run stayed isolated on origin 4182.
+
+The native campaign continued from the earned Frozen completion. At the academy it spent its earned point on Soul Edge rank 3, tempered Rime Fang once for 20 fragments and bought three Healing Flasks for 24. In Crimson Marsh, Jump + L successfully executed the earned airborne Rift; grounded Waves cleared the remaining outer patrol without damage. Walking collected its drops and E attuned the shrine. Claiming Ashes of the oath earned level 5 and Ashkeeper Robe; the robe was equipped and the new point learned Kek Wave rank 1. Four grounded Waves cleared the elite approach without damage. All three elite drops were collected and one Healing Flask restored 165/190 HP to full health.
+
+The subsequent Ember Keeper approach ended in defeat after an input-observation wait expired with movement still active; the planned Release/sword combo was not executed or validated. Native shrine revival and reload retained the cleared Crimson elite approach at 1360, full 190 HP/100 Spirit, level 5 (69/180 XP), 101 fragments, no unspent points, three Healing Flasks, one Spirit Flask, the Frost seal and both equipped upgrades. No progression, encounter state or position was assigned during the earned run. Earned Map receipt: docs/soul-world-native-crimson-2026-10-14/earned-map.txt; paused phone proof: phone.png.
+
+This advances native review through both Crimson patrols and its recovery path. Ember Keeper victory, remaining Void/oath/Temple review, uninterrupted combat feel, physical multitouch and hosted behavior remain open. The finishing queue stays on Soul World.
+
+Working-tree and clean staged-copy validation passed 255 arcade tests and 257 Soul World tests on October 14, 2026.

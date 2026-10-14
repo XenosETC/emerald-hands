@@ -1,0 +1,57 @@
+- banner:
+  - link "✦ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Sound off"
+- main:
+  - region "Game":
+    - generic: CRIMSON MARSH · APPROACH I
+    - generic: INITIATE / LV. 1
+    - button "Pause"
+    - generic: Practice campaign · separate save
+    - link "Normal campaign →":
+      - /url: index.html
+    - generic "Crimson Marsh. approach. Crown Pepe at 2110, idle. HP 0. Level 1. Training 3 of 3. Seals 0 of 3."
+    - strong:
+      - text: CROWN PEPE
+      - generic: Ribbit Fang
+    - text: HP
+    - progressbar
+    - generic: "0"
+    - text: SP
+    - progressbar
+    - generic: "100"
+    - status: Your journey continues. Tab opens the Soul Journal. K performs Warp Step.
+    - generic: Clear the approach first
+    - dialog "Recover from defeat":
+      - paragraph: YOUR OATH REMAINS
+      - heading "Rise again." [level=2]
+      - paragraph: No shrine attuned here. Recover at Kek Academy; this realm’s patrol resets. Recover with full health and Spirit. Earned XP, fragments, items, seals and quest progress stay with you.
+      - button "Return to Kek Academy →" [active]
+    - generic: K · Warp · Revive first / L · Kek Wave · Revive first
+    - strong: Ashen Ronin
+    - progressbar
+    - text: J · cut / L · wave · 65 / 65 HP
+    - generic: RELEASE
+    - progressbar "Enemy attack released"
+    - button "Map"
+    - button "Quests"
+    - button "Skills"
+    - button "Inventory"
+    - button "Gear"
+    - paragraph: Approach I · 3 / 3 enemies remain. Clear them to open the next passage.
+    - text: 0 / 60 XP · LEVEL 1
+    - progressbar
+    - button "Kek Domain · Complete the oath" [disabled]
+    - generic "Touch controls":
+      - button "Move left" [disabled]: ←
+      - button "Move right" [disabled]: →
+      - button "Jump" [disabled]
+      - button "Slash" [disabled]
+      - button "Hold guard" [disabled]
+      - button "Warp Step" [disabled]
+      - button "Kek Wave" [disabled]
+      - button "Talk" [disabled]
+      - button "Release" [disabled]
+      - button "Domain" [disabled]
+      - button "Heal ×2" [disabled]
+      - button "Spirit ×1" [disabled]
