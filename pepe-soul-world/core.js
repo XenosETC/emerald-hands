@@ -131,10 +131,10 @@ export function act(s,key){
 }
 function ITEM_NAME(s){return s.equipped.weapon==='ribbitFang'?'RIBBIT FANG':s.equipped.weapon==='frostFang'?'RIME FANG':s.equipped.weapon==='emberFang'?'EMBER FANG':'VEIL FANG';}
 function award(s,amount){const before=levelFor(s.xp).level;s.xp+=amount;const after=levelFor(s.xp).level;if(after>before){s.player.hp=maxHealth(s);emit(s,'level',{level:after});}emit(s,'save');}
-function damageEnemy(s,e,amount,direction){
+function damageEnemy(s,e,amount,direction,kind){
   if(e.dead)return;
   e.hitFlash=.18;e.stun=.24;if(e.world!=='academy')e.x=clamp(e.x+direction*(e.boss?12:32),530,2400);emit(s,'hit',{x:e.x,y:e.y-85,amount});
-  if(e.world==='academy'){if(s.oath && s.training<3){s.training++;award(s,10);if(s.training===3){emit(s,'message',{text:'Training complete. Cross the academy gate to recover the lost seals.'});emit(s,'save');}}return;}
+  if(e.world==='academy'){if(kind==='cut' && s.oath && s.training<3){s.training++;award(s,10);if(s.training===3){emit(s,'message',{text:'Training complete. Cross the academy gate to recover the lost seals.'});emit(s,'save');}}return;}
   e.hp=Math.max(0,e.hp-amount);
   if(e.hp===0){e.dead=true;e.death=.7;if(!e.boss){s.kills[s.world]++;if(!s.approachCleared.includes(e.id))s.approachCleared.push(e.id);if(approachRemaining(s)===0)emit(s,'message',{text:s.zone==='approach2'||s.world==='temple'?'Approach cleared · The guardian passage at 2250 is open.':'Approach I cleared · The passage to Approach II at 2250 is open.'});}else{s.guardianDefeated=true;emit(s,'message',{text:'Guardian defeated · The return portal at 2250 is open.'});}award(s,e.boss?55:22);emit(s,'defeat',{x:e.x,y:e.y-65,boss:e.boss});if(e.boss && s.world!=='temple'&&!s.seals.includes(s.world)){s.drops.push({kind:'seal',x:e.x,y:GROUND-70,world:s.world});emit(s,'message',{text:'The seal and guardian’s gear are free. Step into their light to recover them.'});}if(e.boss&&!s.bossRewards.includes(s.world)){s.drops.push({kind:'loot',x:e.x+30,y:GROUND-45,world:s.world,boss:true,...GUARDIAN_REWARDS[s.world]});}else if(!e.boss)s.drops.push({kind:'loot',sourceId:e.id,x:e.x,y:GROUND-30,amount:5,item:e.id===2?'healthFlask':null});}
 }
@@ -148,7 +148,7 @@ export function step(s,input,dt){
   if(p.rift){const cast=p.rift;cast.elapsed+=dt;if(!cast.impacted&&cast.elapsed>=RIFT.windup+RIFT.slam){cast.impacted=true;p.y=GROUND;p.vy=0;s.rifts.push({x:cast.x,face:cast.face,elapsed:0,hit:[],damage:RIFT.damage+levelFor(s.xp).level*3});emit(s,'riftImpact',{x:cast.x,y:GROUND,face:cast.face});}if(cast.elapsed>=RIFT.windup+RIFT.slam+RIFT.recovery)p.rift=null;}
   for(const r of s.rifts){r.elapsed+=dt;for(const e of s.enemies)if(riftHit(r,e,GROUND)){r.hit.push(e.id);damageEnemy(s,e,r.damage,r.face);if(!e.dead){if(e.world==='temple')staggerTempleEnemy(e);else{e.mode='recover';e.timer=.8;}e.stun=e.boss?.4:.8;if(!e.boss)e.vy=-420;}emit(s,'riftHit',{x:e.x,y:e.y,boss:e.boss});}}s.rifts=s.rifts.filter(r=>r.elapsed<RIFT.range/RIFT.speed+.25);
   stepGuard(p,!!input.guard,dt,GROUND);const st=stats(s);p.sp=clamp(p.sp+(p.guarding?0:dt*st.regen),0,st.spirit);p.anim+=dt;
-  if(p.attack>0){const before=p.attack;p.attack=Math.max(0,p.attack-dt);if(before>.22 && p.attack<=.22){for(const e of s.enemies){const dx=e.x-p.x;if(!e.dead && dx*p.face>-35 && dx*p.face<180 && Math.abs(p.y-e.y)<135)damageEnemy(s,e,(p.release>0?22+RELEASE.attackBonus+st.releaseAttack:22)+levelFor(s.xp).level*3+p.combo*3+st.attack,p.face);}}if(p.attack===0 && p.queued){p.queued=false;act(s,'attack');}}
+  if(p.attack>0){const before=p.attack;p.attack=Math.max(0,p.attack-dt);if(before>.22 && p.attack<=.22){for(const e of s.enemies){const dx=e.x-p.x;if(!e.dead && dx*p.face>-35 && dx*p.face<180 && Math.abs(p.y-e.y)<135)damageEnemy(s,e,(p.release>0?22+RELEASE.attackBonus+st.releaseAttack:22)+levelFor(s.xp).level*3+p.combo*3+st.attack,p.face,'cut');}}if(p.attack===0 && p.queued){p.queued=false;act(s,'attack');}}
   const moving=(input.right?1:0)-(input.left?1:0);
   if(p.rift){p.vx=0;p.x=p.rift.x;p.face=p.rift.face;p.mode='rift';}
   else if(p.domain){p.vx=0;p.x=p.domain.x;p.mode='domain';}

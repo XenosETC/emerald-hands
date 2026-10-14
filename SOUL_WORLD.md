@@ -302,3 +302,9 @@ Clean staged release verification passed 255 arcade tests and 227 Soul World tes
 Friendly waves and hostile shots now move only for their remaining lifetime on the final simulation frame. Already expired shots cannot move or damage anyone; a collision reached within the final active fraction still resolves before removal. Previously the full frame could extend a shot beyond its intended range. Damage, speed, lifetime and hit radii are unchanged. Regression tests cover both factions, expired shots, range overshoot and valid final-fraction hits without repeat damage. This is deterministic combat verification; full native campaign feel remains an open finishing gate.
 
 Working-tree and clean staged-copy validation passed 255 arcade tests and 230 Soul World tests. An isolated practice browser startup check completed without console errors. No visual layout changed in this slice.
+
+## Academy sword lesson — October 14, 2026
+
+The mentor and quest tracker ask for three connected sword cuts. Training credit now requires those cuts instead of counting every damage source, so waves remain usable against the practice effigy without bypassing the blade lesson. Existing partial and completed training saves retain their progress. Regression coverage checks actual wave contact, pre-oath hits, missed cuts, checkpoint continuation, the 30 XP cap and realm access. This implements the existing lesson text rather than changing its rewards or target count.
+
+Native browser input on the isolated practice origin accepted the oath, followed the effigy trail, fired a wave with training still at zero, then landed three J cuts to reach Training 3/3 and 30 XP. No console errors were observed. Proof: docs/soul-world-academy-cuts-2026-10-14/desktop.png. Working-tree and clean staged-copy checks passed 255 arcade tests and 233 Soul World tests. Full native campaign and physical phone combat feel remain open; no layout changed in this slice.
