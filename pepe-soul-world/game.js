@@ -9,6 +9,8 @@ import {appendTempleMeter} from './temple-hud.js';
 import {combatCue} from './combat-cues.js?v=guard-status-20261013';
 import {abilityStatus} from './ability-status.js?v=1';
 import {attemptAction} from './action-feedback.js?v=1';
+import {confirmTravel,interactionLeavesArea} from './travel-confirmation.js?v=1';
+import {createTravelDialog} from './travel-dialog.js?v=1';
 import {releaseInfo} from './release-info.js?v=1';
 import {eliteSpec} from './realm-enemies.js';
 import {PointerControls} from './pointer-controls.js';
@@ -20,7 +22,7 @@ import {journeyTrail} from './journey-trail.js?v=2';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
-import {createJournal} from './journal.js?v=shrine-trail-20261014';
+import {createJournal} from './journal.js?v=travel-confirmation-20261014';
 import {ITEMS,stats,useItem,consumablePreview} from './systems.js?v=flasks-20261013';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=academy-cuts-20261014';
 import {loadArt,Renderer} from './render.js';
@@ -37,8 +39,13 @@ const state=createState(saved),keys=new Set(),touchKeys=new PointerControls(),so
 const guardControls=new GuardControls(state.player,keys,touchKeys);
 let journalOpen=false,journal,lastCheckpoint=0;
 let begun=false,paused=false,ready=false,renderer,last=0,accumulator=0,toastUntil=0,lastUI=0,walkTarget=null;
+let travelPending=false;
+const travelDialog=createTravelDialog(()=>{travelPending=true;releaseInputs();accumulator=0;},()=>{travelPending=false;last=performance.now();accumulator=0;(journalOpen?document.querySelector('#close-journal'):canvas).focus({preventScroll:true});});
 const actions={Space:'jump',KeyW:'jump',ArrowUp:'jump',KeyJ:'attack',KeyK:'dash',KeyL:'wave',KeyE:'interact',KeyR:'release',KeyF:'domain'};
 function releaseInputs(){keys.clear();touchKeys.clear();walkTarget=null;guardControls.reset();}
+function requestTravel(travel){return confirmTravel(state,travel,text=>{
+ travelDialog.open(text,()=>{travel();flush();updateUI();});return false;
+});}
 function message(text){$('toast').textContent=text;$('toast').style.opacity='1';toastUntil=performance.now()+6500;}
 function checkpointStatus(result){
  $('save-state').textContent=result.message;
@@ -70,11 +77,12 @@ $('restore-checkpoint').addEventListener('click',()=>{
  else{restoreArmed=false;$('restore-checkpoint').textContent='Recover previous checkpoint';}
 });
 function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){const recovery=reviveGuidance(state);$('death-screen').hidden=false;$('revive').textContent=recovery.label;$('death-copy').textContent=recovery.text;releaseInputs();$('revive').focus({preventScroll:true});}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;}
-function setPaused(value){releaseInputs();accumulator=0;if(value&&(!begun||!ready||state.dead||journalOpen))return;paused=value;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));(value?$('resume'):canvas).focus({preventScroll:true});}
+function setPaused(value){releaseInputs();accumulator=0;if(value&&(!begun||!ready||state.dead||journalOpen||travelPending))return;paused=value;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));(value?$('resume'):canvas).focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
-function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){attemptAction(state,actions[code]);flush();}}
+function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){const action=()=>attemptAction(state,actions[code]);if(code==='KeyE'&&interactionLeavesArea(state))requestTravel(action);else action();flush();}}
 function toggleSwordGuard(focus=true){if(!begun||!ready||paused||journalOpen||state.dead)return;guardControls.toggle();walkTarget=null;if(focus)canvas.focus({preventScroll:true});}
 window.addEventListener('keydown',e=>{
+ if(travelPending)return;
  if(state.dead&&e.code==='Tab'&&!e.ctrlKey&&!e.altKey&&!e.metaKey){e.preventDefault();$('revive').focus({preventScroll:true});return;}
  if(paused&&e.code==='Tab'&&!e.ctrlKey&&!e.altKey&&!e.metaKey){e.preventDefault();const next=restoreArmed&&document.activeElement===$('resume')?$('restore-checkpoint'):$('resume');next.focus({preventScroll:true});return;}
  const intent=keyboardIntent(e,{begun,ready,paused,dead:state.dead,journalOpen,canvasFocused:e.target===canvas,inputFocused:e.target instanceof HTMLInputElement,buttonFocused:e.target instanceof HTMLButtonElement});
@@ -125,12 +133,12 @@ journeyWalk.addEventListener('click',()=>{
  walkTarget=trail.x;message('Walking to '+trail.label+'. Movement controls or a ground click can steer you.');canvas.focus({preventScroll:true});
 });
 
-journal=createJournal(state,()=>{flush();updateUI();},toggleJournal,createCheckpointPanel(state,checkpointStore,()=>location.reload(),storageKey!==SAVE_KEY));document.querySelector('#journal header').append($('motion'));
+journal=createJournal(state,()=>{flush();updateUI();},toggleJournal,createCheckpointPanel(state,checkpointStore,()=>location.reload(),storageKey!==SAVE_KEY),requestTravel);document.querySelector('#journal header').append($('motion'));
 function resize(){const rect=canvas.getBoundingClientRect();if(!rect.width||!rect.height)return;const scale=Math.min(1600,Math.max(1000,rect.width))/rect.width;canvas.width=Math.round(rect.width*scale);canvas.height=Math.round(rect.height*scale);if(renderer)renderer.camera=Math.max(0,Math.min(2600-canvas.width,renderer.camera));}new ResizeObserver(resize).observe(canvas);resize();
 let reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 function applyMotion(){document.body.classList.toggle('effects-reduced',reduced);if(renderer)renderer.reduced=reduced;$('motion').setAttribute('aria-pressed',String(reduced));$('motion').textContent=reduced?'Effects reduced':'Reduce effects';}
 $('motion').addEventListener('click',()=>{reduced=!reduced;applyMotion();});applyMotion();
-for(const w of WORLDS){const b=document.createElement('button');b.className='realm';b.dataset.world=w.id;b.style.backgroundImage=`url(assets/${w.art}.webp)`;const strong=document.createElement('strong');strong.textContent=w.name;const sub=document.createElement('small');sub.textContent=w.id==='academy'?'Home · training · restoration':w.boss;const sym=document.createElement('span');sym.className='symbol';sym.textContent=w.symbol;b.append(strong,sub,sym);b.addEventListener('click',()=>{if(!begun||paused)return;if(w.id===state.world)return;if(enterWorld(state,w.id)){flush();canvas.focus({preventScroll:true});}else message('Finish training, then walk right to the academy gate.');});$('realm-list').append(b);}
+for(const w of WORLDS){const b=document.createElement('button');b.className='realm';b.dataset.world=w.id;b.style.backgroundImage=`url(assets/${w.art}.webp)`;const strong=document.createElement('strong');strong.textContent=w.name;const sub=document.createElement('small');sub.textContent=w.id==='academy'?'Home · training · restoration':w.boss;const sym=document.createElement('span');sym.className='symbol';sym.textContent=w.symbol;b.append(strong,sub,sym);b.addEventListener('click',()=>{if(!begun||paused)return;if(w.id===state.world)return;requestTravel(()=>{if(enterWorld(state,w.id)){flush();canvas.focus({preventScroll:true});}else message('Finish training, then walk right to the academy gate.');});});$('realm-list').append(b);}
 const domainButton=document.createElement('button');domainButton.className='domain-action';domainButton.onclick=()=>{press('KeyF');keys.delete('KeyF');};document.querySelector('.viewport').append(domainButton);
 const guardButton=document.createElement('button');guardButton.className='guard-action';guardButton.title='Hold S or ↓ to guard, or click to toggle. Front attacks cost Spirit. Ground hazards and rear attacks bypass.';guardButton.onclick=()=>toggleSwordGuard();document.querySelector('.viewport').append(guardButton);
 const castReadout=document.createElement('div');castReadout.className='domain-cast';castReadout.hidden=true;const castLabel=document.createElement('span'),castProgress=document.createElement('progress');castProgress.max=1;castProgress.setAttribute('aria-label','Kek Domain cast progress');castReadout.append(castLabel,castProgress);document.querySelector('.viewport').append(castReadout);
@@ -160,6 +168,6 @@ function updateUI(){soundControl();const p=state.player,l=levelFor(state.xp),wor
   const touchDomain=document.querySelector('[data-key="KeyF"]'),domainInfo=abilityStatus(state,'domain');touchDomain.disabled=!begun||paused||journalOpen||state.dead;touchDomain.classList.toggle('unavailable',!domainInfo.ready);touchDomain.setAttribute('aria-description',domainInfo.reason);touchDomain.textContent=p.domain?'Casting':p.domainCooldown>0?'Domain '+Math.ceil(p.domainCooldown)+'s':'Domain';touchDomain.title=domainInfo.reason;domainButton.title=touchDomain.title;
   canvas.setAttribute('aria-label',`${world.name}. ${state.zone}. Crown Pepe at ${Math.round(p.x)}, ${p.y<GROUND-1?'airborne':p.mode}. HP ${Math.ceil(p.hp)}. Level ${l.level}. Training ${state.training} of 3. Seals ${state.seals.length} of 3.`);
 }
-function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;if(ready){if(begun&&!paused&&!journalOpen&&!state.dead){accumulator+=dt;if(renderer.freeze>0){accumulator=0;}else{while(accumulator>=1/60){const p=state.player;if(walkTarget!==null && Math.abs(walkTarget-p.x)<10)walkTarget=null;const left=keys.has('KeyA')||keys.has('ArrowLeft')||touchKeys.has('KeyA')||(walkTarget!==null && walkTarget<p.x),right=keys.has('KeyD')||keys.has('ArrowRight')||touchKeys.has('KeyD')||(walkTarget!==null && walkTarget>p.x);step(state,{left,right,guard:guardControls.held},1/60);accumulator-=1/60;flush();if(state.dead)break;}}renderer.update(dt,state);}else if(!begun){state.time+=dt;}renderer.draw(state);if(begun&&!state.dead&&now-lastCheckpoint>5000){save();lastCheckpoint=now;}if(now-lastUI>100){updateUI();lastUI=now;}if(now>toastUntil)$('toast').style.opacity='.15';}requestAnimationFrame(frame);}
+function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;if(ready){if(begun&&!paused&&!journalOpen&&!travelPending&&!state.dead){accumulator+=dt;if(renderer.freeze>0){accumulator=0;}else{while(accumulator>=1/60){const p=state.player;if(walkTarget!==null && Math.abs(walkTarget-p.x)<10)walkTarget=null;const left=keys.has('KeyA')||keys.has('ArrowLeft')||touchKeys.has('KeyA')||(walkTarget!==null && walkTarget<p.x),right=keys.has('KeyD')||keys.has('ArrowRight')||touchKeys.has('KeyD')||(walkTarget!==null && walkTarget>p.x);step(state,{left,right,guard:guardControls.held},1/60);accumulator-=1/60;flush();if(state.dead)break;}}renderer.update(dt,state);}else if(!begun){state.time+=dt;}renderer.draw(state);if(begun&&!state.dead&&now-lastCheckpoint>5000){save();lastCheckpoint=now;}if(now-lastUI>100){updateUI();lastUI=now;}if(now>toastUntil)$('toast').style.opacity='.15';}requestAnimationFrame(frame);}
 try{const art=await loadArt();renderer=new Renderer(canvas,art);applyMotion();ready=true;$('begin').disabled=false;$('begin').innerHTML='Enter Kek Academy <span>→</span>';updateUI();requestAnimationFrame(frame);}catch(error){console.error(error);$('begin').textContent='Artwork could not load';message('An artwork file could not load. Reload after the assets finish downloading.');$('save-state').textContent='Preview loading failed';}
 window.addEventListener('pagehide',()=>{if(begun)save();});
