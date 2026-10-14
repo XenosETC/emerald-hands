@@ -60,7 +60,16 @@ export function skillPreview(s,id){
  return {rank,maxed:false,reasons,changes:fields.map(key=>({key,before:before[key],after:after[key]}))};
 }
 export function learn(s,id){const preview=skillPreview(s,id);if(!preview||preview.maxed||preview.reasons.length)return false;s.skills[id]++;return changed(s,`${SKILLS[id].name} · rank ${s.skills[id]} learned.`);}
-export function useItem(s,id){const item=ITEMS[id];if(!item||item.slot!=='consumable'||!s.inventory[id]||s.dead)return false;const st=stats(s),p=s.player;if(item.heal&&p.hp>=st.health||item.spirit&&p.sp>=st.spirit)return false;if(item.heal)p.hp=Math.min(st.health,p.hp+item.heal);if(item.spirit)p.sp=Math.min(st.spirit,p.sp+item.spirit);s.inventory[id]--;s.events.push({type:'restore',x:p.x,y:p.y-80});return changed(s,`${item.name} used.`);}
+export function consumablePreview(s,id){
+ const item=ITEMS[id];if(!item||item.slot!=='consumable')return null;
+ const st=stats(s),field=item.heal?'hp':'sp',label=item.heal?'HP':'Spirit',current=s.player[field],maximum=item.heal?st.health:st.spirit,count=s.inventory[id]||0;
+ const restore=Math.max(0,Math.min(item.heal||item.spirit,maximum-current));
+ const restoreLabel=restore>0&&restore<.1?'<0.1':String(Number(restore.toFixed(1)));
+ const ready=!s.dead&&count>0&&restore>0;
+ const reason=s.dead?'Revive before using supplies':count===0?'No '+item.name+' remaining':restore===0?label+' already full · no flask used':'Restore '+restoreLabel+' '+label+' · '+Number(current.toFixed(1))+' / '+maximum;
+ return {field,label,current,maximum,count,restore,restoreLabel,ready,reason};
+}
+export function useItem(s,id){const preview=consumablePreview(s,id);if(!preview?.ready)return false;s.player[preview.field]=Math.min(preview.maximum,s.player[preview.field]+preview.restore);s.inventory[id]--;s.events.push({type:'restore',x:s.player.x,y:s.player.y-80});return changed(s,`${ITEMS[id].name} used.`);}
 export function atMentor(s){return s.world==='academy'&&Math.abs(s.player.x-490)<190&&!s.dead;}
 export function buyItem(s,id){const item=ITEMS[id];if(!atMentor(s)||!item?.price||s.fragments<item.price||(s.inventory[id]||0)>=99)return false;s.fragments-=item.price;addItem(s,id);return changed(s,`${item.name} added to your pack.`);}
 export function upgradeGear(s){const id=s.equipped.weapon,rank=s.gearLevels[id]||0,cost=(rank+1)*20;if(!atMentor(s)||rank>=3||s.fragments<cost)return false;s.fragments-=cost;s.gearLevels[id]=rank+1;return changed(s,`${ITEMS[id].name} tempered to +${rank+1}.`);}

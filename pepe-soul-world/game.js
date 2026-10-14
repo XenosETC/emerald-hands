@@ -16,8 +16,8 @@ import {questGuidance,academyTrail} from './quest-guidance.js?v=5';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
-import {createJournal} from './journal.js?v=release-info-20261013';
-import {ITEMS,stats,useItem} from './systems.js';
+import {createJournal} from './journal.js?v=flasks-20261013';
+import {ITEMS,stats,useItem,consumablePreview} from './systems.js?v=flasks-20261013';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=release-info-20261013';
 import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js?v=safe-20261013';
@@ -71,7 +71,7 @@ window.addEventListener('keydown',e=>{
  e.preventDefault();
  if(intent.type==='escape'){if(journalOpen)toggleJournal(false);else setPaused(!paused);}
  else if(intent.type==='journal')toggleJournal(journalRequest(journalOpen,journal.currentTab,intent.tab),intent.tab);
- else if(intent.type==='item'){useItem(state,intent.id);flush();}
+ else if(intent.type==='item'){if(!useItem(state,intent.id))message(consumablePreview(state,intent.id).reason);flush();}
  else if(intent.type==='play'){walkTarget=null;press(intent.code);}
 });
 window.addEventListener('keyup',e=>{keys.delete(e.code);guardControls.sync();});
@@ -134,7 +134,7 @@ function updateUI(){soundControl();const p=state.player,l=levelFor(state.xp),wor
   guardButton.textContent=p.guardBroken>0?'Guard broken':p.guarding?'Sword guard · Release':guardControls.latched?'Guard queued · Cancel':'S · Sword guard';guardButton.setAttribute('aria-pressed',String(!!p.guarding||guardControls.latched));guardButton.disabled=!begun||paused||journalOpen||state.dead;
   guardButton.title=guardInfo.reason+'. Hold S or Down, or click to toggle. Rear attacks and ground hazards bypass guard.';
   const touchGuard=document.querySelector('[data-key="KeyS"]');touchGuard.setAttribute('aria-pressed',String(!!p.guarding));touchGuard.textContent=p.guarding?'Guard on':'Hold guard';touchGuard.title=guardInfo.reason+'. Hold to guard; rear attacks and ground hazards bypass.';touchGuard.disabled=!begun||paused||journalOpen||state.dead;
-  for(const button of document.querySelectorAll('[data-item]')){const id=button.dataset.item,item=ITEMS[id],count=state.inventory[id]||0,full=item.heal?p.hp>=stats(state).health:p.sp>=stats(state).spirit;button.textContent=(item.heal?'Heal':'Spirit')+' ×'+count;button.disabled=!begun||paused||journalOpen||state.dead||count===0||full;button.title=count===0?'No flasks remaining':full?'Already full':item.description;}
+  for(const button of document.querySelectorAll('[data-item]')){const id=button.dataset.item,item=ITEMS[id],preview=consumablePreview(state,id);button.textContent=(item.heal?'Heal':'Spirit')+' ×'+preview.count;button.disabled=!begun||paused||journalOpen||!preview.ready;button.title=preview.reason;}
   for(const [key,action,name] of [['KeyK','dash','Warp Step'],['KeyL','wave','Kek Wave'],['KeyR','release','Release']]){
    const button=document.querySelector(`[data-key="${key}"]`),info=abilityStatus(state,action);
    button.disabled=!begun||paused||journalOpen||!info.ready;
