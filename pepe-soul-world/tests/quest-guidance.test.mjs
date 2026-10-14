@@ -7,7 +7,7 @@ test('reward reminders take priority and disappear after claiming',()=>{
 });
 test('realm guidance distinguishes remaining enemies, passage, arena and return portal',()=>{
  const s=createState({version:1,oath:true,training:3,world:'frozen'});
- assert.match(questGuidance(s).text,/3 \/ 3/);s.enemies.forEach(e=>e.dead=true);assert.match(questGuidance(s).text,/second map/);
+ assert.match(questGuidance(s).text,/3 \/ 3/);s.enemies.forEach(e=>e.dead=true);s.discoveries.push('frozen');assert.match(questGuidance(s).text,/second map/);
  s.zone='arena';assert.match(questGuidance(s).text,/Rime Warden/);s.guardianDefeated=true;assert.match(questGuidance(s).text,/return portal/);
 });
 test('Temple return guidance never promises a second copy of its saved reward',()=>{

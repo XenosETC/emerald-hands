@@ -3,7 +3,7 @@ import {oathSummary} from './oath-summary.js?v=1';
 import {guardianReceipts} from './reward-receipts.js?v=1';
 import {groundRewards} from './ground-rewards.js?v=1';
 import {releaseInfo} from './release-info.js?v=1';
-import {questGuidance} from './quest-guidance.js?v=5';
+import {questGuidance} from './quest-guidance.js?v=6';
 import {ITEMS,SKILLS,QUESTS,stats,compareGear,skillPreview,skillPoints,consumablePreview,purchasePreview,forgePreview,equip,learn,useItem,claimQuest,questReady,buyItem,upgradeGear} from './systems.js?v=shop-20261014';
 import {WORLDS,enterWorld,enterArena,approachRemaining,levelFor,DOMAIN,canDomain,canRift} from './core.js';
 export function createJournal(state,changed,toggle,savePanel){

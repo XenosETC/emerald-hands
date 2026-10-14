@@ -7,7 +7,8 @@ test('reward list derives locations and labels without changing a saved checkpoi
 });
 test('collection clears the reminder and living enemies retain combat guidance',()=>{
  const s=createState({version:2,oath:true,training:3,world:'void',x:800,approachCleared:[1,2,3],pendingLoot:[{id:1,x:800}]});
- step(s,{},1/60);assert.deepEqual(groundRewards(s),[]);assert.match(questGuidance(s).text,/Approach I cleared.*2250/);
+ step(s,{},1/60);assert.deepEqual(groundRewards(s),[]);assert.match(questGuidance(s).text,/Optional echo shrine/);
+ s.discoveries.push('void');assert.match(questGuidance(s).text,/Approach I cleared.*2250/);
  const alive=createState({version:2,oath:true,training:3,world:'frozen',approachCleared:[1],pendingLoot:[{id:1,x:800}]});assert.match(questGuidance(alive).text,/2 \/ 3 enemies remain/);
 });
 test('guardian seals and gear appear together without replacing guardian return guidance',()=>{

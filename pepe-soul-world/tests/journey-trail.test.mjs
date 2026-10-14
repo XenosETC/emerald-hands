@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {createState,step,enterArena,snapshot} from '../core.js';import {journeyTrail} from '../journey-trail.js';
 test('cleared approach trail collects pending rewards through actual walking before guiding to the passage',()=>{
- const s=createState({version:2,oath:true,training:3,world:'frozen',x:2000,fragments:25,approachCleared:[1,2,3],pendingLoot:[{id:1,x:800},{id:2,x:1160},{id:3,x:1540}]});
+ const s=createState({version:2,oath:true,training:3,world:'frozen',discoveries:['frozen'],x:2000,fragments:25,approachCleared:[1,2,3],pendingLoot:[{id:1,x:800},{id:2,x:1160},{id:3,x:1540}]});
  const before=snapshot(s);assert.equal(journeyTrail(s).x,1540);assert.deepEqual(snapshot(s),before);
  const flasks=s.inventory.healthFlask;
  while(s.drops.length){const target=journeyTrail(s);assert.match(target.label,/reward/);const count=s.drops.length;for(let frame=0;frame<1200&&s.drops.length===count;frame++)step(s,{left:s.player.x>target.x,right:s.player.x<target.x},1/60);assert.equal(s.drops.length,count-1);}
@@ -18,5 +18,5 @@ test('living enemies, defeat and uncleared arenas never get an automatic combat 
 });
 test('academy onboarding and Temple guardian passage retain their own destinations',()=>{
  assert.equal(journeyTrail(createState()).label,'Goribbit');
- const s=createState({version:2,oath:true,training:3,complete:true,world:'temple',approachCleared:[1,2,3]});assert.deepEqual(journeyTrail(s),{x:2250,label:'the guardian passage'});
+ const s=createState({version:2,oath:true,training:3,complete:true,world:'temple',discoveries:['temple'],approachCleared:[1,2,3]});assert.deepEqual(journeyTrail(s),{x:2250,label:'the guardian passage'});
 });

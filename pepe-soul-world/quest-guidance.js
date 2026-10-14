@@ -5,6 +5,7 @@ export function questGuidance(s){
  if(s.world!=='academy'&&s.zone!=='arena'&&approachRemaining(s)===0){
   const rewards=groundRewards(s);
   if(rewards.length)return {text:`Approach cleared · ${rewards.length} ground reward${rewards.length===1?' remains':'s remain'}. Collect before crossing; nearest at ${rewards[0].x}. Map lists each drop.`,ready:0};
+  if(!s.discoveries.includes(s.world))return {text:'Approach cleared · Optional echo shrine at 1360. Press E beside it to attune: 15 XP, 10 fragments and shrine recovery on defeat. Attunement is saved for this realm.',ready:0};
  }
  if(s.world==='temple'){
   const left=approachRemaining(s),returnText=s.bossRewards.includes('temple')?'Jade Abbot defeated · Reward already recovered. E at 2250 to return home.':'Jade Abbot defeated · Collect your fragments and flask, then return home at 2250.';
