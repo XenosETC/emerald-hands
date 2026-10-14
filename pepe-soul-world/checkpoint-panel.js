@@ -1,5 +1,5 @@
-import {checkpointFile,parseCheckpointFile,checkpointSummary,MAX_BACKUP_SIZE} from './checkpoint-file.js?v=1';
-import {snapshot} from './core.js';
+import {checkpointFile,parseCheckpointFile,checkpointSummary,MAX_BACKUP_SIZE} from './checkpoint-file.js?v=2';
+import {snapshot} from './core.js?v=checkpoint-timers-20261013';
 export function createCheckpointPanel(state,store,reload,practice){
  const panel=document.createElement('article');panel.className='checkpoint-panel';
  const title=document.createElement('h3');title.textContent='Protect your journey';

@@ -1,5 +1,5 @@
 import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=6';
-import {createCheckpointPanel} from './checkpoint-panel.js?v=1';
+import {createCheckpointPanel} from './checkpoint-panel.js?v=2';
 import {GuardControls} from './guard-controls.js';
 import {guardStatus} from './sword-guard.js?v=status-20261013';
 import {keyboardIntent} from './keyboard-input.js?v=1';
@@ -20,7 +20,7 @@ import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
 import {createJournal} from './journal.js?v=flasks-20261013';
 import {ITEMS,stats,useItem,consumablePreview} from './systems.js?v=flasks-20261013';
-import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=release-info-20261013';
+import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=checkpoint-timers-20261013';
 import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js?v=safe-20261013';
 const storageKey=new URLSearchParams(location.search).get('practice')==='1'?'pepe-soul-world-practice-v1':SAVE_KEY;

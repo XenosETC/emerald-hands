@@ -250,3 +250,13 @@ The defeat dialog now describes the existing recovery destination, patrol/guardi
 Fixtures compare descriptions against actual recovery across all destinations, including Temple's single approach, and verify non-mutating guidance and retained patrol loot. At an actual 390px viewport, a seeded one-health Frozen District practice fixture suffered a real enemy knockout. Retry received focus; Tab/Shift+Tab stayed there; Enter returned to the shrine at 1360 with 130 HP and 100 Spirit. Map still showed two enemies remaining, 25 fragments and the uncollected five-fragment drop at 800. No browser errors or horizontal overflow were observed. This is seeded defeat/retry verification, not earned campaign progression or physical-device comfort. Proof: docs/soul-world-revive-guidance-2026-10-13/phone.png.
 
 Clean staged release verification passed 255 arcade tests and 216 Soul World tests on October 13, 2026.
+
+## Complete ability timer checkpoints — October 13, 2026
+
+Warp, Wave and Release cooldowns now survive normal checkpoint and portable-file reloads alongside the existing Rift/Domain cooldowns. Release's remaining active duration survives too, preserving its paid bonus instead of dropping the effect while resetting its cooldown. Optional version-2 fields are bounded by the existing ability/upgrade values; old version-1/version-2 saves default to zero, and locked saves cannot restore an awakened effect. Timers resume with simulation rather than subtracting offline time, matching Rift/Domain. Cast costs, durations, damage and live cooldown rates are unchanged.
+
+Death checkpoints still clear timers. Direct academy revival previously retained cooldowns while a death-checkpoint reload cleared them; direct revival now clears all cooldowns consistently with shrine revival and death reload. Normal realm travel retains its existing behavior.
+
+Fixtures exercise actual casts, checkpoint/file roundtrips, normal timer expiry, malformed/legacy/locked inputs and both academy/shrine revival. Browser review loaded the simulation-earned oath checkpoint on the isolated practice origin, cast R, opened Skills and reloaded. Release resumed at about 7.8 active seconds with a 15.7-second cooldown, without browser errors. This verifies persistence from simulation-earned progress, not a native-earned campaign. Proof: docs/soul-world-checkpoint-timers-2026-10-13/phone.png.
+
+The restored ability card fit at an actual 390px viewport without horizontal overflow. Clean staged release verification passed 255 arcade tests and 220 Soul World tests on October 13, 2026.

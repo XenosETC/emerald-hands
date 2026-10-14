@@ -1,4 +1,4 @@
-import {snapshot,createState,readSave,levelFor,WORLDS} from './core.js';
+import {snapshot,createState,readSave,levelFor,WORLDS} from './core.js?v=checkpoint-timers-20261013';
 export const MAX_BACKUP_SIZE=250000;
 export function checkpointFile(s){return JSON.stringify({game:'pepe-soul-world',format:1,checkpoint:snapshot(s)},null,2);}
 export function parseCheckpointFile(text){

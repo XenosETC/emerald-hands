@@ -25,6 +25,8 @@ export function readSave(value) {
   if (!value || ![1,2].includes(value.version) || typeof value !== 'object') return null;
   const progress=sanitizeProgress(value),oath=value.oath===true,training=clamp(Number.isFinite(value.training)?Math.floor(value.training):0,0,3);
   const saved={version:2,...progress,zone:value.zone==='arena'&&Array.isArray(value.approachCleared)&&[1,2,3].every(id=>value.approachCleared.includes(id))?'arena':value.zone==='approach2'&&Array.isArray(value.approachCleared)&&[1,2,3].every(id=>value.approachCleared.includes(id))?'approach2':'approach',approachCleared:[...new Set((Array.isArray(value.approachCleared)?value.approachCleared:[]).filter(id=>[1,2,3,5,6,7].includes(id)))],guardianDefeated:value.guardianDefeated===true,oath,training,seals:[...new Set(Array.isArray(value.seals)?value.seals.filter(x=>['frozen','crimson','void'].includes(x)):[])],complete:value.complete===true,world:oath&&training===3&&WORLDS.some(w=>w.id===value.world)?value.world:'academy',x:clamp(Number.isFinite(value.x)?value.x:320,100,WIDTH-100),hp:Number.isFinite(value.hp)?value.hp:null,sp:Number.isFinite(value.sp)?value.sp:null,riftCooldown:clamp(Number.isFinite(value.riftCooldown)?value.riftCooldown:0,0,RIFT.cooldown),domainCooldown:clamp(Number.isFinite(value.domainCooldown)?value.domainCooldown:0,0,DOMAIN.cooldown)};
+  const st=stats(saved),timer=(key,max)=>clamp(Number.isFinite(value[key])?value[key]:0,0,max);
+  saved.dashCooldown=timer('dashCooldown',st.warpCooldown);saved.waveCooldown=timer('waveCooldown',1.2);saved.releaseCooldown=timer('releaseCooldown',RELEASE.cooldown);saved.release=canRelease(saved)?timer('release',st.releaseDuration):0;
   saved.pendingLoot=pendingPatrolLoot(value.pendingLoot,saved);return saved;
 }
 export function maxHealth(s){return stats(s).health;}
@@ -46,12 +48,14 @@ export function abilityReady(s,key){
 export function domainReady(s){const p=s.player;return canDomain(s)&&!s.dead&&!p.guarding&&p.hurt<=0&&!p.domain&&!p.rift&&!p.riftQueued&&p.y>=GROUND&&p.attack<=0&&p.dash<=0&&(p.domainCooldown||0)<=0&&p.sp>=DOMAIN.cost;}
 export function snapshot(s){
  const checkpoint={version:2,pendingLoot:snapshotPatrolLoot(s),zone:s.zone,approachCleared:[...s.approachCleared],guardianDefeated:s.guardianDefeated,xp:s.xp,oath:s.oath,training:s.training,seals:[...s.seals],complete:s.complete,inventory:{...s.inventory},equipped:{...s.equipped},skills:{...s.skills},gearLevels:{...s.gearLevels},fragments:s.fragments,kills:{...s.kills},discoveries:[...s.discoveries],bossRewards:[...s.bossRewards],claimedQuests:[...s.claimedQuests],world:s.world,x:s.player.x,hp:s.player.hp,sp:s.player.sp,riftCooldown:s.player.riftCooldown||0,domainCooldown:s.player.domainCooldown||0};
+ checkpoint.dashCooldown=s.player.dashCooldown||0;checkpoint.waveCooldown=s.player.waveCooldown||0;checkpoint.releaseCooldown=s.player.releaseCooldown||0;checkpoint.release=s.player.release||0;
  if(s.dead){
   const destination=reviveDestination(s),academy=destination==='academy';
   checkpoint.world=academy?'academy':s.world;
   checkpoint.x=academy?420:1360;
   checkpoint.hp=maxHealth(s);checkpoint.sp=maxSpirit(s);
   checkpoint.riftCooldown=0;checkpoint.domainCooldown=0;
+  checkpoint.dashCooldown=0;checkpoint.waveCooldown=0;checkpoint.releaseCooldown=0;checkpoint.release=0;
   if(destination==='shrine'&&s.zone==='arena'){
    checkpoint.zone=s.world==='temple'?'approach':'approach2';
    checkpoint.guardianDefeated=false;
@@ -60,7 +64,7 @@ export function snapshot(s){
  return checkpoint;
 }
 function enemy(id,x,world,boss=false){return {id,x,y:GROUND,hp:boss?210:65,maxHp:boss?210:65,boss,world,face:-1,mode:'idle',timer:.4+id*.08,stun:0,anim:0,hitFlash:0,dead:false,death:0,attackCount:0};}
-export function createState(saved){const v=readSave(saved);const s={...sanitizeProgress(v||{version:1}),time:0,zone:v?.zone||'approach',approachCleared:v?.approachCleared||[],guardianDefeated:v?.guardianDefeated||false,world:v?.world||'academy',oath:v?.oath||false,training:v?.training||0,seals:v?.seals||[],complete:v?.complete||false,events:[],enemies:[],rifts:[],projectiles:[],drops:[],player:{guarding:false,guardTime:0,guardHit:0,guardLower:0,guardBroken:0,guardMustRelease:false,x:v?.x||320,y:GROUND,vx:0,vy:0,face:1,hp:100,sp:100,mode:'idle',anim:0,attack:0,combo:0,comboUntil:0,queued:false,dash:0,warp:null,dashCooldown:0,waveCooldown:0,invuln:0,hurt:0,release:0,releaseCooldown:0,riftQueued:null,rift:null,riftCooldown:v?.riftCooldown||0,domain:null,domainCooldown:v?.domainCooldown||0},dead:false};s.player.hp=clamp(v?.hp??maxHealth(s),1,maxHealth(s));s.player.sp=clamp(v?.sp??maxSpirit(s),0,maxSpirit(s));if(s.world==='academy'){s.zone='approach';s.approachCleared=[];s.guardianDefeated=false;}populate(s,v?.pendingLoot||[]);return s;}
+export function createState(saved){const v=readSave(saved);const s={...sanitizeProgress(v||{version:1}),time:0,zone:v?.zone||'approach',approachCleared:v?.approachCleared||[],guardianDefeated:v?.guardianDefeated||false,world:v?.world||'academy',oath:v?.oath||false,training:v?.training||0,seals:v?.seals||[],complete:v?.complete||false,events:[],enemies:[],rifts:[],projectiles:[],drops:[],player:{guarding:false,guardTime:0,guardHit:0,guardLower:0,guardBroken:0,guardMustRelease:false,x:v?.x||320,y:GROUND,vx:0,vy:0,face:1,hp:100,sp:100,mode:'idle',anim:0,attack:0,combo:0,comboUntil:0,queued:false,dash:0,warp:null,dashCooldown:v?.dashCooldown||0,waveCooldown:v?.waveCooldown||0,invuln:0,hurt:0,release:v?.release||0,releaseCooldown:v?.releaseCooldown||0,riftQueued:null,rift:null,riftCooldown:v?.riftCooldown||0,domain:null,domainCooldown:v?.domainCooldown||0},dead:false};s.player.hp=clamp(v?.hp??maxHealth(s),1,maxHealth(s));s.player.sp=clamp(v?.sp??maxSpirit(s),0,maxSpirit(s));if(s.world==='academy'){s.zone='approach';s.approachCleared=[];s.guardianDefeated=false;}populate(s,v?.pendingLoot||[]);return s;}
 function emit(s,type,data={}){s.events.push({type,...data});}
 export function approachRemaining(s){return s.enemies.filter(e=>!e.boss&&!e.dead&&e.world!=='academy').length;}
 function populate(s,pending=[]){s.enemies=s.world==='academy'?[enemy(0,870,'academy')]:s.zone==='arena'?[enemy(4,2070,s.world,true)]:s.zone==='approach2'?[800,1160,1540].map((x,i)=>({...enemy(i+5,x,s.world),elite:i===1?'caster':'melee',hp:i===1?80:90,maxHp:i===1?80:90})):[enemy(1,800,s.world),enemy(2,1160,s.world),enemy(3,1540,s.world)];s.rifts=[];s.projectiles=[];s.drops=pendingPatrolLoot(pending,s).map(d=>({kind:'loot',sourceId:d.id,x:d.x,y:GROUND-30,amount:5,item:d.id===2?'healthFlask':null}));for(const e of s.enemies){if(!e.boss&&s.approachCleared.includes(e.id)||e.boss&&s.guardianDefeated){e.dead=true;e.hp=0;}}if(s.zone==='arena'&&s.guardianDefeated){if(s.world!=='temple'&&!s.seals.includes(s.world))s.drops.push({kind:'seal',x:2070,y:GROUND-70,world:s.world});if(!s.bossRewards.includes(s.world))s.drops.push({kind:'loot',x:2100,y:GROUND-45,world:s.world,boss:true,...GUARDIAN_REWARDS[s.world]});}}
@@ -72,7 +76,7 @@ export function reviveDestination(s){
 export function revive(s){
   if(!s.dead)return false;
   const destination=reviveDestination(s);
-  if(destination==='academy')return enterWorld(s,'academy');
+  if(destination==='academy'){const restored=enterWorld(s,'academy');if(restored)Object.assign(s.player,{dashCooldown:0,waveCooldown:0,releaseCooldown:0,riftCooldown:0,domainCooldown:0});return restored;}
   // An attuned shrine keeps this run's cleared enemies, but resets the living guardian.
   if(s.zone==='arena'){if(destination!=='cleared-arena'){s.zone=s.world==='temple'?'approach':'approach2';s.guardianDefeated=false;}populate(s);}s.dead=false;dropGuard(s.player);s.player.guardBroken=0;s.player.guardMustRelease=false;Object.assign(s.player,{x:1360,y:GROUND,vx:0,vy:0,hp:maxHealth(s),sp:maxSpirit(s),face:1,mode:'idle',anim:0,attack:0,combo:0,comboUntil:0,queued:false,dash:0,warp:null,dashCooldown:0,waveCooldown:0,releaseCooldown:0,hurt:0,invuln:1.5,release:0,riftQueued:null,rift:null,riftCooldown:0,domain:null,domainCooldown:0});
   for(const e of s.enemies)if(!e.dead){e.hp=e.maxHp;e.y=GROUND;e.vy=0;if(e.boss)e.x=2070;e.face=-1;e.mode='idle';e.timer=.8;e.stun=0;e.attackCount=0;e.hitFlash=0;}
