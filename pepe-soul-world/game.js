@@ -15,6 +15,7 @@ import {releaseInfo} from './release-info.js?v=1';
 import {eliteSpec} from './realm-enemies.js';
 import {PointerControls} from './pointer-controls.js';
 import {MovementControls} from './movement-controls.js?v=1';
+import {techniqueNotice,techniqueMessage} from './technique-notice.js?v=1';
 import {bindAccessibleAction} from './accessible-controls.js?v=1';
 import {reviveGuidance} from './revive-guidance.js?v=1';
 import {combatFocus} from './combat-focus.js';
@@ -40,6 +41,8 @@ const state=createState(saved),keys=new Set(),touchKeys=new PointerControls(),so
 const guardControls=new GuardControls(state.player,keys,touchKeys);
 const movementControls=new MovementControls(keys,touchKeys);
 let journalOpen=false,journal,lastCheckpoint=0;
+let techniquesKnown=canRift(state);
+let activeTechniqueNotice=null;
 let begun=false,paused=false,ready=false,renderer,last=0,accumulator=0,toastUntil=0,lastUI=0,walkTarget=null;
 let travelPending=false;
 const travelDialog=createTravelDialog(()=>{travelPending=true;releaseInputs();accumulator=0;},()=>{travelPending=false;last=performance.now();accumulator=0;(journalOpen?document.querySelector('#close-journal'):canvas).focus({preventScroll:true});});
@@ -48,7 +51,7 @@ function releaseInputs(){keys.clear();touchKeys.clear();walkTarget=null;guardCon
 function requestTravel(travel){return confirmTravel(state,travel,text=>{
  travelDialog.open(text,()=>{travel();flush();updateUI();});return false;
 });}
-function message(text){$('toast').textContent=text;$('toast').style.opacity='1';toastUntil=performance.now()+6500;}
+function message(text){$('toast').textContent=techniqueMessage(text,activeTechniqueNotice,performance.now());$('toast').style.opacity='1';toastUntil=performance.now()+6500;}
 function checkpointStatus(result){
  $('save-state').textContent=result.message;
  $('intro-save-hint').textContent=result.ok?(practice?'Practice progress saves separately on this device':'Headphones recommended · Progress saves on this device'):'Temporary session · Progress stays in this tab until you leave or reload';
@@ -78,7 +81,7 @@ $('restore-checkpoint').addEventListener('click',()=>{
  if(result.ok)location.reload();
  else{restoreArmed=false;$('restore-checkpoint').textContent='Recover previous checkpoint';}
 });
-function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){const recovery=reviveGuidance(state);$('death-screen').hidden=false;$('revive').textContent=recovery.label;$('death-copy').textContent=recovery.text;releaseInputs();$('revive').focus({preventScroll:true});}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;}
+function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){const recovery=reviveGuidance(state);$('death-screen').hidden=false;$('revive').textContent=recovery.label;$('death-copy').textContent=recovery.text;releaseInputs();$('revive').focus({preventScroll:true});}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;const notice=techniqueNotice(techniquesKnown,state);techniquesKnown=notice.known;if(notice.text){activeTechniqueNotice={text:notice.text,until:performance.now()+6500};message('');}}
 function setPaused(value){releaseInputs();accumulator=0;if(value&&(!begun||!ready||state.dead||journalOpen||travelPending))return;paused=value;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));(value?$('resume'):canvas).focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
 function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);movementControls.takeOver(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){const action=()=>attemptAction(state,actions[code]);if(code==='KeyE'&&interactionLeavesArea(state))requestTravel(action);else action();flush();}}

@@ -376,3 +376,15 @@ The same run then used its two remaining earned Healing Flasks and entered the R
 Frequent inspection pauses mean this remains a native progression/recovery check, not uninterrupted human combat-feel approval. Native guardian victory, remaining realms/Temple, physical-device comfort and hosted behavior remain open finishing gates.
 
 Working-tree and clean staged-copy validation passed 255 arcade tests and 254 Soul World tests on October 14, 2026.
+
+## First-seal technique explanation and native Frozen completion — October 14, 2026
+
+When a live session first earns the existing level-and-seal technique unlock, the status message now explains R for Soul Release, Jump + L for Kek Rift, and that grounded L remains Kek Wave. Skills retains costs and timing details. Nearby loot messages keep that explanation for its 6.5-second window instead of immediately replacing it. The notice does not pause play, add save fields, grant abilities or replay on loading an already-unlocked save. Tests cover actual seal pickup, a later level-three unlock from a quest claim, unchanged state and message expiry/loot handling.
+
+The native campaign resumed the prior earned shrine recovery. Manual walking, two entry Warps, four Waves, a retreating Warp, a turn back and a final Wave defeated the Rime Warden on the retry. No progress values or encounter state were assigned. The run collected its Frost seal and Rime Fang, returned through the real portal, equipped Rime Fang and reloaded at the academy. Reload retained level 4, 87 fragments, one unspent skill point, the attuned Frozen shrine, recovered guardian reward, equipped Rime Fang and Frostweave Cloak. The Map receipt is docs/soul-world-native-frozen-2026-10-14/earned-map.txt; native screenshot: docs/soul-world-native-frozen-2026-10-14/native-earned.png.
+
+This closes the native fresh-start-through-Frozen-realm stage, including the previous failed attempt and shrine recovery. Inspection pauses were used. Crimson, Void, the completed oath, Temple and sustained physical-device/human-feel review remain open; the finishing queue stays on Soul World.
+
+First-seal notice QA used a separate seeded fixture so the earned campaign stayed intact. At 390px the explanation remained after both seal/weapon pickups, had no horizontal overflow, and did not replay after reload. No console errors were observed. Notice screenshot (seeded UI check): docs/soul-world-native-frozen-2026-10-14/phone.png.
+
+Working-tree and clean staged-copy validation passed 255 arcade tests and 257 Soul World tests on October 14, 2026.
