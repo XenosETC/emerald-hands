@@ -12,6 +12,7 @@ import {releaseInfo} from './release-info.js?v=1';
 import {eliteSpec} from './realm-enemies.js';
 import {PointerControls} from './pointer-controls.js';
 import {bindAccessibleAction} from './accessible-controls.js?v=1';
+import {reviveGuidance} from './revive-guidance.js?v=1';
 import {combatFocus} from './combat-focus.js';
 import {questGuidance,academyTrail} from './quest-guidance.js?v=5';
 import {attackCue} from './attack-motion.js';
@@ -19,7 +20,7 @@ import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
 import {createJournal} from './journal.js?v=flasks-20261013';
 import {ITEMS,stats,useItem,consumablePreview} from './systems.js?v=flasks-20261013';
-import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=release-info-20261013';
+import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=release-info-20261013';
 import {loadArt,Renderer} from './render.js';
 import {Sound} from './audio.js?v=safe-20261013';
 const storageKey=new URLSearchParams(location.search).get('practice')==='1'?'pepe-soul-world-practice-v1':SAVE_KEY;
@@ -62,12 +63,13 @@ $('restore-checkpoint').addEventListener('click',()=>{
  if(result.ok)location.reload();
  else{restoreArmed=false;$('restore-checkpoint').textContent='Recover previous checkpoint';}
 });
-function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){$('death-screen').hidden=false;$('revive').textContent=reviveDestination(state)==='cleared-arena'?'Recover in the cleared arena →':reviveDestination(state)==='shrine'?'Return to the echo shrine →':'Return to Kek Academy →';releaseInputs();}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;}
+function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){const recovery=reviveGuidance(state);$('death-screen').hidden=false;$('revive').textContent=recovery.label;$('death-copy').textContent=recovery.text;releaseInputs();$('revive').focus({preventScroll:true});}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;}
 function setPaused(value){releaseInputs();accumulator=0;if(value&&(!begun||!ready||state.dead||journalOpen))return;paused=value;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));(value?$('resume'):canvas).focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
 function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){act(state,actions[code]);flush();}}
 function toggleSwordGuard(focus=true){if(!begun||!ready||paused||journalOpen||state.dead)return;guardControls.toggle();walkTarget=null;if(focus)canvas.focus({preventScroll:true});}
 window.addEventListener('keydown',e=>{
+ if(state.dead&&e.code==='Tab'&&!e.ctrlKey&&!e.altKey&&!e.metaKey){e.preventDefault();$('revive').focus({preventScroll:true});return;}
  if(paused&&e.code==='Tab'&&!e.ctrlKey&&!e.altKey&&!e.metaKey){e.preventDefault();const next=restoreArmed&&document.activeElement===$('resume')?$('restore-checkpoint'):$('resume');next.focus({preventScroll:true});return;}
  const intent=keyboardIntent(e,{begun,ready,paused,dead:state.dead,journalOpen,canvasFocused:e.target===canvas,inputFocused:e.target instanceof HTMLInputElement,buttonFocused:e.target instanceof HTMLButtonElement});
  if(!intent)return;

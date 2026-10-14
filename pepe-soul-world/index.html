@@ -23,7 +23,7 @@
           <div class="interaction" id="interaction"></div>
           <div class="veil" id="intro"><p class="eyebrow">THE FIRST OATH</p><h2>Your story<br>survives you.</h2><p>Enter Kek Academy. Train your blade.<br>Bring three lost seals home.</p><button id="begin" disabled>Painting your world…</button><small id="intro-save-hint">Headphones recommended · Progress saves on this device</small></div>
           <div class="veil" id="pause-screen" role="dialog" aria-label="Game paused" hidden><p class="eyebrow">TAKE A BREATH</p><h2>Between worlds.</h2><button id="resume">Return to your journey →</button></div>
-          <div class="veil" id="death-screen" hidden><p class="eyebrow">YOUR OATH REMAINS</p><h2>Rise again.</h2><p>Your training and recovered seals are safe.</p><button id="revive">Return to Kek Academy →</button></div>
+          <div class="veil" id="death-screen" role="dialog" aria-label="Recover from defeat" aria-describedby="death-copy" hidden><p class="eyebrow">YOUR OATH REMAINS</p><h2>Rise again.</h2><p id="death-copy">Your training and recovered seals are safe.</p><button id="revive">Return to Kek Academy →</button></div>
         </div>
         <div class="controls"><span><kbd>A</kbd><kbd>D</kbd> Move</span><span><kbd>SPACE</kbd> Jump</span><span><kbd>J</kbd> Slash / combo</span><span><kbd>S</kbd><kbd>↓</kbd> Hold sword guard</span><span><kbd>K</kbd> Warp Step</span><span><kbd>L</kbd> Kek Wave / airborne Rift</span><span><kbd>E</kbd> Mentor / gate</span><span><kbd>R</kbd> Release</span><span><kbd>F</kbd> Kek Domain</span><span><kbd>1</kbd> Heal</span><span><kbd>2</kbd> Spirit</span></div>
         <div class="touch" aria-label="Touch controls"><button data-key="KeyA" aria-label="Move left">←</button><button data-key="KeyD" aria-label="Move right">→</button><button data-key="Space">Jump</button><button data-key="KeyJ">Slash</button><button data-key="KeyS" aria-pressed="false" title="Hold to block frontal attacks using Spirit">Hold guard</button><button data-key="KeyK">Warp Step</button><button data-key="KeyL">Kek Wave</button><button data-key="KeyE">Talk</button><button data-key="KeyR">Release</button><button data-key="KeyF">Domain</button><button data-item="healthFlask">Heal</button><button data-item="spiritFlask">Spirit</button></div>
@@ -36,7 +36,7 @@
     </div>
     <footer><span>HAND-PAINTED WORLDS / FRAME-ANIMATED COMBAT</span><button id="motion" aria-pressed="false">Reduce effects</button><a href="animation.html">Animation studio ↗</a><span id="save-state">Local save ready</span></footer>
   </main>
-  <script type="module" src="game.js?v=pause-focus-20261013"></script>
+  <script type="module" src="game.js?v=revive-guidance-20261013"></script>
 <script src="../arcade-library.js?v=library-2"></script><script src="../arcade-visit.js?v=library-2"></script>
 </body>
 </html>

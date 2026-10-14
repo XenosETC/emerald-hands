@@ -242,3 +242,11 @@ Native review verified Escape → Resume focus, Tab/Shift+Tab containment and En
 Recovery review also exposed a startup race: the HTML Enter button was initially enabled before the module installed its handler. It is now disabled with Painting your world in the initial document, and the existing ready handler enables it after art loads. Reload and immediate locator activation then entered normally. Proof: docs/soul-world-pause-focus-2026-10-13/phone.png. These checks do not establish native-earned campaign completion or physical-device comfort.
 
 The focused pause view fit at an actual 390px viewport without horizontal overflow. Clean staged release verification passed 255 arcade tests and 214 Soul World tests on October 13, 2026.
+
+## Defeat guidance and keyboard retry — October 13, 2026
+
+The defeat dialog now describes the existing recovery destination, patrol/guardian reset behavior and retained progress. Its copy distinguishes an unattuned return to Academy, an attuned shrine, a reset guardian attempt and a cleared arena with uncollected rewards. The retry button receives focus on knockout, Tab/Shift+Tab remain on it and native Enter revives through the original controller. The dialog is named and describes itself through the recovery text. No death penalty, recovery rule, reward or checkpoint format changed.
+
+Fixtures compare descriptions against actual recovery across all destinations, including Temple's single approach, and verify non-mutating guidance and retained patrol loot. At an actual 390px viewport, a seeded one-health Frozen District practice fixture suffered a real enemy knockout. Retry received focus; Tab/Shift+Tab stayed there; Enter returned to the shrine at 1360 with 130 HP and 100 Spirit. Map still showed two enemies remaining, 25 fragments and the uncollected five-fragment drop at 800. No browser errors or horizontal overflow were observed. This is seeded defeat/retry verification, not earned campaign progression or physical-device comfort. Proof: docs/soul-world-revive-guidance-2026-10-13/phone.png.
+
+Clean staged release verification passed 255 arcade tests and 216 Soul World tests on October 13, 2026.
