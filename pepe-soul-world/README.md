@@ -22,6 +22,8 @@ A/D or arrows move; Space jumps; J cuts and queues combos; K Warp Steps; L fires
 
 Warp starts at 240 reach, 20 spirit, 0.9s cooldown. Each rank adds 35 reach and lowers cost/cooldown. Wave costs 28; awakening costs 55 and starts at eight seconds. Skills, enemy stats, reward amounts, names, and lore are draft prototype assumptions. Gear changes stats and item art; Crown’s on-body costume and blade artwork currently retain the approved base appearance.
 
+On the phone control row, pointer users hold ← / →. Keyboard or assistive activation with Enter/Space starts walking; the same button becomes Stop and stops walking on the next activation. The opposite button switches direction. A/D, arrow keys or a ground click take over. Pause, journals, travel confirmations, defeat and area transitions clear automatic walking. It is movement only: combat and interactions remain manual.
+
 ## Files and isolation
 
 `core.js`: simulation and checkpoint migration. `systems.js`: pure progression, inventory, equipment, quests, skills, forge and consumables. `journal.js`: in-game journal. `render.js`: motion, camera, effects and sprites. `art-layout.js`: generated sole anchors. `game.js`: input, screen sizing, UI and independent local storage. `audio.js`: opt-in synthesized sound.

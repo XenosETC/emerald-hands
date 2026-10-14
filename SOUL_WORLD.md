@@ -350,3 +350,15 @@ Three new regression cases failed before the fix and passed afterward. Coverage 
 Browser verification on an isolated seeded practice checkpoint showed a pending reward at position 100 before and after reload. Following the normal walking trail collected 5 fragments; a second reload retained exactly 5 fragments and no pending ground reward. This is boundary/collection verification, not a native-earned defeat. At 390px the Map fit without horizontal overflow and no console errors were observed. Proof: docs/soul-world-combat-bounds-2026-10-14/phone.png.
 
 Working-tree and clean staged-copy validation passed 255 arcade tests and 248 Soul World tests on October 14, 2026.
+
+## Accessible walking and native-earned onboarding — October 14, 2026
+
+The phone movement buttons previously supported pointer holds but ignored native Enter/Space activation. They now toggle explicit left/right walking on accessible activation, show Stop and a pressed state while active, and expose an instruction description. Opposite activation switches direction. Physical movement takes over; a ground click cancels the toggle. Existing input clearing on pause, journal, travel confirmation, death and world changes also clears automatic walking. Normal pointer holds remain independent, and a pointer click does not duplicate its pointerdown action. Attacks keep their existing committed stop, then movement resumes as it does with a held key. There is no automatic combat, interaction or saved walking state.
+
+Three regression fixtures cover actual simulated traversal, switching/stopping, pointer-click deduplication, keyboard/pointer ownership, attack commitment and reset. Browser review verified Enter to start, Space to stop, opposite-direction activation and pause/resume clearing. At actual 390px width there was no horizontal overflow or console error. Proof: docs/soul-world-native-onboarding-2026-10-14/phone.png.
+
+This turn also completed a native browser stage from a default fresh practice initializer on an isolated QA origin. No XP, HP, inventory, enemy clears, positions or rewards were assigned after initialization. Native controls accepted the oath, landed three training cuts, claimed The first cut, learned Soul Edge and crossed the academy gate into Frozen District. Wave and sword attacks defeated all three first-patrol enemies. Normal walking collected every patrol drop and E attuned the Frozen shrine. The frostbound watch was claimed and Frostweave Cloak equipped. Reload retained level 3, 52 fragments, one unspent skill point, the attuned shrine, the equipped cloak and no ground rewards. Three Healing Flasks remained; none was used. Earned Map DOM receipt: docs/soul-world-native-onboarding-2026-10-14/earned-map.txt.
+
+Frequent pauses supported inspection. This verifies native onboarding, first patrol combat and earned save continuity; it does not close the uninterrupted human-feel, native elite/guardian/Temple campaign, physical multitouch or hosted-release gates. The finishing queue remains on Soul World.
+
+Working-tree and clean staged-copy validation passed 255 arcade tests and 251 Soul World tests on October 14, 2026.
