@@ -296,3 +296,9 @@ A regression fixture verifies a fresh default checkpoint, retained previous prac
 Native confirmation then reloaded a level-one practice run with zero fragments. Returning to normal retained 42 fragments, and normal Save exposed no restart control. At an actual 390px viewport, confirmation fit without horizontal overflow; no browser errors were observed.
 
 Clean staged release verification passed 255 arcade tests and 227 Soul World tests on October 14, 2026.
+
+## Projectile lifetime boundary — October 14, 2026
+
+Friendly waves and hostile shots now move only for their remaining lifetime on the final simulation frame. Already expired shots cannot move or damage anyone; a collision reached within the final active fraction still resolves before removal. Previously the full frame could extend a shot beyond its intended range. Damage, speed, lifetime and hit radii are unchanged. Regression tests cover both factions, expired shots, range overshoot and valid final-fraction hits without repeat damage. This is deterministic combat verification; full native campaign feel remains an open finishing gate.
+
+Working-tree and clean staged-copy validation passed 255 arcade tests and 230 Soul World tests. An isolated practice browser startup check completed without console errors. No visual layout changed in this slice.

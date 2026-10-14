@@ -167,7 +167,14 @@ export function step(s,input,dt){
     else if(e.mode==='recover' && e.timer<=0){e.mode='idle';e.timer=.2;}
     else if(e.mode==='idle' && dist<620){if(dist<range && e.timer<=0){e.mode='windup';e.timer=spec?.9:e.boss?.65:.55;e.targetX=p.x;emit(s,'telegraph',{x:e.x,y:GROUND-110});}else if(dist>(e.elite==='caster'?300:85)){e.x+=e.face*dt*(spec?.speed||(e.boss?75:105));}}
   }
-  for(const q of s.projectiles){if(q.owner&&s.enemies.some(e=>e.id===q.owner&&e.dead)){q.life=0;continue;}q.x+=q.vx*dt;q.life-=dt;q.age=(q.age||0)+dt;if(q.friendly){for(const e of s.enemies){if(!e.dead && Math.abs(e.x-q.x)<65 && Math.abs(e.y-75-q.y)<120 && !q.hit.includes(e.id)){q.hit.push(e.id);emit(s,'waveHit',{x:e.x,y:q.y,face:Math.sign(q.vx)});damageEnemy(s,e,36+levelFor(s.xp).level*3+st.wave,Math.sign(q.vx));}}}else if(Math.abs(q.x-p.x)<48 && Math.abs(q.y-(p.y-45))<60){damagePlayer(s,{face:Math.sign(q.vx)},q.damage||16);q.life=0;}}
+  for(const q of s.projectiles){
+    if(q.life<=0)continue;
+    if(q.owner&&s.enemies.some(e=>e.id===q.owner&&e.dead)){q.life=0;continue;}
+    // The last frame may outlast the shot. Only travel through its remaining life.
+    const flightTime=Math.min(dt,q.life);
+    q.x+=q.vx*flightTime;q.life=Math.max(0,q.life-flightTime);q.age=(q.age||0)+flightTime;
+    if(q.friendly){for(const e of s.enemies){if(!e.dead && Math.abs(e.x-q.x)<65 && Math.abs(e.y-75-q.y)<120 && !q.hit.includes(e.id)){q.hit.push(e.id);emit(s,'waveHit',{x:e.x,y:q.y,face:Math.sign(q.vx)});damageEnemy(s,e,36+levelFor(s.xp).level*3+st.wave,Math.sign(q.vx));}}}else if(Math.abs(q.x-p.x)<48 && Math.abs(q.y-(p.y-45))<60){damagePlayer(s,{face:Math.sign(q.vx)},q.damage||16);q.life=0;}
+  }
   s.projectiles=s.projectiles.filter(q=>q.life>0 && q.x>0 && q.x<WIDTH);
   s.drops=s.drops.filter(d=>{if(Math.abs(d.x-p.x)<90 && Math.abs(d.y-(p.y-60))<130){if(d.kind==='seal'){if(!s.seals.includes(d.world))s.seals.push(d.world);emit(s,'seal',{world:d.world});emit(s,'message',{text:s.seals.length===3?'All three seals recovered. Return to Master Goribbit.':'Seal recovered. Return to the academy to cross into another realm.'});}else{s.fragments+=d.amount||0;if(d.item)addItem(s,d.item);if(d.boss&&!s.bossRewards.includes(d.world))s.bossRewards.push(d.world);emit(s,'loot',{item:d.item,amount:d.amount});}emit(s,'save');return false;}return true;});
 }
