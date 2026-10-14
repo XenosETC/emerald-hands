@@ -2,7 +2,7 @@ import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v
 import {createCheckpointPanel} from './checkpoint-panel.js?v=1';
 import {GuardControls} from './guard-controls.js';
 import {guardStatus} from './sword-guard.js?v=status-20261013';
-import {journalShortcut} from './journal-input.js?v=1';
+import {keyboardIntent} from './keyboard-input.js?v=1';
 import {templeCue} from './temple-combat.js';
 import {appendTempleMeter} from './temple-hud.js';
 import {combatCue} from './combat-cues.js?v=guard-status-20261013';
@@ -62,7 +62,15 @@ function flush(){for(const e of state.events){renderer?.effect(e,state);sound.pl
 function setPaused(value){paused=value;releaseInputs();accumulator=0;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));if(!value)canvas.focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
 function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){act(state,actions[code]);flush();}}
-window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement&&e.code!=='Escape')return;if(e.code==='Escape'){if(journalOpen)toggleJournal(false);else if(begun)setPaused(!paused);return;}const journalTab=journalShortcut(e.code,{begun,ready,paused,dead:state.dead,journalOpen,canvasFocused:e.target===canvas,shiftKey:e.shiftKey});if(journalTab){e.preventDefault();toggleJournal(!journalOpen,journalTab);return;}if(e.code==='Digit1'||e.code==='Digit2'){if(begun&&!paused&&!journalOpen){useItem(state,e.code==='Digit1'?'healthFlask':'spiritFlask');flush();}return;}if(e.target instanceof HTMLButtonElement && (e.code==='Space'||e.code==='Enter'))return;if(actions[e.code]||['KeyA','KeyD','ArrowLeft','ArrowRight','KeyS','ArrowDown'].includes(e.code)){e.preventDefault();if(!e.repeat){walkTarget=null;press(e.code);}}});
+window.addEventListener('keydown',e=>{
+ const intent=keyboardIntent(e,{begun,ready,paused,dead:state.dead,journalOpen,canvasFocused:e.target===canvas,inputFocused:e.target instanceof HTMLInputElement,buttonFocused:e.target instanceof HTMLButtonElement});
+ if(!intent)return;
+ e.preventDefault();
+ if(intent.type==='escape'){if(journalOpen)toggleJournal(false);else setPaused(!paused);}
+ else if(intent.type==='journal')toggleJournal(!journalOpen,intent.tab);
+ else if(intent.type==='item'){useItem(state,intent.id);flush();}
+ else if(intent.type==='play'){walkTarget=null;press(intent.code);}
+});
 window.addEventListener('keyup',e=>{keys.delete(e.code);guardControls.sync();});
 window.addEventListener('blur',()=>{keys.clear();touchKeys.clear();if(begun && !state.dead)setPaused(true);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden && begun && !state.dead)setPaused(true);});

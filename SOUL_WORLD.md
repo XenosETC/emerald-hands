@@ -172,3 +172,11 @@ Native seeded-checkpoint review displayed GUARD QUEUED / Need 8 SP, then raised 
 Responsive active-guard review at 390px showed the full Spirit-funded cue and touch explanation without horizontal overflow. The active touch label is Guard on so it wraps cleanly within its narrow button. Physical-device sustained hold/multitouch remains a separate gate.
 
 Clean staged release verification passed 255 arcade tests and 195 Soul World tests on October 13, 2026.
+
+## Deliberate keyboard shortcuts — October 13, 2026
+
+Keyboard dispatch now ignores Ctrl/Alt/Meta commands and composition input, so browser shortcuts do not also become combat or journal actions. Escape, journal keys and flask keys act only on the initial keydown. Previously repeated flask events could spend another Spirit Flask as regeneration created room, and held menu keys could repeatedly toggle their panel. Held movement/combat keys still prevent browser scrolling without retriggering an action; existing keyup and guard ownership remain unchanged. File input and native button activation keep their keyboard behavior. Flask amounts, costs, saves and combat balance are unchanged.
+
+Four regression fixtures cover modified commands, repeated menu/flask keys, an actual regeneration-and-flask sequence, movement scrolling suppression, and startup/modal/button ownership. Browser review on a practice origin confirmed Ctrl+M leaves the journal closed, Q opens it, Escape returns canvas focus, Escape pauses, Enter on Resume resumes, and J produces an attack pose; no browser errors were observed. This is controller verification, not a native-earned campaign or physical-keyboard sustained-hold test. Proof: docs/soul-world-keyboard-safety-2026-10-13/paused.png.
+
+Clean staged release verification passed 255 arcade tests and 199 Soul World tests on October 13, 2026.
