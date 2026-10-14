@@ -232,3 +232,13 @@ Phone action buttons now handle native zero-detail keyboard/assistive clicks as 
 Fixtures exercise a real jump and guard → release → cut transition, and verify pointer click counts do not dispatch an extra action. At an actual 390px viewport, native Space on Jump reached the jump pose; Space on Slash reached attack. Enter on guard raised it, a second Enter released it, and Slash then attacked without a stuck guard. Guard focus remained on the control and aria-pressed matched its active state. No browser errors or horizontal overflow were observed. These checks establish native keyboard activation, not screen-reader hardware certification or sustained physical-device multitouch. Proof: docs/soul-world-accessible-controls-2026-10-13/phone.png.
 
 Clean staged release verification passed 255 arcade tests and 214 Soul World tests on October 13, 2026.
+
+## Pause focus and reliable entry — October 13, 2026
+
+Pausing now focuses Return to your journey, with a named Game paused dialog. Tab and Shift+Tab stay on Resume during an ordinary pause; modified browser shortcuts retain ownership. If previous-checkpoint recovery is armed, Tab cycles between Resume and the existing confirmation button so recovery remains reachable. Resume or Escape returns focus to the canvas. Pause requests during startup, death or an already paused journal do not open a second overlay, but still release held inputs. Background pointer controls retain their existing behavior; this is focus containment, not a new full modal layer.
+
+Native review verified Escape → Resume focus, Tab/Shift+Tab containment and Enter → canvas focus. On the isolated practice origin, a temporary damaged primary and readable previous checkpoint exercised the recovery exception: Tab reached Confirm recovery and reload, Enter restored the level-7 checkpoint, and the warning cleared. The normal C → Escape journal path left neither panel open and returned canvas focus. No browser errors were observed. Background-loss while a journal is open is guarded in code; an actual OS focus-loss check remains separate.
+
+Recovery review also exposed a startup race: the HTML Enter button was initially enabled before the module installed its handler. It is now disabled with Painting your world in the initial document, and the existing ready handler enables it after art loads. Reload and immediate locator activation then entered normally. Proof: docs/soul-world-pause-focus-2026-10-13/phone.png. These checks do not establish native-earned campaign completion or physical-device comfort.
+
+The focused pause view fit at an actual 390px viewport without horizontal overflow. Clean staged release verification passed 255 arcade tests and 214 Soul World tests on October 13, 2026.
