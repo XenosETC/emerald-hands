@@ -1,5 +1,5 @@
 import {SAVE_KEY as soulKey, readSave, createState, WORLDS, levelFor} from './pepe-soul-world/core.js?v=shrine-20261013';
-import {questGuidance} from './pepe-soul-world/quest-guidance.js?v=4';
+import {questGuidance} from './pepe-soul-world/quest-guidance.js?v=5';
 import {oathSummary} from './pepe-soul-world/oath-summary.js?v=1';
 import {SAVE_KEY as campaignKey, migrateSave} from './pepe-feudalism/campaign.js';
 import {hydrateAdventure, QUESTS} from './pepe-feudalism/adventure.js';

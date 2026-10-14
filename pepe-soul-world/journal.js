@@ -2,7 +2,7 @@ import {RIFT} from './kek-rift.js';
 import {oathSummary} from './oath-summary.js?v=1';
 import {guardianReceipts} from './reward-receipts.js?v=1';
 import {groundRewards} from './ground-rewards.js?v=1';
-import {questGuidance} from './quest-guidance.js?v=4';
+import {questGuidance} from './quest-guidance.js?v=5';
 import {ITEMS,SKILLS,QUESTS,stats,compareGear,skillPreview,skillPoints,equip,learn,useItem,claimQuest,questReady,atMentor,buyItem,upgradeGear} from './systems.js';
 import {WORLDS,enterWorld,enterArena,approachRemaining,levelFor,DOMAIN,canDomain,canRift} from './core.js';
 export function createJournal(state,changed,toggle,savePanel){

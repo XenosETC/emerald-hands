@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {createState,step,act,enterWorld} from '../core.js';import {questGuidance,academyTrail} from '../quest-guidance.js';
-import {claimQuest} from '../systems.js';
+import {claimQuest,QUESTS} from '../systems.js';
 test('reward reminders take priority and disappear after claiming',()=>{
  const s=createState();s.oath=true;s.training=3;assert.equal(questGuidance(s).ready,1);
  s.claimedQuests.push('firstCut');assert.equal(questGuidance(s).ready,0);assert.match(questGuidance(s).text,/2250/);
@@ -44,8 +44,17 @@ test('academy trails guide a real movement, oath, training and first reward rout
  assert.equal(academyTrail(s).label,'the veil gate');walk();assert.equal(enterWorld(s,'frozen'),true);
  assert.equal(academyTrail(s),null);
 });
-test('academy trail approaches the effigy from either side and never steers dead or completed players',()=>{
+test('academy trail approaches the effigy from either side and never steers dead or invalid completed players',()=>{
  const s=createState({version:2,oath:true});s.player.x=1100;assert.equal(academyTrail(s).x,970);s.player.x=600;assert.equal(academyTrail(s).x,770);
  s.player.x=800;assert.equal(academyTrail(s),null);s.dead=true;assert.equal(academyTrail(s),null);
  s.dead=false;s.training=3;s.complete=true;s.claimedQuests=['firstCut'];assert.equal(academyTrail(s),null);
+});
+test('completed oath keeps an optional Temple trail until its reward is recovered, without changing progress',()=>{
+ const s=createState({version:2,oath:true,training:3,complete:true,seals:['frozen','crimson','void'],claimedQuests:QUESTS.map(q=>q.id)});
+ const before=JSON.stringify(s);assert.deepEqual(academyTrail(s),{x:2250,label:'the Emerald Temple gate'});assert.match(questGuidance(s).text,/Optional Emerald Temple/);assert.equal(JSON.stringify(s),before);
+ s.bossRewards.push('temple');assert.equal(academyTrail(s),null);assert.doesNotMatch(questGuidance(s).text,/awaits/);
+});
+test('claimable rewards still take priority over the optional Temple trail',()=>{
+ const s=createState({version:2,oath:true,training:3,complete:true,seals:['frozen','crimson','void']});
+ assert.ok(questGuidance(s).ready>0);assert.equal(academyTrail(s),null);
 });

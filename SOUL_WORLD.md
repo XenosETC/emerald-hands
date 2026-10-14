@@ -198,3 +198,13 @@ Letter shortcuts now open their requested journal section instead of closing a d
 A matrix fixture covers every current section (including Save) against every letter shortcut. Browser review verified M → I → Q, a second Q closing to canvas focus, and clicked Save → G opening Gear. The selected section matched the heading with exactly one aria-current marker; no browser errors were observed. Proof: docs/soul-world-journal-navigation-2026-10-13/gear.png. This verifies journal navigation, not campaign completion or combat feel.
 
 Clean staged release verification passed 255 arcade tests and 205 Soul World tests on October 13, 2026.
+
+## Optional Temple handoff — October 13, 2026
+
+After the three-seal oath and all quest claims, academy guidance now identifies Emerald Temple as the optional next challenge. The existing walking aid remains available for its academy gate until the Temple reward is recovered. Claimable rewards retain priority, dead players receive no trail, and an incomplete or invalid oath does not gain access. Walking uses the existing movement controller; realm entry rules, rewards, saves and combat are unchanged. After the Temple receipt, ordinary replay guidance resumes and the optional trail disappears.
+
+The fresh-state simulation route now checks this handoff immediately after its earned oath and again after its earned Temple return. Separate fixtures check state immutability and quest-reward priority. Its inspectable pre-Temple checkpoint is docs/soul-world-temple-trail-2026-10-13/earned-oath.json. Browser review loaded that simulation-earned checkpoint into an isolated practice origin, clicked the walking aid, arrived at 2244, opened Map and crossed normally to Emerald Temple at 260. No browser errors were observed. This verifies navigation from simulation-earned progress, not a native-earned complete campaign.
+
+At an actual 390px viewport, the new walking button was 44px tall, its objective was readable and the page had no horizontal overflow. Proof: docs/soul-world-temple-trail-2026-10-13/phone.png. Physical-device comfort and combat feel remain separate checks.
+
+Clean staged release verification passed 255 arcade tests and 207 Soul World tests on October 13, 2026.
