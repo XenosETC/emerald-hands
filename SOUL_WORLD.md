@@ -190,3 +190,11 @@ Five fixtures cover competing stores, initially empty tabs, storage notification
 Two actual browser practice sessions shared an isolated origin. The second walked toward Goribbit and accepted the oath normally. The first retained its pre-oath run, displayed the external-change warning, kept Download backup enabled and refused a journal-triggered save. Reloading the first session then loaded the second's oath and position (467), with no browser errors. The desktop warning and objective had an 8px gap and no horizontal overflow. The attempted phone override remained at 1280px, so no phone-width claim is made for this warning. Proof: docs/soul-world-checkpoint-tabs-2026-10-13/conflict.png. This does not establish a full native-earned campaign.
 
 Clean staged release verification passed 255 arcade tests and 204 Soul World tests on October 13, 2026.
+
+## Journal section navigation — October 13, 2026
+
+Letter shortcuts now open their requested journal section instead of closing a different section. M → I → Q switches Map → Inventory → Quests while gameplay remains suspended. Pressing the shortcut for the already selected section still closes the journal, as does Escape. The controller uses the journal's actual current section, including sections selected with the mouse, rather than a second copied selection state. Headings name the section and exactly one navigation button exposes aria-current. Normal Tab navigation, file input ownership, focus return and held-key suppression remain intact; combat, progression and checkpoint formats are unchanged.
+
+A matrix fixture covers every current section (including Save) against every letter shortcut. Browser review verified M → I → Q, a second Q closing to canvas focus, and clicked Save → G opening Gear. The selected section matched the heading with exactly one aria-current marker; no browser errors were observed. Proof: docs/soul-world-journal-navigation-2026-10-13/gear.png. This verifies journal navigation, not campaign completion or combat feel.
+
+Clean staged release verification passed 255 arcade tests and 205 Soul World tests on October 13, 2026.

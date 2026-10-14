@@ -1,5 +1,11 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {journalShortcut} from '../journal-input.js';
+import test from 'node:test';import assert from 'node:assert/strict';import {journalShortcut,journalRequest} from '../journal-input.js';
 const active={begun:true,ready:true,paused:false,dead:false,journalOpen:false,canvasFocused:true,shiftKey:false};
+test('journal requests open their section, switch sections and close only a repeated current section',()=>{
+ for(const current of ['Map','Quests','Skills','Inventory','Gear','Save'])for(const requested of ['Map','Quests','Skills','Inventory','Gear']){
+  assert.equal(journalRequest(false,current,requested),true);
+  assert.equal(journalRequest(true,current,requested),current!==requested);
+ }
+});
 test('Tab-to-map requires active canvas and preserves normal startup and reverse navigation',()=>{
  assert.equal(journalShortcut('Tab',active),'Map');
  for(const state of [{begun:false},{ready:false},{paused:true},{dead:true},{canvasFocused:false},{journalOpen:true},{shiftKey:true}])assert.equal(journalShortcut('Tab',{...active,...state}),null);

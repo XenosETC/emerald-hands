@@ -3,6 +3,7 @@ import {createCheckpointPanel} from './checkpoint-panel.js?v=1';
 import {GuardControls} from './guard-controls.js';
 import {guardStatus} from './sword-guard.js?v=status-20261013';
 import {keyboardIntent} from './keyboard-input.js?v=1';
+import {journalRequest} from './journal-input.js?v=2';
 import {templeCue} from './temple-combat.js';
 import {appendTempleMeter} from './temple-hud.js';
 import {combatCue} from './combat-cues.js?v=guard-status-20261013';
@@ -14,7 +15,7 @@ import {questGuidance,academyTrail} from './quest-guidance.js?v=4';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
-import {createJournal} from './journal.js?v=files-20261013';
+import {createJournal} from './journal.js?v=navigation-20261013';
 import {ITEMS,stats,useItem} from './systems.js';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,reviveDestination,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=temple-20261013';
 import {loadArt,Renderer} from './render.js';
@@ -68,7 +69,7 @@ window.addEventListener('keydown',e=>{
  if(!intent)return;
  e.preventDefault();
  if(intent.type==='escape'){if(journalOpen)toggleJournal(false);else setPaused(!paused);}
- else if(intent.type==='journal')toggleJournal(!journalOpen,intent.tab);
+ else if(intent.type==='journal')toggleJournal(journalRequest(journalOpen,journal.currentTab,intent.tab),intent.tab);
  else if(intent.type==='item'){useItem(state,intent.id);flush();}
  else if(intent.type==='play'){walkTarget=null;press(intent.code);}
 });
@@ -99,7 +100,7 @@ $('sound').addEventListener('click',async()=>{
 });
 const warpStatus=document.createElement('span');warpStatus.id='warp-status';warpStatus.className='warp-status';document.querySelector('.viewport').append(warpStatus);
 const combatReadout=document.createElement('div');combatReadout.id='combat-readout';combatReadout.className='combat-readout';combatReadout.hidden=true;document.querySelector('.viewport').append(combatReadout);
-const launches=document.createElement('div');launches.className='journal-launch';for(const name of ['Map','Quests','Skills','Inventory','Gear']){const b=document.createElement('button');b.textContent=name;b.onclick=()=>toggleJournal(!journalOpen,name);launches.append(b);}document.querySelector('.viewport').append(launches);
+const launches=document.createElement('div');launches.className='journal-launch';for(const name of ['Map','Quests','Skills','Inventory','Gear']){const b=document.createElement('button');b.textContent=name;b.onclick=()=>toggleJournal(journalRequest(journalOpen,journal.currentTab,name),name);launches.append(b);}document.querySelector('.viewport').append(launches);
 const questStrip=document.createElement('div');questStrip.className='quest-strip';questStrip.append($('quest-copy'),$('xp-label'),$('xp'));document.querySelector('.viewport').append(questStrip);
 const academyWalk=document.createElement('button');academyWalk.id='academy-trail';academyWalk.type='button';academyWalk.className='academy-trail';academyWalk.hidden=true;questStrip.append(academyWalk);
 academyWalk.addEventListener('click',()=>{
