@@ -1,5 +1,5 @@
 import {createCheckpointStore,createStorageAccess} from './checkpoint-store.js?v=6';
-import {createCheckpointPanel} from './checkpoint-panel.js?v=3';
+import {createCheckpointPanel} from './checkpoint-panel.js?v=4';
 import {GuardControls} from './guard-controls.js';
 import {guardStatus} from './sword-guard.js?v=status-20261013';
 import {keyboardIntent} from './keyboard-input.js?v=1';

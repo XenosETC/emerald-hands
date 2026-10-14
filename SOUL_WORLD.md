@@ -286,3 +286,13 @@ The intro and journal Save panel now link between normal and practice campaigns.
 Browser review on an isolated seeded origin switched from the normal intro into practice, then returned through Save. Practice displayed seven fragments; normal retained 42 and hid the practice banner. Reopening practice through the normal Save panel retained seven fragments. The banner became inert while the journal was open. Existing automated storage/import/recovery isolation tests continue to cover the underlying boundary. This verifies navigation and save selection using seeded journeys, not earned progression. Proof: docs/soul-world-practice-navigation-2026-10-14/phone.png.
 
 At an actual 390px viewport, the return link was 44px tall, all touch controls stayed within the viewport and no horizontal overflow occurred. The browser title identified Practice, with no browser errors. Clean staged release verification passed 255 arcade tests and 226 Soul World tests on October 14, 2026.
+
+## Fresh practice restart — October 14, 2026
+
+Practice's Save panel now offers Preview fresh practice, followed by an explicit Start fresh practice and reload or Cancel. It uses the game's normal default initializer rather than a second set of starting rewards. Preview/cancel do not replace the checkpoint. Confirmation uses the existing protected import path: the readable previous practice checkpoint becomes the rotating backup, and old-session pagehide writes remain blocked until reload. The preview advises downloading first for a permanent copy. Normal mode has no fresh-practice control. The shared restore confirmation now disables itself and clears its pending action after success to avoid duplicate activation rotating the backup twice.
+
+A regression fixture verifies a fresh default checkpoint, retained previous practice data, normal-save byte isolation and pagehide protection. Browser review on the isolated seeded practice journey verified preview/cancel retained seven fragments and confirmation received focus. This is restart/navigation verification, not earned campaign progression. Proof: docs/soul-world-fresh-practice-2026-10-14/phone.png.
+
+Native confirmation then reloaded a level-one practice run with zero fragments. Returning to normal retained 42 fragments, and normal Save exposed no restart control. At an actual 390px viewport, confirmation fit without horizontal overflow; no browser errors were observed.
+
+Clean staged release verification passed 255 arcade tests and 227 Soul World tests on October 14, 2026.
