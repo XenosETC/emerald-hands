@@ -8,6 +8,7 @@ import {templeCue} from './temple-combat.js';
 import {appendTempleMeter} from './temple-hud.js';
 import {combatCue} from './combat-cues.js?v=guard-status-20261013';
 import {abilityStatus} from './ability-status.js?v=1';
+import {attemptAction} from './action-feedback.js?v=1';
 import {releaseInfo} from './release-info.js?v=1';
 import {eliteSpec} from './realm-enemies.js';
 import {PointerControls} from './pointer-controls.js';
@@ -71,7 +72,7 @@ $('restore-checkpoint').addEventListener('click',()=>{
 function flush(){for(const e of state.events){renderer?.effect(e,state);sound.play(e.type);if(e.type==='gate')toggleJournal(true,'Map');if(e.type==='save')save();if(e.type==='message')message(e.text);if(e.type==='level')message(`Level ${e.level}. Your spirit grows stronger.`);if(e.type==='loot')message((e.item?ITEMS[e.item].name+' recovered · ':'')+(e.amount||0)+' spirit fragments');if(e.type==='death'){const recovery=reviveGuidance(state);$('death-screen').hidden=false;$('revive').textContent=recovery.label;$('death-copy').textContent=recovery.text;releaseInputs();$('revive').focus({preventScroll:true});}if(e.type==='guardBlock')message('Sword block · '+e.cost+' Spirit');if(e.type==='guardBreak'){guardControls.latched=false;message('Guard broken · Release guard, then recover.');}if(e.type==='world'){releaseInputs();message(WORLDS.find(w=>w.id===e.world).subtitle);} }state.events.length=0;}
 function setPaused(value){releaseInputs();accumulator=0;if(value&&(!begun||!ready||state.dead||journalOpen))return;paused=value;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));(value?$('resume'):canvas).focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
-function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){act(state,actions[code]);flush();}}
+function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){attemptAction(state,actions[code]);flush();}}
 function toggleSwordGuard(focus=true){if(!begun||!ready||paused||journalOpen||state.dead)return;guardControls.toggle();walkTarget=null;if(focus)canvas.focus({preventScroll:true});}
 window.addEventListener('keydown',e=>{
  if(state.dead&&e.code==='Tab'&&!e.ctrlKey&&!e.altKey&&!e.metaKey){e.preventDefault();$('revive').focus({preventScroll:true});return;}
@@ -150,12 +151,13 @@ function updateUI(){soundControl();const p=state.player,l=levelFor(state.xp),wor
   for(const button of document.querySelectorAll('[data-item]')){const id=button.dataset.item,item=ITEMS[id],preview=consumablePreview(state,id);button.textContent=(item.heal?'Heal':'Spirit')+' ×'+preview.count;button.disabled=!begun||paused||journalOpen||!preview.ready;button.title=preview.reason;}
   for(const [key,action,name] of [['KeyK','dash','Warp Step'],['KeyL','wave','Kek Wave'],['KeyR','release','Release']]){
    const button=document.querySelector(`[data-key="${key}"]`),info=abilityStatus(state,action);
-   button.disabled=!begun||paused||journalOpen||!info.ready;
+   button.disabled=!begun||paused||journalOpen||state.dead;
+   button.classList.toggle('unavailable',!info.ready);button.setAttribute('aria-description',info.reason);
    const label=info.key==='rift'?'Kek Rift':name;
    button.textContent=action==='release'&&p.release>0?'Awakened '+Math.ceil(p.release)+'s':info.cooldown>0?label+' '+info.cooldown.toFixed(1)+'s':label;
    button.title=info.reason;
   }
-  const touchDomain=document.querySelector('[data-key="KeyF"]');touchDomain.disabled=domainButton.disabled;touchDomain.textContent=p.domain?'Casting':p.domainCooldown>0?'Domain '+Math.ceil(p.domainCooldown)+'s':'Domain';touchDomain.title=abilityStatus(state,'domain').reason;domainButton.title=touchDomain.title;
+  const touchDomain=document.querySelector('[data-key="KeyF"]'),domainInfo=abilityStatus(state,'domain');touchDomain.disabled=!begun||paused||journalOpen||state.dead;touchDomain.classList.toggle('unavailable',!domainInfo.ready);touchDomain.setAttribute('aria-description',domainInfo.reason);touchDomain.textContent=p.domain?'Casting':p.domainCooldown>0?'Domain '+Math.ceil(p.domainCooldown)+'s':'Domain';touchDomain.title=domainInfo.reason;domainButton.title=touchDomain.title;
   canvas.setAttribute('aria-label',`${world.name}. ${state.zone}. Crown Pepe at ${Math.round(p.x)}, ${p.y<GROUND-1?'airborne':p.mode}. HP ${Math.ceil(p.hp)}. Level ${l.level}. Training ${state.training} of 3. Seals ${state.seals.length} of 3.`);
 }
 function frame(now){const dt=Math.min(.05,(now-last)/1000||0);last=now;if(ready){if(begun&&!paused&&!journalOpen&&!state.dead){accumulator+=dt;if(renderer.freeze>0){accumulator=0;}else{while(accumulator>=1/60){const p=state.player;if(walkTarget!==null && Math.abs(walkTarget-p.x)<10)walkTarget=null;const left=keys.has('KeyA')||keys.has('ArrowLeft')||touchKeys.has('KeyA')||(walkTarget!==null && walkTarget<p.x),right=keys.has('KeyD')||keys.has('ArrowRight')||touchKeys.has('KeyD')||(walkTarget!==null && walkTarget>p.x);step(state,{left,right,guard:guardControls.held},1/60);accumulator-=1/60;flush();if(state.dead)break;}}renderer.update(dt,state);}else if(!begun){state.time+=dt;}renderer.draw(state);if(begun&&!state.dead&&now-lastCheckpoint>5000){save();lastCheckpoint=now;}if(now-lastUI>100){updateUI();lastUI=now;}if(now>toastUntil)$('toast').style.opacity='.15';}requestAnimationFrame(frame);}

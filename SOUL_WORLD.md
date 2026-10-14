@@ -316,3 +316,11 @@ After approach combat and ground loot are finished, the walking trail now offers
 Regression simulation covers all four realms, actual walking, explicit attunement, duplicate reward prevention, reload, shrine revival, loot priority, hazards and skipping. Browser verification used a seeded cleared Frozen District practice checkpoint on an isolated origin: walking arrived at 1368, E granted 15 XP and 10 fragments, and reload retained the attuned shrine and next-passage trail. This is route verification, not a native-earned patrol clear. At 390px the new prompt and 44px walking button fit without horizontal overflow. Proof: docs/soul-world-shrine-trail-2026-10-14/phone.png. Full native campaign and physical phone feel remain open finishing gates.
 
 Working-tree and clean staged-copy validation passed 255 arcade tests and 235 Soul World tests. Browser review reported no console errors.
+
+## Technique refusal feedback — October 14, 2026
+
+Keyboard and phone action attempts now explain blocked techniques through the existing status message: cooldown, insufficient Spirit, guard, hit recovery or technique recovery. Existing unlock messages are preserved once. Successful casts use the same simulation actions and costs; queued sword cuts are not mistaken for failures. During active play, unavailable phone techniques retain a muted dashed appearance but accept a tap to explain their current blocker, with the same reason exposed as an accessible description. Pause, journal, startup and defeat still disable these technique buttons. The desktop Domain button retains its existing disabled behavior.
+
+Regression tests check rejected actions do not spend resources or change checkpoints, real successful casts, duplicate unlock message prevention and queued cut continuation. On the isolated practice origin, keyboard L, phone tap and Enter activation all reported “Kek Wave · Release sword guard” while Spirit stayed at 100. Pause disabled the phone technique button. At 390px there was no horizontal overflow and no console error. Proof: docs/soul-world-action-feedback-2026-10-14/phone.png. Physical phone feel and full native campaign remain open finishing gates.
+
+Clean staged-copy validation passed 255 arcade tests and 238 Soul World tests on October 14, 2026.
