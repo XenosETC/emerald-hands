@@ -6,7 +6,7 @@ import {keyboardIntent} from './keyboard-input.js?v=1';
 import {journalRequest} from './journal-input.js?v=2';
 import {templeCue} from './temple-combat.js';
 import {appendEnemyMeter} from './temple-hud.js?v=2';
-import {combatCue} from './combat-cues.js?v=guard-status-20261013';
+import {combatCue} from './combat-cues.js?v=hit-recovery-20261014';
 import {abilityStatus} from './ability-status.js?v=1';
 import {attemptAction} from './action-feedback.js?v=3';
 import {confirmTravel,interactionLeavesArea} from './travel-confirmation.js?v=1';

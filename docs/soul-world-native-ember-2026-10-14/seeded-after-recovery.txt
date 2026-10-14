@@ -1,0 +1,55 @@
+- banner:
+  - link "✦ EMERALD ARCADE":
+    - /url: ../index.html
+  - generic: A NEW CHAPTER / 2D ACTION RPG
+  - button "Sound off"
+- main:
+  - region "Game":
+    - generic: CRIMSON MARSH · APPROACH I
+    - generic: ADEPT / LV. 5
+    - button "Resume" [pressed]
+    - generic: Practice campaign · separate save
+    - link "Normal campaign →":
+      - /url: index.html
+    - generic "Crimson Marsh. approach. Crown Pepe at 840, idle. HP 148. Level 5. Training 3 of 3. Seals 1 of 3."
+    - strong:
+      - text: CROWN PEPE
+      - generic: Ribbit Fang · Awakened 8s
+    - text: HP
+    - progressbar
+    - generic: "148"
+    - text: SP
+    - progressbar
+    - generic: "45"
+    - status: RIBBIT FANG · AWAKENED — 8 seconds of spirit-powered cuts.
+    - dialog "Game paused":
+      - paragraph: TAKE A BREATH
+      - heading "Between worlds." [level=2]
+      - button "Return to your journey →" [active]
+    - generic: K · Warp · 20 SP / L · Kek Wave · 28 SP
+    - strong: Ashen Ronin
+    - progressbar
+    - text: Recovery · opening for a cut · 65 / 65 HP · +1 nearby
+    - generic: COUNTER WINDOW · 0.4s
+    - progressbar "Enemy counterattack window remaining"
+    - button "Map"
+    - button "Quests"
+    - button "Skills"
+    - button "Inventory"
+    - button "Gear"
+    - paragraph: Approach I · 3 / 3 enemies remain. Clear them to open the next passage.
+    - text: 0 / 180 XP · LEVEL 5
+    - progressbar
+    - button "Kek Domain · Complete the oath" [disabled]
+    - button "S · Sword guard" [disabled]
+    - generic: AD Move
+    - generic: SPACE Jump
+    - generic: J Slash / combo
+    - generic: S↓ Hold sword guard
+    - generic: K Warp Step
+    - generic: L Kek Wave / airborne Rift
+    - generic: E Mentor / gate
+    - generic: R Release
+    - generic: F Kek Domain
+    - generic: 1 Heal
+    - generic: 2 Spirit

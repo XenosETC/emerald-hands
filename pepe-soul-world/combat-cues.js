@@ -5,6 +5,8 @@ import {attackCue} from './attack-motion.js';
 import {guardCue} from './sword-guard.js?v=status-20261013';
 export function combatCue(s){
  const p=s.player;
+ // Show the actual hit lock before other cues; rejected inputs are not buffered.
+ if(!s.dead&&p.hurt>0)return 'HIT RECOVERY · '+(Math.ceil(p.hurt*10)/10).toFixed(1)+'s · Retry after recovery';
  const guard=guardCue(p);if(guard)return guard;
  if(p.riftQueued)return 'KEK RIFT · JUMP BUFFERED';
  if(p.rift)return 'KEK RIFT · '+riftPhase(p.rift.elapsed).toUpperCase();

@@ -402,3 +402,17 @@ The subsequent Ember Keeper approach ended in defeat after an input-observation 
 This advances native review through both Crimson patrols and its recovery path. Ember Keeper victory, remaining Void/oath/Temple review, uninterrupted combat feel, physical multitouch and hosted behavior remain open. The finishing queue stays on Soul World.
 
 Working-tree and clean staged-copy validation passed 255 arcade tests and 257 Soul World tests on October 14, 2026.
+
+## Hit recovery countdown and native Crimson completion — October 14, 2026
+
+The combat cue now shows HIT RECOVERY, the remaining simulation lock rounded up to a tenth of a second, and Retry after recovery. It takes priority over ordinary attack/ability cues while the living player is hurt, then returns to the existing cue when the lock clears. This explains the same gate that rejects actions after a hit; it does not shorten recovery, buffer inputs, change combat rules or add saved state. Defeat retains revival guidance. The entry module and combat-cue import have refreshed cache versions.
+
+Two regression tests cover an actual enemy hit, the decreasing countdown, unchanged state during presentation, rejected Release without Spirit cost or delayed casting, a successful retried Release after recovery, tiny positive timers and death guidance. A separate seeded encounter on origin 4183 verified the live phone countdown at 390px, the restored ready cue and a native R cast after recovery (45 Spirit, awakened blade). Phone proof: docs/soul-world-native-ember-2026-10-14/phone-recovery.png; post-recovery DOM: seeded-after-recovery.txt. Desktop 1440px and phone 390px had no horizontal overflow or observed console errors. This presentation fixture is separate from the earned campaign.
+
+On origin 4182, the native campaign resumed the prior earned Crimson shrine checkpoint and crossed the cleared passage into the Ember Keeper arena. Native walking and Warp reached combat range. A sword hit dealt 64 damage, but the follow-up Release was rejected during hit recovery; the planned awakened combo was not completed. Three subsequent grounded Waves defeated the guardian. The victory ended at 127/190 HP without using another flask. Normal walking recovered the Ember seal, Ember Fang and 20 fragments, and the actual return portal restored health and Spirit at the academy. No progress, HP, enemy state, position or rewards were assigned in this run.
+
+Ember Fang was equipped and tempered once for 20 earned fragments. Reload retained level 5 (124/180 XP), 101 fragments, no unspent points, three Healing Flasks, one Spirit Flask, Ember Fang +1, Ashkeeper Robe, two recovered seals, and both Frozen/Crimson shrine and guardian-reward receipts. Evidence: docs/soul-world-native-ember-2026-10-14/earned-map.txt, earned-gear.txt and native-earned.png.
+
+The native fresh-through-Crimson stage is now verified with inspection pauses. Void, the completed oath and Temple remain the next campaign gates. Uninterrupted combat feel, physical-device multitouch and hosted behavior remain separate review work; the finishing queue stays on Soul World.
+
+Working-tree and clean staged-copy validation passed 255 arcade tests and 259 Soul World tests on October 14, 2026.

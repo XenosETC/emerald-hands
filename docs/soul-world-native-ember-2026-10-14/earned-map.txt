@@ -1,0 +1,112 @@
+- banner:
+  - link "✦ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Sound off"
+- main:
+  - region "Game":
+    - generic: KEK ACADEMY
+    - generic: ADEPT / LV. 5
+    - button "Pause"
+    - generic: Practice campaign · separate save
+    - link "Normal campaign →":
+      - /url: index.html
+    - generic "Kek Academy. approach. Crown Pepe at 420, idle. HP 190. Level 5. Training 3 of 3. Seals 2 of 3."
+    - strong:
+      - text: CROWN PEPE
+      - generic: Ember Fang
+    - text: HP
+    - progressbar
+    - generic: "190"
+    - text: SP
+    - progressbar
+    - generic: "100"
+    - status: Your journey continues. Tab opens the Soul Journal. K performs Warp Step.
+    - generic: E · Speak to Master Goribbit
+    - generic: K · Warp · 20 SP / L · Kek Wave · 28 SP
+    - button "Map"
+    - button "Quests"
+    - button "Skills"
+    - button "Inventory"
+    - button "Gear"
+    - paragraph: Seals 2 / 3 · Reach the veil gate at 2250, then open Map.
+    - text: 124 / 180 XP · LEVEL 5
+    - progressbar
+    - button "Walk to the veil gate" [disabled]
+    - dialog "Soul journal":
+      - text: CROWN’S JOURNEY
+      - heading "Soul journal · Map" [level=2]
+      - button "Close · Esc" [active]
+      - button "Reduce effects"
+      - navigation:
+        - button "Map"
+        - button "Quests"
+        - button "Skills"
+        - button "Inventory"
+        - button "Gear"
+        - button "Save"
+      - paragraph: Level 5 · 101 spirit fragments · 0 skill points
+      - article:
+        - heading "Kek Academy" [level=3]
+        - paragraph: The lanterns remember your name
+        - generic: Gate / mentor
+        - generic: Training / enemies
+        - generic: Shrine
+        - generic: Guardian passage
+        - generic: ◆
+        - paragraph: ◆ Crown’s position · 420 / 2600
+        - paragraph: Goribbit 490 · Effigy 870 · Veil Gate 2250
+      - article:
+        - heading "Kek Academy" [level=3]
+        - paragraph: Train, restore, buy flasks and temper your blade.
+        - paragraph: Oath accepted · Training 3 / 3
+        - paragraph: You are here
+        - button "You are here" [disabled]
+      - article:
+        - heading "Frozen District" [level=3]
+        - paragraph: The Rime Warden
+        - paragraph: Seal · Recovered
+        - paragraph: Shrine · Attuned
+        - paragraph: Guardian reward · Recovered
+        - paragraph: Reach the academy veil gate at 2250
+        - button "Travel to Frozen District" [disabled]
+      - article:
+        - heading "Crimson Marsh" [level=3]
+        - paragraph: The Ember Keeper
+        - paragraph: Seal · Recovered
+        - paragraph: Shrine · Attuned
+        - paragraph: Guardian reward · Recovered
+        - paragraph: Reach the academy veil gate at 2250
+        - button "Travel to Crimson Marsh" [disabled]
+      - article:
+        - heading "Emerald Temple" [level=3]
+        - paragraph: The Jade Abbot
+        - paragraph: Temple challenge · Unfinished
+        - paragraph: Shrine · Undiscovered
+        - paragraph: Guardian reward · Not recovered
+        - paragraph: Complete the three-seal oath to enter Emerald Temple
+        - button "Travel to Emerald Temple" [disabled]
+      - article:
+        - heading "Void Swamp" [level=3]
+        - paragraph: The Unnamed
+        - paragraph: Seal · Still missing
+        - paragraph: Shrine · Undiscovered
+        - paragraph: Guardian reward · Not recovered
+        - paragraph: Reach the academy veil gate at 2250
+        - button "Travel to Void Swamp" [disabled]
+      - article:
+        - heading "Crossing the veil" [level=3]
+        - paragraph: Enemy realms are reached from the academy veil gate. Emerald Temple opens after your completed oath and has one approach leading directly to its guardian. The other realms have an outer patrol, an elite approach, and a third map for its guardian. Returning to the academy restores health and spirit; recovered seals, gear and shrine attunements stay saved.
+    - button "Kek Domain · Complete the oath" [disabled]
+    - generic "Touch controls":
+      - button "Move left" [disabled]: ←
+      - button "Move right" [disabled]: →
+      - button "Jump" [disabled]
+      - button "Slash" [disabled]
+      - button "Hold guard" [disabled]
+      - button "Warp Step" [disabled]
+      - button "Kek Wave" [disabled]
+      - button "Talk" [disabled]
+      - button "Release" [disabled]
+      - button "Domain" [disabled]
+      - button "Heal ×3" [disabled]
+      - button "Spirit ×1" [disabled]
