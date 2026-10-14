@@ -11,6 +11,7 @@ import {abilityStatus} from './ability-status.js?v=1';
 import {releaseInfo} from './release-info.js?v=1';
 import {eliteSpec} from './realm-enemies.js';
 import {PointerControls} from './pointer-controls.js';
+import {bindAccessibleAction} from './accessible-controls.js?v=1';
 import {combatFocus} from './combat-focus.js';
 import {questGuidance,academyTrail} from './quest-guidance.js?v=5';
 import {attackCue} from './attack-motion.js';
@@ -65,6 +66,7 @@ function flush(){for(const e of state.events){renderer?.effect(e,state);sound.pl
 function setPaused(value){paused=value;releaseInputs();accumulator=0;$('pause-screen').hidden=!value;$('pause').textContent=value?'Resume':'Pause';$('pause').setAttribute('aria-pressed',String(value));if(!value)canvas.focus({preventScroll:true});}
 function toggleJournal(value,name){if(value&&paused)return;if(!begun||!ready||state.dead)return;journalOpen=value;releaseInputs();accumulator=0;if(value){journal.open(name);save();}else{journal.close();canvas.focus({preventScroll:true});}}
 function press(code,hold=true){if(!begun||!ready||paused||journalOpen||state.dead)return;if(hold)keys.add(code);guardControls.takeOver(code);guardControls.sync();if(actions[code]){act(state,actions[code]);flush();}}
+function toggleSwordGuard(focus=true){if(!begun||!ready||paused||journalOpen||state.dead)return;guardControls.toggle();walkTarget=null;if(focus)canvas.focus({preventScroll:true});}
 window.addEventListener('keydown',e=>{
  const intent=keyboardIntent(e,{begun,ready,paused,dead:state.dead,journalOpen,canvasFocused:e.target===canvas,inputFocused:e.target instanceof HTMLInputElement,buttonFocused:e.target instanceof HTMLButtonElement});
  if(!intent)return;
@@ -80,6 +82,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden && begun &&
 canvas.addEventListener('pointerdown',e=>{if(!begun||paused||journalOpen||state.dead)return;canvas.focus({preventScroll:true});const rect=canvas.getBoundingClientRect();const x=(e.clientX-rect.left)/rect.width*canvas.width+renderer.camera;const y=(e.clientY-rect.top)/rect.height*canvas.height-renderer.floorOffset;const enemy=state.enemies.find(en=>!en.dead && Math.abs(en.x-x)<85 && y>GROUND-250);if(enemy && Math.abs(enemy.x-state.player.x)<190){walkTarget=null;state.player.face=enemy.x>state.player.x?1:-1;act(state,'attack');flush();}else walkTarget=Math.max(100,Math.min(2500,x));});
 for(const button of document.querySelectorAll('[data-item]'))button.addEventListener('click',()=>{if(begun&&ready&&!paused&&!journalOpen&&!state.dead){useItem(state,button.dataset.item);flush();}});
 for(const button of document.querySelectorAll('[data-key]')){
+  const code=button.dataset.key;
+  if(actions[code])bindAccessibleAction(button,()=>{walkTarget=null;press(code,false);});
+  else if(code==='KeyS')bindAccessibleAction(button,()=>toggleSwordGuard(false));
   button.addEventListener('pointerdown',e=>{e.preventDefault();button.setPointerCapture(e.pointerId);walkTarget=null;touchKeys.hold(e.pointerId,button.dataset.key);press(button.dataset.key,false);});
   for(const name of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(name,e=>{touchKeys.release(e.pointerId);guardControls.sync();});
 }
@@ -118,7 +123,7 @@ function applyMotion(){document.body.classList.toggle('effects-reduced',reduced)
 $('motion').addEventListener('click',()=>{reduced=!reduced;applyMotion();});applyMotion();
 for(const w of WORLDS){const b=document.createElement('button');b.className='realm';b.dataset.world=w.id;b.style.backgroundImage=`url(assets/${w.art}.webp)`;const strong=document.createElement('strong');strong.textContent=w.name;const sub=document.createElement('small');sub.textContent=w.id==='academy'?'Home · training · restoration':w.boss;const sym=document.createElement('span');sym.className='symbol';sym.textContent=w.symbol;b.append(strong,sub,sym);b.addEventListener('click',()=>{if(!begun||paused)return;if(w.id===state.world)return;if(enterWorld(state,w.id)){flush();canvas.focus({preventScroll:true});}else message('Finish training, then walk right to the academy gate.');});$('realm-list').append(b);}
 const domainButton=document.createElement('button');domainButton.className='domain-action';domainButton.onclick=()=>{press('KeyF');keys.delete('KeyF');};document.querySelector('.viewport').append(domainButton);
-const guardButton=document.createElement('button');guardButton.className='guard-action';guardButton.title='Hold S or ↓ to guard, or click to toggle. Front attacks cost Spirit. Ground hazards and rear attacks bypass.';guardButton.onclick=()=>{if(!begun||paused||journalOpen||state.dead)return;guardControls.toggle();walkTarget=null;canvas.focus({preventScroll:true});};document.querySelector('.viewport').append(guardButton);
+const guardButton=document.createElement('button');guardButton.className='guard-action';guardButton.title='Hold S or ↓ to guard, or click to toggle. Front attacks cost Spirit. Ground hazards and rear attacks bypass.';guardButton.onclick=()=>toggleSwordGuard();document.querySelector('.viewport').append(guardButton);
 const castReadout=document.createElement('div');castReadout.className='domain-cast';castReadout.hidden=true;const castLabel=document.createElement('span'),castProgress=document.createElement('progress');castProgress.max=1;castProgress.setAttribute('aria-label','Kek Domain cast progress');castReadout.append(castLabel,castProgress);document.querySelector('.viewport').append(castReadout);
 function updateUI(){soundControl();const p=state.player,l=levelFor(state.xp),world=WORLDS.find(w=>w.id===state.world);$('world-label').textContent=world.name.toUpperCase()+(state.world!=='academy'?(state.world==='temple'?(state.zone==='arena'?' · INNER SANCTUARY':' · APPROACH'):state.zone==='arena'?' · GUARDIAN ARENA':state.zone==='approach2'?' · APPROACH II':' · APPROACH I'):'');$('rank').textContent=`${state.complete?'GUARDIAN':l.level>=3?'ADEPT':'INITIATE'} / LV. ${l.level}`;$('health').max=maxHealth(state);$('health').value=p.hp;$('health-number').textContent=Math.ceil(p.hp);$('spirit').max=stats(state).spirit;$('spirit').value=p.sp;$('spirit-number').textContent=Math.floor(p.sp);$('xp').max=l.need;$('xp').value=l.remaining;$('xp-label').textContent=`${l.remaining} / ${l.need} XP · LEVEL ${l.level}`;
   const gate=Math.abs(p.x-2250)<=200;for(const b of document.querySelectorAll('.realm')){b.classList.toggle('active',b.dataset.world===state.world);b.setAttribute('aria-current',b.dataset.world===state.world?'location':'false');b.disabled=!begun||paused||state.dead||b.dataset.world===state.world||(b.dataset.world==='academy'&&state.zone==='arena'&&(!state.guardianDefeated||!gate))||(b.dataset.world!=='academy' && (state.world!=='academy'||!gate||state.training<3||!state.oath));}
@@ -133,7 +138,7 @@ function updateUI(){soundControl();const p=state.player,l=levelFor(state.xp),wor
   $('warp-status').textContent=guardControls.held&&!p.guarding&&!p.attack&&!p.rift&&!p.riftQueued&&!p.domain?'GUARD QUEUED · '+guardInfo.reason:combatCue(state);
   guardButton.textContent=p.guardBroken>0?'Guard broken':p.guarding?'Sword guard · Release':guardControls.latched?'Guard queued · Cancel':'S · Sword guard';guardButton.setAttribute('aria-pressed',String(!!p.guarding||guardControls.latched));guardButton.disabled=!begun||paused||journalOpen||state.dead;
   guardButton.title=guardInfo.reason+'. Hold S or Down, or click to toggle. Rear attacks and ground hazards bypass guard.';
-  const touchGuard=document.querySelector('[data-key="KeyS"]');touchGuard.setAttribute('aria-pressed',String(!!p.guarding));touchGuard.textContent=p.guarding?'Guard on':'Hold guard';touchGuard.title=guardInfo.reason+'. Hold to guard; rear attacks and ground hazards bypass.';touchGuard.disabled=!begun||paused||journalOpen||state.dead;
+  const touchGuard=document.querySelector('[data-key="KeyS"]');touchGuard.setAttribute('aria-pressed',String(!!p.guarding||guardControls.latched));touchGuard.textContent=p.guarding?'Guard on':guardControls.latched?'Guard queued':'Hold guard';touchGuard.title=guardInfo.reason+'. Hold with a pointer; Enter or Space toggles guard. Rear attacks and ground hazards bypass.';touchGuard.disabled=!begun||paused||journalOpen||state.dead;
   for(const button of document.querySelectorAll('[data-item]')){const id=button.dataset.item,item=ITEMS[id],preview=consumablePreview(state,id);button.textContent=(item.heal?'Heal':'Spirit')+' ×'+preview.count;button.disabled=!begun||paused||journalOpen||!preview.ready;button.title=preview.reason;}
   for(const [key,action,name] of [['KeyK','dash','Warp Step'],['KeyL','wave','Kek Wave'],['KeyR','release','Release']]){
    const button=document.querySelector(`[data-key="${key}"]`),info=abilityStatus(state,action);
