@@ -260,3 +260,13 @@ Death checkpoints still clear timers. Direct academy revival previously retained
 Fixtures exercise actual casts, checkpoint/file roundtrips, normal timer expiry, malformed/legacy/locked inputs and both academy/shrine revival. Browser review loaded the simulation-earned oath checkpoint on the isolated practice origin, cast R, opened Skills and reloaded. Release resumed at about 7.8 active seconds with a 15.7-second cooldown, without browser errors. This verifies persistence from simulation-earned progress, not a native-earned campaign. Proof: docs/soul-world-checkpoint-timers-2026-10-13/phone.png.
 
 The restored ability card fit at an actual 390px viewport without horizontal overflow. Clean staged release verification passed 255 arcade tests and 220 Soul World tests on October 13, 2026.
+
+## Cleared battlefield walking aid — October 13, 2026
+
+The existing academy walking aid now also serves cleared approaches and guardian arenas. It offers the nearest uncollected ground reward first, then the next passage, guardian passage or return portal. It never grants loot, attacks or crosses automatically: normal movement collects drops, and E or Map still performs travel. Living enemies, hit recovery, hostile projectiles and an uncleared guardian arena suppress the aid. Manual controls, guard ownership and cancellation retain their existing behavior. The old control ID/class remain stable for existing integrations.
+
+Fixtures walk a cleared approach through three real pickup checks, verify the flask and fragment totals, then cross only through explicit enterArena; they also check live combat/hazard suppression, academy onboarding and Temple's direct guardian passage. Native review used a seeded cleared Frozen approach with three pending drops. Three walking requests collected them normally (25 → 40 fragments, two → three Healing Flasks), and the ground-reward list became empty. The aid then reached 2242 without changing phases. Explicit E entered Approach II; reload confirmed the new phase at 260 with its live patrol and no walking aid. No browser errors were observed. This is seeded traversal/pickup verification, not earned combat completion.
+
+At an actual 390px viewport, the passage button was 44px tall with no horizontal overflow. Proof: docs/soul-world-journey-trail-2026-10-13/phone.png. Physical-device comfort and full campaign feel remain open.
+
+Clean staged release verification passed 255 arcade tests and 223 Soul World tests on October 13, 2026.
