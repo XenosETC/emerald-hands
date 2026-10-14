@@ -270,3 +270,11 @@ Fixtures walk a cleared approach through three real pickup checks, verify the fl
 At an actual 390px viewport, the passage button was 44px tall with no horizontal overflow. Proof: docs/soul-world-journey-trail-2026-10-13/phone.png. Physical-device comfort and full campaign feel remain open.
 
 Clean staged release verification passed 255 arcade tests and 223 Soul World tests on October 13, 2026.
+
+## Forge and supply availability — October 14, 2026
+
+Goribbit's shop now shows owned flask counts, the existing 99-item pack limit and precise fragment shortfalls. Full stacks disable Buy instead of offering a silent no-op. The forge shows the equipped blade's temper rank, current/next sword bonus and actual next cost. Shared non-mutating previews drive both availability and the existing purchase/upgrade actions, keeping prices, caps, rank limits and damage unchanged. The forge spans the journal width; supply offers form a responsive pair on wider screens and stack on phones.
+
+Fixtures compare previews against real purchases/tempering across location, affordability, pack count and rank, including dead-player refusal without spending. Native review used an isolated seeded Academy practice checkpoint: Healing Flasks at 99 disabled Buy; purchasing one Spirit Flask increased two → three and spent eight fragments; tempering spent the remaining 20 and increased the blade to +1 with four additional sword damage. At zero fragments, offers correctly reported eight for a flask and 40 for the next temper. No claim of earned progression is made for this seeded shop check. Proof: docs/soul-world-shop-2026-10-14/phone.png.
+
+Desktop review confirmed the forge spans the content width. At an actual 390px viewport, supply offers stacked without horizontal overflow; no browser errors were observed. Clean staged release verification passed 255 arcade tests and 226 Soul World tests on October 14, 2026.

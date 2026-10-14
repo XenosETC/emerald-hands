@@ -71,7 +71,17 @@ export function consumablePreview(s,id){
 }
 export function useItem(s,id){const preview=consumablePreview(s,id);if(!preview?.ready)return false;s.player[preview.field]=Math.min(preview.maximum,s.player[preview.field]+preview.restore);s.inventory[id]--;s.events.push({type:'restore',x:s.player.x,y:s.player.y-80});return changed(s,`${ITEMS[id].name} used.`);}
 export function atMentor(s){return s.world==='academy'&&Math.abs(s.player.x-490)<190&&!s.dead;}
-export function buyItem(s,id){const item=ITEMS[id];if(!atMentor(s)||!item?.price||s.fragments<item.price||(s.inventory[id]||0)>=99)return false;s.fragments-=item.price;addItem(s,id);return changed(s,`${item.name} added to your pack.`);}
-export function upgradeGear(s){const id=s.equipped.weapon,rank=s.gearLevels[id]||0,cost=(rank+1)*20;if(!atMentor(s)||rank>=3||s.fragments<cost)return false;s.fragments-=cost;s.gearLevels[id]=rank+1;return changed(s,`${ITEMS[id].name} tempered to +${rank+1}.`);}
+export function purchasePreview(s,id){
+ const item=ITEMS[id];if(!item?.price)return null;const count=s.inventory[id]||0,cost=item.price;
+ const reason=s.dead?'Revive before buying supplies':count>=99?'Pack full · 99 / 99':!atMentor(s)?'Return to Goribbit at Kek Academy':s.fragments<cost?'Need '+(cost-s.fragments)+' more fragments':'Ready · '+s.fragments+' fragments available';
+ return {cost,count,ready:atMentor(s)&&count<99&&s.fragments>=cost,reason};
+}
+export function forgePreview(s){
+ const id=s.equipped.weapon,rank=s.gearLevels[id]||0,cost=(rank+1)*20,maxed=rank>=3,before=stats(s).attack;
+ const reason=s.dead?'Revive before tempering':maxed?'Maximum temper reached':!atMentor(s)?'Return to Goribbit at Kek Academy':s.fragments<cost?'Need '+(cost-s.fragments)+' more fragments':'Ready · '+s.fragments+' fragments available';
+ return {id,rank,cost,maxed,before,after:before+(maxed?0:4),ready:atMentor(s)&&!maxed&&s.fragments>=cost,reason};
+}
+export function buyItem(s,id){const preview=purchasePreview(s,id);if(!preview?.ready)return false;s.fragments-=preview.cost;addItem(s,id);return changed(s,`${ITEMS[id].name} added to your pack.`);}
+export function upgradeGear(s){const preview=forgePreview(s);if(!preview.ready)return false;s.fragments-=preview.cost;s.gearLevels[preview.id]=preview.rank+1;return changed(s,`${ITEMS[preview.id].name} tempered to +${preview.rank+1}.`);}
 export function questReady(s,q){return !s.claimedQuests.includes(q.id)&&q.progress(s)>=q.need;}
 export function claimQuest(s,id){const q=QUESTS.find(q=>q.id===id);if(!q||!questReady(s,q)||s.dead)return false;const oldLevel=levelFor(s.xp).level;s.claimedQuests.push(id);s.xp+=q.xp;s.fragments+=q.fragments;if(q.item)addItem(s,q.item);if(levelFor(s.xp).level>oldLevel)s.events.push({type:'level',level:levelFor(s.xp).level});return changed(s,`${q.name} completed · ${q.xp?`${q.xp} XP · `:''}${q.fragments} spirit fragments${q.item?` · ${ITEMS[q.item].name}`:''}.`);}

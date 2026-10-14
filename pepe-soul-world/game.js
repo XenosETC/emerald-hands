@@ -19,7 +19,7 @@ import {journeyTrail} from './journey-trail.js?v=1';
 import {attackCue} from './attack-motion.js';
 import {domainCue} from './domain-motion.js';
 import {GUARDIAN_STYLE} from './enemy-motion.js';
-import {createJournal} from './journal.js?v=flasks-20261013';
+import {createJournal} from './journal.js?v=shop-20261014';
 import {ITEMS,stats,useItem,consumablePreview} from './systems.js?v=flasks-20261013';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=checkpoint-timers-20261013';
 import {loadArt,Renderer} from './render.js';
