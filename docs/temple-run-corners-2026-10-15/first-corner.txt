@@ -1,0 +1,33 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Expand game view" [active] [pressed]: Exit focus ⤡
+  - button "Toggle sound": Sound off
+- main:
+  - region "Temple runner":
+    - generic "Three lane temple runner"
+    - generic: DISTANCE
+    - strong: 464 m
+    - generic: SHARDS
+    - strong: "5"
+    - generic: BEST RUN
+    - strong: 301 m
+    - generic: SHARD FLOW
+    - strong: "0"
+    - button "Resume game": ▶
+    - generic: CORRUPT FROG TEMPLE
+    - text: CORRUPT REALM / SHARD RUN
+    - paragraph: TAKE A BREATH
+    - heading "Temple on hold." [level=2]
+    - paragraph: Your next step can wait.
+    - status: Best run saves on this device.
+    - button "Continue running ↗"
+    - paragraph:
+      - text: Swipe to dodge, jump & slide
+      - text: or use the buttons below.
+    - status: CLEAN CORNER / KEEP THE CROWN MOVING
+  - generic "Runner controls":
+    - button "Move left": ←
+    - button "Jump": Jump ↑
+    - button "Slide": Slide ↓
+    - button "Move right": →

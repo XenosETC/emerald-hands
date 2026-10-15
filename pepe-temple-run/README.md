@@ -238,3 +238,7 @@ Native evidence under realmSetpieces86 includes a 717.29-metre real-input run th
 ## Record protection — October 15, 2026
 
 The finishing pass adds validated best-distance storage, preservation of unreadable records, merging of a newer readable best before writes, and visible save-status feedback in the start/pause/results overlay. The key remains pepe-temple-run-v1. Only completed runs save a best; jade/shards remain run-only. Exactly simultaneous cross-tab writes are not serialized. Run `node --test pepe-temple-run/record-store-test.cjs` for six storage and actual-collision integration checks. Current finishing evidence and remaining gates are in ../TEMPLE_RUN.md.
+
+## Corner and keyboard finishing pass — October 15, 2026
+
+Browser shortcuts/composition no longer become runner actions; native Space/Enter retain button/link activation. The focusable playfield and overlay primary button now exchange focus on start/resume and pause/results. Missed-corner results synchronize the final HUD distance and remove stale turn instructions. Native review cleared the first left turn, verified a missed second right turn and retained a 900 m best. See ../TEMPLE_RUN.md for receipts and remaining gates.

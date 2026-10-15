@@ -1,0 +1,33 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Expand game view" [pressed]: Exit focus ⤡
+  - button "Toggle sound": Sound off
+- main:
+  - region "Temple runner":
+    - generic "Three lane temple runner"
+    - generic: DISTANCE
+    - strong: 143 m
+    - generic: JADE
+    - strong: "4"
+    - generic: BEST RUN
+    - strong: 900 m
+    - generic: JADE FLOW
+    - strong: "4"
+    - button "Pause game": Ⅱ
+    - generic: 01 / JADE CAUSEWAY
+    - text: FIRST FROG GATE / REALM RIFT
+    - paragraph: RUN ENDED
+    - heading "Bridge missed." [level=2]
+    - paragraph: 143 m escaped · 4 jade · Best 900 m. Jump over broken bridges.
+    - status: Best run saved on this device.
+    - button "Run it back ↗" [active]
+    - paragraph:
+      - text: Swipe to dodge, jump & slide
+      - text: or use the buttons below.
+    - status
+  - generic "Runner controls":
+    - button "Move left": ←
+    - button "Jump": Jump ↑
+    - button "Slide": Slide ↓
+    - button "Move right": →

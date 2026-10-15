@@ -8,3 +8,15 @@ for(const key of [' ','Enter']){const f=fixture(),b=f.buttons[0];let prevented=f
 for(const key of [' ','Enter']){const f=fixture();let prevented=false;f.keys.keydown({key,target:f.buttons[0],repeat:true,preventDefault(){prevented=true;}});assert.equal(prevented,true,'Held button key repeats native activation');assert.equal(f.calls.length,0);}
 {const f=fixture();f.keys.keydown({key:'Escape',repeat:false,preventDefault(){}});for(const b of f.buttons){b.handlers.pointerdown(pointer());b.handlers.click({detail:0});}assert.equal(f.calls.length,0);assert.equal(f.read().state,'paused');assert.equal(f.read().lane,1);}
 console.log('BUTTON INPUT UNIT PASS: real handlers, primary-left pointer only, mouse dedup, detail0 keyboard activation, native-key yield, paused guard; no native browser-key claim');
+for(const modifier of ['ctrlKey','altKey','metaKey','isComposing'])for(const key of ['ArrowRight',' ','Escape','Enter','w','p']){
+ const f=fixture(),before=JSON.stringify(f.read());let prevented=false;
+ f.keys.keydown({key,[modifier]:true,repeat:false,preventDefault(){prevented=true;}});
+ assert.equal(prevented,false,modifier+' browser/composition input was prevented');assert.equal(JSON.stringify(f.read()),before);assert.deepEqual(f.calls,[]);
+}
+for(const key of [' ','Enter'])for(const tag of ['button','a']){
+ const f=fixture();let prevented=false;const target={closest(selector){return selector==='button,a'?{tagName:tag.toUpperCase()}:null;}};
+ f.keys.keydown({key,target,repeat:false,preventDefault(){prevented=true;}});
+ assert.equal(prevented,false,'Header/link native activation was prevented');assert.equal(f.read().action,'');assert.deepEqual(f.calls,[]);
+}
+{const f=fixture();f.keys.keydown({key:' ',repeat:false,preventDefault(){}});assert.equal(f.read().action,'jump');}
+console.log('KEY OWNERSHIP PASS: modifier/composition input untouched, header/link native activation retained, ordinary Space still jumps');

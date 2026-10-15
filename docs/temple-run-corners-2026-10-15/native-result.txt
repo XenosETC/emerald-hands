@@ -1,0 +1,33 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Expand game view" [pressed]: Exit focus ⤡
+  - button "Toggle sound": Sound off
+- main:
+  - region "Temple runner":
+    - generic "Three lane temple runner"
+    - generic: DISTANCE
+    - strong: 450 m
+    - generic: SHARDS
+    - strong: "5"
+    - generic: BEST RUN
+    - strong: 900 m
+    - generic: SHARD FLOW
+    - strong: "0"
+    - button "Pause game": Ⅱ
+    - generic: CORRUPT FROG TEMPLE
+    - text: CORRUPT REALM / SHARD RUN
+    - paragraph: RUN ENDED
+    - heading "Missed the left corner." [level=2]
+    - paragraph: 450 m escaped · 0 jade · 5 shards · Best 900 m. Press or swipe left in the final 28 m.
+    - status: Best run saved on this device.
+    - button "Run it back ↗"
+    - paragraph:
+      - text: Swipe to dodge, jump & slide
+      - text: or use the buttons below.
+    - status
+  - generic "Runner controls":
+    - button "Move left": ←
+    - button "Jump": Jump ↑
+    - button "Slide": Slide ↓
+    - button "Move right" [active]: →

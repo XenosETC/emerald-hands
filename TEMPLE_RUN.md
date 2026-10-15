@@ -18,8 +18,22 @@ A separate seeded unreadable-record fixture on origin 4183 verified its warning 
 
 ## Remaining finishing gates
 
-Native corner decisions and missed-corner recovery, longer high-speed pacing, storage-failure/recovery UX, sustained physical swipes/multitouch, asset/performance review and hosted behavior remain open. This is not yet a local finishing candidate. Native projects and unrelated art/tooling remain outside this release.
+Successful native right turns and longer high-speed pacing, storage-failure/recovery UX, sustained physical swipes/multitouch, asset/performance review and hosted behavior remain open. This is not yet a local finishing candidate. Native projects and unrelated art/tooling remain outside this release.
 
 Release-scope check: nine existing runner gameplay test files were not tracked in the initial index. They are included in this pass so the staged release reproduces the full 21-file, 26-test game check rather than the initially observed 17 tests.
 
 Working-tree and exact staged-copy validation passed 255 arcade tests and 26 Temple Run tests on October 15, 2026.
+
+## Native corners and keyboard ownership — October 15, 2026
+
+The runner now yields Ctrl/Alt/Meta shortcuts and IME composition to the browser. Space/Enter on native buttons and links retain their default activation instead of becoming Jump or a global start action. Ordinary playfield Space and movement/pause keys retain their existing rules. The canvas has a visible keyboard-focus target; starting/resuming focuses it, and pause/results focus the primary overlay button. No lane, corner-window, speed, collision, RNG or save-format changes were made.
+
+Native review exposed an early-return corner-result bug: the missed right bend reported 900 m in its result and saved best while the HUD stayed at 899 m and still displayed TURN RIGHT NOW. The result handler now synchronizes the final HUD distance and clears stale live instructions. Dead-state updates also suppress turn warnings and clear the toast. A new full-game regression follows real simulated inputs through a successful first corner and missed second corner, verifies matching 900 m HUD/result/record, hidden warning, cleared toast and restart preserving the record. The existing button-input fixture additionally covers browser modifiers, composition, native button/link activation and ordinary Space.
+
+The native QA run on origin 4182 used the real right button to avoid the opening rows, entered the corrupted realm and paused at 333 m. At the first left corner, a wrong right input stayed unaccepted; the corrected left input locked the turn. The run passed 450 m, then continued through 500/750 m and collected a shield. Intentionally leaving the second right turn unaccepted ended at 900 m; the shield did not prevent the missed-corner loss. Reload retained the 900 m record. first-corner.txt records 464 m and CLEAN CORNER. native-900-before-fix.txt records the original mismatch and is not final UI proof.
+
+After the repair, another native run activated the right button with Enter and intentionally missed the first left corner. The HUD/result both showed 450 m, the stale prompt was empty, and the saved best stayed 900 m. Native result receipt: docs/temple-run-corners-2026-10-15/native-result.txt; phone-result.png shows that corrected corner result. Space and Enter on Focus view were verified to toggle its pressed state correctly. Native Enter start/resume focused game, Space dispatched on the focusable canvas, and Escape paused with focus on start. A subsequent normal bridge loss confirmed results focus on start and retained the higher 900 m record; keyboard-focus.txt and phone-final-focus.png record the final focus behavior. No progress, positions, action state or scores were assigned in these browser runs.
+
+Actual 390px phone and 1440px desktop layouts had no horizontal overflow or observed console errors. Inspection pauses were used. Successful native right turns and longer high-speed pacing, storage recovery UX, sustained physical-device feel and hosted verification remain open. Temple Run remains finishing in progress.
+
+Working-tree and exact staged-copy validation passed 255 arcade tests and 27 Temple Run tests on October 15, 2026.
