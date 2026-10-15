@@ -94,3 +94,5 @@ body[data-realm="corrupt"] h1 em{color:#d8a6f2}
 body[data-realm="corrupt"] .arena{border-color:#a772c866;box-shadow:0 25px 90px #18072788}
 body[data-realm="corrupt"] .touch button{background:#281c35;border-color:#ae81ce55}
 body[data-realm="corrupt"] .journey-track span{background:#cb8bea}
+
+#record-status{max-width:370px;margin:0 0 18px;color:#b4cdbb;font-size:11px;line-height:1.5}#record-status[data-state=warning]{color:#e4c582}

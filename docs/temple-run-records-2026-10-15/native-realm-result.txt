@@ -1,0 +1,40 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Expand game view": Focus view ⤢
+  - button "Toggle sound": Sound off
+- main:
+  - paragraph: A STOLEN RELIC. AN ANCIENT CURSE.
+  - heading "Pepe Temple Run" [level=1]:
+    - text: Pepe
+    - emphasis: Temple Run
+  - region "Temple runner":
+    - generic "Three lane temple runner"
+    - generic: DISTANCE
+    - strong: 301 m
+    - generic: SHARDS
+    - strong: "1"
+    - generic: BEST RUN
+    - strong: 301 m
+    - generic: SHARD FLOW
+    - strong: "0"
+    - button "Pause game": Ⅱ
+    - generic: CORRUPT FROG TEMPLE
+    - text: CORRUPT REALM / SHARD RUN
+    - paragraph: NEW PERSONAL BEST
+    - heading "Stone idol collision." [level=2]
+    - paragraph: 301 m escaped · 9 jade · 1 shards · Best 301 m. Dodge stone idols.
+    - status: Best run saved on this device.
+    - button "Run it back ↗"
+    - paragraph:
+      - text: Swipe to dodge, jump & slide
+      - text: or use the buttons below.
+    - status: 250 M / THE TEMPLE AWAKENS
+  - generic "Runner controls":
+    - button "Move left": ←
+    - button "Jump": Jump ↑
+    - button "Slide": Slide ↓
+    - button "Move right": →
+  - generic: 01 Dodge stone idols
+  - generic: 02 Jump broken bridges
+  - generic: 03 Slide beneath gates

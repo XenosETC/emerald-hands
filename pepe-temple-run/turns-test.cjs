@@ -1,0 +1,10 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const window={};vm.runInNewContext(fs.readFileSync(__dirname+'/turns.js','utf8'),{window});const turns=window.TempleTurns;
+turns.reset();assert.equal(turns.diagnostics().remaining,450);
+turns.update(380,.04);assert.equal(turns.diagnostics().announced,true);assert.equal(turns.input('left').handled,false);assert.equal(turns.diagnostics().accepted,false);
+turns.update(423,.04);assert.equal(turns.diagnostics().window,true);assert.equal(turns.input('right').accepted,false);assert.equal(turns.input('jump').handled,false);
+const frozen=JSON.stringify(turns.diagnostics());turns.update(423,0);assert.equal(JSON.stringify(turns.diagnostics()),frozen);
+assert.equal(turns.input('left').accepted,true);assert.equal(turns.update(451,.04).type,'completed');assert.equal(turns.diagnostics().heading,-Math.PI/2);assert.equal(turns.diagnostics().completed,1);
+turns.reset();turns.update(430,.04);turns.input('right');assert.equal(turns.update(450,.04).type,'missed');assert.equal(turns.diagnostics().failed,true);assert.equal(turns.input('left').handled,false);assert.equal(turns.diagnostics().completed,0);
+turns.reset();for(let i=0;i<40;i++){const next=turns.diagnostics().nextDistance;turns.update(next-27,.04);const d=turns.diagnostics();assert.equal(turns.input(d.direction).accepted,true);assert.equal(turns.update(next,.04).type,'completed');assert.equal(turns.diagnostics().completed,i+1);assert.equal(turns.diagnostics().nextDistance,(i+2)*450);}assert.ok(Math.abs(turns.diagnostics().heading)<1e-10);
+console.log('TURNS PASS: 40 mandatory corners, deterministic directions, wrong/early/missed input, zero-dt freeze, accumulated heading');

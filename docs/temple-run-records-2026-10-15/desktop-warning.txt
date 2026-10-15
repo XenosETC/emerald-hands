@@ -1,0 +1,32 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - generic: CROWN PEPE / THE JADE ESCAPE
+  - button "Expand game view" [active] [pressed]: Exit focus ⤡
+  - button "Toggle sound": Sound off
+- main:
+  - region "Temple runner":
+    - generic "Three lane temple runner"
+    - generic: DISTANCE
+    - strong: 0 m
+    - generic: JADE
+    - strong: "0"
+    - generic: BEST RUN
+    - strong: 0 m
+    - generic: JADE FLOW
+    - strong: 0 chain
+    - button "Pause game": Ⅱ
+    - generic: 01 / JADE CAUSEWAY
+    - text: SUNKEN SANCTUM / 500 M
+    - paragraph: THE JADE ESCAPE
+    - heading "Run like a king." [level=2]
+    - paragraph: You took the jade heart. Now the entire temple wants it back.
+    - status: Saved record is unreadable and was preserved. New records stay in this session.
+    - button "Enter the temple ↗"
+    - paragraph: ← → Dodge ↑ / Space Jump ↓ Slide
+    - status
+  - generic "Runner controls":
+    - button "Move left": ←
+    - button "Jump": Jump ↑
+    - button "Slide": Slide ↓
+    - button "Move right": →

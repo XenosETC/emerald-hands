@@ -18,7 +18,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 12 | ETC: Unstable Launch | July 18, 2026 · `68c2492` | [Finishing candidate](UNSTABLE_LAUNCH.md); original flight art, exact crashes, milestones and record protection |
 | 13 | Satoshi System | October 5, 2026 · `7e1f161` | [Finishing candidate](SATOSHI_SYSTEM.md); native earned completion, isolated ledger and checkpoint restore |
 | 14 | Pepe Soul World | October 5, 2026 · `7e1f161` | [Finishing candidate](SOUL_WORLD.md); native fresh-through-oath-and-Temple completion, earned Domain, rewards/reload and guided revisits verified |
-| 15 | Pepe Temple Run | October 5, 2026 · `7e1f161` | Next finishing review |
+| 15 | Pepe Temple Run | October 5, 2026 · `7e1f161` | [Finishing in progress](TEMPLE_RUN.md); protected records, native jump/slide and first corrupt-realm transition verified |
 | 16 | Pepe Feudalism | October 5, 2026 · `7e1f161` | Same import cohort |
 
 ## Finish gate for each game
@@ -32,6 +32,6 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 
 “Finishing candidate” means the implemented loop passed its documented local checks. Physical-device comfort, human pacing, hosted behavior and asset rights for commercial release remain separate gates before calling a game fully release-ready. Native Unreal/Godot projects are outside this browser-game queue.
 
-## Next: Pepe Temple Run
+## Current: Pepe Temple Run
 
-The first fourteen games have documented local finishing candidates. Soul World now has a native earned oath-and-Temple completion receipt, alongside its simulation and recovery checks. The next oldest game is Pepe Temple Run. Automated runs and inspection-paused browser play do not replace sustained human feel, physical-device or hosted-release review.
+The first fourteen games have documented local finishing candidates. Soul World now has a native earned oath-and-Temple completion receipt, alongside its simulation and recovery checks. Pepe Temple Run finishing review is underway; record protection and the native first-realm transition are verified. Automated runs and inspection-paused browser play do not replace sustained human feel, physical-device or hosted-release review.

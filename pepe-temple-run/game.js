@@ -3,7 +3,11 @@
   const canvas=document.querySelector('#game'),ctx=canvas.getContext('2d'),$=id=>document.getElementById(id);
   const hero=new Image();hero.src='../assets/pepes-paradox/crown-platformer-idle.png';
   const sheet=new Image();sheet.src='../assets/pepes-paradox/crown-platformer-sheet.png';
-  const KEY='pepe-temple-run-v1';let best=0;try{best=Number(JSON.parse(localStorage.getItem(KEY))?.best)||0;}catch{}
+  const records=window.TempleRecords?.create(()=>localStorage);
+  const unavailable='Record storage is unavailable. New records stay in this session.';
+  const loadedRecord=records?.load()||{best:0,ok:false,message:unavailable};let best=loadedRecord.best;
+  function recordStatus(result){const node=$('record-status');if(node){node.textContent=result.message;node.setAttribute('data-state',result.ok?'saved':'warning');}}
+  recordStatus(loadedRecord);
   let magnet=0,shield=false,corrupted=false,shards=0,realmEntry=null;let w,h,time=0,last=0,audio,sound=false,state='ready',lane=1,visualLane=1,distance=0,jade=0,speed=25,action='',actionTime=0,objects=[],spawn=0,seed=0xC0FFEE,shake=0;
   let row=0,route=1,combo=0,comboTime=0,notice='',noticeTime=0,milestone=0,canvasRatio=0;
   $('start').disabled=true;$('start').textContent='Opening the temple…';
@@ -20,7 +24,7 @@
     const coaching=corner?'Press or swipe '+type.slice(5)+' in the final 28 m.':type==='gap'?'Jump over broken bridges.':type==='gate'?'Slide under the low arches.':type==='boulder'?'Dodge rolling jade stones.':type==='spire'?'Dodge the corruption thorns.':'Dodge stone idols.';
     return {best,overline:newBest?'NEW PERSONAL BEST':'RUN ENDED',title:corner?'Missed the '+type.slice(5)+' corner.':type==='gap'?'Bridge missed.':type==='gate'?'Low arch collision.':type==='boulder'?'Rolling stone collision.':type==='spire'?'Corruption thorn collision.':'Stone idol collision.',message:`${meters} m escaped · ${jade} jade${shards===null?'':' · '+shards+' shards'} · Best ${best} m.\n${coaching}`};
   }
-  function die(type){state='dead';shake=15;tone(85,.4);const result=runResult(distance,jade,best,type,corrupted?shards:null);best=result.best;try{localStorage.setItem(KEY,JSON.stringify({best}));}catch{}$('best').innerHTML=`${best} <i>m</i>`;show(result.overline,result.title,result.message,'Run it back');}
+  function die(type){state='dead';shake=15;tone(85,.4);const candidate=Math.max(best,Math.floor(distance)),record=records?.save(candidate)||{best:candidate,previousBest:best,ok:false,message:unavailable};const result=runResult(distance,jade,record.previousBest,type,corrupted?shards:null);best=record.best;recordStatus(record);$('best').innerHTML=`${best} <i>m</i>`;show(result.overline,result.title,result.message,'Run it back');}
   function input(k){if(k==='pause'){pause();return;}if(state!=='running')return;const corner=window.TempleTurns?.input(k);if(corner?.handled){notice=corner.correct?'TURN LOCKED':"TURN "+corner.direction.toUpperCase()+" / OTHER WAY";noticeTime=1;window.TempleFeedback?.emit('clear',{lane,label:corner.correct?'TURN LOCKED':'OTHER WAY'});return;}if(k==='left')lane=Math.max(0,lane-1);if(k==='right')lane=Math.min(2,lane+1);if((k==='jump'||k==='slide')&&!action){action=k;actionTime=k==='jump'?.85:.75;tone(k==='jump'?300:160);} }
   window.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&e.target?.closest?.('[data-action]')){if(e.repeat)e.preventDefault();return;}const map={ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right',ArrowUp:'jump',w:'jump',W:'jump',' ':'jump',ArrowDown:'slide',s:'slide',S:'slide',Escape:'pause',p:'pause'};if(map[e.key]){e.preventDefault();if(!e.repeat)input(map[e.key]);}if(e.key==='Enter'&&state!=='running'){e.preventDefault();if(!e.repeat&&!$('start').disabled)$('start').click();}});
   $('start').onclick=()=>state==='paused'?pause():begin();$('pause').onclick=pause;$('sound').onclick=()=>{sound=!sound;$('sound').textContent=sound?'Sound on':'Sound off';if(sound)tone(440);};

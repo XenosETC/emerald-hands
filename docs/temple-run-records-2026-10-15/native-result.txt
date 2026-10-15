@@ -1,0 +1,40 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Expand game view": Focus view ⤢
+  - button "Toggle sound": Sound off
+- main:
+  - paragraph: A STOLEN RELIC. AN ANCIENT CURSE.
+  - heading "Pepe Temple Run" [level=1]:
+    - text: Pepe
+    - emphasis: Temple Run
+  - region "Temple runner":
+    - generic "Three lane temple runner"
+    - generic: DISTANCE
+    - strong: 143 m
+    - generic: JADE
+    - strong: "4"
+    - generic: BEST RUN
+    - strong: 143 m
+    - generic: JADE FLOW
+    - strong: "4"
+    - button "Pause game": Ⅱ
+    - generic: 01 / JADE CAUSEWAY
+    - text: FIRST FROG GATE / REALM RIFT
+    - paragraph: NEW PERSONAL BEST
+    - heading "Bridge missed." [level=2]
+    - paragraph: 143 m escaped · 4 jade · Best 143 m. Jump over broken bridges.
+    - status: Best run saved on this device.
+    - button "Run it back ↗"
+    - paragraph:
+      - text: Swipe to dodge, jump & slide
+      - text: or use the buttons below.
+    - status: FOLLOW THE EMERALD TRAIL
+  - generic "Runner controls":
+    - button "Move left": ←
+    - button "Jump": Jump ↑
+    - button "Slide": Slide ↓
+    - button "Move right": →
+  - generic: 01 Dodge stone idols
+  - generic: 02 Jump broken bridges
+  - generic: 03 Slide beneath gates
