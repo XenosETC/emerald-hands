@@ -242,3 +242,7 @@ The finishing pass adds validated best-distance storage, preservation of unreada
 ## Corner and keyboard finishing pass — October 15, 2026
 
 Browser shortcuts/composition no longer become runner actions; native Space/Enter retain button/link activation. The focusable playfield and overlay primary button now exchange focus on start/resume and pause/results. Missed-corner results synchronize the final HUD distance and remove stale turn instructions. Native review cleared the first left turn, verified a missed second right turn and retained a 900 m best. See ../TEMPLE_RUN.md for receipts and remaining gates.
+
+## Contextual turn controls — October 15, 2026
+
+The required corner direction now receives a gold Turn cue and a direction-specific accessible name during the input window; accepted turns show a green Locked cue. Normal lane labels return after crossing. Controls disable outside active play. A native run cleared both turn directions, reached 1,136 m and retained that best after reload. Maximum-speed/device review remains open; details are in ../TEMPLE_RUN.md.

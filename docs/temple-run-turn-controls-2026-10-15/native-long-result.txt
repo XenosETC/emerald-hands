@@ -1,0 +1,33 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Expand game view" [pressed]: Exit focus ⤡
+  - button "Toggle sound": Sound off
+- main:
+  - region "Temple runner":
+    - generic "Three lane temple runner" [active]
+    - generic: DISTANCE
+    - strong: 1136 m
+    - generic: SHARDS
+    - strong: "25"
+    - generic: BEST RUN
+    - strong: 1136 m
+    - generic: SHARD FLOW
+    - strong: "0"
+    - button "Pause game": Ⅱ
+    - generic: CORRUPT FROG TEMPLE
+    - text: CORRUPT REALM / SHARD RUN
+    - paragraph: NEW PERSONAL BEST
+    - heading "Low arch collision." [level=2]
+    - paragraph: 1136 m escaped · 0 jade · 25 shards · Best 1136 m. Slide under the low arches.
+    - status: Best run saved on this device.
+    - button "Run it back ↗"
+    - paragraph:
+      - text: Swipe to dodge, jump & slide
+      - text: or use the buttons below.
+    - status
+  - generic "Runner controls":
+    - button "Move left": ←
+    - button "Jump": Jump ↑
+    - button "Slide": Slide ↓
+    - button "Move right": →

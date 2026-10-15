@@ -18,7 +18,7 @@ Finish the collection from oldest to newest, one complete game loop at a time. T
 | 12 | ETC: Unstable Launch | July 18, 2026 · `68c2492` | [Finishing candidate](UNSTABLE_LAUNCH.md); original flight art, exact crashes, milestones and record protection |
 | 13 | Satoshi System | October 5, 2026 · `7e1f161` | [Finishing candidate](SATOSHI_SYSTEM.md); native earned completion, isolated ledger and checkpoint restore |
 | 14 | Pepe Soul World | October 5, 2026 · `7e1f161` | [Finishing candidate](SOUL_WORLD.md); native fresh-through-oath-and-Temple completion, earned Domain, rewards/reload and guided revisits verified |
-| 15 | Pepe Temple Run | October 5, 2026 · `7e1f161` | [Finishing in progress](TEMPLE_RUN.md); protected records, native first corner and 900 m missed-corner result, keyboard ownership and restart verified |
+| 15 | Pepe Temple Run | October 5, 2026 · `7e1f161` | [Finishing in progress](TEMPLE_RUN.md); protected records, contextual corner controls, native left/right turns and 1,136 m saved run verified |
 | 16 | Pepe Feudalism | October 5, 2026 · `7e1f161` | Same import cohort |
 
 ## Finish gate for each game

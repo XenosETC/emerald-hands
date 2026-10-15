@@ -98,3 +98,5 @@ body[data-realm="corrupt"] .journey-track span{background:#cb8bea}
 #record-status{max-width:370px;margin:0 0 18px;color:#b4cdbb;font-size:11px;line-height:1.5}#record-status[data-state=warning]{color:#e4c582}
 
 canvas:focus-visible{outline:2px solid #f5d75d;outline-offset:-3px}
+
+.touch button:disabled{opacity:.4;cursor:default}body .touch button[data-turn=required]{border-color:#f5d75d;background:#524b22;color:#fff3b2}body .touch button[data-turn=locked]{border-color:#9cdec0;background:#163d2c;color:#d7ffe8}

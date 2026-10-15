@@ -1,0 +1,26 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+test('real turn phases drive control hints, locked state and pause without steering or granting progress',()=>{
+ const nodes=new Map(),keys={},buttons=['left','jump','slide','right'].map(action=>({dataset:{action},attributes:{},setAttribute(key,value){this.attributes[key]=value;},addEventListener(){}}));
+ const element=id=>{if(!nodes.has(id))nodes.set(id,{hidden:false,style:{},setAttribute(){},addEventListener(){},click(){this.onclick?.();}});return nodes.get(id);};
+ let frame,now=0;const window={templeCharacter:{loaded:true},templeTrack:{loaded:true},templeWorld:{loaded:true},addEventListener:(type,fn)=>keys[type]=fn};
+ const context={window,document:{querySelector:()=>({getContext:()=>({}),addEventListener(){}}),querySelectorAll:()=>buttons,getElementById:element,addEventListener(){}},Image:class{},ResizeObserver:class{observe(){}},performance:{now:()=>now},requestAnimationFrame:fn=>frame=fn,devicePixelRatio:1};
+ vm.runInNewContext(fs.readFileSync(__dirname+'/turns.js','utf8'),context);vm.runInNewContext(fs.readFileSync(__dirname+'/game.js','utf8'),context);
+ const press=key=>keys.keydown({key,repeat:false,preventDefault(){}}),tick=()=>{now+=40;frame(now);};
+ assert.ok(buttons.every(b=>b.disabled));tick();element('start').onclick();assert.ok(buttons.every(b=>!b.disabled));press('ArrowRight');
+ for(let i=0;i<1000&&!window.TempleTurns.diagnostics().announced;i++)tick();
+ assert.match(buttons[0].attributes['aria-description'],/final 28 m/);assert.equal(buttons[0].attributes['aria-label'],'Move left');
+ for(let i=0;i<1000&&!window.TempleTurns.diagnostics().window;i++)tick();
+ assert.equal(buttons[0].attributes['aria-label'],'Turn left now');assert.equal(buttons[0].attributes['data-turn'],'required');assert.equal(buttons[1].attributes['aria-label'],'Jump');assert.match(buttons[1].attributes['aria-description'],/broken bridges/);
+ press('ArrowRight');assert.equal(window.TempleTurns.diagnostics().accepted,false);assert.equal(window.templeRunDiagnostics().lane,2);
+ press('Escape');assert.ok(buttons.every(b=>b.disabled));const frozen=JSON.stringify(window.templeRunDiagnostics());for(let i=0;i<10;i++)tick();assert.equal(JSON.stringify(window.templeRunDiagnostics()),frozen);
+ press('Enter');assert.equal(buttons[0].attributes['aria-label'],'Turn left now');press('ArrowLeft');assert.equal(buttons[0].attributes['data-turn'],'locked');assert.equal(buttons[0].attributes['aria-label'],'Left turn locked');assert.match(buttons[3].attributes['aria-description'],/Corner locked/);
+ for(let i=0;i<100&&!window.TempleTurns.diagnostics().completed;i++)tick();
+ assert.equal(window.TempleTurns.diagnostics().completed,1);assert.equal(buttons[0].attributes['aria-label'],'Move left');assert.equal(buttons[0].attributes['data-turn'],'');assert.ok(buttons.every(b=>!b.disabled));
+ for(let i=0;i<1000&&!window.TempleTurns.diagnostics().window;i++)tick();
+ assert.equal(buttons[3].attributes['aria-label'],'Turn right now');assert.equal(buttons[3].attributes['data-turn'],'required');
+ press('ArrowLeft');assert.equal(window.TempleTurns.diagnostics().accepted,false);press('ArrowRight');assert.equal(buttons[3].attributes['aria-label'],'Right turn locked');
+ for(let i=0;i<100&&window.TempleTurns.diagnostics().completed<2;i++)tick();assert.equal(window.TempleTurns.diagnostics().completed,2);
+ for(let i=0;i<1500&&window.templeRunDiagnostics().state!=='dead';i++)tick();
+ assert.equal(window.templeRunDiagnostics().state,'dead');assert.ok(buttons.every(b=>b.disabled));
+ element('start').onclick();assert.ok(buttons.every(b=>!b.disabled));assert.equal(buttons[3].attributes['data-turn'],'');
+});

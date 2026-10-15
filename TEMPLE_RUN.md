@@ -18,7 +18,7 @@ A separate seeded unreadable-record fixture on origin 4183 verified its warning 
 
 ## Remaining finishing gates
 
-Successful native right turns and longer high-speed pacing, storage-failure/recovery UX, sustained physical swipes/multitouch, asset/performance review and hosted behavior remain open. This is not yet a local finishing candidate. Native projects and unrelated art/tooling remain outside this release.
+Native maximum-speed pacing, storage-failure/recovery UX, sustained physical swipes/multitouch, asset/performance review and hosted behavior remain open. This is not yet a local finishing candidate. Native projects and unrelated art/tooling remain outside this release.
 
 Release-scope check: nine existing runner gameplay test files were not tracked in the initial index. They are included in this pass so the staged release reproduces the full 21-file, 26-test game check rather than the initially observed 17 tests.
 
@@ -37,3 +37,17 @@ After the repair, another native run activated the right button with Enter and i
 Actual 390px phone and 1440px desktop layouts had no horizontal overflow or observed console errors. Inspection pauses were used. Successful native right turns and longer high-speed pacing, storage recovery UX, sustained physical-device feel and hosted verification remain open. Temple Run remains finishing in progress.
 
 Working-tree and exact staged-copy validation passed 255 arcade tests and 27 Temple Run tests on October 15, 2026.
+
+## Contextual turn controls and native 1 km review — October 15, 2026
+
+Directional controls now describe the current corner action. Before the turn window they retain lane-movement labels and explain that turn inputs open in the final 28 m. In the window, the required button says Turn with the direction arrow, has a gold cue, and exposes Turn left/right now as its accessible name. Accepting the turn changes that button to a green Locked cue; descriptions explain when lane movement resumes. Jump and Slide keep their own hazard descriptions. Required/locked colors override the corrupted-realm theme. Text and accessible names carry the state as well as color.
+
+All four action controls disable during loading/start, pause and defeat, and restore their existing behavior on start/resume/retry. Presentation updates only when the control phase changes; it does not alter lane position, timing, collision, RNG, rewards or turn acceptance. A real-simulation regression covers both directions, wrong-direction rejection, lock presentation, pause freeze/restoration, ordinary labels after crossing, defeat and restart. Existing deterministic replays and input checks remain intact.
+
+The native earned-record QA run on origin 4182 cleared the first left bend and then successfully locked and cleared the second right bend, reaching 913 m. It continued through 1 km and paused at 1,130 m with a low-arch warning. The attempted later slide input did not execute before collision: the run ended at 1,136 m with 25 shards and no jade. This is not a successful higher-pace slide claim. The new best saved and survived reload; native-long-result.txt records the actual result. No progress, position, action state or score was assigned.
+
+A fresh native review of the new controls recorded required and locked states in the actual corrupt-realm phone view. Gold required styling (background rgb(82,75,34), border rgb(245,215,93)) and green locked styling (background rgb(22,61,44), border rgb(156,222,192)) were verified after the theme correction. The locked turn survived pause/resume and crossed normally; normal lane labels returned afterward. All four controls disabled during pause. Actual 390px and 1440px layouts had no horizontal overflow or observed console errors. Proof: docs/temple-run-turn-controls-2026-10-15/phone-required.png, phone-locked.png and after-resume.txt. These browser runs used real controls, not a seeded late-game fixture.
+
+Both native turn directions and the first kilometer are now reviewed with inspection pauses. The 1,136 m run reaches about 35.3 m/s under existing rules; maximum speed is 49 m/s and has not received sustained native/human review. Maximum-speed feel, storage recovery UX, physical-device swipes/multitouch, performance and hosted verification remain open. Temple Run stays finishing in progress.
+
+Working-tree and exact staged-copy validation passed 255 arcade tests and 28 Temple Run tests on October 15, 2026.
