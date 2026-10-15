@@ -35,7 +35,21 @@
   function resize(){const r=canvas.getBoundingClientRect();w=r.width;h=r.height;const ratio=Math.min(devicePixelRatio,2);canvasRatio=ratio;canvas.width=Math.floor(w*ratio);canvas.height=Math.floor(h*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);}new ResizeObserver(resize).observe(canvas);
   function tone(f,d=.1){if(!sound)return;audio??=new(window.AudioContext||window.webkitAudioContext)();audio.resume();const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.055,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+d);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+d);}
   function begin(){if(!window.templeCharacter?.loaded){$('message').textContent='Summoning the Rumble Crown character… Give it a moment, then enter.';return;}touch=null;corrupted=false;shards=0;realmEntry=null;const currencyLabel=$('jade-label')||$('jade').previousElementSibling;if(currencyLabel)currencyLabel.textContent='JADE';$('jade').textContent='0';const flowLabel=document.getElementById('flow-count')?.previousElementSibling;if(flowLabel)flowLabel.textContent='JADE FLOW';$('zone').textContent='01 / JADE CAUSEWAY';if($('zone-next'))$('zone-next').textContent='FIRST FROG GATE / REALM RIFT';state='running';window.TempleFeedback?.reset();window.TempleTurns?.reset();if(document.getElementById('turn-warning'))document.getElementById('turn-warning').hidden=true;magnet=0;shield=false;lane=visualLane=1;distance=jade=0;speed=25;objects=[];spawn=0;row=0;route=1;combo=0;comboTime=0;milestone=0;notice='FOLLOW THE JADE / ↑ JUMP · ↓ SLIDE';noticeTime=5;action='';actionTime=0;seed=0xC0FFEE;$('overlay').hidden=true;canvas.focus?.({preventScroll:true});$('pause').textContent='Ⅱ';$('toast').textContent='';last=performance.now();tone(220,.3);syncControls();}
-  function pause(){if(state==='running'){touch=null;state='paused';$('pause').textContent='▶';$('pause').setAttribute('aria-label','Resume game');show('TAKE A BREATH','Temple on hold.','Your next step can wait.','Continue running');}else if(state==='paused'){state='running';$('pause').textContent='Ⅱ';$('pause').setAttribute('aria-label','Pause game');$('overlay').hidden=true;canvas.focus?.({preventScroll:true});last=performance.now();syncControls();}}
+  function pauseSummary(run){
+    const totals=`${Math.floor(run.distance)} m · ${run.jade} jade${run.corrupted?' · '+run.shards+' shards':''}`;
+    const turn=run.turn;
+    let next=run.corrupted?'Clear lane ahead. Follow the shard trail.':'Clear lane ahead. Follow the jade trail.';
+    if(turn?.announced){
+      const direction=turn.direction[0].toUpperCase()+turn.direction.slice(1);
+      next=turn.accepted?`${direction} corner locked. Lane movement resumes after the bend.`:turn.window?`${direction} corner in ${Math.ceil(turn.remaining)} m. Turn ${turn.direction} on resume.`:`${direction} corner in ${Math.ceil(turn.remaining)} m. Turn in the final 28 m.`;
+    }else{
+      const instructions={gap:['Broken bridge','Jump or dodge'],gate:['Low arch','Slide or dodge'],idol:['Stone idol','Dodge'],boulder:['Rolling stone','Dodge'],spire:['Corruption thorns','Dodge']};
+      const hazard=run.objects.filter(o=>!o.hit&&o.lane===run.lane&&o.z>7&&instructions[o.type]).sort((a,b)=>a.z-b.z)[0];
+      if(hazard){const [name,action]=instructions[hazard.type];next=`${name} in ${Math.ceil(hazard.z-7)} m. ${action}.`;}
+    }
+    return totals+'\n'+next;
+  }
+  function pause(){if(state==='running'){touch=null;state='paused';$('pause').textContent='▶';$('pause').setAttribute('aria-label','Resume game');show('TAKE A BREATH','Temple on hold.',pauseSummary({distance,jade,shards,corrupted,lane,objects,turn:window.TempleTurns?.diagnostics()}),'Continue running');}else if(state==='paused'){state='running';$('pause').textContent='Ⅱ';$('pause').setAttribute('aria-label','Pause game');$('overlay').hidden=true;canvas.focus?.({preventScroll:true});last=performance.now();syncControls();}}
   function show(over,title,message,button){if(document.getElementById('turn-warning'))document.getElementById('turn-warning').hidden=true;$('overline').textContent=over;$('title').textContent=title;$('message').textContent=message;$('start').innerHTML=button+' <span>↗</span>';$('overlay').hidden=false;$('start').focus?.({preventScroll:true});syncControls();}
   function runResult(distance,jade,previousBest,type,shards=null){
     const meters=Math.floor(distance),best=Math.max(previousBest,meters),newBest=meters>previousBest,corner=type.startsWith('turn-');

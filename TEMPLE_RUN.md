@@ -79,3 +79,13 @@ Native CUA browser inputs on isolated origin 4185 verified start, right-button k
 Working-tree validation passed 256 arcade tests and 31 Temple Run tests.
 
 Exact staged-copy validation also passed 256 arcade tests and 31 Temple Run tests.
+
+## Contextual pause guidance — October 15, 2026
+
+The pause overlay now reports current distance and run-only jade/shard totals, followed by the next unresolved hazard in the occupied lane or the announced mandatory corner. Hazard distances use the same z=7 contact point as collisions. Resolved, passed and other-lane hazards are excluded. Mandatory corners take priority: early approaches explain the final 28 m window, open windows give the required direction on resume, and accepted turns explain that the corner is locked. A lane without a known hazard gets a clear-lane/trail reminder. This is a snapshot when paused, not a new gameplay rule or an ongoing live announcement.
+
+Three new tests cover nearest-hazard selection, all hazard coaching, corner priority/locked state and a real source-controlled bridge approach. The integration check verifies frozen simulation, unchanged action/distance and no writes to a completed-run record while paused. Existing 10,772 m deterministic replays now also assert paused totals at the 49 m/s cap with feedback enabled and disabled. Controls, route generation, timing, collision, rewards and record format are unchanged.
+
+Native browser inputs on isolated origin 4186 paused at 20 m and showed Broken bridge in 123 m. Jump or dodge. Enter resumed the run; a real right-button activation changed lanes, and another pause at 21 m showed Clear lane ahead. Follow the jade trail. Evidence under docs/temple-run-pause-2026-10-15 includes the phone Focus screenshot and DOM receipts plus a desktop receipt at 1440 x 900. The desktop had no horizontal overflow or observed console errors; phone layout was visually reviewed at 390 x 844. No distance, lane, action or save state was assigned. This short native check does not prove maximum-speed human feel, physical touch behavior, sustained performance or hosted deployment. Temple Run remains finishing in progress.
+
+Working-tree and exact staged-copy validation passed 256 arcade tests and 34 Temple Run tests.
