@@ -6,6 +6,7 @@ import {hydrateAdventure, QUESTS} from './pepe-feudalism/adventure.js';
 import {NODES} from './pepe-feudalism/world-data.js';
 
 export const keys = Object.freeze({soulWorld: soulKey, feudalism: campaignKey, templeRun: 'pepe-temple-run-v1'});
+export const templeRecoveryKey = keys.templeRun + ':recovery';
 const unavailable = () => ({status: 'unavailable', label: 'Save unavailable', summary: 'Saved progress could not be read.', goal: 'Open the game to check its local save.', action: 'Open game'});
 const fresh = () => ({status: 'empty', label: 'A new journey', summary: 'No saved progress on this device.', goal: 'Open the game to begin.', action: 'Start playing'});
 const town = id => NODES.find(node => node.id === id)?.name || 'Crownhaven';
@@ -46,6 +47,12 @@ export function read(storage) {
   return Object.fromEntries(Object.entries(keys).map(([id, key]) => {
     try {
       const raw = storage.getItem(key);
+      if(id==='templeRun'){
+        const record=text=>{try{if(typeof text!=='string'||text.length>250_000)return null;const value=JSON.parse(text);return Number.isSafeInteger(value?.best)&&value.best>=0?value:null;}catch{return null;}};
+        const primary=record(raw);let recovery=null;
+        try{recovery=record(storage.getItem(templeRecoveryKey));}catch{}
+        if(recovery&&(!primary||recovery.best>primary.best))return [id,{...summarize(id,recovery),label:'Recovered distance record',goal:'Original record preserved. Start a new run using your protected record.'}];
+      }
       if (raw === null) return [id, fresh()];
       if (typeof raw !== 'string' || raw.length > 250_000) return [id, unavailable()];
       return [id, summarize(id, JSON.parse(raw))];

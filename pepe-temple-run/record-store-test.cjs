@@ -14,7 +14,7 @@ test('a stale tab merges a newer saved best before reporting and writing its res
  const result=older.save(500);assert.equal(result.previousBest,1200);assert.equal(result.best,1200);assert.equal(JSON.parse(disk.values.get(KEY)).best,1200);
 });
 test('unreadable and nonfinite records remain byte-for-byte intact',()=>{
- for(const raw of ['broken','null','[]','{}','{"best":-1}','{"best":1.5}','{"best":"900"}','{"best":1e999}','{"best":9007199254740992}']){
+ for(const raw of ['broken','null','[]','{}','{"best":-1}','{"best":1.5}','{"best":"900"}','{"best":1e999}','{"best":9007199254740992}',JSON.stringify({best:20,note:'x'.repeat(250001)})]){
   const disk=storage(raw),records=create(()=>disk);assert.equal(records.load().ok,false);
   const result=records.save(600);assert.equal(result.best,600);assert.equal(result.ok,false);assert.match(result.message,/unreadable.*preserved/);
   assert.equal(disk.values.get(KEY),raw);assert.deepEqual(disk.writes,[]);
@@ -42,4 +42,21 @@ function game(disk){
 test('actual collision results preserve newer records and show storage status',()=>{
  const disk=storage('{"best":1000}'),run=game(disk);assert.equal(run.read().best,1000);assert.match(run.element('message').textContent,/Best 1000 m/);assert.equal(run.element('record-status')['data-state'],'saved');
  const damaged=storage('broken'),unsaved=game(damaged);assert.equal(damaged.values.get(KEY),'broken');assert.match(unsaved.element('record-status').textContent,/unreadable.*preserved/);assert.equal(unsaved.element('record-status')['data-state'],'warning');assert.ok(unsaved.read().best>0);
+});
+
+test('protected recovery saves completed-run records while preserving unreadable original bytes',()=>{
+ const disk=storage('{damaged-original'),run=game(disk);
+ assert.equal(run.element('recover-record').hidden,false);run.element('recover-record').onclick();
+ assert.equal(disk.values.get(KEY),'{damaged-original');assert.equal(JSON.parse(disk.values.get(KEY+':recovery')).best,Math.floor(run.read().distance));assert.equal(run.element('record-actions').hidden,true);
+ const reloaded=create(()=>disk);assert.equal(reloaded.load().recovery,true);assert.equal(reloaded.save(800).best,800);assert.equal(disk.values.get(KEY),'{damaged-original');assert.equal(create(()=>disk).load().best,800);assert.equal(disk.values.get('other-game'),'untouched');
+});
+test('recovery does not replace another unreadable record or write after storage failure',()=>{
+ const disk=storage('broken');disk.values.set(KEY+':recovery','also broken');const before=[...disk.values],records=create(()=>disk);
+ assert.equal(records.load().canRecover,false);assert.equal(records.enableRecovery().ok,false);assert.deepEqual([...disk.values],before);
+ const blocked=storage('broken');blocked.setItem=()=>{throw Error('quota');};const failed=create(()=>blocked);failed.save(300);assert.equal(failed.enableRecovery().ok,false);assert.equal(blocked.values.get(KEY),'broken');assert.equal(blocked.values.has(KEY+':recovery'),false);
+});
+test('retry and repaired primary records merge the existing protected best without deleting it',()=>{
+ const disk=storage('{"best":200}'),write=disk.setItem;disk.setItem=()=>{throw Error('quota');};const run=game(disk);
+ assert.equal(run.element('record-actions').hidden,false);disk.setItem=write;run.element('retry-record').onclick();assert.equal(run.element('record-actions').hidden,true);
+ disk.values.set(KEY+':recovery','{"best":900}');const records=create(()=>disk);assert.equal(records.load().best,900);records.save(300);assert.equal(JSON.parse(disk.values.get(KEY)).best,900);assert.equal(disk.values.get(KEY+':recovery'),'{"best":900}');
 });

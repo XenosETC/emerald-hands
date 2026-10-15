@@ -1,0 +1,40 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Expand game view": Focus view ⤢
+  - button "Toggle sound": Sound off
+- main:
+  - paragraph: A STOLEN RELIC. AN ANCIENT CURSE.
+  - heading "Pepe Temple Run" [level=1]:
+    - text: Pepe
+    - emphasis: Temple Run
+  - region "Temple runner":
+    - generic "Three lane temple runner"
+    - generic: DISTANCE
+    - strong: 0 m
+    - generic: JADE
+    - strong: "0"
+    - generic: BEST RUN
+    - strong: 143 m
+    - generic: JADE FLOW
+    - strong: "0"
+    - button "Pause game": Ⅱ
+    - generic: 01 / JADE CAUSEWAY
+    - text: SUNKEN SANCTUM / 500 M
+    - paragraph: THE JADE ESCAPE
+    - heading "Run like a king." [level=2]
+    - paragraph: You took the jade heart. Now the entire temple wants it back.
+    - status: Protected recovery record active. Original data preserved.
+    - button "Enter the temple ↗"
+    - paragraph:
+      - text: Swipe to dodge, jump & slide
+      - text: or use the buttons below.
+    - status
+  - generic "Runner controls":
+    - button "Move left" [disabled]: ←
+    - button "Jump" [disabled]: Jump ↑
+    - button "Slide" [disabled]: Slide ↓
+    - button "Move right" [disabled]: →
+  - generic: 01 Dodge stone idols
+  - generic: 02 Jump broken bridges
+  - generic: 03 Slide beneath gates

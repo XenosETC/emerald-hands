@@ -100,3 +100,5 @@ body[data-realm="corrupt"] .journey-track span{background:#cb8bea}
 canvas:focus-visible{outline:2px solid #f5d75d;outline-offset:-3px}
 
 .touch button:disabled{opacity:.4;cursor:default}body .touch button[data-turn=required]{border-color:#f5d75d;background:#524b22;color:#fff3b2}body .touch button[data-turn=locked]{border-color:#9cdec0;background:#163d2c;color:#d7ffe8}
+
+.record-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:340px;margin:0 0 16px}.record-actions[hidden],.record-actions [hidden]{display:none}.record-actions small{width:100%;font-size:11px;color:#bad0bd;line-height:1.5}.record-actions button{min-height:44px;background:#15362b;color:#e5edcb;border:1px solid #779a72;border-radius:7px;padding:8px 12px;font-size:11px}

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {keys, read, summarize} from '../arcade-progress.mjs';
+import {keys, templeRecoveryKey, read, summarize} from '../arcade-progress.mjs';
 import {createState, snapshot} from '../pepe-soul-world/core.js';
 import {QUESTS as SOUL_QUESTS} from '../pepe-soul-world/systems.js';
 import {newCampaign} from '../pepe-feudalism/campaign.js';
@@ -75,7 +75,7 @@ test('Temple Run reports a record and a new run, never a resumable position', ()
   assert.equal(summarize('templeRun', {best:0}).status, 'saved');
 });
 
-test('progress reader touches only the three published game saves and writes nothing', () => {
+test('progress reader touches only the published game saves and protected runner recovery key', () => {
   const values = new Map([
     [keys.soulWorld, JSON.stringify(snapshot(createState()))],
     [keys.feudalism, JSON.stringify(newCampaign())],
@@ -86,7 +86,7 @@ test('progress reader touches only the three published game saves and writes not
   ]);
   const before = [...values], touched = [];
   const info = read({getItem(key) {touched.push(key); return values.get(key) ?? null;}, setItem() {throw Error('No writes permitted');}});
-  assert.deepEqual(touched.sort(), Object.values(keys).sort());
+  assert.deepEqual(touched.sort(), [...Object.values(keys),templeRecoveryKey].sort());
   assert.equal(Object.values(info).every(item => item.status === 'saved'), true);
   assert.deepEqual([...values], before);
 });
@@ -101,4 +101,13 @@ test('missing, corrupt, oversized and inaccessible saves have distinct recoverab
   assert.equal(mixed.soulWorld.status, 'unavailable');
   assert.equal(mixed.feudalism.status, 'empty');
   assert.equal(mixed.templeRun.summary, 'Best 200 m');
+});
+
+test('Temple protected recovery remains visible without writing or lowering a valid primary best',()=>{
+ for(const [primary,recovery,meters,recovered] of [['broken','{"best":143}',143,true],['{"best":100}','{"best":700}',700,true],['{"best":900}','{"best":700}',900,false],[null,'{"best":0}',0,true]]){
+  const values=new Map([[keys.templeRun,primary],[templeRecoveryKey,recovery]]),before=[...values];
+  const info=read({getItem:key=>values.get(key)??null,setItem(){throw Error('No writes');}}).templeRun;
+  assert.equal(info.summary,'Best '+meters.toLocaleString()+' m');assert.equal(info.label,recovered?'Recovered distance record':'Saved distance record');assert.deepEqual([...values],before);
+ }
+ assert.equal(read({getItem:key=>key===templeRecoveryKey?'broken':'{"best":-1}'}).templeRun.status,'unavailable');
 });

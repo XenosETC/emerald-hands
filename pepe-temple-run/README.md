@@ -246,3 +246,7 @@ Browser shortcuts/composition no longer become runner actions; native Space/Ente
 ## Contextual turn controls — October 15, 2026
 
 The required corner direction now receives a gold Turn cue and a direction-specific accessible name during the input window; accepted turns show a green Locked cue. Normal lane labels return after crossing. Controls disable outside active play. A native run cleared both turn directions, reached 1,136 m and retained that best after reload. Maximum-speed/device review remains open; details are in ../TEMPLE_RUN.md.
+
+## Protected recovery — October 15, 2026
+
+Unreadable records can enable a separate protected best record without replacing the original. Retry saving handles temporary storage failures. The hub recognizes the protected best; jade and shards remain run-only, and record writes still occur only after completed runs. Both unreadable primary and recovery records remain preserved for review; no automatic destructive reset is added. See ../TEMPLE_RUN.md for the native 143 m → 450 m recovery flow and remaining gates.

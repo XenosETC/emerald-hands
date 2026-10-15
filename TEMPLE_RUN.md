@@ -18,7 +18,7 @@ A separate seeded unreadable-record fixture on origin 4183 verified its warning 
 
 ## Remaining finishing gates
 
-Native maximum-speed pacing, storage-failure/recovery UX, sustained physical swipes/multitouch, asset/performance review and hosted behavior remain open. This is not yet a local finishing candidate. Native projects and unrelated art/tooling remain outside this release.
+Native maximum-speed pacing, sustained physical swipes/multitouch, asset/performance review and hosted behavior remain open. This is not yet a local finishing candidate. Native projects and unrelated art/tooling remain outside this release.
 
 Release-scope check: nine existing runner gameplay test files were not tracked in the initial index. They are included in this pass so the staged release reproduces the full 21-file, 26-test game check rather than the initially observed 17 tests.
 
@@ -51,3 +51,19 @@ A fresh native review of the new controls recorded required and locked states in
 Both native turn directions and the first kilometer are now reviewed with inspection pauses. The 1,136 m run reaches about 35.3 m/s under existing rules; maximum speed is 49 m/s and has not received sustained native/human review. Maximum-speed feel, storage recovery UX, physical-device swipes/multitouch, performance and hosted verification remain open. Temple Run stays finishing in progress.
 
 Working-tree and exact staged-copy validation passed 255 arcade tests and 28 Temple Run tests on October 15, 2026.
+
+## Protected record recovery and hub continuity — October 15, 2026
+
+Unreadable originals now have a non-destructive way to resume saving. Use protected recovery creates a separate pepe-temple-run-v1:recovery record from the best completed run held in this session. It never replaces or deletes the unreadable primary value. Future completed runs use that protected record while the primary stays unreadable, and reload recognizes the protected best. Retry saving retries a transient storage failure without requiring another run. Recovery guidance and actions appear only with a save warning and disappear after success; focus returns to the primary play button.
+
+The adapter validates both records with the same nonnegative safe-integer rule and 250,000-character size bound. If the primary becomes readable again, its saved best merges the protected best before later writes. An existing unreadable protected record is preserved rather than overwritten. If both records are unreadable, both remain available for review and no automatic reset is offered. This fallback cannot reconstruct an unknown old best from damaged bytes. Read/merge/write operations remain un-serialized across tabs as documented earlier; no import/export/reset or currency/progression system was added.
+
+The arcade hub's read-only progress adapter also recognizes the protected record, displays Recovered distance record and retains the higher valid best. It reads only this additional Temple-specific key alongside its existing game saves, and performs no writes. New root coverage verifies primary/recovery combinations, read boundaries and unchanged storage. Three additional game tests cover actual collision-to-recovery interaction, byte-preserving failure, unreadable protected data, retry behavior, and merging a repaired primary without deleting the fallback.
+
+Browser review used origin 4183, which already held an earlier seeded unreadable-record fixture. A new native run ended at 143 m; retry correctly kept the unreadable warning. Use protected recovery saved that completed session record, and reload showed 143 m with Protected recovery record active. A further native run avoided the opening rows, entered the corrupt realm and intentionally missed the first left corner at 450 m. Its result reported Recovery record saved, and reload retained 450 m. The hub then showed Recovered distance record · Best 450 m. No distance, lane, action or score state was assigned during these runs; only the older malformed original was fixture-seeded. The regular earned 1,136 m QA record on origin 4182 was not modified.
+
+Evidence: docs/temple-run-recovery-2026-10-15/phone-before.png shows warning/actions with the earned 143 m session result; recovered.txt records its first successful reload; native-recovery-result.txt and phone-after.png show the subsequent saved 450 m run. hub-record.txt and phone-hub.png show the recovered hub card. Automated tests verify exact original-byte preservation; browser checks verify the native flow, reload, hidden actions after success, 390px phone layout and 1440px hub layout. No horizontal overflow or observed console errors appeared.
+
+Protected recovery closes the basic unreadable-record and transient-retry UX gap. Maximum-speed human feel, sustained physical-device swipes/multitouch, performance and hosted verification remain open. Temple Run stays finishing in progress.
+
+Working-tree and exact staged-copy validation passed 256 arcade tests and 31 Temple Run tests on October 15, 2026.
