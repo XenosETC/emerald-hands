@@ -48,6 +48,7 @@ test('fresh oath and Temple route earns seals, gear and quests through movement 
  const collected=snapshot(s);s=createState(collected);assert.equal(s.drops.length,0);assert.equal(s.fragments,collected.fragments);assert.equal(s.inventory.healthFlask,collected.inventory.healthFlask);
  walk(2250);assert.equal(enterWorld(s,'academy'),true);walk(490);act(s,'interact');rewards();
  assert.equal(s.xp,collected.xp);assert.equal(s.fragments,collected.fragments);assert.equal(s.claimedQuests.length,QUESTS.length);
- assert.equal(academyTrail(s),null);assert.doesNotMatch(questGuidance(s).text,/awaits/);
+ assert.deepEqual(academyTrail(s),{x:2250,label:'the realm gate'});assert.doesNotMatch(questGuidance(s).text,/awaits/);
+ const beforeRevisit=snapshot(s);walk(academyTrail(s).x);assert.equal(enterWorld(s,'temple'),true);assert.equal(s.fragments,beforeRevisit.fragments);assert.deepEqual(s.bossRewards,beforeRevisit.bossRewards);
  assert.ok(frames/60<600);console.log(JSON.stringify({route:'fresh-oath-plus-temple',seconds:Math.round(frames/60),cuts,heals,xp:s.xp,fragments:s.fragments,bossRewards:s.bossRewards,checkpoint:snapshot(s)}));
 });

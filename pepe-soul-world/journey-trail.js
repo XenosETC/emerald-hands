@@ -1,4 +1,4 @@
-import {academyTrail} from './quest-guidance.js?v=6';
+import {academyTrail} from './quest-guidance.js?v=7';
 import {groundRewards} from './ground-rewards.js?v=1';
 // Reuse normal walking only after combat; never cross a gate or grant loot here.
 export function journeyTrail(s){

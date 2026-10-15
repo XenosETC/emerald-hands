@@ -24,7 +24,7 @@ export function questGuidance(s){
  if(!s.oath)return {text:'Meet Goribbit at the academy lantern (490). Press E to accept your oath.',ready:0};
  if(s.training<3)return {text:`J · Cut the academy effigy at 870. Training ${s.training} / 3.`,ready:0};
  if(s.seals.length===3&&!s.complete)return {text:'Return to Goribbit at Kek Academy. Press E to fulfill your oath.',ready:0};
- if(s.complete){const pending=QUESTS.find(q=>!s.claimedQuests.includes(q.id));return {text:pending?`Oath fulfilled · ${pending.name}. Open Quests for your remaining objective.`:canDomain(s)&&!s.bossRewards.includes('temple')?'Oath fulfilled · Optional Emerald Temple awaits. Reach the veil gate at 2250, then choose Emerald Temple on Map.':'All quests claimed. Revisit the realms, temper your blade, and master your skills.',ready:0};}
+ if(s.complete){const pending=QUESTS.find(q=>!s.claimedQuests.includes(q.id));return {text:pending?`Oath fulfilled · ${pending.name}. Open Quests for your remaining objective.`:canDomain(s)&&!s.bossRewards.includes('temple')?'Oath fulfilled · Optional Emerald Temple awaits. Reach the veil gate at 2250, then choose Emerald Temple on Map.':'Oath and Temple complete · Walk to the realm gate at 2250 to revisit, or open Map to return to the arcade.',ready:0};}
  return {text:`Seals ${s.seals.length} / 3 · ${s.world==='academy'?'Reach the veil gate at 2250, then open Map.':'Open Map to return to the academy for your next crossing.'}`,ready:0};
 }
 
@@ -37,5 +37,5 @@ export function academyTrail(s){
   return {x:s.player.x<870?770:970,label:'the training effigy'};
  }
  if(s.seals.length===3&&!s.complete)return {x:490,label:'Goribbit'};
- return s.complete?canDomain(s)&&!s.bossRewards.includes('temple')?{x:2250,label:'the Emerald Temple gate'}:null:{x:2250,label:'the veil gate'};
+ return s.complete?canDomain(s)?{x:2250,label:s.bossRewards.includes('temple')?'the realm gate':'the Emerald Temple gate'}:null:{x:2250,label:'the veil gate'};
 }

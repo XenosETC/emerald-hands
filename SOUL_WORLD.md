@@ -1,10 +1,10 @@
-# Pepe Soul World finishing work — October 13, 2026
+# Pepe Soul World local finishing candidate — October 15, 2026
 
 This pass builds on academy training, three seal realms, optional Temple, quests, equipment, skills and shrine retry, preserving guard ownership and independent saves.
 
 Guardian guidance now distinguishes an uncollected seal, uncollected guardian gear, and both already recovered. Fixtures cover all twelve combinations across Frozen District, Crimson Marsh and Void Swamp and compare guidance to reconstructed drops. Temple behavior, combat, rewards and save schema are unchanged.
 
-Remaining gates: natural oath progression, native desktop/phone review, save recovery and human combat pacing. This is not yet a local finishing candidate. Unrelated native projects, untracked art and tooling remain outside the browser release.
+Current status: local finishing candidate after the documented native fresh-through-oath-and-Temple run, automated progression/recovery checks and desktop/phone browser review. Inspection pauses were used. Uninterrupted human combat pacing, physical-device comfort, hosted behavior and commercial asset clearance remain separate gates. Unrelated native projects, untracked art and tooling remain outside the browser release.
 
 
 ## Checkpoint storage boundary
@@ -430,5 +430,21 @@ Four grounded Waves cleared all three Void elites, and normal walking collected 
 Reload retained level seven (171/240 XP), 248 fragments, one unspent point, four Healing Flasks, one Spirit Flask, Veil Fang +0, Veilwalker Mantle, Echo Talisman, all three seals/shrines/guardian reward receipts and all six claimed quest rewards. The oath summary confirms Domain and Temple unlocks. Earned receipts: docs/soul-world-native-oath-2026-10-15/earned-map.txt and earned-gear.txt; native-oath.png shows the completion summary. No seeded presentation fixture was needed this turn.
 
 This verifies the native fresh-through-three-seal-oath stage with inspection pauses. Native Emerald Temple combat and completion remain the next campaign gate. Uninterrupted combat feel, physical-device multitouch and hosted behavior remain separate review work. The finishing queue stays on Soul World.
+
+Working-tree and clean staged-copy validation passed 255 arcade tests and 261 Soul World tests on October 15, 2026.
+
+## Temple completion and local finishing candidate — October 15, 2026
+
+The journal now names the earned Oath and Temple complete milestone and provides a Back to arcade link after the existing Temple reward receipt. The link uses ordinary navigation; opening the journal and page exit retain their existing checkpoint writes. Completed players retain a guided Walk to the realm gate action instead of losing their walking trail after Temple. The updated earned simulation route walks back to the gate, revisits Temple and verifies that travel neither grants fragments nor changes first-clear receipts. Claimable quest rewards still take priority, and invalid/dead players retain existing movement limits.
+
+Screenshot review found the mobile Domain cast panel covering the enemy name/health and timing readout. At widths up to 800px it now sits below the upper objective/status panels instead of on top of the lower enemy panel. A separate seeded Domain fixture on origin 4183 verified final 390px geometry: cast panel 325–373px, enemy panel 486–591px, objective panel ending at 312px, and no horizontal overflow. Final layout: docs/soul-world-native-temple-2026-10-15/phone-domain.png. The earlier native-domain.png captures the earned cast before this spacing repair and is not the final layout.
+
+The native campaign on origin 4182 resumed the earned oath-complete save. Its existing point learned Wave rank three. The actual academy gate opened Temple. One grounded Wave defeated the first two disciples; movement and Jump + L Rift defeated the third. Normal walking collected every approach drop, and E attuned the Temple shrine, earning level eight. The actual passage led directly into the Inner Sanctuary.
+
+Native movement and Warp reached the Jade Abbot. F cast the earned Domain and dealt 100 damage, leaving 110/210 HP. After cast recovery, the one earned Spirit Flask restored resources; two grounded Waves defeated the guardian. No health damage or Healing Flask use occurred in the Temple stage. Normal walking collected the first-clear 20 fragments and Healing Flask, and the real portal returned to the academy. No progress, health, enemy state, position or rewards were assigned during this earned campaign.
+
+Reload retained level eight (67/270 XP), 293 fragments, one unspent point, six Healing Flasks, zero Spirit Flasks, Veil Fang +0, Veilwalker Mantle, Echo Talisman, Wave rank three, all six claimed quests, all four shrine attunements and all four guardian reward receipts. Earned Map receipt: docs/soul-world-native-temple-2026-10-15/earned-map.txt. The corrected completion screen is phone-complete.png. Back to arcade navigated to the hub; browser Back and reload retained the completed campaign. Native guided walking then reached 2244 at the academy gate with Temple travel enabled and the same 293 fragments; revisit-map.txt records that state. Desktop 1440px and phone 390px checks showed no overflow or observed console errors.
+
+The native fresh-start-through-three-seal-oath-and-Temple progression review is complete with inspection pauses, including earlier failed guardian attempts and shrine recovery. Soul World is now a local finishing candidate under the queue's existing definition. Sustained human combat feel, physical multitouch, hosted behavior and commercial asset clearance remain separate gates. The next oldest game for finishing review is Pepe Temple Run; no Temple Run milestone was started in this change.
 
 Working-tree and clean staged-copy validation passed 255 arcade tests and 261 Soul World tests on October 15, 2026.

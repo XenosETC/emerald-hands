@@ -49,10 +49,10 @@ test('academy trail approaches the effigy from either side and never steers dead
  s.player.x=800;assert.equal(academyTrail(s),null);s.dead=true;assert.equal(academyTrail(s),null);
  s.dead=false;s.training=3;s.complete=true;s.claimedQuests=['firstCut'];assert.equal(academyTrail(s),null);
 });
-test('completed oath keeps an optional Temple trail until its reward is recovered, without changing progress',()=>{
+test('completed oath switches from the Temple trail to realm revisits after its reward, without changing progress',()=>{
  const s=createState({version:2,oath:true,training:3,complete:true,seals:['frozen','crimson','void'],claimedQuests:QUESTS.map(q=>q.id)});
  const before=JSON.stringify(s);assert.deepEqual(academyTrail(s),{x:2250,label:'the Emerald Temple gate'});assert.match(questGuidance(s).text,/Optional Emerald Temple/);assert.equal(JSON.stringify(s),before);
- s.bossRewards.push('temple');assert.equal(academyTrail(s),null);assert.doesNotMatch(questGuidance(s).text,/awaits/);
+ s.bossRewards.push('temple');assert.deepEqual(academyTrail(s),{x:2250,label:'the realm gate'});assert.match(questGuidance(s).text,/Oath and Temple complete/);assert.doesNotMatch(questGuidance(s).text,/awaits/);
 });
 test('claimable rewards still take priority over the optional Temple trail',()=>{
  const s=createState({version:2,oath:true,training:3,complete:true,seals:['frozen','crimson','void']});

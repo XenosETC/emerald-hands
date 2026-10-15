@@ -13,7 +13,7 @@ body:has(.studio){height:auto;overflow:auto}body:has(.studio) main{height:auto;p
 .domain-action{position:absolute;bottom:48px;left:18px;z-index:4;padding:9px 12px;background:#08251ee8;border:1px solid #7ad6a6;color:#c4ffe1;font-size:11px;letter-spacing:.03em}.domain-action:disabled{opacity:.6;cursor:default}
 
 .domain-cast{position:absolute;left:50%;bottom:115px;transform:translateX(-50%);width:190px;padding:9px 13px;background:#071a18e8;border:1px solid #70dbad66;border-radius:5px;pointer-events:none;text-align:center;color:#c7ffe3;font-size:11px;letter-spacing:1.5px}.domain-cast[hidden]{display:none}.domain-cast progress{display:block;width:100%;height:4px;margin-top:7px;accent-color:#8fffc4}.domain-cast progress::-webkit-progress-bar{background:#213f38;border-radius:2px}.domain-cast progress::-webkit-progress-value{background:#8fffc4;border-radius:2px}
-@media(max-width:800px){.domain-cast{bottom:175px}}
+@media(max-width:800px){.domain-cast{top:180px;bottom:auto}}
 @media(max-width:650px){.domain-action{bottom:88px;font-size:10px;padding:7px 10px}}
 .touch button{min-width:48px;min-height:48px;touch-action:none;user-select:none}.touch button:active{background:#9cdec030;border-color:#9cdec0}@media(max-width:650px){.touch{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;padding:7px;flex-shrink:0}.touch button{font-size:11px;padding:8px 10px}.controls{display:none}}
 .touch button:disabled{opacity:.38;cursor:default;background:transparent;border-color:#2a3941}
@@ -41,3 +41,5 @@ body:has(.studio){height:auto;overflow:auto}body:has(.studio) main{height:auto;p
 #journal .guardian-receipts{grid-column:1/-1}#journal .guardian-receipts ul{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px 22px;padding-left:20px}
 
 #journal .checkpoint-panel{grid-column:1/-1}#journal .checkpoint-panel label{display:block;margin-top:18px}#journal .checkpoint-panel input{display:block;width:100%;max-width:100%;margin-top:8px}#journal .checkpoint-panel button{min-height:44px;margin:6px 8px 6px 0}#journal .checkpoint-panel button[hidden]{display:none}
+
+#journal .completion-exit{display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;margin:8px 8px 0 0;border:1px solid #9cdec0;border-radius:4px;color:#d8f3b5;text-decoration:none}#journal .completion-exit:focus-visible{outline:2px solid #e7f7b5;outline-offset:3px}

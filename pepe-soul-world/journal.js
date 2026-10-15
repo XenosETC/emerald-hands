@@ -4,7 +4,7 @@ import {oathSummary} from './oath-summary.js?v=1';
 import {guardianReceipts} from './reward-receipts.js?v=1';
 import {groundRewards} from './ground-rewards.js?v=1';
 import {releaseInfo} from './release-info.js?v=1';
-import {questGuidance} from './quest-guidance.js?v=6';
+import {questGuidance} from './quest-guidance.js?v=7';
 import {questChecklist} from './quest-checklist.js?v=1';
 import {ITEMS,SKILLS,QUESTS,stats,compareGear,skillPreview,skillPoints,consumablePreview,purchasePreview,forgePreview,equip,learn,useItem,claimQuest,questReady,buyItem,upgradeGear} from './systems.js?v=quest-checklist-20261014';
 import {WORLDS,enterWorld,enterArena,approachRemaining,levelFor,DOMAIN,canDomain,canRift} from './core.js';
@@ -40,8 +40,9 @@ export function createJournal(state,changed,toggle,savePanel,requestTravel=trave
  const summary=document.createElement('p');summary.className='journal-summary';summary.textContent=`Level ${level} · ${state.fragments} spirit fragments · ${skillPoints(state)} skill point${skillPoints(state)===1?'':'s'}`;content.append(summary);
  const oath=oathSummary(state);
  if(oath&&(tab==='Map'||tab==='Quests')){
-  const c=card(`<small>THREE SEALS / ONE UNBROKEN OATH</small><h3>Guardian of Kek Academy</h3><p>You brought Frost, Ember and Void home to Goribbit.</p><p>Kek Domain unlocked · F to cast on the ground with ${DOMAIN.cost} Spirit.</p><p>${oath.templeCleared?'Emerald Temple challenge completed. Revisit its sanctuary from the academy gate.':'Emerald Temple unlocked. Reach the academy veil gate, then choose it on Map.'}</p><p>Quest rewards ${oath.claimed} / ${oath.total} · ${oath.rewardText}</p>`);
+  const c=card(`<small>THREE SEALS / ONE UNBROKEN OATH</small><h3>${oath.templeCleared?'Oath and Temple complete':'Guardian of Kek Academy'}</h3><p>You brought Frost, Ember and Void home to Goribbit.</p><p>Kek Domain unlocked · F to cast on the ground with ${DOMAIN.cost} Spirit.</p><p>${oath.templeCleared?'Emerald Temple challenge completed. Revisit its sanctuary from the academy gate.':'Emerald Temple unlocked. Reach the academy veil gate, then choose it on Map.'}</p><p>Quest rewards ${oath.claimed} / ${oath.total} · ${oath.rewardText}</p>`);
   c.className='oath-completion';c.setAttribute('aria-label','Oath fulfilled');
+  if(oath.templeCleared){const exit=document.createElement('a');exit.href='../index.html';exit.textContent='Back to arcade';exit.className='completion-exit';c.append(exit);}
   c.append(button(tab==='Quests'?'View unlocked realm':'View Kek Domain',()=>{tab=tab==='Quests'?'Map':'Skills';}));
  }
  if(tab==='Save'&&savePanel){content.append(savePanel());return;}
