@@ -67,3 +67,15 @@ Evidence: docs/temple-run-recovery-2026-10-15/phone-before.png shows warning/act
 Protected recovery closes the basic unreadable-record and transient-retry UX gap. Maximum-speed human feel, sustained physical-device swipes/multitouch, performance and hosted verification remain open. Temple Run stays finishing in progress.
 
 Working-tree and exact staged-copy validation passed 256 arcade tests and 31 Temple Run tests on October 15, 2026.
+
+## Stable HUD updates and capped-speed regression — October 15, 2026
+
+Distance markup, currency totals/labels, combo totals, realm text, corner text and the live toast now update only when their displayed value changes. The toast resolves its final priority before writing, avoiding the previous base-hint then corner-hint pair on every corner frame. This removes redundant DOM mutations and repeated unchanged live-region text; it is not a measured frame-rate or screen-reader compatibility claim. Physics, speed, lanes, turn windows, RNG, records and rewards retain their existing rules.
+
+The existing real-source flow fixture now counts text assignments, verifies bounded writes to stable realm/corner labels and currency/combo values, and checks that pause performs no further text writes. It explicitly asserts the 49 m/s cap is reached. Three deterministic replays still finish at 10,772 m with 118 rows, 9 jade and 561 shards, including feedback on/off parity. The corruption fixture now expects the browser's string form of displayed currency.
+
+Native CUA browser inputs on isolated origin 4185 verified start, right-button keyboard activation, advancing distance, pause and Enter resume. Phone Focus view at 390 x 844 showed 35 m paused; a later desktop review at 1440 x 900 showed 75 m paused with all play controls disabled. Neither layout overflowed and no console errors were observed. Evidence is in docs/temple-run-hud-2026-10-15. No runtime state or records were assigned. This short browser check does not close native maximum-speed, physical-device, sustained performance or hosted gates. Temple Run remains finishing in progress.
+
+Working-tree validation passed 256 arcade tests and 31 Temple Run tests.
+
+Exact staged-copy validation also passed 256 arcade tests and 31 Temple Run tests.

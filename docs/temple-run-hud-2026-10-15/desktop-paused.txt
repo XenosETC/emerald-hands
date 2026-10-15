@@ -1,0 +1,32 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - generic: CROWN PEPE / THE JADE ESCAPE
+  - button "Expand game view" [pressed]: Exit focus ⤡
+  - button "Toggle sound": Sound off
+- main:
+  - region "Temple runner":
+    - generic "Three lane temple runner"
+    - generic: DISTANCE
+    - strong: 75 m
+    - generic: JADE
+    - strong: "0"
+    - generic: BEST RUN
+    - strong: 0 m
+    - generic: JADE FLOW
+    - strong: "0"
+    - button "Resume game": ▶
+    - generic: 01 / JADE CAUSEWAY
+    - text: FIRST FROG GATE / REALM RIFT
+    - paragraph: TAKE A BREATH
+    - heading "Temple on hold." [level=2]
+    - paragraph: Your next step can wait.
+    - status: Best run saves on this device.
+    - button "Continue running ↗" [active]
+    - paragraph: ← → Dodge ↑ / Space Jump ↓ Slide
+    - status: FOLLOW THE JADE / ↑ JUMP · ↓ SLIDE
+  - generic "Runner controls":
+    - button "Move left" [disabled]: ←
+    - button "Jump" [disabled]: Jump ↑
+    - button "Slide" [disabled]: Slide ↓
+    - button "Move right" [disabled]: →
