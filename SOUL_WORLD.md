@@ -416,3 +416,19 @@ Ember Fang was equipped and tempered once for 20 earned fragments. Reload retain
 The native fresh-through-Crimson stage is now verified with inspection pauses. Void, the completed oath and Temple remain the next campaign gates. Uninterrupted combat feel, physical-device multitouch and hosted behavior remain separate review work; the finishing queue stays on Soul World.
 
 Working-tree and clean staged-copy validation passed 255 arcade tests and 259 Soul World tests on October 14, 2026.
+
+## Wave stat clarity and native three-seal oath — October 15, 2026
+
+Echo Talisman comparisons previously labeled the aggregate skill/gear Wave bonus as Wave damage. For the earned level-six build this displayed 22 even though a grounded Wave dealt 76. Inventory now calls this value Wave bonus. Gear adds the actual grounded-Wave total, its base/level component and combined skill/gear bonus, plus the existing 28 Spirit cost. Gear and Skills use one presentation profile; combat damage is unchanged. The journal summary also uses the singular skill point when exactly one is available. Entry/journal cache versions were refreshed.
+
+Two regression tests compare displayed totals with actual projectile damage across three build tiers and verify Echo Talisman's six-point contribution. Read-only profile calls leave simulation state unchanged. Native browser checks at 390px and 1440px confirmed matching 79 damage in Gear and Skills for the final earned build, bonus comparisons, singular point text, no horizontal overflow and no observed console errors. Phone proof: docs/soul-world-native-oath-2026-10-15/phone-gear.png.
+
+The earned campaign on isolated origin 4182 continued from its Crimson completion without assigning progress, health, enemies, positions or rewards. Two grounded Waves cleared the first two Void outer enemies; native movement and Jump + L Rift defeated the third and reached level six. Walking collected all patrol drops, and E attuned the Void shrine. Names in the dark and Echoes beyond the lantern were claimed. The earned point learned Kek Wave rank two; Veilwalker Mantle and Echo Talisman were equipped.
+
+Four grounded Waves cleared all three Void elites, and normal walking collected every drop. The actual passage led into the guardian arena. Native walking/Warp reached range and three grounded Waves defeated The Unnamed. No damage or consumable use occurred during the Void patrol/guardian stage; the mantle initially increased maximum health without healing, and the guardian's earned level-seven advancement filled health. The run collected its Void seal, Veil Fang and 20 fragments, returned through the real portal and used E at Goribbit to complete the oath. An unbroken oath was claimed, and Veil Fang was equipped.
+
+Reload retained level seven (171/240 XP), 248 fragments, one unspent point, four Healing Flasks, one Spirit Flask, Veil Fang +0, Veilwalker Mantle, Echo Talisman, all three seals/shrines/guardian reward receipts and all six claimed quest rewards. The oath summary confirms Domain and Temple unlocks. Earned receipts: docs/soul-world-native-oath-2026-10-15/earned-map.txt and earned-gear.txt; native-oath.png shows the completion summary. No seeded presentation fixture was needed this turn.
+
+This verifies the native fresh-through-three-seal-oath stage with inspection pauses. Native Emerald Temple combat and completion remain the next campaign gate. Uninterrupted combat feel, physical-device multitouch and hosted behavior remain separate review work. The finishing queue stays on Soul World.
+
+Working-tree and clean staged-copy validation passed 255 arcade tests and 261 Soul World tests on October 15, 2026.

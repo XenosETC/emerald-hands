@@ -1,0 +1,101 @@
+- banner:
+  - link "✦ EMERALD ARCADE":
+    - /url: ../index.html
+  - button "Sound off"
+- main:
+  - region "Game":
+    - generic: KEK ACADEMY
+    - generic: GUARDIAN / LV. 7
+    - button "Pause"
+    - generic: Practice campaign · separate save
+    - link "Normal campaign →":
+      - /url: index.html
+    - generic "Kek Academy. approach. Crown Pepe at 420, idle. HP 230. Level 7. Training 3 of 3. Seals 3 of 3."
+    - strong:
+      - text: CROWN PEPE
+      - generic: Veil Fang
+    - text: HP
+    - progressbar
+    - generic: "230"
+    - text: SP
+    - progressbar
+    - generic: "100"
+    - status: Your journey continues. Tab opens the Soul Journal. K performs Warp Step.
+    - generic: E · Speak to Master Goribbit
+    - generic: K · Warp · 20 SP / L · Kek Wave · 28 SP
+    - button "Map"
+    - button "Quests"
+    - button "Skills"
+    - button "Inventory"
+    - button "Gear"
+    - paragraph: Oath fulfilled · Optional Emerald Temple awaits. Reach the veil gate at 2250, then choose Emerald Temple on Map.
+    - text: 171 / 240 XP · LEVEL 7
+    - progressbar
+    - button "Walk to the Emerald Temple gate" [disabled]
+    - dialog "Soul journal":
+      - text: CROWN’S JOURNEY
+      - heading "Soul journal · Gear" [level=2]
+      - button "Close · Esc"
+      - button "Reduce effects"
+      - navigation:
+        - button "Map"
+        - button "Quests"
+        - button "Skills"
+        - button "Inventory"
+        - button "Gear" [active]
+        - button "Save"
+      - paragraph: Level 7 · 248 spirit fragments · 1 skill point
+      - article:
+        - heading "Your spirit" [level=3]
+        - paragraph:
+          - text: Maximum HP 230 · Spirit 100
+          - text: Sword bonus +30 · Defense 4
+          - text: Warp reach 280 · Cost 20 SP
+          - text: Spirit regeneration 9 / second
+        - paragraph:
+          - text: Grounded Kek Wave · 79 damage
+          - text: 57 base + 22 skill / gear bonus · 28 SP
+      - article:
+        - text: WEAPON
+        - heading "Veil Fang +0" [level=3]
+        - paragraph: A quiet edge, drawn from the Void Swamp.
+      - article:
+        - text: ROBE
+        - heading "Veilwalker Mantle" [level=3]
+        - paragraph: A mantle stitched from the edge of the veil.
+      - article:
+        - text: CHARM
+        - heading "Echo Talisman" [level=3]
+        - paragraph: +40 Warp Step reach. +6 wave damage.
+      - article:
+        - heading "Goribbit’s forge" [level=3]
+        - paragraph: Veil Fang +0 / +3
+        - paragraph: Sword bonus +30 → +34 · Costs 20 fragments
+        - paragraph: Ready · 248 fragments available
+        - button "Temper blade · 20 fragments"
+      - article:
+        - heading "Healing Flask" [level=3]
+        - paragraph: In your pack 4 / 99
+        - paragraph: Restore 45 HP. Consumed only when needed.
+        - paragraph: Ready · 248 fragments available
+        - button "Buy Healing Flask · 8 fragments"
+      - article:
+        - heading "Spirit Flask" [level=3]
+        - paragraph: In your pack 1 / 99
+        - paragraph: Restore 50 spirit. Consumed only when needed.
+        - paragraph: Ready · 248 fragments available
+        - button "Buy Spirit Flask · 8 fragments"
+    - button "F · Kek Domain · 80 SP" [disabled]
+    - generic "Touch controls":
+      - button "Move left" [disabled]: ←
+      - button "Move right" [disabled]: →
+      - button "Jump" [disabled]
+      - button "Slash" [disabled]
+      - button "Hold guard" [disabled]
+      - button "Warp Step" [disabled]
+      - button "Kek Wave" [disabled]
+      - button "Talk" [disabled]
+      - button "Release" [disabled]
+      - button "Domain" [disabled]
+      - button "Heal ×4" [disabled]
+      - button "Spirit ×1" [disabled]
