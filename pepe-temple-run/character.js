@@ -9,12 +9,15 @@ import {createTrackView} from './track-view.js?v=realm-gardens-86';
 import {createTempleScenery} from './temple-scenery.js?v=realm-gardens-86';
 import {createTempleWorld} from './temple-world.js?v=realm-gardens-86';
 import {createAuras} from './auras.js?v=realm-gardens-86';
+import {renderQuality,createRenderGate} from './render-quality.js';
 
 
 // Newest rebuilt Rumble gameplay candidate, with its exported weighted rig and clips.
 const canvas=document.createElement('canvas');canvas.className='character-layer';canvas.setAttribute('aria-hidden','true');document.querySelector('.arena').insertBefore(canvas,document.querySelector('.hud'));
-const renderer=new THREE.WebGLRenderer({canvas,alpha:false,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor('#193e35',1);renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const graphics=document.querySelector('#graphics'),initialQuality=renderQuality(graphics?.value,devicePixelRatio);
+const shouldRender=createRenderGate();
+const renderer=new THREE.WebGLRenderer({canvas,alpha:false,antialias:true});renderer.setPixelRatio(initialQuality.ratio);renderer.setClearColor('#193e35',1);renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;renderer.shadowMap.enabled=initialQuality.shadows;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(60,1,.1,140);camera.position.set(0,4.6,9.5);camera.lookAt(0,2.2,-12);scene.fog=new THREE.Fog('#193e35',28,100);const track=createTrackView(THREE,scene);window.templeTrack={loaded:false};
 const scenery=createTempleScenery(THREE,scene);window.templeScenery={loaded:false};
 new GLTFLoader().load('assets/sculpted-guardian-carved.glb?v=carved-23',gltf=>{try{scenery.mountGuardianModel(gltf.scene,'Blender carved stone guardian');}catch(error){window.templeGuardianError=error.message;}},undefined,error=>{window.templeGuardianError='Blender guardian unavailable; using procedural sculpture';});
@@ -78,7 +81,10 @@ try{
 function frame(now){
   requestAnimationFrame(frame);const d=window.templeRunDiagnostics?.();if(!model||!d)return;
   const box=canvas.parentElement.getBoundingClientRect(),w=box.width,h=box.height,aspect=w/h;
-  const renderRatio=Math.min(devicePixelRatio,2);if(renderer.getPixelRatio()!==renderRatio){renderer.setPixelRatio(renderRatio);renderResizes++;}if(canvas.width!==Math.floor(w*renderRatio)||canvas.height!==Math.floor(h*renderRatio)){renderer.setSize(w,h,false);renderResizes++;}window.templeCharacter.renderSizing={ratio:renderRatio,resizes:renderResizes,width:canvas.width,height:canvas.height};
+  const quality=renderQuality(graphics?.value,devicePixelRatio),renderRatio=quality.ratio;
+  if(!shouldRender(d.state,w,h,renderRatio,quality.shadows)){previous=now;return;}
+  renderer.shadowMap.enabled=quality.shadows;
+  if(renderer.getPixelRatio()!==renderRatio){renderer.setPixelRatio(renderRatio);renderResizes++;}if(canvas.width!==Math.floor(w*renderRatio)||canvas.height!==Math.floor(h*renderRatio)){renderer.setSize(w,h,false);renderResizes++;}window.templeCharacter.renderSizing={ratio:renderRatio,resizes:renderResizes,width:canvas.width,height:canvas.height};
   const dt=Math.min(.04,(now-previous)/1000);previous=now;
   track.update(d,d.state==='paused'?0:dt);window.templeTrack=track.diagnostics();
   const pose=track.viewPose?.()||{active:false,yaw:0,player:{x:0,z:0}},yaw=pose.yaw||0;
@@ -114,7 +120,7 @@ function frame(now){
   window.templeCharacter.contactShadow={visible:shadow.visible,opacity:shadow.material.opacity,scale:shadow.scale.x,position:{x:shadow.position.x,y:shadow.position.y,z:shadow.position.z},softEdge:true};
   // Lean into lane transitions without changing the source animation.
   model.rotation.x=secondary.pitch;model.rotation.z=secondary.lean+bend*-.055;model.rotation.y=Math.PI+yaw+bend*.25;
-  renderer.render(scene,camera);window.templeTrack.camera={type:'perspective',fov:camera.fov,aspect:camera.aspect,bank,yaw,position:{x:camera.position.x,y:camera.position.y,z:camera.position.z}};window.templeTrack.actor={yaw:model.rotation.y,position:{x:model.position.x,y:model.position.y,z:model.position.z}};window.templeTrack.render={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,opaque:true,paintedPanorama:false,softShadows:true,shadowMapSize:1024,toneMapping:'ACES',exposure:renderer.toneMappingExposure};
+  renderer.render(scene,camera);window.templeTrack.camera={type:'perspective',fov:camera.fov,aspect:camera.aspect,bank,yaw,position:{x:camera.position.x,y:camera.position.y,z:camera.position.z}};window.templeTrack.actor={yaw:model.rotation.y,position:{x:model.position.x,y:model.position.y,z:model.position.z}};window.templeTrack.render={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,opaque:true,paintedPanorama:false,softShadows:quality.shadows,shadowMapSize:quality.shadows?1024:0,toneMapping:'ACES',exposure:renderer.toneMappingExposure};
   window.templeCharacter.animationTime=actions[current]?.time;window.templeCharacter.scale=[model.scale.x,model.scale.y,model.scale.z];
 }
 requestAnimationFrame(frame);

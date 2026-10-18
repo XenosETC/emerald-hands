@@ -89,3 +89,5 @@ Three new tests cover nearest-hazard selection, all hazard coaching, corner prio
 Native browser inputs on isolated origin 4186 paused at 20 m and showed Broken bridge in 123 m. Jump or dodge. Enter resumed the run; a real right-button activation changed lanes, and another pause at 21 m showed Clear lane ahead. Follow the jade trail. Evidence under docs/temple-run-pause-2026-10-15 includes the phone Focus screenshot and DOM receipts plus a desktop receipt at 1440 x 900. The desktop had no horizontal overflow or observed console errors; phone layout was visually reviewed at 390 x 844. No distance, lane, action or save state was assigned. This short native check does not prove maximum-speed human feel, physical touch behavior, sustained performance or hosted deployment. Temple Run remains finishing in progress.
 
 Working-tree and exact staged-copy validation passed 256 arcade tests and 34 Temple Run tests.
+
+October 17 rendering follow-up: Balanced/Smooth/High graphics and paused 3D redraw gating are documented in docs/arcade-render-2026-10-17/README.md. Chrome/device FPS verification remains open.
