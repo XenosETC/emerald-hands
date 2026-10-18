@@ -49,7 +49,11 @@ function game(file) {
       if (!nodes.has(selector)) nodes.set(selector, node());
       return nodes.get(selector);
     },
-    querySelectorAll: () => [],
+    querySelectorAll(selector) {
+      if (file !== 'pepe-tower-defense.js') return [];
+      const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special']] : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer'].map(type=>['tower',type]) : [];
+      return entries.map(([key,value])=>{const id=`${key}:${value}`;if(!nodes.has(id)){const item=node();item.dataset[key]=value;nodes.set(id,item);}return nodes.get(id);});
+    },
   });
   const window = Object.assign(node(), {
     setTimeout(callback) { timers.push(callback); },
@@ -706,7 +710,7 @@ test('Tower Defense twelve wave-clear transitions reward once and replay resets 
 
 test('Tower Defense upgrades reach evolution with exact costs and mastery actions', () => {
   const g = game('pepe-tower-defense.js'); g.start();
-  g.read('window.__towerRead("state.shards=1000; selectTower(String.fromCharCode(115,104,97,114,100)); buildOrUpgrade(pads[0]); for(let i=0;i<4;i++) buildOrUpgrade(pads[0])")');
+  g.read('window.__towerRead("state.shards=1000; selectTower(String.fromCharCode(115,104,97,114,100)); buildOrUpgrade(pads[0]); for(let i=0;i<4;i++) upgradeSelected(String.fromCharCode(112,111,119,101,114))")');
   assert.equal(g.read('window.__towerRead("towers[0].level")'), 5);
   assert.equal(g.read('window.__towerRead("towers[0].evolved")'), true);
   assert.equal(g.read('window.__towerRead("towers[0].slow")'), .82);
@@ -747,7 +751,7 @@ for (const sample of [.1,.2,.5]) test(`Tower Defense earned-shard combat campaig
       for (const index of order) if (!towerAtPad(pads[index]) && state.shards >= 75) buildOrUpgrade(pads[index]);
       for (let level=1;level<5;level++) for(const index of order) {
         const tower = towerAtPad(pads[index]);
-        if(tower && tower.level===level && state.shards >= upgradeCost(tower)) buildOrUpgrade(pads[index]);
+        if(tower && tower.level===level && state.shards >= upgradeCost(tower)) { buildOrUpgrade(pads[index]); upgradeSelected("power"); }
       }
       if(!state.waveActive) startWave();
       update(1/30);
@@ -1044,4 +1048,63 @@ test('Paradox trail objective distinguishes dialogue and escape from playable pu
   assert.match(g.nodes.get('#trailGoal').textContent,/escaping/);
   g.read('window.__paradoxRead("update(1.6); syncHud()")');
   assert.match(g.nodes.get('#trailGoal').textContent,/Reach the temple gate/);
+});
+
+function towerGame() {
+  const g=game('pepe-tower-defense.js');g.start();
+  g.act = expression => g.read(`window.__towerRead(${JSON.stringify(expression)})`);
+  return g;
+}
+
+test('Tower management selects without spending, including unaffordable and max-level defenders',()=>{
+  const g=towerGame();g.nodes.get('pad:0').emit('click');
+  assert.equal(g.act('state.shards'),105);g.nodes.get('pad:0').emit('click');assert.equal(g.act('state.shards'),105);
+  assert.equal(g.nodes.get('pad:0').disabled,false);assert.equal(g.nodes.get('#towerPanel').hidden,false);
+  g.act('state.shards=1000');g.nodes.get('upgradePath:power').emit('click');assert.equal(g.act('towers[0].level'),2);
+  assert.ok(Math.abs(g.act('towers[0].damage')-22*1.22*1.18)<1e-9);
+  g.act('upgradeSelected("special")');assert.equal(g.act('towers[0].level'),2);
+  g.act('upgradeSelected("power");upgradeSelected("power");upgradeSelected("power");state.shards=0;updateHud()');
+  assert.equal(g.nodes.get('pad:0').disabled,false);assert.equal(g.act('towers[0].level'),5);
+  assert.equal(g.nodes.get('upgradePath:power').disabled,true);
+});
+
+test('Tower relocation preserves object, upgrade investment and cooldown without mastery farming',()=>{
+  const g=towerGame();g.act('buildOrUpgrade(pads[0]);state.shards=500;upgradeSelected("special");towers[0].cooldown=.3;window.original=towers[0];window.balance=state.shards;window.actions=mastery.pepe.placements+mastery.pepe.upgrades;beginMove();buildOrUpgrade(pads[2])');
+  assert.equal(g.act('towers[0]===window.original'),true);assert.equal(g.act('state.shards===window.balance'),true);
+  assert.equal(g.act('towers[0].pad===pads[2] && towers[0].x===pads[2].x'),true);
+  assert.equal(g.act('towers[0].cooldown'),.3);assert.equal(g.act('towers[0].path'),'special');
+  assert.equal(g.act('mastery.pepe.placements+mastery.pepe.upgrades===window.actions'),true);
+  g.act('selectTower("pepe");buildOrUpgrade(pads[1]);buildOrUpgrade(pads[2]);beginMove();buildOrUpgrade(pads[1])');
+  assert.equal(g.act('movingTower===window.original && window.original.pad===pads[2]'),true);
+  g.nodes.get('#cancelMoveButton').emit('click');assert.equal(g.act('movingTower'),null);
+  g.act('beginMove();startWave()');assert.equal(g.act('movingTower'),null);assert.equal(g.act('beginMove()'),false);
+});
+
+test('Tower sale refunds invested build and upgrades once, keeps score and rewards unchanged',()=>{
+  const g=towerGame();g.act('buildOrUpgrade(pads[0]);state.shards=500;upgradeSelected("power");upgradeSelected("power");state.score=99');
+  assert.equal(g.act('towers[0].invested'),370);
+  g.nodes.get('#sellTowerButton').emit('click');assert.equal(g.act('state.shards'),464);
+  g.nodes.get('#sellTowerButton').emit('click');assert.equal(g.act('state.shards'),464);
+  assert.equal(g.act('towers.length'),0);assert.equal(g.act('state.score'),99);assert.equal(g.records.length,0);
+  assert.equal(g.nodes.get('#towerPanel').hidden,true);
+});
+
+test('Tower management ignores paused, post-result and move-mode purchases and resets selection on replay',()=>{
+  const g=towerGame();g.act('buildOrUpgrade(pads[0]);state.shards=500');g.read('window.EmeraldArcade.isPaused=()=>true');
+  for(const action of ['upgradeSelected("power")','beginMove()','sellSelected()'])assert.equal(g.act(action),false);
+  g.read('window.EmeraldArcade.isPaused=()=>false');g.act('beginMove()');assert.equal(g.act('upgradeSelected("power")'),false);assert.equal(g.act('sellSelected()'),false);
+  g.act('movingTower=null;endGame("Test complete")');assert.equal(g.act('sellSelected()'),false);assert.equal(g.act('upgradeSelected("power")'),false);
+  g.start();assert.equal(g.act('inspectedTower'),null);assert.equal(g.act('movingTower'),null);assert.equal(g.act('state.shards'),180);
+});
+
+test('All defender paths affect actual combat stats while preserving level milestones',()=>{
+  for(const type of ['pepe','shard','relic','mage','archer']) {
+    const g=towerGame();g.act(`selectTower("${type}");buildOrUpgrade(pads[0]);state.shards=2000;upgradeSelected("special")`);
+    const stat=type==='shard'?'slow':type==='relic'||type==='mage'?'splash':'rate';
+    assert.ok(g.act(`towers[0].${stat} ${stat==='rate'?'<':'>'} towerTypes["${type}"].${stat}`));
+    g.act('upgradeSelected("special");upgradeSelected("special");upgradeSelected("special")');assert.equal(g.act('towers[0].evolved'),true);
+    assert.ok(g.act('towers[0].slow<=.82'));
+    g.act('enemies.push({x:towers[0].x+10,y:towers[0].y,hp:10000,maxHp:10000,pathIndex:1,slowTimer:0,radius:14,kind:"grunt"});towers[0].cooldown=0;updateTowers(0)');
+    assert.ok(g.act('enemies[0].hp<10000'));
+  }
 });

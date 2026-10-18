@@ -18,6 +18,12 @@
   const statusMeta = document.querySelector("#statusMeta");
   const campaignProgress = document.querySelector("#campaignProgress");
   const campaignLabel = document.querySelector("#campaignLabel");
+  const towerPanel = document.querySelector("#towerPanel");
+  const towerDetails = document.querySelector("#towerDetails");
+  const pathButtons = [...document.querySelectorAll("[data-upgrade-path]")];
+  const moveButton = document.querySelector("#moveTowerButton");
+  const sellButton = document.querySelector("#sellTowerButton");
+  const cancelMoveButton = document.querySelector("#cancelMoveButton");
   const towerGuide = document.querySelector("#towerGuide");
 
   const W = canvas.width;
@@ -122,6 +128,8 @@
   let raf = 0;
   let last = null;
   let selectedTower = "pepe";
+  let inspectedTower = null;
+  let movingTower = null;
   let soundOn = true;
   let screenShake = 0;
   const enemies = [];
@@ -177,6 +185,8 @@
     cancelAnimationFrame(raf);
     enemies.length = 0;
     towers.length = 0;
+    inspectedTower = null;
+    movingTower = null;
     shots.length = 0;
     bursts.length = 0;
     floaters.length = 0;
@@ -235,6 +245,7 @@
     if (window.EmeraldArcade?.isPaused?.()) return;
     if (!state.playing) resetGame();
     if (state.waveActive) return;
+    movingTower = null;
     state.waveActive = true;
     state.waveSpawnTotal = 9 + state.wave * 3;
     state.spawnLeft = state.waveSpawnTotal;
@@ -292,18 +303,23 @@
     const guide = `${spec.name} · Level 1: ${spec.damage} damage, ${spec.range} range, ${(spec.rate / 1.08).toFixed(2)} seconds per attack. ${roles[selectedTower]}. Level 3: ${upgradeName({type:selectedTower,level:3})}. Level 5: ${upgradeName({type:selectedTower,level:5})}.`;
     if (towerGuide.textContent !== guide) towerGuide.textContent = guide;
     padButtons.forEach(button => {
-      const tower = towerAtPad(pads[Number(button.dataset.pad)]);
-      const cost = tower ? upgradeCost(tower) : towerTypes[selectedTower].cost;
-      const label = `Pad ${Number(button.dataset.pad) + 1} · ${tower ? (Number.isFinite(cost) ? `Upgrade L${tower.level + 1} · ${cost}` : "Max level") : `Build · ${cost}`}`;
+      const pad = pads[Number(button.dataset.pad)];
+      const tower = towerAtPad(pad);
+      const cost = towerTypes[selectedTower].cost;
+      const label = `Pad ${Number(button.dataset.pad) + 1} - ${tower ? `${tower.name} L${tower.level}` : movingTower ? "Move here" : `Build - ${cost}`}`;
       if (button.textContent !== label) button.textContent = label;
-      button.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.()) || !Number.isFinite(cost) || state.shards < cost;
-      button.setAttribute("aria-label", `${label} shards${tower ? ` · ${tower.name}` : ` · ${towerTypes[selectedTower].name}`}`);
+      button.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.()) || (movingTower ? Boolean(tower) : !tower && state.shards < cost);
+      button.setAttribute("aria-label", label);
+      button.setAttribute("aria-pressed", String(Boolean(tower && tower === inspectedTower)));
     });
+    updateTowerPanel();
     waveButton.disabled = !state.playing || state.waveActive || Boolean(window.EmeraldArcade?.isPaused?.());
   }
 
   function selectTower(type) {
     if (!towerTypes[type]) return;
+    inspectedTower = null;
+    movingTower = null;
     selectedTower = type;
     towerButtons.forEach((button) => { button.classList.toggle("is-selected", button.dataset.tower === type); button.setAttribute("aria-pressed", String(button.dataset.tower === type)); });
     const tower = towerTypes[type];
@@ -332,32 +348,24 @@
   function buildOrUpgrade(pad) {
     if (!state.playing || window.EmeraldArcade?.isPaused?.()) return;
     const existing = towerAtPad(pad);
+    if (movingTower) {
+      if (existing) {
+        statusLabel.textContent = "Choose an empty destination";
+        return;
+      }
+      movingTower.pad = pad;
+      movingTower.x = pad.x;
+      movingTower.y = pad.y;
+      inspectedTower = movingTower;
+      movingTower = null;
+      statusLabel.textContent = "Tower moved - no shards spent";
+      updateHud();
+      return;
+    }
     if (existing) {
-      const cost = upgradeCost(existing);
-      if (!Number.isFinite(cost)) {
-        statusLabel.textContent = `${existing.name} maxed`;
-        statusMeta.textContent = `${upgradeName(existing)} is already online`;
-        return;
-      }
-      if (state.shards < cost) {
-        statusLabel.textContent = "Need more shards";
-        statusMeta.textContent = `${cost} shards to upgrade ${existing.name}`;
-        return;
-      }
-      state.shards -= cost;
-      existing.level += 1;
-      recordMastery(existing.type, "upgrades");
-      applyUpgrade(existing);
-      existing.upgradePulse = 1;
-      if (existing.level === 5) {
-        existing.evolved = true;
-        existing.evolvePulse = 1.2;
-        screenShake = Math.max(screenShake, 14);
-      }
-      statusLabel.textContent = `${existing.name} upgraded`;
-      statusMeta.textContent = `LV ${existing.level}: ${upgradeName(existing)}`;
-      bursts.push({ x: existing.x, y: existing.y, r: 0, max: existing.range * 0.42, color: existing.color, life: 0.34, fill: true });
-      floaters.push({ x: existing.x, y: existing.y - 36, text: `LV ${existing.level}`, color: "#ffd86b", life: 0.85 });
+      inspectedTower = existing;
+      statusLabel.textContent = `${existing.name} selected`;
+      statusMeta.textContent = "Choose an upgrade path, move or sell below the battlefield";
       updateHud();
       return;
     }
@@ -371,6 +379,8 @@
     state.shards -= type.cost;
     towers.push({
       ...type,
+      invested: type.cost,
+      path: null,
       pad,
       x: pad.x,
       y: pad.y,
@@ -383,12 +393,103 @@
       aimAngle: -Math.PI / 5,
       level: 1,
     });
+    inspectedTower = towers[towers.length - 1];
     recordMastery(selectedTower, "placements");
     statusLabel.textContent = `${type.name} placed`;
-    statusMeta.textContent = "click it again later to upgrade";
+    statusMeta.textContent = "select it to choose upgrades, move or sell";
     bursts.push({ x: pad.x, y: pad.y, r: 0, max: 58, color: type.color, life: 0.28, fill: true });
     floaters.push({ x: pad.x, y: pad.y - 34, text: "BUILT", color: type.color, life: 0.75 });
     updateHud();
+  }
+
+  // Provisional balance: relocation is free between waves; selling returns 70%.
+  const specialPaths = {
+    pepe: { name: "Rapid Emitters", detail: "14% shorter attack interval per upgrade" },
+    shard: { name: "Deep Freeze", detail: "+6 slow percentage points (cap 82%) and +10 range per upgrade" },
+    relic: { name: "Siege Radius", detail: "+14 splash radius and +8 range per upgrade" },
+    mage: { name: "Arcane Field", detail: "+10 splash radius and +10 range per upgrade" },
+    archer: { name: "Rapid Quiver", detail: "14% shorter attack interval per upgrade" },
+  };
+
+  function canManageTower() {
+    return state.playing && !window.EmeraldArcade?.isPaused?.() && towers.includes(inspectedTower);
+  }
+
+  function updateTowerPanel() {
+    towerPanel.hidden = !inspectedTower;
+    if (!inspectedTower) return;
+    const tower = inspectedTower;
+    const cost = upgradeCost(tower);
+    towerDetails.textContent = `${tower.name} - Pad ${pads.indexOf(tower.pad) + 1} - Level ${tower.level}/5 - ${tower.path === "power" ? "Overcharged" : tower.path === "special" ? specialPaths[tower.type].name : "Path not chosen"}. ${tower.damage.toFixed(1)} damage, ${Math.round(tower.range)} range, ${(tower.rate / (1 + tower.level * .08)).toFixed(2)}s attack interval, ${Math.round(tower.slow * 100)}% slow, ${Math.round(tower.splash)} splash. ${movingTower ? "Select an empty pad to move, or cancel." : "First upgrade locks your path for this tower. Every upgrade includes the standard level bonuses."}`;
+    pathButtons.forEach(button => {
+      const choice = button.dataset.upgradePath;
+      const locked = tower.path && tower.path !== choice;
+      const title = choice === "power" ? "Overcharged" : specialPaths[tower.type].name;
+      const detail = choice === "power" ? "+18% damage per upgrade" : specialPaths[tower.type].detail;
+      const preview = { ...tower, level: tower.level + 1 };
+      applyPathUpgrade(preview, choice);
+      const nextStats = !locked && tower.level < 5 ? ` Next: ${preview.damage.toFixed(1)} damage, ${Math.round(preview.range)} range, ${(preview.rate / (1 + preview.level * .08)).toFixed(2)}s attack, ${Math.round(preview.slow * 100)}% slow, ${Math.round(preview.splash)} splash.` : "";
+      const label = `${title} - ${locked ? "Other path locked" : tower.level >= 5 ? "Max level" : `Upgrade to L${tower.level + 1}: ${cost} defense shards`}. ${detail}.${nextStats}`;
+      if (button.textContent !== label) button.textContent = label;
+      button.disabled = !canManageTower() || Boolean(movingTower) || Boolean(locked) || !Number.isFinite(cost) || state.shards < cost;
+      button.setAttribute("aria-pressed", String(tower.path === choice));
+    });
+    moveButton.disabled = !canManageTower() || state.waveActive || Boolean(movingTower);
+    moveButton.textContent = state.waveActive ? "Move - available between waves" : "Move tower - free";
+    sellButton.disabled = !canManageTower() || Boolean(movingTower);
+    sellButton.textContent = `Sell tower - refund ${Math.floor(tower.invested * .7)} defense shards (70%)`;
+    cancelMoveButton.hidden = !movingTower;
+    cancelMoveButton.disabled = !canManageTower();
+  }
+
+  function applyPathUpgrade(tower, choice) {
+    applyUpgrade(tower);
+    if (choice === "power") tower.damage *= 1.18;
+    else if (tower.type === "pepe" || tower.type === "archer") tower.rate *= .86;
+    else if (tower.type === "shard") { tower.slow = Math.min(.82, tower.slow + .06); tower.range += 10; }
+    else if (tower.type === "relic") { tower.splash += 14; tower.range += 8; }
+    else if (tower.type === "mage") { tower.splash += 10; tower.range += 10; }
+  }
+
+  function upgradeSelected(choice) {
+    if (!canManageTower() || movingTower || !["power", "special"].includes(choice)) return false;
+    const tower = inspectedTower;
+    const cost = upgradeCost(tower);
+    if ((tower.path && tower.path !== choice) || !Number.isFinite(cost) || state.shards < cost) return false;
+    state.shards -= cost;
+    tower.invested += cost;
+    tower.path = choice;
+    tower.level += 1;
+    applyPathUpgrade(tower, choice);
+    tower.upgradePulse = 1;
+    if (tower.level === 5) { tower.evolved = true; tower.evolvePulse = 1.2; screenShake = Math.max(screenShake, 14); }
+    recordMastery(tower.type, "upgrades");
+    statusLabel.textContent = `${tower.name} upgraded to L${tower.level}`;
+    statusMeta.textContent = `${choice === "power" ? "Overcharged" : specialPaths[tower.type].name} path - ${upgradeName(tower)}`;
+    bursts.push({ x: tower.x, y: tower.y, r: 0, max: tower.range * .42, color: tower.color, life: .34, fill: true });
+    updateHud();
+    return true;
+  }
+
+  function beginMove() {
+    if (!canManageTower() || state.waveActive || movingTower) return false;
+    movingTower = inspectedTower;
+    statusLabel.textContent = "Choose an empty pad to move your tower";
+    updateHud();
+    return true;
+  }
+
+  function sellSelected() {
+    if (!canManageTower() || movingTower) return false;
+    const tower = inspectedTower;
+    const refund = Math.floor(tower.invested * .7);
+    towers.splice(towers.indexOf(tower), 1);
+    state.shards += refund;
+    inspectedTower = null;
+    statusLabel.textContent = `${tower.name} sold`;
+    statusMeta.textContent = `${refund} defense shards refunded (70% of ${tower.invested} invested)`;
+    updateHud();
+    return true;
   }
 
   function upgradeName(tower) {
@@ -408,7 +509,7 @@
     if (tower.level === 3) {
       tower.damage *= 1.18;
       tower.range += 8;
-      if (tower.type === "shard") tower.slow = Math.min(0.72, tower.slow + 0.12);
+      if (tower.type === "shard") tower.slow = Math.min(0.82, tower.slow + 0.12);
       if (tower.type === "relic") tower.splash += 24;
       if (tower.type === "mage") tower.splash += 18;
       if (tower.type === "archer") tower.rate *= 0.82;
@@ -830,7 +931,7 @@
       ctx.save();
       ctx.translate(pad.x, pad.y);
       ctx.fillStyle = occupied ? "rgba(57, 255, 154, 0.18)" : hovered ? "rgba(116, 255, 197, 0.16)" : "rgba(116, 255, 197, 0.08)";
-      ctx.strokeStyle = occupied ? "rgba(216, 180, 95, 0.8)" : hovered ? "rgba(116, 255, 197, 0.9)" : "rgba(116, 255, 197, 0.42)";
+      ctx.strokeStyle = occupied && occupied === inspectedTower ? "#ffffff" : movingTower && !occupied ? "#74c7ff" : occupied ? "rgba(216, 180, 95, 0.8)" : hovered ? "rgba(116, 255, 197, 0.9)" : "rgba(116, 255, 197, 0.42)";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(0, 0, hovered ? 36 : 31, 0, Math.PI * 2);
@@ -878,7 +979,7 @@
     ctx.textAlign = "center";
     ctx.fillText(isMax ? `${tower.name} maxed` : upgradeName({ ...tower, level: tower.level + 1 }), 0, -4);
     ctx.fillStyle = isMax ? "#ffd86b" : state.shards >= cost ? "#74ffc5" : "#ff9cab";
-    ctx.fillText(isMax ? "LV 5 ultimate online" : `${cost} shards -> LV ${tower.level + 1}`, 0, 13);
+    ctx.fillText("Select to manage tower", 0, 13);
     ctx.restore();
   }
 
@@ -941,7 +1042,7 @@
       ctx.textAlign = "center";
       ctx.shadowColor = tower.level >= 3 ? "#ffd86b" : tower.color;
       ctx.shadowBlur = 8;
-      ctx.fillText(`LV ${tower.level}`, 0, 44);
+      ctx.fillText(`LV ${tower.level}${tower.path ? tower.path === "power" ? " / PWR" : " / ALT" : ""}`, 0, 44);
       ctx.restore();
     }
   }
@@ -1331,6 +1432,7 @@
 
   window.addEventListener("keydown", (event) => {
     if (window.EmeraldArcade?.isPaused?.() || event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.target?.closest?.("button, a, input, select, textarea, [contenteditable]")) return;
+    if (event.key === "Escape") { movingTower = null; updateHud(); }
     if (event.key === "1") selectTower("pepe");
     if (event.key === "2") selectTower("shard");
     if (event.key === "3") selectTower("relic");
@@ -1352,6 +1454,10 @@
   });
   window.addEventListener("emeraldarcade:pause", () => { pointer.active = false; updateHud(); });
   padButtons.forEach(button => button.addEventListener("click", () => buildOrUpgrade(pads[Number(button.dataset.pad)])));
+  pathButtons.forEach(button => button.addEventListener("click", () => upgradeSelected(button.dataset.upgradePath)));
+  moveButton.addEventListener("click", beginMove);
+  sellButton.addEventListener("click", sellSelected);
+  cancelMoveButton.addEventListener("click", () => { if (!window.EmeraldArcade?.isPaused?.()) { movingTower = null; updateHud(); } });
   waveButton.addEventListener("click", startWave);
   startButton.addEventListener("click", resetAndLaunch);
   soundToggle.addEventListener("click", () => {
