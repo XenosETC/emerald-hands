@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#0a1110">
     <title>Emerald Arcade — Small games. Big adventures.</title>
     <link rel="preload" href="pepe-temple-run/assets/emerald-frog-temple-v1.png" as="image">
-    <link rel="stylesheet" href="mini-games.css?v=flight-art-20261012">
+    <link rel="stylesheet" href="mini-games.css?v=shard-faq-20261017">
   </head>
   <body>
     <a class="skip-link" href="#games">Skip to games</a>
@@ -306,7 +306,7 @@
         </div>
         <div>
           <span id="arcadeShards">60</span>
-          <small>fictional Arcade Shards</small>
+          <small>fictional Arcade Shards · <a href="#shard-faq">How to earn &amp; spend</a></small>
         </div>
         <div class="arcade-status__wide">
           <span id="dailyChallenge">Loading daily challenge</span>
@@ -334,9 +334,35 @@
         </div>
       </details>
       </section>
+      <section id="shard-faq" class="shard-faq" aria-labelledby="shard-faq-title" tabindex="-1">
+        <div class="library-heading"><div><p class="eyebrow">YOUR POCKET GUIDE</p><h2 id="shard-faq-title">Arcade Shards, explained.</h2></div><p>Play, collect, care for your companion.</p></div>
+        <p class="shard-faq-intro">Arcade Shards are the shared, fictional currency shown in Your arcade record. A new arcade profile starts with 60. They have no cash value, cash-out, wallet connection or trading.</p>
+        <details open><summary>Which games give Arcade Shards?</summary>
+          <p>These 11 games award the shared wallet when they report a played result. Most pay at the end of a run or match; winning is not always required. Closing a game before its result can miss the payout. Emerald Hands reports its play reward on your first shard tap of a visit.</p>
+          <table><caption>Shared wallet earning games</caption><thead><tr><th scope="col">Game</th><th scope="col">What affects the reward</th></tr></thead><tbody>
+            <tr data-shard-game="hands"><td><a href="emerald-hands.html">Emerald Hands</a></td><td>OG points when play is recorded</td></tr>
+            <tr data-shard-game="rush"><td><a href="shard-rush.html">Shard Rush</a></td><td>Final score, including daily runs</td></tr>
+            <tr data-shard-game="galaxy"><td><a href="emerald-galactic-heroes.html">Emerald Galactic Heroes</a></td><td>Wave reached</td></tr>
+            <tr data-shard-game="rumble"><td><a href="pepe-relic-rumble.html">Pepe Relic Rumble</a></td><td>Wins; a tournament win adds 50</td></tr>
+            <tr data-shard-game="pepeRun"><td><a href="pepecoin-run.html">PepeCoin Emerald Run</a></td><td>Shards collected during the run</td></tr>
+            <tr data-shard-game="spaceUnchained"><td><a href="pepe-space-unchained.html">Pepe: Space Unchained</a></td><td>Waves and collected shards</td></tr>
+            <tr data-shard-game="towerDefense"><td><a href="pepe-tower-defense.html">Pepe Tower Defense</a></td><td>Waves cleared</td></tr>
+            <tr data-shard-game="pepeWars"><td><a href="pepe-wars.html">Pepe Wars</a></td><td>Victory</td></tr>
+            <tr data-shard-game="paradox"><td><a href="pepes-paradox.html">Pepe’s Paradox</a></td><td>Shards, relics and hidden frogs at completion</td></tr>
+            <tr data-shard-game="unstableLaunch"><td><a href="etc-unstable-launch.html">ETC: Unstable Launch</a></td><td>Peak lore price, even on a crash</td></tr>
+            <tr data-shard-game="rocketSimulator"><td><a href="etc-rocket-simulator.html">ETC Rocket Simulator</a></td><td>Distance at the end of a flight</td></tr>
+          </tbody></table>
+          <p>Rewards vary by result and are capped per recorded result. A new personal best is not required. Opening a game, visiting the hub or unlocking a badge does not grant a separate shard bonus.</p>
+        </details>
+        <details><summary>Are all in-game shards the same currency?</summary><p>No. The shared wallet is separate from run pickups, tower-building funds and Rocket Simulator’s hangar upgrade shards. Those resources may influence a result’s Arcade Shard reward, but they do not transfer one-for-one.</p><p>Temple Run’s corruption shards stay in that run. Temple Run, Soul World and Pepe Feudalism currently keep their progression separate and do not pay the shared wallet. Satoshi System has its own economy. ETC Pets does not generate Arcade Shards.</p></details>
+        <details><summary>What can I spend Arcade Shards on?</summary><p>Visit <a href="etc-pets.html">ETC Pets</a> for companion unlocks and supplies: one Bamboo Shoot costs 8, five shoots cost 35, and one Training Stick costs 18. Feeding uses a shoot; successful training uses a stick. Playing with your pet is free. Companion unlocks range from 90 to 1,000; Emerald Pepe starts unlocked.</p><p>Buying supplies spends Arcade Shards immediately and adds supplies to your inventory. Using a supply later does not charge its purchase price again. Run currencies and RPG equipment cannot be bought with this wallet.</p></details>
+        <details><summary>How does Beyond Canon unlock?</summary><p>In <a href="etc-unstable-launch.html">Unstable Launch</a>, lock a simulated lore price of $1,000,000 or more. Exploding after a $1M peak does not count. The badge appears in your trophy cabinet and stays unlocked after lower runs. An existing saved $1M lock is recognized automatically. The badge adds no extra shard payout.</p></details>
+        <details><summary>Where are my shards and badges saved?</summary><p>They stay in this browser’s local arcade profile on this site. Use the same browser and site address to keep the same wallet. There is no account or automatic cloud sync. Clearing site data, resetting arcade progress or leaving private browsing can remove it. Each game’s own save controls may cover only that game, not the shared wallet.</p></details>
+        <details><summary>Why didn’t my balance increase?</summary><p>Check that the game is in the earning list and that you reached its result or play checkpoint. A shared pause, unavailable browser storage or a result that could not save can prevent a payout. Check the game’s save warning, then return to the hub in the same browser and site address. ETC Pets and independent game currencies do not mint shared shards.</p></details>
+      </section>
       <footer class="hub-footer"><p><strong>EMERALD ARCADE</strong><span>A small collection of playable worlds.</span></p><p>Fictional games. No wallets or real-money rewards.<br>Satoshi System is an independent guest game with its own save and economy.</p><a href="#hub-title">Back to top ↑</a></footer>
     </main>
-    <script src="arcade.js?v=11"></script>
+    <script src="arcade.js?v=12"></script>
     <script src="arcade-pet.js?v=15"></script>
     <script src="mini-games.js?v=arcade-refresh-2"></script>
     <script src="shard-rush-challenges.js?v=1"></script>

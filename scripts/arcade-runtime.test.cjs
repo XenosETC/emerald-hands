@@ -388,3 +388,41 @@ test('Satoshi completion records and retries do not award shared XP, shards, bad
  assert.equal(after.gamesPlayed,before.gamesPlayed+1);
  assert.equal(after.best.satoshiSystem.connectedPlanets,3);
 });
+
+test('Beyond Canon requires a finite million-dollar lock and unlocks once without a badge shard bonus',()=>{
+ const h=harness('etc-unstable-launch.html');
+ for(const lockedPrice of [0,999999,Infinity]){
+  h.arcade.record('unstableLaunch',{lockedPrice,peakPrice:5000000,rank:'Beyond Canon',score:0,played:true});
+  assert.ok(!h.arcade.load().badges.includes('beyond-canon'));
+ }
+ const result=h.arcade.record('unstableLaunch',{lockedPrice:1000000,peakPrice:1000000,rank:'Beyond Canon',score:0,played:true});
+ assert.ok(result.unlockedBadges.includes('beyond-canon'));assert.equal(result.arcadeShardReward,38);
+ const repeated=h.arcade.record('unstableLaunch',{lockedPrice:1000000,peakPrice:1000000,rank:'Beyond Canon',score:0,played:true});
+ assert.ok(!repeated.unlockedBadges.includes('beyond-canon'));assert.equal(repeated.badges.filter(b=>b==='beyond-canon').length,1);
+ h.arcade.record('unstableLaunch',{lockedPrice:10,peakPrice:10,score:0,played:true});assert.ok(h.arcade.load().badges.includes('beyond-canon'));
+ const badge=h.arcade.badges.find(b=>b.slug==='beyond-canon');assert.equal(badge.name,'Beyond Canon');assert.ok(fs.existsSync(path.join(__dirname,'..',badge.icon)));
+});
+
+test('existing million-dollar locks receive the saved badge without changing economy or independent saves',()=>{
+ const h=harness(),saved=h.arcade.load();saved.best.unstableLaunch={lockedPrice:1200000,peakPrice:2000000,rank:'Beyond Canon',score:123};saved.analytics={unstableLaunch:{starts:4}};
+ h.saves.set('emerald-arcade-v1',JSON.stringify(saved));h.saves.set('pepe-temple-run-v1','{"best":2000}');
+ const result=h.arcade.load();assert.ok(result.badges.includes('beyond-canon'));
+ assert.equal(result.xp,saved.xp);assert.equal(result.gamesPlayed,saved.gamesPlayed);assert.deepEqual(result.wallet,saved.wallet);assert.equal(JSON.stringify(result.analytics),JSON.stringify(saved.analytics));assert.deepEqual(JSON.parse(JSON.stringify(result.best)),JSON.parse(JSON.stringify(saved.best)));
+ assert.ok(JSON.parse(h.saves.get('emerald-arcade-v1')).badges.includes('beyond-canon'));assert.equal(h.saves.get('pepe-temple-run-v1'),'{"best":2000}');assert.equal(h.saves.get('satoshi-system-save-v1'),'{"ticks":99}');
+});
+
+test('a badge backfill write failure retains the readable profile and original bytes',()=>{
+ const h=harness(),saved=h.arcade.load();saved.best.unstableLaunch.lockedPrice=1000000;
+ const raw=JSON.stringify(saved);h.saves.set('emerald-arcade-v1',raw);h.saves.set=()=>{throw Error('quota');};
+ const result=h.arcade.load();assert.equal(result.xp,saved.xp);assert.equal(result.wallet.arcadeShards,saved.wallet.arcadeShards);assert.ok(result.badges.includes('beyond-canon'));assert.equal(h.saves.get('emerald-arcade-v1'),raw);
+});
+
+test('the shard FAQ lists exactly the eleven integrated earners and excludes pets and guest rewards',()=>{
+ const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+ const listed=[...html.matchAll(/data-shard-game="([^"]+)"/g)].map(m=>m[1]);
+ const expected=['hands','rush','galaxy','rumble','pepeRun','spaceUnchained','towerDefense','pepeWars','paradox','unstableLaunch','rocketSimulator'];
+ assert.deepEqual(listed,expected);
+ const h=harness();for(const game of listed){const before=h.arcade.arcadeShardBalance(),result=h.arcade.record(game,{played:true,score:0});assert.ok(result.arcadeShardReward>0,game);assert.equal(h.arcade.arcadeShardBalance()-before,result.arcadeShardReward);}
+ for(const game of ['pets','satoshiSystem'])assert.equal(h.arcade.record(game,{played:true,score:0}).arcadeShardReward,0);
+ assert.match(html,/id="shard-faq"/);assert.match(html,/Temple Run’s corruption shards stay in that run/);
+});

@@ -151,7 +151,9 @@ function finishRun(success) {
   els.resultEyebrow.textContent = success ? "Price Locked // Flight Preserved" : "Reactor Lost // Lore Survives";
   els.resultTitle.textContent = success ? `${rank}: ${money(state.lockedPrice)}` : `Unstable at ${money(state.peakPrice)}`;
   els.resultText.textContent = success
-    ? state.lockedPrice >= 30000
+    ? state.lockedPrice >= 1000000
+      ? "Beyond Canon. A million-dollar lore lock, brought home intact. Your achievement joins the Emerald trophy cabinet."
+      : state.lockedPrice >= 30000
       ? "You crossed the $30K lore horizon and brought the reactor home. Absolute emerald aura."
       : "A clean lock. The rocket lives to chase a higher stratum."
     : "Velocity won this round. The launch price was simulated, the explosion was extremely real to the crew.";

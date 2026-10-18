@@ -222,6 +222,12 @@
       icon: "assets/etc-rocket-simulator/rocket-tiers.png",
     },
     {
+      slug: "beyond-canon",
+      name: "Beyond Canon",
+      description: "Lock a simulated $1M+ lore price in Unstable Launch. A crash peak does not count.",
+      icon: "assets/badges/beyond-canon.png",
+    },
+    {
       slug: "aura-farmer",
       name: "Aura Farmer",
       description: "Raise an ETC pet to 200 aura.",
@@ -308,6 +314,7 @@
       badges: Array.isArray(source.badges) ? [...new Set(source.badges.map(normalizeBadge).filter(Boolean))] : [],
       analytics: source.analytics && typeof source.analytics === "object" ? source.analytics : {},
     };
+    if (Number.isFinite(migrated.best.unstableLaunch.lockedPrice) && migrated.best.unstableLaunch.lockedPrice >= 1000000) uniquePush(migrated.badges, "beyond-canon");
     return migrated;
   }
 
@@ -315,7 +322,11 @@
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
       const migrated = migrate(saved);
-      if (saved?.schemaVersion !== SCHEMA_VERSION) save(migrated);
+      const recoveredCanon = migrated.badges.includes("beyond-canon") && !(Array.isArray(saved?.badges) && saved.badges.includes("beyond-canon"));
+      if (saved?.schemaVersion !== SCHEMA_VERSION || recoveredCanon) {
+        // A failed migration write must not replace a readable profile with defaults.
+        try { save(migrated); } catch { /* Keep the readable profile; retry on a later load. */ }
+      }
       return migrated;
     } catch {
       return migrate(null);
@@ -541,6 +552,7 @@
       };
       data.xp += Math.floor((payload.score || 0) / 55) + Math.floor(Math.log10(Math.max(1, payload.peakPrice || 1)) * 90);
       if ((payload.lockedPrice || 0) >= 30000) uniquePush(data.badges, "emerald-singularity");
+      if (Number.isFinite(payload.lockedPrice) && payload.lockedPrice >= 1000000) uniquePush(data.badges, "beyond-canon");
     }
 
     if (game === "rocketSimulator") {
