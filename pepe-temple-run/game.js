@@ -4,6 +4,22 @@
   // Keep stable HUD values and live announcements out of the DOM mutation stream.
   function setText(node,value){value=String(value);if(node&&node.textContent!==value)node.textContent=value;}
   function setHTML(node,value){if(node&&node.innerHTML!==value)node.innerHTML=value;}
+  const REALM_STAGES=[
+    {start:0,label:'01 / JADE CAUSEWAY'},
+    {start:500,label:'02 / THE SUNKEN SANCTUM'},
+    {start:1000,label:'03 / CROWN OF THE ABYSS'},
+    {start:1500,label:'04 / CORRUPT FROG TEMPLE'}
+  ];
+  const CORRUPT_DISTANCE=REALM_STAGES[3].start;
+  function realmStage(position){
+    const index=REALM_STAGES.findLastIndex(stage=>position>=stage.start),current=REALM_STAGES[Math.max(0,index)],next=REALM_STAGES[Math.max(0,index)+1];
+    return {label:current.label,nextDistance:next?.start??null,nextLabel:next?next.label.slice(5)+' / '+next.start+' M':'ENDLESS SHARD RUN',progress:next?Math.max(0,Math.min(100,(position-current.start)/(next.start-current.start)*100)):100};
+  }
+  function updateChapter(){
+    const chapter=realmStage(distance);setText($('zone'),chapter.label);
+    if($('zone-progress'))$('zone-progress').style.width=chapter.progress+'%';
+    setText($('zone-next'),chapter.nextLabel);
+  }
   const hero=new Image();hero.src='../assets/pepes-paradox/crown-platformer-idle.png';
   const sheet=new Image();sheet.src='../assets/pepes-paradox/crown-platformer-sheet.png';
   const records=window.TempleRecords?.create(()=>localStorage);
@@ -34,7 +50,7 @@
   function rand(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return(seed>>>0)/4294967296;}
   function resize(){const r=canvas.getBoundingClientRect();w=r.width;h=r.height;const ratio=Math.min(devicePixelRatio,2);canvasRatio=ratio;canvas.width=Math.floor(w*ratio);canvas.height=Math.floor(h*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);}new ResizeObserver(resize).observe(canvas);
   function tone(f,d=.1){if(!sound)return;audio??=new(window.AudioContext||window.webkitAudioContext)();audio.resume();const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.055,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+d);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+d);}
-  function begin(){if(!window.templeCharacter?.loaded){$('message').textContent='Summoning the Rumble Crown character… Give it a moment, then enter.';return;}touch=null;corrupted=false;shards=0;realmEntry=null;const currencyLabel=$('jade-label')||$('jade').previousElementSibling;if(currencyLabel)currencyLabel.textContent='JADE';$('jade').textContent='0';const flowLabel=document.getElementById('flow-count')?.previousElementSibling;if(flowLabel)flowLabel.textContent='JADE FLOW';$('zone').textContent='01 / JADE CAUSEWAY';if($('zone-next'))$('zone-next').textContent='FIRST FROG GATE / REALM RIFT';state='running';window.TempleFeedback?.reset();window.TempleTurns?.reset();if(document.getElementById('turn-warning'))document.getElementById('turn-warning').hidden=true;magnet=0;shield=false;lane=visualLane=1;distance=jade=0;speed=25;objects=[];spawn=0;row=0;route=1;combo=0;comboTime=0;milestone=0;notice='FOLLOW THE JADE / ↑ JUMP · ↓ SLIDE';noticeTime=5;action='';actionTime=0;seed=0xC0FFEE;$('overlay').hidden=true;canvas.focus?.({preventScroll:true});$('pause').textContent='Ⅱ';$('toast').textContent='';last=performance.now();tone(220,.3);syncControls();}
+  function begin(){if(!window.templeCharacter?.loaded){$('message').textContent='Summoning the Rumble Crown character… Give it a moment, then enter.';return;}touch=null;corrupted=false;shards=0;realmEntry=null;const currencyLabel=$('jade-label')||$('jade').previousElementSibling;if(currencyLabel)currencyLabel.textContent='JADE';$('jade').textContent='0';const flowLabel=document.getElementById('flow-count')?.previousElementSibling;if(flowLabel)flowLabel.textContent='JADE FLOW';$('zone').textContent='01 / JADE CAUSEWAY';if($('zone-progress'))$('zone-progress').style.width='0%';if($('zone-next'))$('zone-next').textContent='THE SUNKEN SANCTUM / 500 M';state='running';window.TempleFeedback?.reset();window.TempleTurns?.reset();if(document.getElementById('turn-warning'))document.getElementById('turn-warning').hidden=true;magnet=0;shield=false;lane=visualLane=1;distance=jade=0;speed=25;objects=[];spawn=0;row=0;route=1;combo=0;comboTime=0;milestone=0;notice='FOLLOW THE JADE / ↑ JUMP · ↓ SLIDE';noticeTime=5;action='';actionTime=0;seed=0xC0FFEE;$('overlay').hidden=true;canvas.focus?.({preventScroll:true});$('pause').textContent='Ⅱ';$('toast').textContent='';last=performance.now();tone(220,.3);syncControls();}
   function pauseSummary(run){
     const totals=`${Math.floor(run.distance)} m · ${run.jade} jade${run.corrupted?' · '+run.shards+' shards':''}`;
     const turn=run.turn;
@@ -56,7 +72,7 @@
     const coaching=corner?'Press or swipe '+type.slice(5)+' in the final 28 m.':type==='gap'?'Jump over broken bridges.':type==='gate'?'Slide under the low arches.':type==='boulder'?'Dodge rolling jade stones.':type==='spire'?'Dodge the corruption thorns.':'Dodge stone idols.';
     return {best,overline:newBest?'NEW PERSONAL BEST':'RUN ENDED',title:corner?'Missed the '+type.slice(5)+' corner.':type==='gap'?'Bridge missed.':type==='gate'?'Low arch collision.':type==='boulder'?'Rolling stone collision.':type==='spire'?'Corruption thorn collision.':'Stone idol collision.',message:`${meters} m escaped · ${jade} jade${shards===null?'':' · '+shards+' shards'} · Best ${best} m.\n${coaching}`};
   }
-  function die(type){state='dead';shake=15;tone(85,.4);const candidate=Math.max(best,Math.floor(distance)),record=records?.save(candidate)||{best:candidate,previousBest:best,ok:false,message:unavailable};const result=runResult(distance,jade,record.previousBest,type,corrupted?shards:null);best=record.best;recordStatus(record);setHTML($('distance'),`${Math.floor(distance)} <i>m</i>`);$('toast').textContent='';$('best').innerHTML=`${best} <i>m</i>`;show(result.overline,result.title,result.message,'Run it back');}
+  function die(type){state='dead';shake=15;tone(85,.4);const candidate=Math.max(best,Math.floor(distance)),record=records?.save(candidate)||{best:candidate,previousBest:best,ok:false,message:unavailable};const result=runResult(distance,jade,record.previousBest,type,corrupted?shards:null);best=record.best;recordStatus(record);updateChapter();setHTML($('distance'),`${Math.floor(distance)} <i>m</i>`);$('toast').textContent='';$('best').innerHTML=`${best} <i>m</i>`;show(result.overline,result.title,result.message,'Run it back');}
   function input(k){if(k==='pause'){pause();return;}if(state!=='running')return;const corner=window.TempleTurns?.input(k);if(corner?.handled){notice=corner.correct?'TURN LOCKED':"TURN "+corner.direction.toUpperCase()+" / OTHER WAY";noticeTime=1;window.TempleFeedback?.emit('clear',{lane,label:corner.correct?'TURN LOCKED':'OTHER WAY'});syncControls();return;}if(k==='left')lane=Math.max(0,lane-1);if(k==='right')lane=Math.min(2,lane+1);if((k==='jump'||k==='slide')&&!action){action=k;actionTime=k==='jump'?.85:.75;tone(k==='jump'?300:160);} }
   window.addEventListener('keydown',e=>{if(e.isComposing||e.ctrlKey||e.altKey||e.metaKey||e.target?.closest?.('select,input,textarea'))return;if((e.key===' '||e.key==='Enter')&&e.target?.closest?.('button,a')){if(e.repeat)e.preventDefault();return;}const map={ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right',ArrowUp:'jump',w:'jump',W:'jump',' ':'jump',ArrowDown:'slide',s:'slide',S:'slide',Escape:'pause',p:'pause'};if(map[e.key]){e.preventDefault();if(!e.repeat)input(map[e.key]);}if(e.key==='Enter'&&state!=='running'){e.preventDefault();if(!e.repeat&&!$('start').disabled)$('start').click();}});
   function recordAction(recovery=false){const result=recovery?records?.enableRecovery():records?.save(best);if(!result)return;best=Math.max(best,result.best);$('best').innerHTML=`${best} <i>m</i>`;recordStatus(result);if(result.ok)$('start').focus?.({preventScroll:true});}
@@ -101,9 +117,10 @@
     if(turnEvent?.type==='missed'){die('turn-'+turnEvent.direction);return;}
     if(turnEvent?.type==='completed'){lane=visualLane=route=1;action='';actionTime=0;spawn=Math.max(spawn,25);notice='CLEAN CORNER / KEEP THE CROWN MOVING';noticeTime=2;window.TempleFeedback?.emit('clear',{lane,label:'CLEAN CORNER'});tone(900,.2);}
     // Clear the corner approach of hazards and stop rows landing around the bend.
+    if(!corrupted)objects=objects.filter(o=>!['idol','gap','gate','boulder','spire'].includes(o.type)||Math.abs(distance+o.z-7-CORRUPT_DISTANCE)>60);
     if(turn)objects=objects.filter(o=>!['idol','gap','gate','boulder','spire'].includes(o.type)||Math.abs(distance+o.z-7-turn.nextDistance)>60);
     if(actionTime>0){actionTime-=dt;if(actionTime<=0)action='';}
-    spawn-=travelled;if(spawn<=0){if(turn&&Math.abs(distance+143-turn.nextDistance)<95)spawn=15;else nextPattern();}
+    spawn-=travelled;if(spawn<=0){if((turn&&Math.abs(distance+143-turn.nextDistance)<95)||(!corrupted&&Math.abs(distance+143-CORRUPT_DISTANCE)<95))spawn=15;else nextPattern();}
     for(const o of objects){
       o.z-=travelled;
       if(!o.hit&&o.z<=7){
@@ -124,14 +141,14 @@
       const group=objects.filter(p=>p.pattern===o.pattern&&['gap','gate','idol','boulder','spire'].includes(p.type));
       if(group.every(p=>p.hit)){group.forEach(p=>p.clearAwarded=true);if(state==='running'&&group.every(p=>!p.failed)){
         window.TempleFeedback?.emit('clear',{lane,label:o.lane===lane&&action==='jump'&&o.type==='gap'?'CLEAN JUMP':o.lane===lane&&action==='slide'&&o.type==='gate'?'CLEAN SLIDE':'CLEAN PASS'});
-        // Entry follows clean row resolution: crossing-frame pickups stay jade; later pickups are shards.
-        if(!corrupted&&group.some(p=>p.type==='gate')){corrupted=true;realmEntry={time,distance,lane,pattern:group.find(p=>p.type==='gate').pattern};notice='CORRUPT FROG TEMPLE / COLLECT THE SHARDS';noticeTime=4;window.TempleFeedback?.emit('clear',{lane,label:'CORRUPT REALM ENTERED'});}
       }}
     }
     objects=objects.filter(o=>o.z>-14);
-    const nextMilestone=Math.floor(distance/250);if(nextMilestone>milestone){milestone=nextMilestone;notice=`${milestone*250} M / THE TEMPLE AWAKENS`;noticeTime=3;tone(600,.25);}
-    setHTML($('distance'),`${Math.floor(distance)} <i>m</i>`);setText($('jade'),corrupted?shards:jade);const currencyLabel=$('jade-label')||$('jade').previousElementSibling;if(currencyLabel)setText(currencyLabel,corrupted?'SHARDS':'JADE');const flowLabel=document.getElementById('flow-count')?.previousElementSibling;if(flowLabel)setText(flowLabel,corrupted?'SHARD FLOW':'JADE FLOW');const zone=Math.floor(distance/500);setText($('zone'),corrupted?'CORRUPT FROG TEMPLE':['01 / JADE CAUSEWAY','02 / THE SUNKEN SANCTUM','03 / CROWN OF THE ABYSS'][Math.min(2,zone)]);
-    if($('flow-count'))setText($('flow-count'),combo); if($('zone-progress'))$('zone-progress').style.width=Math.min(100,distance/10)+'%';if($('zone-next'))setText($('zone-next'),corrupted?'CORRUPT REALM / SHARD RUN':'FIRST FROG GATE / REALM RIFT');
+    // Distance owns realm entry. Crossing-frame pickups stay jade; later pickups are shards.
+    if(state==='running'&&!corrupted&&distance>=CORRUPT_DISTANCE){corrupted=true;realmEntry={time,distance,lane};notice='CORRUPT FROG TEMPLE / COLLECT THE SHARDS';noticeTime=4;window.TempleFeedback?.emit('clear',{lane,label:'CORRUPT REALM ENTERED'});}
+    const nextMilestone=Math.floor(distance/250);if(nextMilestone>milestone){milestone=nextMilestone;const boundary=REALM_STAGES.find(stage=>stage.start===milestone*250);notice=boundary?boundary.label.slice(5)+' / '+boundary.start+' M':`${milestone*250} M / THE TEMPLE AWAKENS`;noticeTime=3;tone(600,.25);}
+    setHTML($('distance'),`${Math.floor(distance)} <i>m</i>`);setText($('jade'),corrupted?shards:jade);const currencyLabel=$('jade-label')||$('jade').previousElementSibling;if(currencyLabel)setText(currencyLabel,corrupted?'SHARDS':'JADE');const flowLabel=document.getElementById('flow-count')?.previousElementSibling;if(flowLabel)setText(flowLabel,corrupted?'SHARD FLOW':'JADE FLOW');updateChapter();
+    if($('flow-count'))setText($('flow-count'),combo);
     const approaching=objects.find(o=>!o.hit&&['gap','gate','idol','boulder','spire'].includes(o.type)&&o.lane===lane&&o.z<55&&o.z>7);
     let toast=approaching?(approaching.type==='gap'?'↑ JUMP / BROKEN BRIDGE':approaching.type==='gate'?'↓ SLIDE / LOW ARCH':approaching.type==='boulder'?'← → DODGE / ROLLING STONE':approaching.type==='spire'?'THORNS / DODGE':'← → DODGE / FROG IDOL'):noticeTime>0?notice:magnet>0?(corrupted?'SHARD MAGNET / ':'JADE MAGNET / ')+Math.ceil(magnet)+'s':shield?'CROWN SHIELD / ONE HIT PROTECTED':combo>=5?`${corrupted?'SHARD':'JADE'} FLOW / ${combo} IN A ROW`:corrupted?'FOLLOW THE SHARD TRAIL':'FOLLOW THE EMERALD TRAIL';
     if(turn?.announced)toast=turn.accepted?'TURN LOCKED / FOLLOW THE BEND':turn.window?`TURN ${turn.direction.toUpperCase()} NOW / ${Math.ceil(turn.remaining)} M`:`${turn.direction.toUpperCase()} CORNER / ${Math.ceil(turn.remaining)} M`;
@@ -162,5 +179,5 @@
     }
     for(let i=0;i<25;i++){ctx.fillStyle='#d0e9a044';ctx.beginPath();ctx.arc((i*137+Math.sin(time*.4+i)*20)%w,(i*83+time*(6+i%3))%h,1.5,0,7);ctx.fill();}const shade=ctx.createLinearGradient(0,h*.65,0,h);shade.addColorStop(0,'#03181200');shade.addColorStop(1,'#03181288');ctx.fillStyle=shade;ctx.fillRect(0,0,w,h);const fx=world3d?window.templeEffectsContext:ctx;if(world3d&&fx)fx.clearRect(0,0,w,h);if(fx)window.TempleFeedback?.draw(fx,w,h,project,{magnet,shield,lane:visualLane,project,objects});ctx.restore();}
   function frame(now){const ratio=Math.min(devicePixelRatio,2);if(w&&h&&(canvasRatio!==ratio||canvas.width!==Math.floor(w*ratio)||canvas.height!==Math.floor(h*ratio)))resize();if($('start').disabled&&window.templeCharacter?.loaded&&window.templeTrack?.loaded&&window.templeWorld?.loaded){$('start').disabled=false;$('start').innerHTML='Enter the temple <span>↗</span>';}const dt=Math.min(.04,(now-last)/1000||0);last=now;if(state!=='paused')time+=dt;if(state==='running')update(dt);syncControls();draw();requestAnimationFrame(frame);}syncControls();requestAnimationFrame(frame);
-  window.templeRunDiagnostics=()=>({state,time,actionTime,magnet,shield,realm:corrupted?'corrupt':'jade',shards,realmEntry:realmEntry?{...realmEntry}:null,lane,visualLane,distance,jade,best,speed,action,row,route,combo,turn:window.TempleTurns?.diagnostics(),track:window.templeTrack,scenery:window.templeScenery,world:window.templeWorld,feedback:window.TempleFeedback?.diagnostics(),environment:window.TempleEnvironment?.diagnostics(),scene:corrupted?'corrupt':window.TempleEnvironment?.sceneAt(distance),objects:objects.map(o=>({...o})),heroLoaded:hero.complete&&hero.naturalWidth>0});
+  window.templeRunDiagnostics=()=>({state,time,actionTime,magnet,shield,realm:corrupted?'corrupt':'jade',shards,realmEntry:realmEntry?{...realmEntry}:null,realmThreshold:CORRUPT_DISTANCE,chapter:realmStage(distance),lane,visualLane,distance,jade,best,speed,action,row,route,combo,turn:window.TempleTurns?.diagnostics(),track:window.templeTrack,scenery:window.templeScenery,world:window.templeWorld,feedback:window.TempleFeedback?.diagnostics(),environment:window.TempleEnvironment?.diagnostics(),scene:corrupted?'corrupt':window.TempleEnvironment?.sceneAt(distance),objects:objects.map(o=>({...o})),heroLoaded:hero.complete&&hero.naturalWidth>0});
 })();

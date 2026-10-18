@@ -91,3 +91,17 @@ Native browser inputs on isolated origin 4186 paused at 20 m and showed Broken b
 Working-tree and exact staged-copy validation passed 256 arcade tests and 34 Temple Run tests.
 
 October 17 rendering follow-up: Balanced/Smooth/High graphics and paused 3D redraw gating are documented in docs/arcade-render-2026-10-17/README.md. Chrome/device FPS verification remains open.
+
+## Distance-based realm chapters — October 17, 2026
+
+The opening gate no longer activates corruption. Realm sections now follow distance: Jade Causeway 0–499 m; Sunken Sanctum 500–999 m; Crown of the Abyss 1,000–1,499 m; Corrupt Frog Temple from 1,500 m onward. These thresholds are the current pacing choice and remain tunable. Existing scenery/lighting already changes around 500 and 1,000 m; the corruption transition now waits until the three opening sections are complete. The start screen explains this progression. There is no finish/reward at 1,500 m: the corrupted chapter continues as an endless shard run.
+
+The journey meter resets for each 500 m section and displays its next destination/distance. The last endless section stays complete with an ENDLESS SHARD RUN label. Start/restart resets the meter to zero, and corner defeats synchronize the exact final section progress. Jade remains jade through the opening chapters and is preserved when shards start. Corruption is activated once after the running simulation crosses 1,500 m; completed crossing-frame pickups remain jade. No reset, migration, persistent currency or reward system was introduced.
+
+The existing rift art now approaches the actual 1,500 m boundary, beginning its reveal 70 m beforehand. Early low arches never display that rift. Its open three-lane frame, post-crossing effect and 1.2-second corruption blend remain. A 60 m clearance band and deferred nearby spawns protect the portal crossing from overlapping obstacles. This deliberately changes some later row/pickup timing; the RNG algorithm, movement, speed cap and mandatory corners remain unchanged.
+
+Real-source regression runs verify all chapter boundaries, pre-threshold jade/no thorns, once-only entry, retained jade and later shards, cleared approach, pause and restart. Three seeded long replays still match with feedback on/off: 10,772 m, 115 rows, 45 jade and 510 shards under the new route timing. Real Three tests check early-gate suppression and portal alignment/crossing at the distance boundary. The corner-result regression checks exact final meter progress.
+
+Native inputs on isolated origin 4188 used Smooth mode and the right button to avoid opening obstacles. The run passed the opening gate and ended at the first missed left corner, 450 m, with 5 jade and still in Jade Causeway. docs/temple-run-realms-2026-10-17/native-450.txt and phone-jade-450.png preserve this early-gate proof. Reload showed the new 1,500 m start guidance and retained the earned 450 m record. The native run does not prove a human-played 1,500 m crossing; later boundaries are source-simulation and Three-renderer checks. Physical-device pacing and hosted validation remain open.
+
+Chapter milestone banners name each destination. Final exact staged-copy checks passed 256 arcade tests and 37 Temple Run tests. Phone (390 x 844) and desktop (1440 x 900) start views showed no horizontal overflow or observed console errors, and the start meter was 0%.

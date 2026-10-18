@@ -13,7 +13,7 @@ test('actual missed corner synchronizes HUD/result and keeps restart record with
   now+=40;frame(now);
  }
  const result=window.templeRunDiagnostics();assert.equal(result.state,'dead');assert.equal(result.turn.completed,1);assert.equal(result.turn.failed,true);
- assert.equal(Math.floor(result.distance),900);assert.equal(parseInt(element('distance').innerHTML),900);assert.match(element('message').textContent,/900 m escaped/);
+ assert.ok(Math.abs(parseFloat(element('zone-progress').style.width)-(result.distance-500)/5)<1e-8);assert.equal(element('zone').textContent,'02 / THE SUNKEN SANCTUM');assert.equal(Math.floor(result.distance),900);assert.equal(parseInt(element('distance').innerHTML),900);assert.match(element('message').textContent,/900 m escaped/);
  assert.equal(element('title').textContent,'Missed the right corner.');assert.equal(element('toast').textContent,'');assert.equal(element('turn-warning').hidden,true);
  assert.equal(JSON.parse(disk.get('pepe-temple-run-v1')).best,900);
  element('start').onclick();assert.equal(window.templeRunDiagnostics().distance,0);assert.equal(window.templeRunDiagnostics().best,900);assert.equal(window.templeRunDiagnostics().turn.completed,0);

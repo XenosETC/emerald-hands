@@ -6,17 +6,18 @@ import {createCorruptRealm} from './corrupt-realm.js';
 
 const scene=new THREE.Scene(),arrival=createRealmArrival(THREE,scene),pose={active:false,player:{x:0,z:0}};
 const root=scene.getObjectByName('CorruptionArrival'),gate=scene.getObjectByName('CorruptionRiftGate');
-let d={state:'running',realm:'jade',distance:100,time:4,objects:[],turn:{visualBend:0}};
+let d={state:'running',realm:'jade',realmThreshold:1500,distance:100,time:4,objects:[],turn:{visualBend:0}};
 const step=()=>{const before=JSON.stringify(d);arrival.update(d,pose);assert.equal(JSON.stringify(d),before);scene.updateMatrixWorld(true);};
 step();assert.equal(root.visible,false);
 d.objects=[{type:'gate',lane:1,z:140,pattern:1,hit:false}];step();assert.equal(root.visible,false);
-d.objects[0].z=60;step();assert.equal(arrival.diagnostics().phase,'approach');assert.equal(gate.position.z,-53*.32);assert.ok(arrival.diagnostics().strength>0);
+d.objects[0].z=60;step();assert.equal(root.visible,false,'Tutorial gate shows corruption rift');
+d.distance=1447;step();assert.equal(arrival.diagnostics().phase,'approach');assert.equal(gate.position.z,-53*.32);assert.ok(arrival.diagnostics().strength>0);
 // The tangible frame stays outside the crouch/jump corridor even in fallback.
 scene.getObjectByName('RiftFrameFallback').traverse(o=>{if(!o.isMesh)return;const box=new THREE.Box3().setFromObject(o,true);assert.ok(box.min.y>=3.6||box.min.x>=3.5||box.max.x<=-3.5,'Frame blocks the open three-lane passage');});
 for(const support of gate.children.filter(o=>o.name==='RiftBridgeFoundation')){const b=new THREE.Box3().setFromObject(support,true);assert.ok(b.min.y<-2.1,'Wide frame hovers above water');assert.ok(Math.abs(b.max.y-.065)<1e-6,'Frame foot does not meet foundation');assert.ok(b.max.x<=-3.19||b.min.x>=3.19,'Foundation blocks a running lane');}
 const membrane=scene.getObjectByName('OpenCenterRift');assert.equal(membrane.material.depthWrite,false);assert.ok(membrane.material.fragmentShader.includes('smoothstep(.7,.8,r)'));
 d.state='paused';const freeze=JSON.stringify(arrival.diagnostics()),matrices=Array.from(scene.getObjectByName('RiftMotes').instanceMatrix.array);step();assert.equal(JSON.stringify(arrival.diagnostics()),freeze);assert.deepEqual(Array.from(scene.getObjectByName('RiftMotes').instanceMatrix.array),matrices);
-d.state='running';d.realm='corrupt';d.realmEntry={time:10,distance:222,lane:1,pattern:1};d.time=10.5;d.distance=236;d.objects=[];step();assert.equal(arrival.diagnostics().phase,'crossing');assert.equal(arrival.diagnostics().elapsed,.5);assert.equal(gate.position.z,14*.32);
+d.state='running';d.realm='corrupt';d.realmEntry={time:10,distance:1500,lane:1};d.time=10.5;d.distance=1514;d.objects=[];step();assert.equal(arrival.diagnostics().phase,'crossing');assert.equal(arrival.diagnostics().elapsed,.5);assert.equal(gate.position.z,14*.32);
 d.state='paused';const crossing=JSON.stringify(arrival.diagnostics());step();assert.equal(JSON.stringify(arrival.diagnostics()),crossing);
 pose.active=true;pose.nextHeadingYaw=Math.PI/2;pose.player={x:5,z:2};step();assert.deepEqual(arrival.diagnostics().pose,{yaw:Math.PI/2,x:5,z:2});
 d.time=11.21;step();assert.equal(root.visible,false);assert.equal(arrival.diagnostics().strength,0);

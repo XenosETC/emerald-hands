@@ -1,7 +1,7 @@
 import {createRunnerMotion} from './runner-motion.js?v=realm-gardens-86';
 import {createContactShadow} from './contact-shadow.js?v=realm-gardens-86';
 import {createCorruptRealm} from './corrupt-realm.js?v=realm-gardens-86';
-import {createRealmArrival} from './realm-arrival.js?v=realm-gardens-86';
+import {createRealmArrival} from './realm-arrival.js?v=distance-realms-20261017';
 import {createRealmSetpieces} from './realm-setpieces.js?v=realm-gardens-86';
 import * as THREE from 'three';
 import {GLTFLoader} from '../crown-pepe-3d/vendor/GLTFLoader.js';

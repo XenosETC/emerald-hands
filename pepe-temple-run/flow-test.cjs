@@ -28,7 +28,7 @@ function run(feedback=false){
     now+=40;frame(now);
   }
   const result=window.templeRunDiagnostics();assert.ok(result.distance>7000);assert.equal(result.speed,49,'Replay never reached maximum speed');assert.ok(result.jade+result.shards>50);assert.equal(result.realm,'corrupt');assert.ok(result.turn.completed>=20);assert.equal(result.turn.failed,false);
-  assert.equal(element('zone').textContent,'CORRUPT FROG TEMPLE');assert.equal(element('jade').textContent,String(result.shards));assert.equal(element('flow-count').textContent,String(result.combo));
+  assert.equal(element('zone').textContent,'04 / CORRUPT FROG TEMPLE');assert.equal(element('jade').textContent,String(result.shards));assert.equal(element('flow-count').textContent,String(result.combo));
   for(const id of ['zone','zone-next','turn-direction','turn-instruction'])assert.ok(writes.get(id)<200,id+' rewrites stable text every frame');
   assert.ok(writes.get('jade')<1000,'Currency rewrites between pickups');assert.ok(writes.get('flow-count')<1500,'Combo rewrites between changes');
   if(feedback){assert.equal(result.feedback.events.jade,result.jade+result.shards);assert.ok(result.feedback.events.clear>100);assert.ok(result.feedback.active<=96);}return {rows,distance:result.distance,jade:result.jade,shards:result.shards};

@@ -42,12 +42,12 @@ export function createRealmArrival(THREE,scene){
   }
   function update(d,pose){
     const entry=d.realm==='corrupt'?d.realmEntry:null,elapsed=entry?Math.max(0,d.time-entry.time):0;
-    const next=d.realm==='jade'?d.objects?.filter(o=>o.type==='gate'&&!o.hit&&!o.failed&&o.z>=7).sort((a,b)=>a.z-b.z)[0]:null;
-    const approaching=Boolean(next&&next.z<115),crossed=Boolean(entry&&elapsed<1.2);
+    const remaining=d.realmThreshold-d.distance;
+    const approaching=d.realm==='jade'&&d.state!=='dead'&&Number.isFinite(remaining)&&remaining>0&&remaining<=70,crossed=Boolean(entry&&elapsed<1.2);
     root.visible=approaching||crossed;root.rotation.y=pose.active?pose.nextHeadingYaw:0;root.position.set(pose.active?pose.player.x:0,0,pose.active?pose.player.z:0);
-    const z=entry?(d.distance-entry.distance)*.32:next?-(next.z-7)*.32:0;
+    const z=entry?(d.distance-entry.distance)*.32:approaching?-remaining*.32:0;
     const bend=pose.active?0:d.turn?.visualBend||0;gate.position.set(bend*Math.pow(Math.max(0,-z)/95,2)*15,.065,z);
-    const fade=entry?Math.pow(Math.max(0,1-elapsed/1.2),.7):approaching?Math.min(1,(115-next.z)/30):0;
+    const fade=entry?Math.pow(Math.max(0,1-elapsed/1.2),.7):approaching?Math.min(1,(70-remaining)/30):0;
     const strength=fade*(entry?1:.65);material.uniforms.clock.value=d.time;material.uniforms.strength.value=strength;material.uniforms.crossing.value=entry?fade:0;
     for(let i=0;i<32;i++){
       const a=i*Math.PI*2/32+d.time*.12,travel=(d.time*.3+i*.618)%1;
@@ -55,7 +55,7 @@ export function createRealmArrival(THREE,scene){
       dummy.rotation.set(a,d.time*.7+i,0);dummy.scale.setScalar((.6+travel*.8)*fade);dummy.updateMatrix();motes.setMatrixAt(i,dummy.matrix);
     }
     motes.instanceMatrix.needsUpdate=true;
-    snapshot={phase:crossed?'crossing':approaching?'approach':'hidden',visible:root.visible,elapsed,strength,z,pattern:entry?.pattern??next?.pattern??null,time:d.time,pose:{yaw:root.rotation.y,x:root.position.x,z:root.position.z}};
+    snapshot={phase:crossed?'crossing':approaching?'approach':'hidden',visible:root.visible,elapsed,strength,z,pattern:null,time:d.time,pose:{yaw:root.rotation.y,x:root.position.x,z:root.position.z}};
   }
   return {mount,update,fail:e=>{error=String(e);},diagnostics:()=>({...snapshot,asset,error,particles:32,centerClear:true})};
 }

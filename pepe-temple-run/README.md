@@ -250,3 +250,5 @@ The required corner direction now receives a gold Turn cue and a direction-speci
 ## Protected recovery — October 15, 2026
 
 Unreadable records can enable a separate protected best record without replacing the original. Retry saving handles temporary storage failures. The hub recognizes the protected best; jade and shards remain run-only, and record writes still occur only after completed runs. Both unreadable primary and recovery records remain preserved for review; no automatic destructive reset is added. See ../TEMPLE_RUN.md for the native 143 m → 450 m recovery flow and remaining gates.
+
+Current realm pacing (October 17): Jade Causeway 0–499 m, Sunken Sanctum 500–999 m, Crown of the Abyss 1,000–1,499 m, then Corrupt Frog Temple from 1,500 m. Early low arches do not unlock corruption. The rift approaches the distance boundary; the meter tracks the next 500 m chapter. Earlier gate-entry notes above are historical.

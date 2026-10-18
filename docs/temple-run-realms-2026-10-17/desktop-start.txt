@@ -1,0 +1,36 @@
+- banner:
+  - link "↖ EMERALD ARCADE":
+    - /url: ../index.html
+  - generic: CROWN PEPE / THE JADE ESCAPE
+  - combobox "Graphics quality":
+    - option "Smooth"
+    - option "Balanced" [selected]
+    - option "High"
+  - button "Expand game view" [active] [pressed]: Exit focus ⤡
+  - button "Toggle sound": Sound off
+- main:
+  - region "Temple runner":
+    - generic "Three lane temple runner"
+    - generic: DISTANCE
+    - strong: 0 m
+    - generic: JADE
+    - strong: "0"
+    - generic: BEST RUN
+    - strong: 450 m
+    - generic: JADE FLOW
+    - strong: 0 chain
+    - button "Pause game": Ⅱ
+    - generic: 01 / JADE CAUSEWAY
+    - text: THE SUNKEN SANCTUM / 500 M
+    - paragraph: THE JADE ESCAPE
+    - heading "Run like a king." [level=2]
+    - paragraph: You took the jade heart. Cross three 500 m chapters before corruption begins at 1,500 m.
+    - status: Best run saves on this device.
+    - button "Enter the temple ↗"
+    - paragraph: ← → Dodge ↑ / Space Jump ↓ Slide
+    - status
+  - generic "Runner controls":
+    - button "Move left" [disabled]: ←
+    - button "Jump" [disabled]: Jump ↑
+    - button "Slide" [disabled]: Slide ↓
+    - button "Move right" [disabled]: →
