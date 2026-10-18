@@ -22,6 +22,8 @@ const ui = {
   rankProgress: document.querySelector("#rankProgress"),
   report: document.querySelector("#flightReport"),
   repair: document.querySelector("#repairButton"),
+  wingman: document.querySelector("#wingmanButton"),
+  wingmanStatus: document.querySelector("#wingmanStatus"),
 };
 
 const W = canvas.width;
@@ -45,6 +47,9 @@ function resetInput() {
   player.vx = 0;
   player.vy = 0;
 }
+// Provisional flight-only balance; never debit the shared Arcade Shards wallet.
+const WINGMAN_COSTS = [20, 30];
+const wingmen = [];
 const bullets = [];
 const enemyBullets = [];
 const enemies = [];
@@ -61,9 +66,11 @@ const art = {
   bg: new Image(),
   ship: new Image(),
   enemy: new Image(),
+  wingman: new Image(),
 };
 art.bg.src = "assets/pepe-space-unchained/space-bg.jpg";
 art.ship.src = "assets/pepe-space-unchained/pepe-ship.png";
+art.wingman.src = "assets/pepe-space-unchained/pepe-wingman-v1.png";
 art.enemy.src = "assets/pepe-space-unchained/corrupt-ship.png";
 
 const player = {
@@ -92,6 +99,7 @@ const state = {
   hullDamage: 0,
   burstsUsed: 0,
   repairsUsed: 0,
+  supportShots: 0,
   best: readBest(),
   nextBossKills: 16,
   spawnClock: 0,
@@ -151,6 +159,7 @@ function startGame() {
   hullDamage: 0,
   burstsUsed: 0,
   repairsUsed: 0,
+  supportShots: 0,
     nextBossKills: 16,
     spawnClock: 0.2,
     waveClock: 0,
@@ -160,6 +169,7 @@ function startGame() {
     lastFrame: null,
   });
   Object.assign(player, { x: 190, y: H / 2, vx: 0, vy: 0, shield: 100, invuln: 0, fireClock: 0, burstClock: 0, repairClock: 0 });
+  wingmen.length = 0;
   bullets.length = 0;
   enemyBullets.length = 0;
   enemies.length = 0;
@@ -199,6 +209,36 @@ function repairShield() {
   player.repairClock = 8;
   burst(player.x, player.y, "#74ffc5", 16);
   tone(540, .12, "triangle");
+}
+
+function wingmanPosition(index) {
+  return { x: clamp(player.x - 95, 70, W * .55), y: clamp(player.y + (index === 0 ? -95 : 95), 70, H - 70) };
+}
+
+function recruitWingman() {
+  const cost = WINGMAN_COSTS[wingmen.length];
+  if (state.mode !== "playing" || window.EmeraldArcade?.isPaused?.() || cost === undefined || state.shards < cost) return false;
+  state.shards -= cost;
+  wingmen.push({ ...wingmanPosition(wingmen.length), fireClock: .2 });
+  tone(640, .14, "triangle");
+  updateHud();
+  return true;
+}
+
+function updateWingmen(dt) {
+  if (state.mode !== "playing" || window.EmeraldArcade?.isPaused?.()) return;
+  wingmen.forEach((jet, index) => {
+    const target = wingmanPosition(index);
+    const follow = 1 - Math.exp(-10 * dt);
+    jet.x += (target.x - jet.x) * follow;
+    jet.y += (target.y - jet.y) * follow;
+    jet.fireClock -= dt;
+    if (jet.fireClock <= 1e-9) {
+      bullets.push({ x: jet.x + 55, y: jet.y, vx: 780, vy: 0, life: 1.6, damage: 1, wingman: true });
+      state.supportShots += 1;
+      jet.fireClock += .65;
+    }
+  });
 }
 
 function spawnEnemy() {
@@ -265,6 +305,7 @@ function update(dt) {
     state.spawnClock = Math.max(0.36, 1.05 - state.wave * 0.05) + Math.random() * 0.35;
   }
 
+  updateWingmen(dt);
   updateBullets(dt);
   if (state.mode !== "playing") { updateHud(); return; }
   updateEnemies(dt);
@@ -440,7 +481,7 @@ function endGame(reason = "shield") {
 function flightAdvice(reason) {
   const seconds = Math.floor(state.elapsed);
   const duration = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-  const summary = `${duration} flown · ${state.shotHits} enemy-shot hits · ${state.hullHits} hull collisions · ${state.burstsUsed} bursts used · ${state.repairsUsed} repairs.`;
+  const summary = `${duration} flown · ${state.shotHits} enemy-shot hits · ${state.hullHits} hull collisions · ${state.burstsUsed} bursts used · ${state.repairsUsed} repairs · ${wingmen.length} wingmen · ${state.supportShots} support shots.`;
   let advice;
   if (state.hullDamage > state.shotDamage) advice = "Leave more space between your fighter and enemy hulls; steer before they reach you.";
   else if (state.shotDamage > 0) advice = "Watch the dashed aim warnings and change your flight line before the shot arrives.";
@@ -478,6 +519,7 @@ function draw() {
   drawBullets();
   drawShards();
   drawEnemies();
+  drawWingmen();
   drawPlayer();
   drawParticles();
   if (state.flash > 0) {
@@ -518,6 +560,24 @@ function drawBackgroundTile(x, mirrored) {
     ctx.drawImage(art.bg, x, 0, W, H);
   }
   ctx.restore();
+}
+
+function drawWingmen() {
+  wingmen.forEach((jet) => {
+    ctx.save();
+    ctx.translate(jet.x, jet.y);
+    ctx.shadowColor = "#79eaff";
+    ctx.shadowBlur = 10;
+    if (art.wingman.complete && art.wingman.naturalWidth) {
+      ctx.drawImage(art.wingman, -88, -44, 176, 88);
+    } else {
+      ctx.fillStyle = "#79eaff";
+      ctx.beginPath();
+      ctx.moveTo(45, 0); ctx.lineTo(-30, -20); ctx.lineTo(-18, 0); ctx.lineTo(-30, 20);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  });
 }
 
 function drawPlayer() {
@@ -595,8 +655,8 @@ function drawEnemies() {
 
 function drawBullets() {
   bullets.forEach((b) => {
-    ctx.fillStyle = "#74ffc5";
-    ctx.shadowColor = "#74ffc5";
+    ctx.fillStyle = b.wingman ? "#79eaff" : "#74ffc5";
+    ctx.shadowColor = ctx.fillStyle;
     ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.ellipse(b.x, b.y, 18, 4, 0, 0, Math.PI * 2);
@@ -650,6 +710,11 @@ function drawParticles() {
 }
 
 function updateHud() {
+  const wingmanCost = WINGMAN_COSTS[wingmen.length];
+  ui.wingman.disabled = state.mode !== "playing" || Boolean(window.EmeraldArcade?.isPaused?.()) || wingmanCost === undefined || state.shards < wingmanCost;
+  ui.wingman.textContent = wingmanCost === undefined ? "Squadron complete · 2/2" : `Recruit wingman [Q] · ${wingmanCost} flight shards`;
+  const supportStatus = `${wingmen.length}/2 wingmen online · ${wingmanCost === undefined ? "Full squadron" : `${Math.max(0, wingmanCost - state.shards)} more flight shards needed`} · resets each flight`;
+  if (ui.wingmanStatus.textContent !== supportStatus) ui.wingmanStatus.textContent = supportStatus;
   ui.score.textContent = format(state.score);
   ui.shards.textContent = state.shards.toLocaleString();
   ui.wave.textContent = state.wave;
@@ -690,6 +755,7 @@ window.addEventListener("keydown", (event) => {
   if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
   if (event.code === "Space" && !event.repeat) burstShot();
   if (event.code === "KeyE" && !event.repeat) repairShield();
+  if (event.code === "KeyQ" && !event.repeat) recruitWingman();
   if (/^(Arrow(Up|Down|Left|Right)|Key[WASD])$/.test(event.code)) keys.add(event.code);
 });
 window.addEventListener("keyup", (event) => keys.delete(event.code));
@@ -729,6 +795,10 @@ ui.burst.addEventListener("click", () => {
 ui.repair.addEventListener("click", () => {
   repairShield();
   updateHud();
+  if (state.mode === "playing" && !window.EmeraldArcade?.isPaused?.()) canvas.focus({ preventScroll: true });
+});
+ui.wingman.addEventListener("click", () => {
+  recruitWingman();
   if (state.mode === "playing" && !window.EmeraldArcade?.isPaused?.()) canvas.focus({ preventScroll: true });
 });
 ui.finish.addEventListener("click", () => { if (!window.EmeraldArcade?.isPaused?.()) endGame("bank"); });
