@@ -1096,7 +1096,6 @@
       const recoilY = Math.sin(tower.aimAngle) * -8 * pulse;
       ctx.save();
       ctx.translate(tower.x, tower.y);
-      drawUpgradeAura(tower, Math.max(upgradePulse, evolvePulse));
       ctx.save();
       ctx.globalAlpha = 0.18 + pulse * 0.22;
       ctx.strokeStyle = tower.color;
@@ -1155,11 +1154,6 @@
     ctx.globalAlpha = 0.72 + evolvePulse * 0.28;
     ctx.shadowColor = "#ffd86b";
     ctx.shadowBlur = 18 + evolvePulse * 34;
-    ctx.strokeStyle = "#ffd86b";
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.arc(0, -8, 54 + evolvePulse * 20, 0, Math.PI * 2);
-    ctx.stroke();
     const count = 5;
     for (let i = 0; i < count; i += 1) {
       const a = performance.now() * 0.0015 + (Math.PI * 2 * i) / count;
@@ -1176,21 +1170,6 @@
       ctx.beginPath();
       ctx.arc(0, -8, 80 + evolvePulse * 24, 0, Math.PI * 2);
       ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  function drawUpgradeAura(tower, upgradePulse) {
-    if (tower.level <= 1 && upgradePulse <= 0) return;
-    ctx.save();
-    const rings = Math.min(3, tower.level - 1);
-    for (let i = 0; i < rings; i += 1) {
-      ctx.globalAlpha = 0.24 + upgradePulse * 0.35 - i * 0.04;
-      ctx.strokeStyle = i % 2 ? "#d8b45f" : tower.color;
-      ctx.lineWidth = 2 + i;
-      ctx.beginPath();
-      ctx.arc(0, 0, 34 + i * 9 + upgradePulse * 18, 0, Math.PI * 2);
-      ctx.stroke();
     }
     ctx.restore();
   }
