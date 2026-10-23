@@ -19,8 +19,9 @@
     <link rel="preload" href="assets/pepe-tower-defense/relic-cannon-evolved-sprite.png" as="image">
     <link rel="preload" href="assets/pepe-tower-defense/pepe-mage-evolved-sprite.png" as="image">
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
-    <link rel="stylesheet" href="pepe-tower-defense.css?v=manage-20261017">
+    <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=crosspaths-20261023">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -55,18 +56,21 @@
             <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="Pepe Blaster tower">
             <p class="eyebrow">Blockchain tower defense</p>
             <h1 id="overlayTitle">Defend the Emerald Vault.</h1>
-            <p id="overlayText">Place Pepe defenders on vault pads, stop corrupt shard creeps, upgrade your defense, and survive all 12 waves. Start Defense opens the build phase; send wave one when your towers are ready.</p>
+            <p id="overlayText">Place Pepe defenders on vault pads, stop corrupt shard creeps, upgrade your defense, and survive all 20 waves. Start Defense opens the build phase; send wave one when your towers are ready.</p>
             <button id="startButton" type="button">Start Defense</button>
             <small>Click or drag towers from the right dock - select your tower to manage it</small>
           </section>
+          <section class="pad-controls" aria-label="Build or select by pad"><span class="pad-caption" id="padHint">Build pads</span><div><button type="button" data-pad="0" disabled>Pad 1</button><button type="button" data-pad="1" disabled>Pad 2</button><button type="button" data-pad="2" disabled>Pad 3</button><button type="button" data-pad="3" disabled>Pad 4</button><button type="button" data-pad="4" disabled>Pad 5</button><button type="button" data-pad="5" disabled>Pad 6</button><button type="button" data-pad="6" disabled>Pad 7</button><button type="button" data-pad="7" disabled>Pad 8</button><button type="button" data-pad="8" disabled>Pad 9</button></div></section>
         </div>
 
-        <aside class="tower-dock" aria-label="Tower shop">
-          <div class="tower-dock__header">
-            <span>Defender Bay</span>
-            <strong>Tower Loadout</strong>
-          </div>
-          <button class="tower-button is-selected" type="button" data-tower="pepe" draggable="true">
+        <aside class="tower-dock command-bay" aria-label="Defense command bay">
+          <header class="tower-dock__header"><span>Emerald Command</span><strong>Defender Bay</strong><section class="campaign-controls" aria-label="Campaign progress"><p id="campaignLabel">0 / 20 waves cleared</p><progress id="campaignProgress" value="0" max="20" aria-label="Waves cleared"></progress></section></header>
+          <nav class="command-tabs" aria-label="Defense controls">
+            <button type="button" data-command-tab="build" aria-pressed="true" aria-controls="buildView">Build</button>
+            <button type="button" data-command-tab="manage" aria-pressed="false" aria-controls="manageView">Tower</button>
+            <button type="button" data-command-tab="intel" aria-pressed="false" aria-controls="intelView">Enemies</button>
+          </nav>
+          <section class="command-view" id="buildView" aria-label="Build defenders">          <button class="tower-button is-selected" type="button" data-tower="pepe" draggable="true">
             <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="">
             <span>
               <strong>Pepe Blaster</strong>
@@ -102,30 +106,35 @@
             </span>
           </button>
           <details class="defender-guide"><summary>Selected defender field guide</summary><p id="towerGuide"></p></details>
-          <button class="wave-button" id="waveButton" type="button">Start Wave</button>
-          <p class="tower-dock__hint">Drag a tower onto a glowing pad, or select one and click a pad.</p>
+<p class="tower-dock__hint">Choose a defender, then tap a glowing pad or its number on the battlefield.</p></section>
+          <section class="command-view" id="manageView" aria-label="Manage selected defender" hidden><p id="manageEmpty">Tap a placed tower or its pad number to inspect, upgrade, move or sell it.</p><section class="tower-panel" id="towerPanel" aria-labelledby="towerPanelTitle" hidden>
+        <header class="selected-heading"><img id="selectedPortrait" src="assets/pepe-tower-defense/pepe-blaster-sprite.png" width="56" height="56" alt=""><h2 id="towerPanelTitle">Selected defender</h2></header>
+        <p id="towerDetails"></p>
+        <div class="tower-actions"><button type="button" id="moveTowerButton">Move tower - free</button><button type="button" id="cancelMoveButton" hidden>Cancel move</button><button type="button" id="sellTowerButton">Sell tower</button></div>
+        <div class="tower-paths" aria-label="Upgrade paths"><button type="button" data-upgrade-path="power"><span class="path-text"></span><span class="path-pips" aria-hidden="true"><i data-tier="1"></i><i data-tier="2"></i><i data-tier="3"></i><i data-tier="4"></i><i data-tier="5"></i></span></button><button type="button" data-upgrade-path="special"><span class="path-text"></span><span class="path-pips" aria-hidden="true"><i data-tier="1"></i><i data-tier="2"></i><i data-tier="3"></i><i data-tier="4"></i><i data-tier="5"></i></span></button><button type="button" data-upgrade-path="utility"><span class="path-text"></span><span class="path-pips" aria-hidden="true"><i data-tier="1"></i><i data-tier="2"></i><i data-tier="3"></i><i data-tier="4"></i><i data-tier="5"></i></span></button></div>
+
+        <p class="tower-panel__hint">Defense shards are this run's build currency. Move to any empty pad between waves; level, path and attack cooldown stay with the tower. Selling refunds 70% of its total investment. One path can reach tier 5, another tier 2; the third locks. Sell and rebuild to reset paths.</p>
+      </section></section>
+          <section class="command-view" id="intelView" aria-label="Wave and enemy intelligence" hidden><section class="wave-brief" aria-labelledby="waveBriefTitle"><h2 id="waveBriefTitle">Wave intelligence</h2><p id="wavePreview"></p>
+        <div class="goblin-guide"><article><img src="assets/pepe-tower-defense/goblin-raider-v1.webp" width="64" height="64" alt="Dagger-wielding goblin raider"><div><h3>Goblin raider - wave 3+</h3><p>Fast, low health. Rapid-fire towers and slowing fields stop a rush. Breach: 1 vault integrity.</p></div></article>
+        <article><img src="assets/pepe-tower-defense/goblin-brute-v1.webp" width="64" height="64" alt="Armored goblin brute with hammer and shield"><div><h3>Goblin brute - wave 7+</h3><p>20% damage resistance, slower movement. Slow and focus fire. Breach: 2. The wave 20 warboss resists 25% and deals 5 breach damage.</p></div></article></div>
+        <p class="tower-panel__hint">20 waves. Bosses on 5, 10, 15 and 20. Health and formation density rise gradually; enemy speed growth caps at wave 15. Each cleared wave gives a build break.</p>
+      </section><details class="in-game-manual"><summary>How to play</summary>    <div class="game-guide" aria-label="How to play">
+      <div><span class="game-guide__label">Build & defend</span><p><strong>Protect the vault.</strong> Place defenders on glowing pads, then send the next wave.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Select a defender and tap a pad, or drag a tower onto it. Select a placed tower to choose its upgrade path, move it between waves, or sell for a 70% refund. Upgrade up to two paths: one to tier 5 and a secondary to tier 2. The third path locks.</p></div>
+      <div><span class="game-guide__label">Plan the next wave</span><p>Mix damage and slowing towers. The highlighted card is your selected defender; each purchase uses in-game shards.</p></div>
+    </div></details></section>
+          <footer class="command-footer"><small id="nextWaveHint">Wave 1/20 - First defenses</small><button class="wave-button" id="waveButton" type="button">Start Wave</button><p id="commandHint">Choose a defender to begin.</p></footer>
         </aside>
       </section>
-      <section class="tower-panel" id="towerPanel" aria-labelledby="towerPanelTitle" hidden>
-        <h2 id="towerPanelTitle">Selected defender</h2>
-        <p id="towerDetails"></p>
-        <div class="tower-paths" aria-label="Upgrade paths"><button type="button" data-upgrade-path="power"></button><button type="button" data-upgrade-path="special"></button></div>
-        <div class="tower-actions"><button type="button" id="moveTowerButton">Move tower - free</button><button type="button" id="cancelMoveButton" hidden>Cancel move</button><button type="button" id="sellTowerButton">Sell tower</button></div>
-        <p class="tower-panel__hint">Defense shards are this run's build currency. Move to any empty pad between waves; level, path and attack cooldown stay with the tower. Selling refunds 70% of its total investment. To change paths, sell and rebuild.</p>
-      </section>
-      <section class="campaign-controls" aria-label="Campaign progress"><p id="campaignLabel">0 / 12 waves cleared</p><progress id="campaignProgress" value="0" max="12" aria-label="Waves cleared"></progress></section>
-      <section class="pad-controls" aria-label="Build or select by pad"><p>Select a defender, then use a numbered pad below to build or select a tower. Prices are in defense shards.</p><div><button type="button" data-pad="0" disabled>Pad 1</button><button type="button" data-pad="1" disabled>Pad 2</button><button type="button" data-pad="2" disabled>Pad 3</button><button type="button" data-pad="3" disabled>Pad 4</button><button type="button" data-pad="4" disabled>Pad 5</button><button type="button" data-pad="5" disabled>Pad 6</button><button type="button" data-pad="6" disabled>Pad 7</button><button type="button" data-pad="7" disabled>Pad 8</button><button type="button" data-pad="8" disabled>Pad 9</button></div></section>
+
     </main>
 
-    <footer class="game-guide" aria-label="How to play">
-      <div><span class="game-guide__label">Build & defend</span><p><strong>Protect the vault.</strong> Place defenders on glowing pads, then send the next wave.</p></div>
-      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Select a defender and tap a pad, or drag a tower onto it. Select a placed tower to choose its upgrade path, move it between waves, or sell for a 70% refund. Paths lock at the first upgrade.</p></div>
-      <div><span class="game-guide__label">Plan the next wave</span><p>Mix damage and slowing towers. The highlighted card is your selected defender; each purchase uses in-game shards.</p></div>
-    </footer>
+
 
     <script src="arcade.js?v=12"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepe-tower-defense.js?v=manage-20261017"></script>
+    <script src="pepe-tower-defense.js?v=crosspaths-20261023"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

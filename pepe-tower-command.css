@@ -1,0 +1,119 @@
+/* Tower Defense owns a bounded battlefield and command bay on every screen. */
+body[data-game="tower"] { overflow: hidden; }
+body[data-game="tower"] .game-shell { height: calc(100dvh - 76px); min-height: 0; padding: 8px; grid-template-rows: 48px minmax(0,1fr); gap: 8px; }
+body[data-game="tower"] .arcade-topbar { min-height: 0; padding: 4px 10px; grid-template-columns: auto 1fr auto; gap: 8px; }
+body[data-game="tower"] .brand { grid-column: auto; grid-row: auto; }
+body[data-game="tower"] .brand span { display: none; }
+body[data-game="tower"] .brand strong { font-size: 1.1rem; }
+body[data-game="tower"] .back, body[data-game="tower"] .sound-toggle { grid-row: auto; min-height: 36px; min-width: 0; padding: 6px 10px; }
+body[data-game="tower"] .stage-wrap { grid-template-columns: minmax(0,1fr) 340px; align-items: stretch; gap: 0; height: 100%; min-height: 0; }
+body[data-game="tower"] .playfield { display: grid; grid-template-rows: auto minmax(0,1fr) auto; min-height: 0; background: #020b07; }
+body[data-game="tower"] .playfield > canvas { grid-area: 2 / 1; width: 100%; height: 100%; min-height: 0; aspect-ratio: auto; align-self: stretch; }
+body[data-game="tower"] .hud { position: static; grid-area: 1 / 1; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); margin: 6px; gap: 4px; }
+body[data-game="tower"] .hud div { padding: 5px 7px; }
+body[data-game="tower"] .hud span { font-size: 1.05rem; }
+body[data-game="tower"] .hud small { font-size: .57rem; }
+body[data-game="tower"] .status-pill { display: grid; bottom: 62px; right: 10px; padding: 7px 10px; max-width: 330px; }
+body[data-game="tower"] .status-pill strong { font-size: .75rem; }
+body[data-game="tower"] .status-pill small { font-size: .65rem; }
+body[data-game="tower"] .overlay { position: absolute; grid-area: auto; inset: 0; min-height: 0; gap: 8px; padding: 16px; }
+body[data-game="tower"] .overlay img { width: 74px; }
+body[data-game="tower"] .overlay h1 { font-size: clamp(1.4rem,3vw,2.5rem); }
+body[data-game="tower"] .overlay p { font-size: .85rem; max-width: 56ch; }
+body[data-game="tower"] .overlay small { font-size: .7rem; }
+body[data-game="tower"] .pad-controls { grid-area: 3 / 1; padding: 6px; display: flex; gap: 7px; align-items: center; border-top: 1px solid #4c806244; }
+body[data-game="tower"] .pad-caption { font-size: .65rem; color: #bad9c6; max-width: 48px; }
+body[data-game="tower"] .pad-controls > div { display: grid; grid-template-columns: repeat(9,minmax(0,1fr)); flex: 1; gap: 4px; }
+body[data-game="tower"] .pad-controls button { min-height: 40px; min-width: 0; padding: 4px; font-weight: bold; }
+body[data-game="tower"] .command-bay { display: grid; grid-template-columns: 1fr; grid-template-rows: auto auto minmax(0,1fr) auto; gap: 8px; min-height: 0; overflow: hidden; padding: 12px; border: 0; border-left: 1px solid #bdac5944; border-radius: 0; background: linear-gradient(#03140c99,#03140cbf),url("assets/pepe-tower-defense/command-stone-v1.webp") center / cover; }
+body[data-game="tower"] .tower-dock__header { gap: 3px; padding: 0; border: 0; }
+body[data-game="tower"] .tower-dock__header > span { font-size: .6rem; }
+body[data-game="tower"] .tower-dock__header > strong { font-size: 1rem; }
+body[data-game="tower"] .campaign-controls { padding: 0; }
+body[data-game="tower"] .campaign-controls p { margin: 2px 0; font-size: .7rem; }
+body[data-game="tower"] #campaignProgress { height: 6px; }
+.command-tabs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; }
+.command-tabs button { min-height: 40px; border: 1px solid #5b8b70; border-radius: 8px; background: #102b20; color: #d2eadb; font: inherit; font-size: .8rem; cursor: pointer; }
+.command-tabs button[aria-pressed="true"] { background: #d1c17d; color: #14231a; border-color: #f6df8f; font-weight: 900; }
+body[data-game="tower"] .command-view { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #528b69 #0a1c13; padding-right: 4px; }
+body[data-game="tower"] .command-view[hidden] { display: none; }
+body[data-game="tower"] .tower-button { width: 100%; min-height: 64px; display: grid; grid-template-columns: 48px minmax(0,1fr); gap: 8px; margin-bottom: 7px; padding: 6px 9px; }
+body[data-game="tower"] .tower-button img { width: 48px; height: 48px; }
+body[data-game="tower"] .tower-button strong { font-size: .85rem; }
+body[data-game="tower"] .tower-button small { font-size: .68rem; }
+body[data-game="tower"] .command-footer { display: grid; gap: 5px; border-top: 1px solid #bdae5a55; padding-top: 8px; }
+body[data-game="tower"] .command-footer > small { color: #efdca5; font-size: .7rem; }
+body[data-game="tower"] .wave-button { min-height: 42px; }
+#commandHint { margin: 0; font-size: .68rem; line-height: 1.35; color: #b6d4bf; }
+body[data-game="tower"] .tower-panel, body[data-game="tower"] .wave-brief { margin: 0; padding: 10px; border-radius: 10px; background: #05180ed9; }
+.selected-heading { display: flex; align-items: center; gap: 8px; }
+.selected-heading img { width: 56px; height: 56px; object-fit: contain; }
+body[data-game="tower"] .tower-panel h2 { font-size: .95rem; margin: 0; }
+body[data-game="tower"] .tower-panel p { font-size: .75rem; line-height: 1.45; margin: 8px 0; }
+body[data-game="tower"] .tower-paths { grid-template-columns: 1fr; gap: 8px; }
+body[data-game="tower"] .tower-panel button { font-size: .75rem; padding: 10px; line-height: 1.4; min-height: 44px; }
+body[data-game="tower"] .tower-actions { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
+body[data-game="tower"] .tower-panel .tower-panel__hint { font-size: .65rem; }
+body[data-game="tower"] .wave-brief h2 { font-size: 1rem; }
+body[data-game="tower"] .wave-brief > p { font-size: .75rem; }
+body[data-game="tower"] .goblin-guide { grid-template-columns: 1fr; gap: 8px; }
+body[data-game="tower"] .goblin-guide article { padding: 8px; gap: 8px; }
+body[data-game="tower"] .goblin-guide img { width: 64px; height: 64px; }
+body[data-game="tower"] .goblin-guide h3 { font-size: .8rem; }
+body[data-game="tower"] .goblin-guide p { font-size: .7rem; }
+body[data-game="tower"] .game-guide { display: block; width: auto; margin: 0; padding: 8px; font-size: .75rem; }
+body[data-game="tower"] .game-guide > div { margin-bottom: 10px; }
+.in-game-manual { margin-top: 12px; font-size: .8rem; }
+#manageEmpty { color: #c6e3d0; font-size: .85rem; line-height: 1.6; padding: 8px; }
+@media(max-width:760px) {
+  body[data-game="tower"] .game-shell { height: calc(100dvh - 116px); grid-template-rows: 44px minmax(0,1fr); gap: 5px; padding: 5px; }
+  body[data-game="tower"] .brand strong { font-size: .85rem; }
+  body[data-game="tower"] .stage-wrap { grid-template-columns: 1fr; grid-template-rows: minmax(200px,42%) minmax(0,1fr); }
+  body[data-game="tower"] .playfield { border: 0; }
+  body[data-game="tower"] .hud { margin: 3px; gap: 3px; }
+  body[data-game="tower"] .hud div { padding: 3px 5px; }
+  body[data-game="tower"] .hud span { font-size: .8rem; }
+  body[data-game="tower"] .hud small { font-size: .48rem; }
+  body[data-game="tower"] .status-pill { display: none; }
+  body[data-game="tower"] .pad-controls { padding: 4px; gap: 4px; }
+  body[data-game="tower"] .pad-caption { display: none; }
+  body[data-game="tower"] .pad-controls button { min-height: 34px; }
+  body[data-game="tower"] .command-bay { border-left: 0; border-top: 1px solid #bdae5a66; padding: 7px; grid-template-rows: auto auto minmax(0,1fr) auto; gap: 5px; }
+  body[data-game="tower"] .tower-dock__header { grid-template-columns: 1fr 1fr; align-items: center; }
+  body[data-game="tower"] .tower-dock__header > span { display: none; }
+  body[data-game="tower"] .campaign-controls p { font-size: .6rem; }
+  body[data-game="tower"] .command-tabs button { min-height: 36px; }
+  body[data-game="tower"] #buildView { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; align-content: start; }
+  body[data-game="tower"] #buildView[hidden] { display: none; }
+  body[data-game="tower"] .tower-button { grid-template-columns: 36px minmax(0,1fr); min-height: 58px; gap: 4px; padding: 4px; margin: 0; }
+  body[data-game="tower"] .tower-button img { width: 36px; height: 40px; }
+  body[data-game="tower"] .tower-button strong { font-size: .7rem; }
+  body[data-game="tower"] .tower-button small { font-size: .58rem; }
+  body[data-game="tower"] :is(.defender-guide,.tower-dock__hint) { grid-column: 1 / -1; font-size: .65rem; }
+  body[data-game="tower"] .command-footer { padding-top: 5px; }
+  body[data-game="tower"] .wave-button { min-height: 38px; }
+  body[data-game="tower"] .command-footer > small { font-size: .65rem; }
+  body[data-game="tower"] .command-footer > p { display: none; }
+  body[data-game="tower"] .overlay { gap: 5px; padding: 10px; }
+  body[data-game="tower"] .overlay img, body[data-game="tower"] .overlay .eyebrow, body[data-game="tower"] .overlay small { display: none; }
+  body[data-game="tower"] .overlay h1 { font-size: 1.3rem; }
+  body[data-game="tower"] .overlay p { font-size: .65rem; }
+  body[data-game="tower"] .overlay button { min-width: 160px; min-height: 38px; }
+}
+@media(max-height:500px) and (min-width:761px) { body[data-game="tower"] .game-shell { height: calc(100dvh - 62px); } body[data-game="tower"] .tower-dock__header > span, body[data-game="tower"] .campaign-controls p { display: none; } }
+
+.path-text { display: block; }
+.path-pips { display: flex; gap: 5px; margin-top: 8px; }
+.path-pips i { display: block; width: 22px; height: 5px; border: 1px solid #8fa98d; border-radius: 2px; background: #05150d; }
+.path-pips i.is-earned { background: #ffdc7a; border-color: #ffe6a2; box-shadow: 0 0 6px #ffe6a244; }
+.tower-paths button[data-upgrade-path="power"] { border-left: 4px solid #f9c46c; }
+.tower-paths button[data-upgrade-path="special"] { border-left: 4px solid #79d5ff; }
+.tower-paths button[data-upgrade-path="utility"] { border-left: 4px solid #c49cff; }
+
+body[data-game="tower"] .tower-actions { grid-template-columns: repeat(2,minmax(0,1fr)); margin: 8px 0; gap: 6px; }
+body[data-game="tower"] .tower-actions button { width: 100%; min-width: 0; font-size: .7rem; padding: 7px; }
+body[data-game="tower"] #cancelMoveButton { grid-column: 1 / -1; }
+
+body[data-game="tower"] .pad-controls[data-moving="true"] { background: #173c45; border-color: #8ee9ff; }
+body[data-game="tower"] .pad-controls[data-moving="true"] .pad-caption { display: inline; color: #b4f3ff; }
+body[data-game="tower"] .pad-controls[data-moving="true"] button:not(:disabled) { border-color: #8ee9ff; }

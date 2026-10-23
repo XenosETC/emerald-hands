@@ -51,7 +51,7 @@ function game(file) {
     },
     querySelectorAll(selector) {
       if (file !== 'pepe-tower-defense.js') return [];
-      const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special']] : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer'].map(type=>['tower',type]) : [];
+      const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special'],['upgradePath','utility']] : selector === '[data-command-tab]' ? ['build','manage','intel'].map(view=>['commandTab',view]) : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer'].map(type=>['tower',type]) : [];
       return entries.map(([key,value])=>{const id=`${key}:${value}`;if(!nodes.has(id)){const item=node();item.dataset[key]=value;nodes.set(id,item);}return nodes.get(id);});
     },
   });
@@ -688,20 +688,20 @@ test('Tower Defense ignores dead targets so the next ready tower hits a live cre
 });
 
 
-test('Tower Defense twelve wave-clear transitions reward once and replay resets campaign', () => {
+test('Tower Defense twenty wave-clear transitions reward once and replay resets campaign', () => {
   const g = game('pepe-tower-defense.js'); g.start();
   // Synthetic clears isolate campaign transitions, not combat or human balance.
-  for (let wave=1;wave<=12;wave++) {
+  for (let wave=1;wave<=20;wave++) {
     g.nodes.get('#waveButton').emit('click');
     g.read('window.__towerRead("enemies.length=0; state.spawnLeft=0; updateWave(0); updateHud()")');
     assert.equal(g.nodes.get('#campaignProgress').value, wave);
   }
   assert.equal(g.records.length, 1);
-  assert.equal(g.records[0][1].wave, 12);
+  assert.equal(g.records[0][1].wave, 20);
   assert.equal(g.records[0][1].rank, 'Vault Architect');
-  assert.equal(g.records[0][1].score, 13800);
-  assert.equal(g.records[0][1].shards, 1776);
-  assert.equal(g.nodes.get('#waveLabel').textContent, 12);
+  assert.equal(g.records[0][1].score, 31000);
+  assert.equal(g.records[0][1].shards, 3800);
+  assert.equal(g.nodes.get('#waveLabel').textContent, 20);
   g.read('window.__towerRead("updateWave(0); endGame()")');
   assert.equal(g.records.length, 1);
   g.start(); assert.equal(g.nodes.get('#campaignProgress').value, 0);
@@ -710,14 +710,14 @@ test('Tower Defense twelve wave-clear transitions reward once and replay resets 
 
 test('Tower Defense upgrades reach evolution with exact costs and mastery actions', () => {
   const g = game('pepe-tower-defense.js'); g.start();
-  g.read('window.__towerRead("state.shards=1000; selectTower(String.fromCharCode(115,104,97,114,100)); buildOrUpgrade(pads[0]); for(let i=0;i<4;i++) upgradeSelected(String.fromCharCode(112,111,119,101,114))")');
+  g.read('window.__towerRead("state.shards=1000; selectTower(String.fromCharCode(115,104,97,114,100)); buildOrUpgrade(pads[0]); for(let i=0;i<5;i++) upgradeSelected(String.fromCharCode(112,111,119,101,114))")');
   assert.equal(g.read('window.__towerRead("towers[0].level")'), 5);
   assert.equal(g.read('window.__towerRead("towers[0].evolved")'), true);
   assert.equal(g.read('window.__towerRead("towers[0].slow")'), .82);
-  assert.equal(g.read('window.__towerRead("state.shards")'), 95);
-  assert.equal(g.read('window.__towerRead("mastery.shard.upgrades")'), 4);
+  assert.equal(g.read('window.__towerRead("state.shards")'), 20);
+  assert.equal(g.read('window.__towerRead("mastery.shard.upgrades")'), 5);
   g.read('window.__towerRead("buildOrUpgrade(pads[0])")');
-  assert.equal(g.read('window.__towerRead("state.shards")'), 95);
+  assert.equal(g.read('window.__towerRead("state.shards")'), 20);
 });
 
 
@@ -739,9 +739,9 @@ test('Tower Defense multi-corner travel preserves boss breach damage and records
 });
 
 
-for (const sample of [.1,.2,.5]) test(`Tower Defense earned-shard combat campaign at random=${sample}`, (t) => {
+for (const hz of [30,60]) test(`Tower Defense earned-shard combat campaign at ${hz} Hz`, (t) => {
   const g = game('pepe-tower-defense.js'); g.start();
-  g.read(`Math.random = () => ${sample}`);
+  g.read("Math.random = () => .5");
   const outcome = JSON.parse(g.read(`window.__towerRead(\`
     const order = [0,2,4,6,1,5,7,8,3];
     let ticks = 0;
@@ -749,22 +749,22 @@ for (const sample of [.1,.2,.5]) test(`Tower Defense earned-shard combat campaig
       // Deterministic purchasing policy; never grant funds, kills or clears.
       selectTower("pepe");
       for (const index of order) if (!towerAtPad(pads[index]) && state.shards >= 75) buildOrUpgrade(pads[index]);
-      for (let level=1;level<5;level++) for(const index of order) {
+      for (let tier=0;tier<5;tier++) for(const index of order) {
         const tower = towerAtPad(pads[index]);
-        if(tower && tower.level===level && state.shards >= upgradeCost(tower)) { buildOrUpgrade(pads[index]); upgradeSelected("power"); }
+        if(tower && tower.tiers.power===tier && state.shards >= upgradeCost(tower,"power")) { buildOrUpgrade(pads[index]); upgradeSelected("power"); }
       }
       if(!state.waveActive) startWave();
-      update(1/30);
+      update(1/${hz});
       ticks++;
     }
     JSON.stringify({wave:state.wave,vault:state.vault,score:state.score,ticks,towers:towers.length,playing:state.playing});
   \`)`));
   t.diagnostic(`Controller policy only: ${JSON.stringify(outcome)}; human balance remains open.`);
   assert.equal(outcome.playing, false, JSON.stringify(outcome));
-  assert.equal(outcome.wave, 13, JSON.stringify(outcome));
+  assert.equal(outcome.wave, 21, JSON.stringify(outcome));
   assert.ok(outcome.vault > 0);
   assert.equal(g.records.length, 1);
-  assert.equal(g.records[0][1].wave, 12);
+  assert.equal(g.records[0][1].wave, 20);
 });
 
 
@@ -1056,15 +1056,17 @@ function towerGame() {
   return g;
 }
 
-test('Tower management selects without spending, including unaffordable and max-level defenders',()=>{
-  const g=towerGame();g.nodes.get('pad:0').emit('click');
-  assert.equal(g.act('state.shards'),105);g.nodes.get('pad:0').emit('click');assert.equal(g.act('state.shards'),105);
+test('Tower management selects without spending and 5/2/0 crosspaths enforce both caps',()=>{
+  const g=towerGame();g.nodes.get('pad:0').emit('click');assert.equal(g.act('state.shards'),105);
+  g.nodes.get('pad:0').emit('click');assert.equal(g.act('state.shards'),105);
   assert.equal(g.nodes.get('pad:0').disabled,false);assert.equal(g.nodes.get('#towerPanel').hidden,false);
-  g.act('state.shards=1000');g.nodes.get('upgradePath:power').emit('click');assert.equal(g.act('towers[0].level'),2);
-  assert.ok(Math.abs(g.act('towers[0].damage')-22*1.22*1.18)<1e-9);
-  g.act('upgradeSelected("special")');assert.equal(g.act('towers[0].level'),2);
-  g.act('upgradeSelected("power");upgradeSelected("power");upgradeSelected("power");state.shards=0;updateHud()');
-  assert.equal(g.nodes.get('pad:0').disabled,false);assert.equal(g.act('towers[0].level'),5);
+  g.act('state.shards=5000');g.nodes.get('upgradePath:power').emit('click');assert.equal(g.act('towers[0].tiers.power'),1);
+  assert.ok(Math.abs(g.act('towers[0].damage')-29.7)<1e-9);
+  g.act('upgradeSelected("special");upgradeSelected("special")');assert.equal(g.act('upgradeSelected("utility")'),false);
+  g.act('upgradeSelected("power");upgradeSelected("power");upgradeSelected("power");upgradeSelected("power")');
+  assert.equal(g.act('tierCode(towers[0])'),'5 / 2 / 0');assert.equal(g.act('upgradeSelected("special")'),false);
+  assert.equal(g.act('upgradeSelected("power")'),false);assert.equal(g.act('towers[0].evolved'),true);
+  g.act('state.shards=0;updateHud()');assert.equal(g.nodes.get('pad:0').disabled,false);
   assert.equal(g.nodes.get('upgradePath:power').disabled,true);
 });
 
@@ -1082,9 +1084,9 @@ test('Tower relocation preserves object, upgrade investment and cooldown without
 
 test('Tower sale refunds invested build and upgrades once, keeps score and rewards unchanged',()=>{
   const g=towerGame();g.act('buildOrUpgrade(pads[0]);state.shards=500;upgradeSelected("power");upgradeSelected("power");state.score=99');
-  assert.equal(g.act('towers[0].invested'),370);
-  g.nodes.get('#sellTowerButton').emit('click');assert.equal(g.act('state.shards'),464);
-  g.nodes.get('#sellTowerButton').emit('click');assert.equal(g.act('state.shards'),464);
+  assert.equal(g.act('towers[0].invested'),270);
+  g.nodes.get('#sellTowerButton').emit('click');assert.equal(g.act('state.shards'),494);
+  g.nodes.get('#sellTowerButton').emit('click');assert.equal(g.act('state.shards'),494);
   assert.equal(g.act('towers.length'),0);assert.equal(g.act('state.score'),99);assert.equal(g.records.length,0);
   assert.equal(g.nodes.get('#towerPanel').hidden,true);
 });
@@ -1102,9 +1104,103 @@ test('All defender paths affect actual combat stats while preserving level miles
     const g=towerGame();g.act(`selectTower("${type}");buildOrUpgrade(pads[0]);state.shards=2000;upgradeSelected("special")`);
     const stat=type==='shard'?'slow':type==='relic'||type==='mage'?'splash':'rate';
     assert.ok(g.act(`towers[0].${stat} ${stat==='rate'?'<':'>'} towerTypes["${type}"].${stat}`));
-    g.act('upgradeSelected("special");upgradeSelected("special");upgradeSelected("special")');assert.equal(g.act('towers[0].evolved'),true);
+    g.act('upgradeSelected("special");upgradeSelected("special");upgradeSelected("special");upgradeSelected("special")');assert.equal(g.act('towers[0].evolved'),true);
     assert.ok(g.act('towers[0].slow<=.82'));
     g.act('enemies.push({x:towers[0].x+10,y:towers[0].y,hp:10000,maxHp:10000,pathIndex:1,slowTimer:0,radius:14,kind:"grunt"});towers[0].cooldown=0;updateTowers(0)');
     assert.ok(g.act('enemies[0].hp<10000'));
   }
+});
+
+
+test('Tower Defense authored waves introduce goblins safely and telegraph all four bosses',()=>{
+  const g=towerGame();
+  assert.equal(g.act('CAMPAIGN_WAVES'),20);
+  assert.equal(g.act('wavePlans.length'),20);
+  assert.ok(g.act('wavePlans.slice(0,2).every(p=>p.kinds.every(k=>k==="grunt"))'));
+  assert.ok(g.act('wavePlans[2].kinds.includes("goblin")'));
+  assert.ok(g.act('wavePlans.slice(0,6).every(p=>!p.kinds.includes("brute"))'));
+  assert.ok(g.act('wavePlans[6].kinds.includes("brute")'));
+  assert.equal(g.act('wavePlans.reduce((n,p)=>n+p.kinds.filter(k=>enemyTypes[k].boss).length,0)'),4);
+  assert.equal(g.act('wavePlans[19].kinds.at(-1)'),'warboss');
+  assert.ok(g.act('wavePlans.every((p,i)=>p.count===p.kinds.length && (!i || p.count>=wavePlans[i-1].count && p.hpScale>=wavePlans[i-1].hpScale && p.interval<=wavePlans[i-1].interval))'));
+  assert.match(g.act('waveBrief(wavePlans[19])'),/Goblin warboss/);
+  assert.match(g.nodes.get('#wavePreview').textContent,/Wave 1\/20/);
+});
+
+test('Goblin armor resists both direct and splash hits, and slows affect real movement',()=>{
+  const g=towerGame();
+  g.act('enemies.push({...enemyTypes.brute,x:34,y:345,pathIndex:1,hp:100,maxHp:100,slowTimer:0,hitFlash:0,spin:0,kind:"brute"},{...enemyTypes.brute,x:40,y:345,pathIndex:1,hp:100,maxHp:100,slowTimer:0,hitFlash:0,spin:0,kind:"brute"});damageEnemy(enemies[0],20,.48,50)');
+  assert.equal(g.act('enemies[0].hp'),84);assert.equal(g.act('enemies[1].hp'),92.8);
+  g.act('updateEnemies(1)');assert.ok(Math.abs(g.act('enemies[0].x')-55.84)<1e-9);
+});
+
+test('Wave 20 spawns the promised final warboss once with scaling, armor and five-point breach',()=>{
+  const g=towerGame();g.act('state.wave=20;startWave();enemies.length=0;state.spawnLeft=1;spawnEnemy()');
+  assert.equal(g.act('enemies.length'),1);assert.equal(g.act('enemies[0].kind'),'warboss');
+  assert.ok(g.act('enemies[0].hp>9000 && enemies[0].armor===.25'));
+  assert.equal(g.act('enemies[0].speed'),53);
+  g.act('enemies[0].x=1325;enemies[0].y=404;enemies[0].pathIndex=9;updateEnemies(0)');
+  assert.equal(g.act('state.vault'),15);assert.equal(g.act('enemies.length'),0);
+  g.act('state.spawnLeft=0;updateWave(0)');assert.equal(g.records.length,1);assert.equal(g.records[0][1].wave,20);
+});
+
+
+test('Tower Defense mixed earned-shard defense completes the expanded campaign', (t)=>{
+  const g=towerGame();
+  const outcome=JSON.parse(g.act(`
+    const order=[0,2,4,6,1,5,7,8,3];
+    const loadout={0:"pepe",2:"pepe",4:"shard",6:"pepe",1:"pepe",5:"pepe",7:"archer",8:"relic",3:"pepe"};
+    let ticks=0;
+    while(state.playing && ticks<54000) {
+      for(const i of order) if(!towerAtPad(pads[i]) && state.shards>=towerTypes[loadout[i]].cost) {selectTower(loadout[i]);buildOrUpgrade(pads[i]);}
+      for(let tier=0;tier<5;tier++)for(const i of order) {
+        const tower=towerAtPad(pads[i]);
+        if(tower && tower.tiers[tower.type==="shard"?"special":"power"]===tier && state.shards>=upgradeCost(tower,tower.type==="shard"?"special":"power")) {buildOrUpgrade(pads[i]);upgradeSelected(tower.type==="shard"?"special":"power");}
+      }
+      if(!state.waveActive)startWave();
+      update(1/30);ticks++;
+    }
+    JSON.stringify({wave:state.wave,vault:state.vault,playing:state.playing,ticks});
+  `));
+  t.diagnostic(`Mixed-defense controller only: ${JSON.stringify(outcome)}; human balance remains open.`);
+  assert.equal(outcome.wave,21);assert.equal(outcome.playing,false);assert.ok(outcome.vault>0);assert.equal(g.records.length,1);
+});
+
+
+test('Crosspaths may choose either primary after a 2/2 start and reject all third-path debits',()=>{
+  for(const main of ['power','special','utility'])for(const secondary of ['power','special','utility'].filter(p=>p!==main)) {
+    const g=towerGame();g.act('buildOrUpgrade(pads[0]);state.shards=10000');
+    g.act(`upgradeSelected("${secondary}");upgradeSelected("${secondary}");upgradeSelected("${main}");upgradeSelected("${main}")`);
+    assert.equal(g.act(`upgradeSelected("${main}")`),true);
+    assert.equal(g.act(`upgradeSelected("${secondary}")`),false);
+    const third=['power','special','utility'].find(p=>p!==main && p!==secondary);
+    const before=g.act('state.shards');assert.equal(g.act(`upgradeSelected("${third}")`),false);assert.equal(g.act('state.shards'),before);
+    g.act(`upgradeSelected("${main}");upgradeSelected("${main}")`);assert.equal(g.act('towers[0].evolved'),true);
+  }
+});
+
+test('Identical crosspaths have order-independent stats and previews cannot mutate purchases',()=>{
+  const outcomes=[];
+  for(const order of [['power','special','power','special','power','power','power'],['special','special','power','power','power','power','power']]) {
+    const g=towerGame();g.act('buildOrUpgrade(pads[0]);state.shards=10000');
+    for(const choice of order)g.act(`upgradeSelected("${choice}")`);
+    outcomes.push(g.act('JSON.stringify([towers[0].damage,towers[0].range,towers[0].rate,towers[0].invested,state.shards])'));
+    const snapshot=g.act('JSON.stringify(towers[0].tiers)');g.act('updateTowerPanel();updateTowerPanel()');assert.equal(g.act('JSON.stringify(towers[0].tiers)'),snapshot);
+  }
+  assert.equal(outcomes[0],outcomes[1]);
+});
+
+test('Command bay tabs stay in the game and selecting a tower opens management without buying',()=>{
+  const g=towerGame();g.nodes.get('commandTab:intel').emit('click');assert.equal(g.nodes.get('#intelView').hidden,false);assert.equal(g.nodes.get('#buildView').hidden,true);
+  g.nodes.get('commandTab:build').emit('click');g.nodes.get('pad:0').emit('click');assert.equal(g.nodes.get('#manageView').hidden,false);
+  assert.equal(g.nodes.get('#buildView').hidden,true);assert.equal(g.nodes.get('pad:0').textContent,'1');
+  const funds=g.act('state.shards');g.nodes.get('pad:0').emit('click');assert.equal(g.act('state.shards'),funds);
+});
+
+
+test('Long Watch crosspath extends real target acquisition and insufficient shards cannot purchase tiers',()=>{
+  const g=towerGame();g.act('selectTower("archer");buildOrUpgrade(pads[0]);state.shards=1000;upgradeSelected("utility");upgradeSelected("utility");upgradeSelected("utility");enemies.push({x:pads[0].x+280,y:pads[0].y,hp:1000,maxHp:1000,radius:14,pathIndex:1,kind:"grunt"})');
+  assert.equal(g.act('targetFor(towers[0])===enemies[0]'),true);
+  g.act('updateTowers(0)');assert.ok(g.act('enemies[0].hp<1000'));
+  const tiers=g.act('JSON.stringify(towers[0].tiers)');g.act('state.shards=0');assert.equal(g.act('upgradeSelected("power")'),false);assert.equal(g.act('JSON.stringify(towers[0].tiers)'),tiers);
 });

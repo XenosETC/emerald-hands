@@ -18,12 +18,27 @@
   const statusMeta = document.querySelector("#statusMeta");
   const campaignProgress = document.querySelector("#campaignProgress");
   const campaignLabel = document.querySelector("#campaignLabel");
+  const commandTabs = [...document.querySelectorAll("[data-command-tab]")];
+  const commandViews = { build: document.querySelector("#buildView"), manage: document.querySelector("#manageView"), intel: document.querySelector("#intelView") };
+  const commandHint = document.querySelector("#commandHint");
+  const nextWaveHint = document.querySelector("#nextWaveHint");
+  const padHint = document.querySelector("#padHint");
+  const padControls = document.querySelector(".pad-controls");
+  const manageEmpty = document.querySelector("#manageEmpty");
+  const selectedPortrait = document.querySelector("#selectedPortrait");
+  const towerPanelTitle = document.querySelector("#towerPanelTitle");
+  function setCommandView(view) {
+    if (!commandViews[view]) return;
+    for (const [key,node] of Object.entries(commandViews)) node.hidden = key !== view;
+    commandTabs.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.commandTab === view)));
+  }
   const towerPanel = document.querySelector("#towerPanel");
   const towerDetails = document.querySelector("#towerDetails");
   const pathButtons = [...document.querySelectorAll("[data-upgrade-path]")];
   const moveButton = document.querySelector("#moveTowerButton");
   const sellButton = document.querySelector("#sellTowerButton");
   const cancelMoveButton = document.querySelector("#cancelMoveButton");
+  const wavePreview = document.querySelector("#wavePreview");
   const towerGuide = document.querySelector("#towerGuide");
 
   const W = canvas.width;
@@ -50,7 +65,11 @@
     mage: loadImage("assets/pepe-tower-defense/pepe-mage-evolved-sprite.png"),
     archer: loadImage("assets/pepe-tower-defense/pepe-archer-evolved-sprite.png"),
   };
+  const goblinBrute = loadImage("assets/pepe-tower-defense/goblin-brute-v1.webp");
   const enemySprites = {
+    goblin: loadImage("assets/pepe-tower-defense/goblin-raider-v1.webp"),
+    brute: goblinBrute,
+    warboss: goblinBrute,
     grunt: loadImage("assets/pepe-tower-defense/enemy-crawler-sprite.png"),
     elite: loadImage("assets/pepe-tower-defense/enemy-crawler-sprite.png"),
     runner: loadImage("assets/pepe-tower-defense/enemy-runner-sprite.png"),
@@ -83,6 +102,41 @@
     mage: { name: "Pepe Mage", cost: 125, range: 170, damage: 18, rate: 0.78, color: "#a855ff", splash: 32, slow: 0.12 },
     archer: { name: "Pepe Archer", cost: 105, range: 220, damage: 30, rate: 0.72, color: "#9cff6b", splash: 0, slow: 0 },
   };
+  const CAMPAIGN_WAVES = 20;
+  const enemyTypes = {
+    grunt: { name: "Crawler", hp: 70, growth: 13, speed: 58, acceleration: 2.4, reward: 13, radius: 14, size: 54, breachDamage: 1, armor: 0 },
+    runner: { name: "Shard runner", hp: 70, growth: 13, speed: 92, acceleration: 2.4, reward: 18, radius: 15, size: 62, breachDamage: 1, armor: 0 },
+    elite: { name: "Elite crawler", hp: 130, growth: 24, speed: 58, acceleration: 2.4, reward: 28, radius: 19, size: 66, breachDamage: 2, armor: 0 },
+    boss: { name: "Vault breaker", hp: 520, growth: 72, speed: 36, acceleration: 1.1, reward: 120, radius: 31, size: 112, breachDamage: 4, armor: 0, boss: true },
+    goblin: { name: "Goblin raider", hp: 50, growth: 11, speed: 104, acceleration: 2, reward: 18, radius: 17, size: 76, breachDamage: 1, armor: 0 },
+    brute: { name: "Goblin brute", hp: 170, growth: 27, speed: 42, acceleration: 1.5, reward: 32, radius: 23, size: 94, breachDamage: 2, armor: .2 },
+    warboss: { name: "Goblin warboss", hp: 850, growth: 115, speed: 35, acceleration: 1.2, reward: 220, radius: 35, size: 138, breachDamage: 5, armor: .25, boss: true },
+  };
+  // Authored compositions are deterministic; late pressure grows without raising speeds without bound.
+  function buildWavePlan(wave) {
+    const count = wave <= 12 ? 9 + wave * 3 : 45 + (wave - 12) * 2;
+    const rush = [6, 9, 14, 18].includes(wave);
+    const siege = [8, 13, 17].includes(wave);
+    const kinds = Array.from({ length: count }, (_, index) => {
+      if (wave % 5 === 0 && index === (wave === CAMPAIGN_WAVES ? count - 1 : Math.floor(count * .55))) return wave === CAMPAIGN_WAVES ? "warboss" : "boss";
+      if (wave >= 7 && index % (siege ? 3 : wave >= 16 ? 4 : 7) === 2) return "brute";
+      if (wave >= 3 && index % (rush ? 2 : wave >= 10 ? 3 : 5) === 1) return "goblin";
+      if (wave >= 4 && index % 6 === 3) return "elite";
+      if (wave >= 3 && index % 7 === 4) return "runner";
+      return "grunt";
+    });
+    const late = Math.max(0, wave - 5);
+    const endgame = Math.max(0, wave - 12);
+    return { wave, kinds, count, interval: Math.max(.3, .75 - wave * .025), hpScale: 1 + late * .055 + late * late * .006 + endgame * endgame * .10,
+      name: wave === CAMPAIGN_WAVES ? "Warboss assault" : wave % 5 === 0 ? "Vault breaker" : rush ? "Raider rush" : siege ? "Brute siege" : wave <= 2 ? "First defenses" : "Mixed assault" };
+  }
+  const wavePlans = Array.from({ length: CAMPAIGN_WAVES }, (_, i) => buildWavePlan(i + 1));
+  function currentWavePlan() { return wavePlans[Math.min(CAMPAIGN_WAVES - 1, Math.max(0, state.wave - 1))]; }
+  function waveBrief(plan) {
+    const counts = {};
+    for (const kind of plan.kinds) counts[kind] = (counts[kind] || 0) + 1;
+    return `Wave ${plan.wave}/${CAMPAIGN_WAVES}: ${plan.name} - ${Object.entries(counts).map(([kind,count]) => `${count} ${enemyTypes[kind].name}${count === 1 ? "" : "s"}`).join(", ")}. Enemy health x${plan.hpScale.toFixed(2)}; arrivals every ${plan.interval.toFixed(2)}s. Inspect, upgrade or move your towers before sending it.`;
+  }
   const mastery = loadMastery();
 
   function loadMastery() {
@@ -191,6 +245,7 @@
     bursts.length = 0;
     floaters.length = 0;
     motes.length = 0;
+    setCommandView("build");
     state.playing = true;
     state.waveActive = false;
     state.wave = 1;
@@ -203,7 +258,7 @@
     overlay.classList.add("is-hidden");
     waveButton.textContent = "Start Wave";
     statusLabel.textContent = "Place defenders on empty pads";
-    statusMeta.textContent = "Build with 180 shards, then press Start Wave. Survive all 12 waves.";
+    statusMeta.textContent = `Build with 180 shards, then press Start Wave. Survive all ${CAMPAIGN_WAVES} waves.`;
     updateHud();
     last = null;
     raf = requestAnimationFrame(loop);
@@ -234,7 +289,7 @@
       shards: state.shards,
     });
     overlayTitle.textContent = title;
-    overlayText.textContent = `${format(score)} score · ${completedWave} / 12 waves cleared · ${state.vault} vault integrity · ${rank}.`;
+    overlayText.textContent = `${format(score)} score · ${completedWave} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} vault integrity · ${rank}.`;
     startButton.textContent = "Rebuild Defense";
     overlay.classList.remove("is-hidden");
     startButton.focus();
@@ -247,42 +302,31 @@
     if (state.waveActive) return;
     movingTower = null;
     state.waveActive = true;
-    state.waveSpawnTotal = 9 + state.wave * 3;
+    state.waveSpawnTotal = currentWavePlan().count;
     state.spawnLeft = state.waveSpawnTotal;
     spawnEnemy();
     state.spawnLeft -= 1;
-    state.spawnTimer = 0.55;
-    statusLabel.textContent = `Wave ${state.wave} incoming`;
+    state.spawnTimer = currentWavePlan().interval;
+    statusLabel.textContent = `Wave ${state.wave}: ${currentWavePlan().name}`;
     statusMeta.textContent = `${state.spawnLeft + enemies.length} corrupt units in this wave`;
     waveButton.textContent = "Wave Running";
     updateHud();
   }
 
   function spawnEnemy() {
+    const plan = currentWavePlan();
     const spawned = state.waveSpawnTotal - state.spawnLeft;
-    const boss = state.wave >= 5 && state.wave % 5 === 0 && spawned === Math.floor(state.waveSpawnTotal * 0.55);
-    const elite = state.wave >= 4 && Math.random() < 0.18;
-    const runner = state.wave >= 3 && Math.random() < 0.22;
-    const kind = boss ? "boss" : elite ? "elite" : runner ? "runner" : "grunt";
-    const hpBase = boss ? 520 : elite ? 130 : 70;
-    const hpScale = boss ? 72 : elite ? 24 : 13;
-    enemies.push({
-      x: path[0].x,
-      y: path[0].y,
-      pathIndex: 1,
-      hp: hpBase + state.wave * hpScale,
-      maxHp: hpBase + state.wave * hpScale,
-      speed: (boss ? 36 : runner ? 92 : 58) + state.wave * (boss ? 1.1 : 2.4),
-      reward: boss ? 120 : elite ? 28 : runner ? 18 : 13,
-      radius: boss ? 31 : elite ? 19 : runner ? 15 : 14,
-      slowTimer: 0,
-      slowStrength: 0,
-      kind,
-      spin: Math.random() * Math.PI * 2,
-      hitFlash: 0,
-    });
+    const kind = plan.kinds[spawned];
+    if (!kind) return;
+    const spec = enemyTypes[kind];
+    const hp = Math.round((spec.hp + state.wave * spec.growth) * plan.hpScale);
+    enemies.push({ ...spec, x: path[0].x, y: path[0].y, pathIndex: 1, hp, maxHp: hp,
+      speed: spec.speed + Math.min(15, state.wave) * spec.acceleration,
+      slowTimer: 0, slowStrength: 0, kind, spin: Math.random() * Math.PI * 2, hitFlash: 0 });
+    const boss = spec.boss;
+
     if (boss) {
-      statusLabel.textContent = "Boss shard entering";
+      statusLabel.textContent = kind === "warboss" ? "Goblin warboss entering" : "Boss shard entering";
       statusMeta.textContent = "focus fire the corrupted vault breaker";
       screenShake = Math.max(screenShake, 10);
     }
@@ -291,27 +335,37 @@
   function updateHud() {
     scoreLabel.textContent = format(state.score);
     shardLabel.textContent = state.shards;
-    waveLabel.textContent = Math.min(12, state.wave);
-    const cleared = Math.min(12, Math.max(0, state.wave - 1));
+    waveLabel.textContent = Math.min(CAMPAIGN_WAVES, state.wave);
+    const cleared = Math.min(CAMPAIGN_WAVES, Math.max(0, state.wave - 1));
+    campaignProgress.max = CAMPAIGN_WAVES;
+    const brief = state.wave > CAMPAIGN_WAVES ? "Campaign complete - all 20 waves defended." : waveBrief(currentWavePlan());
+    if (wavePreview.textContent !== brief) wavePreview.textContent = brief;
     campaignProgress.value = cleared;
-    campaignLabel.textContent = `${cleared} / 12 waves cleared · ${state.vault} vault integrity`;
+    campaignLabel.textContent = `${cleared} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} vault integrity`;
     campaignProgress.setAttribute("aria-valuetext", campaignLabel.textContent);
     vaultLabel.textContent = state.vault;
     bestLabel.textContent = format(state.best);
     const spec = towerTypes[selectedTower];
     const roles = { pepe: "Direct beam damage", shard: "48% slow for 1.6 seconds", relic: "54-unit splash radius", mage: "32-unit splash and 12% slow", archer: "Long-range direct damage" };
-    const guide = `${spec.name} · Level 1: ${spec.damage} damage, ${spec.range} range, ${(spec.rate / 1.08).toFixed(2)} seconds per attack. ${roles[selectedTower]}. Level 3: ${upgradeName({type:selectedTower,level:3})}. Level 5: ${upgradeName({type:selectedTower,level:5})}.`;
+    const guide = `${spec.name} · Level 1: ${spec.damage} damage, ${spec.range} range, ${(spec.rate / 1.08).toFixed(2)} seconds per attack. ${roles[selectedTower]}. Tier 3 milestone: ${upgradeName({type:selectedTower,level:3})}. Tier 5 evolution: ${upgradeName({type:selectedTower,level:5})}.`;
     if (towerGuide.textContent !== guide) towerGuide.textContent = guide;
     padButtons.forEach(button => {
       const pad = pads[Number(button.dataset.pad)];
       const tower = towerAtPad(pad);
       const cost = towerTypes[selectedTower].cost;
-      const label = `Pad ${Number(button.dataset.pad) + 1} - ${tower ? `${tower.name} L${tower.level}` : movingTower ? "Move here" : `Build - ${cost}`}`;
-      if (button.textContent !== label) button.textContent = label;
+      const label = `Pad ${Number(button.dataset.pad) + 1} - ${tower ? `${tower.name} ${tierCode(tower)}` : movingTower ? "Move here" : `Build - ${cost}`}`;
+      const number = String(Number(button.dataset.pad) + 1);
+      if (button.textContent !== number) button.textContent = number;
+      button.title = label;
       button.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.()) || (movingTower ? Boolean(tower) : !tower && state.shards < cost);
       button.setAttribute("aria-label", label);
       button.setAttribute("aria-pressed", String(Boolean(tower && tower === inspectedTower)));
     });
+    const plan = currentWavePlan();
+    nextWaveHint.textContent = state.wave > CAMPAIGN_WAVES ? "20/20 waves defended" : `Wave ${plan.wave}/${CAMPAIGN_WAVES} - ${plan.name} - ${plan.count} foes`;
+    commandHint.textContent = movingTower ? "Moving: choose an empty numbered pad. Cancel in Tower controls." : state.waveActive ? `${state.spawnLeft + enemies.length} enemies remaining. Moving unlocks after the wave.` : "Build, upgrade or reposition before sending the wave.";
+    padHint.textContent = movingTower ? "Move" : "Build pads";
+    padControls.setAttribute("data-moving", String(Boolean(movingTower)));
     updateTowerPanel();
     waveButton.disabled = !state.playing || state.waveActive || Boolean(window.EmeraldArcade?.isPaused?.());
   }
@@ -320,6 +374,7 @@
     if (!towerTypes[type]) return;
     inspectedTower = null;
     movingTower = null;
+    setCommandView("build");
     selectedTower = type;
     towerButtons.forEach((button) => { button.classList.toggle("is-selected", button.dataset.tower === type); button.setAttribute("aria-pressed", String(button.dataset.tower === type)); });
     const tower = towerTypes[type];
@@ -336,10 +391,21 @@
     return towers.find((tower) => tower.pad === pad);
   }
 
-  function upgradeCost(tower) {
-    if (tower.level >= 5) return Infinity;
-    return 65 + tower.level * 55;
+  const PATH_KEYS = ["power", "special", "utility"];
+  const PATH_COSTS = [75, 120, 175, 230, 285];
+  function pathLockReason(tower, choice) {
+    if (!PATH_KEYS.includes(choice)) return "Unknown path";
+    const tier = tower.tiers[choice];
+    if (tier >= 5) return "Tier 5 complete";
+    if (!tier && PATH_KEYS.filter(key => tower.tiers[key] > 0).length >= 2) return "Third path locked";
+    if (tier >= 2 && PATH_KEYS.some(key => key !== choice && tower.tiers[key] > 2)) return "Secondary path capped at tier 2";
+    return "";
   }
+  function upgradeCost(tower, choice = tower.path || "power") {
+    return pathLockReason(tower, choice) ? Infinity : PATH_COSTS[tower.tiers[choice]];
+  }
+  function tierCode(tower) { return PATH_KEYS.map(key => tower.tiers[key]).join(" / "); }
+
 
   function portalHit(point) {
     return point.x < 120 && distance(point.x, point.y, path[0].x, path[0].y) < 70;
@@ -364,8 +430,9 @@
     }
     if (existing) {
       inspectedTower = existing;
+      setCommandView("manage");
       statusLabel.textContent = `${existing.name} selected`;
-      statusMeta.textContent = "Choose an upgrade path, move or sell below the battlefield";
+      statusMeta.textContent = "Use Tower controls to choose upgrades, move or sell";
       updateHud();
       return;
     }
@@ -381,6 +448,7 @@
       ...type,
       invested: type.cost,
       path: null,
+      tiers: { power: 0, special: 0, utility: 0 },
       pad,
       x: pad.x,
       y: pad.y,
@@ -394,6 +462,7 @@
       level: 1,
     });
     inspectedTower = towers[towers.length - 1];
+    setCommandView("manage");
     recordMastery(selectedTower, "placements");
     statusLabel.textContent = `${type.name} placed`;
     statusMeta.textContent = "select it to choose upgrades, move or sell";
@@ -415,57 +484,91 @@
     return state.playing && !window.EmeraldArcade?.isPaused?.() && towers.includes(inspectedTower);
   }
 
+  const powerTierNames = ["Charged Strike", "Double Charge", "Overcharged Core", "Crown Amplifier", "Cataclysm Power"];
+  const utilityTierNames = ["Rangefinder", "Vault Optics", "Horizon Sight", "Farwatch Array", "Emerald Observatory"];
+  const specialTierNames = {
+    pepe: ["Quick Trigger", "Twin Emitters", "Emerald Overclock", "Crown Cycler", "Legend Beam"],
+    shard: ["Cold Current", "Deep Freeze", "Chain Chill", "Crystal Prison", "Absolute Zero"],
+    relic: ["Wide Shell", "Heavy Charge", "Vault Cracker", "Ancient Reactor", "Cataclysm Core"],
+    mage: ["Shard Volley", "Triple Cast", "Arcane Splash", "Crown Sigil", "Shard Storm"],
+    archer: ["Swift Nock", "Split Shaft", "Rapid Quiver", "True Aim", "Legend Volley"],
+  };
+  function pathTitle(tower, choice) { return choice === "power" ? "Firepower" : choice === "utility" ? "Long Watch" : specialPaths[tower.type].name; }
+  function tierName(tower, choice, tier) { return (choice === "power" ? powerTierNames : choice === "utility" ? utilityTierNames : specialTierNames[tower.type])[tier - 1]; }
+
+  // Rebuild from the base spec so purchasing the same crosspath in a different order gives identical stats.
+  function rebuildTowerStats(tower) {
+    const spec = towerTypes[tower.type];
+    for (const stat of ["damage", "range", "rate", "slow", "splash"]) tower[stat] = spec[stat];
+    for (let i = 0; i < tower.tiers.power; i++) { tower.damage *= 1.35; tower.range += 8; }
+    for (let i = 0; i < tower.tiers.special; i++) {
+      tower.damage *= 1.18; tower.range += 8;
+      if (tower.type === "pepe" || tower.type === "archer") tower.rate *= .86;
+      else if (tower.type === "shard") { tower.slow = Math.min(.82, tower.slow + .06); tower.range += 10; }
+      else if (tower.type === "relic") { tower.splash += 14; tower.range += 8; }
+      else if (tower.type === "mage") { tower.splash += 10; tower.range += 10; }
+    }
+    for (let i = 0; i < tower.tiers.utility; i++) { tower.damage *= 1.12; tower.range += 25; tower.rate *= .97; }
+    const primaryTier = Math.max(...Object.values(tower.tiers));
+    tower.path = PATH_KEYS.find(key => tower.tiers[key] === primaryTier) || null;
+    tower.level = Math.max(1, primaryTier);
+    // Preserve existing level-three combat abilities and level-five evolution.
+    if (primaryTier >= 3) { const level = tower.level; tower.level = 3; applyUpgrade(tower); tower.level = level; }
+    if (primaryTier >= 5) { const level = tower.level; tower.level = 5; applyUpgrade(tower); tower.level = level; }
+    tower.evolved = primaryTier >= 5;
+  }
+
   function updateTowerPanel() {
     towerPanel.hidden = !inspectedTower;
+    manageEmpty.hidden = Boolean(inspectedTower);
     if (!inspectedTower) return;
     const tower = inspectedTower;
-    const cost = upgradeCost(tower);
-    towerDetails.textContent = `${tower.name} - Pad ${pads.indexOf(tower.pad) + 1} - Level ${tower.level}/5 - ${tower.path === "power" ? "Overcharged" : tower.path === "special" ? specialPaths[tower.type].name : "Path not chosen"}. ${tower.damage.toFixed(1)} damage, ${Math.round(tower.range)} range, ${(tower.rate / (1 + tower.level * .08)).toFixed(2)}s attack interval, ${Math.round(tower.slow * 100)}% slow, ${Math.round(tower.splash)} splash. ${movingTower ? "Select an empty pad to move, or cancel." : "First upgrade locks your path for this tower. Every upgrade includes the standard level bonuses."}`;
+    towerPanelTitle.textContent = `${tower.name} - ${tierCode(tower)}`;
+    const portrait = (tower.evolved ? evolvedTowerSprites : towerSprites)[tower.type].src;
+    if (selectedPortrait.src !== portrait) selectedPortrait.src = portrait;
+    towerDetails.textContent = `Pad ${pads.indexOf(tower.pad) + 1}: ${tower.damage.toFixed(1)} damage, ${Math.round(tower.range)} range, ${(tower.rate / (1 + tower.level * .08)).toFixed(2)}s attack, ${Math.round(tower.slow * 100)}% slow, ${Math.round(tower.splash)} splash. ${movingTower ? "Choose an empty pad to move, or cancel." : "Crosspath limit: 5 / 2 / 0."}`;
     pathButtons.forEach(button => {
       const choice = button.dataset.upgradePath;
-      const locked = tower.path && tower.path !== choice;
-      const title = choice === "power" ? "Overcharged" : specialPaths[tower.type].name;
-      const detail = choice === "power" ? "+18% damage per upgrade" : specialPaths[tower.type].detail;
-      const preview = { ...tower, level: tower.level + 1 };
-      applyPathUpgrade(preview, choice);
-      const nextStats = !locked && tower.level < 5 ? ` Next: ${preview.damage.toFixed(1)} damage, ${Math.round(preview.range)} range, ${(preview.rate / (1 + preview.level * .08)).toFixed(2)}s attack, ${Math.round(preview.slow * 100)}% slow, ${Math.round(preview.splash)} splash.` : "";
-      const label = `${title} - ${locked ? "Other path locked" : tower.level >= 5 ? "Max level" : `Upgrade to L${tower.level + 1}: ${cost} defense shards`}. ${detail}.${nextStats}`;
-      if (button.textContent !== label) button.textContent = label;
-      button.disabled = !canManageTower() || Boolean(movingTower) || Boolean(locked) || !Number.isFinite(cost) || state.shards < cost;
-      button.setAttribute("aria-pressed", String(tower.path === choice));
+      const tier = tower.tiers[choice];
+      const reason = pathLockReason(tower, choice);
+      const cost = upgradeCost(tower, choice);
+      let nextStats = "";
+      if (!reason) {
+        const preview = { ...tower, tiers: { ...tower.tiers, [choice]: tier + 1 } };
+        rebuildTowerStats(preview);
+        nextStats = ` Next: ${preview.damage.toFixed(1)} dmg / ${Math.round(preview.range)} range / ${(preview.rate / (1 + preview.level * .08)).toFixed(2)}s / ${Math.round(preview.slow * 100)}% slow / ${Math.round(preview.splash)} splash.`;
+      }
+      const label = `${pathTitle(tower, choice)} ${tier}/5 - ${reason || `T${tier + 1}: ${tierName(tower, choice, tier + 1)} - ${cost} shards`}.${nextStats}`;
+      const text = button.querySelector(".path-text");
+      if (text.textContent !== label) text.textContent = label;
+      button.setAttribute("aria-label", label);
+      button.querySelectorAll("[data-tier]").forEach(pip => pip.classList.toggle("is-earned", Number(pip.dataset.tier) <= tier));
+      button.disabled = !canManageTower() || Boolean(movingTower) || Boolean(reason) || state.shards < cost;
+      button.setAttribute("aria-pressed", String(tier > 0));
     });
     moveButton.disabled = !canManageTower() || state.waveActive || Boolean(movingTower);
     moveButton.textContent = state.waveActive ? "Move - available between waves" : "Move tower - free";
     sellButton.disabled = !canManageTower() || Boolean(movingTower);
-    sellButton.textContent = `Sell tower - refund ${Math.floor(tower.invested * .7)} defense shards (70%)`;
+    sellButton.textContent = `Sell tower - ${Math.floor(tower.invested * .7)} shards (70%)`;
     cancelMoveButton.hidden = !movingTower;
     cancelMoveButton.disabled = !canManageTower();
   }
 
-  function applyPathUpgrade(tower, choice) {
-    applyUpgrade(tower);
-    if (choice === "power") tower.damage *= 1.18;
-    else if (tower.type === "pepe" || tower.type === "archer") tower.rate *= .86;
-    else if (tower.type === "shard") { tower.slow = Math.min(.82, tower.slow + .06); tower.range += 10; }
-    else if (tower.type === "relic") { tower.splash += 14; tower.range += 8; }
-    else if (tower.type === "mage") { tower.splash += 10; tower.range += 10; }
-  }
-
   function upgradeSelected(choice) {
-    if (!canManageTower() || movingTower || !["power", "special"].includes(choice)) return false;
+    if (!canManageTower() || movingTower || !PATH_KEYS.includes(choice)) return false;
     const tower = inspectedTower;
-    const cost = upgradeCost(tower);
-    if ((tower.path && tower.path !== choice) || !Number.isFinite(cost) || state.shards < cost) return false;
+    const cost = upgradeCost(tower, choice);
+    if (!Number.isFinite(cost) || state.shards < cost) return false;
+    const wasEvolved = tower.evolved;
     state.shards -= cost;
     tower.invested += cost;
-    tower.path = choice;
-    tower.level += 1;
-    applyPathUpgrade(tower, choice);
+    tower.tiers[choice] += 1;
+    rebuildTowerStats(tower);
     tower.upgradePulse = 1;
-    if (tower.level === 5) { tower.evolved = true; tower.evolvePulse = 1.2; screenShake = Math.max(screenShake, 14); }
+    if (tower.evolved && !wasEvolved) { tower.evolvePulse = 1.2; screenShake = Math.max(screenShake, 14); }
     recordMastery(tower.type, "upgrades");
-    statusLabel.textContent = `${tower.name} upgraded to L${tower.level}`;
-    statusMeta.textContent = `${choice === "power" ? "Overcharged" : specialPaths[tower.type].name} path - ${upgradeName(tower)}`;
+    statusLabel.textContent = `${tower.name} - ${tierCode(tower)}`;
+    statusMeta.textContent = tierName(tower, choice, tower.tiers[choice]);
     bursts.push({ x: tower.x, y: tower.y, r: 0, max: tower.range * .42, color: tower.color, life: .34, fill: true });
     updateHud();
     return true;
@@ -504,8 +607,6 @@
   }
 
   function applyUpgrade(tower) {
-    tower.damage *= 1.22;
-    tower.range += 8;
     if (tower.level === 3) {
       tower.damage *= 1.18;
       tower.range += 8;
@@ -573,9 +674,9 @@
         enemy.pathIndex += 1;
         if (enemy.pathIndex >= path.length) {
           enemies.splice(i, 1);
-          const damage = enemy.kind === "boss" ? 4 : enemy.kind === "elite" ? 2 : 1;
+          const damage = enemy.breachDamage ?? ((enemy.boss || enemy.kind === "boss") ? 4 : enemy.kind === "elite" ? 2 : 1);
           state.vault = Math.max(0, state.vault - damage);
-          screenShake = Math.max(screenShake, enemy.kind === "boss" ? 16 : 8);
+          screenShake = Math.max(screenShake, (enemy.boss || enemy.kind === "boss") ? 16 : 8);
           statusLabel.textContent = "Vault breach";
           statusMeta.textContent = `${state.vault} integrity remaining`;
           if (!state.vault) { endGame("The vault got cracked"); return; }
@@ -606,12 +707,13 @@
   }
 
   function damageEnemy(enemy, damage, slow, splash) {
-    enemy.hp -= damage;
+    const dealt = damage * (1 - (enemy.armor || 0));
+    enemy.hp -= dealt;
     enemy.hitFlash = 1;
     floaters.push({
       x: enemy.x + (Math.random() - 0.5) * 18,
       y: enemy.y - enemy.radius - 10,
-      text: String(Math.floor(damage)),
+      text: String(Math.floor(dealt)),
       color: slow ? "#9ee7ff" : splash ? "#ffd86b" : "#98ffd0",
       life: 0.42,
     });
@@ -619,7 +721,7 @@
     if (splash) {
       bursts.push({ x: enemy.x, y: enemy.y, r: 0, max: splash, color: "#d8b45f", life: 0.32 });
       for (const other of enemies) {
-        if (other !== enemy && distance(enemy.x, enemy.y, other.x, other.y) < splash) other.hp -= damage * 0.45;
+        if (other !== enemy && distance(enemy.x, enemy.y, other.x, other.y) < splash) other.hp -= damage * 0.45 * (1 - (other.armor || 0));
       }
     }
   }
@@ -659,11 +761,12 @@
 
   function updateTowers(dt) {
     for (const tower of towers) {
-      tower.cooldown = Math.max(0, tower.cooldown - dt);
+      // Carry fractional attack time forward so tier previews remain meaningful across frame rates.
+      tower.cooldown = Math.max(-dt, tower.cooldown - dt);
       if (tower.cooldown > 0) continue;
       const target = targetFor(tower);
-      if (!target) continue;
-      tower.cooldown = tower.rate / (1 + tower.level * 0.08);
+      if (!target) { tower.cooldown = 0; continue; }
+      tower.cooldown += tower.rate / (1 + tower.level * 0.08);
       tower.attackPulse = 1;
       tower.aimAngle = Math.atan2(target.y - tower.y, target.x - tower.x);
       damageEnemy(target, tower.damage, tower.slow, tower.splash);
@@ -677,14 +780,14 @@
       enemies.splice(i, 1);
       state.score += 120 + enemy.reward * 12 + state.wave * 18;
       state.shards += enemy.reward;
-      screenShake = Math.max(screenShake, enemy.kind === "boss" ? 18 : enemy.kind === "elite" ? 8 : 3);
+      screenShake = Math.max(screenShake, (enemy.boss || enemy.kind === "boss") ? 18 : enemy.kind === "elite" ? 8 : 3);
       bursts.push({
         x: enemy.x,
         y: enemy.y,
         r: 0,
-        max: enemy.kind === "boss" ? 88 : 38,
-        color: enemy.kind === "boss" ? "#ffd86b" : enemy.kind === "elite" ? "#ff4d6d" : "#39ff9a",
-        life: enemy.kind === "boss" ? 0.48 : 0.26,
+        max: (enemy.boss || enemy.kind === "boss") ? 88 : 38,
+        color: (enemy.boss || enemy.kind === "boss") ? "#ffd86b" : enemy.kind === "elite" ? "#ff4d6d" : "#39ff9a",
+        life: (enemy.boss || enemy.kind === "boss") ? 0.48 : 0.26,
         fill: true,
       });
       floaters.push({ x: enemy.x, y: enemy.y - 30, text: `+${enemy.reward}`, color: "#74ffc5", life: 0.7 });
@@ -728,7 +831,7 @@
     if (state.spawnLeft > 0 && state.spawnTimer <= 0) {
       spawnEnemy();
       state.spawnLeft -= 1;
-      state.spawnTimer = clamp(0.75 - state.wave * 0.025, 0.35, 0.75);
+      state.spawnTimer = currentWavePlan().interval;
       statusMeta.textContent = `${state.spawnLeft + enemies.length} corrupt units in this wave`;
     }
     if (state.spawnLeft <= 0 && enemies.length === 0) {
@@ -739,7 +842,7 @@
       statusLabel.textContent = "Wave cleared";
       statusMeta.textContent = "build upgrades before starting the next wave";
       waveButton.textContent = "Start Next Wave";
-      if (state.wave > 12) endGame("Vault defended");
+      if (state.wave > CAMPAIGN_WAVES) endGame("Vault defended");
     }
   }
 
@@ -1006,7 +1109,7 @@
       ctx.save();
       ctx.translate(recoilX, recoilY);
       const scale = (tower.evolved ? 0.255 : 0.22) + tower.level * 0.012 + pulse * 0.025 + upgradePulse * 0.025 + evolvePulse * 0.05;
-      if (sprite.complete) {
+      if (sprite.complete && sprite.naturalWidth) {
         ctx.shadowColor = tower.color;
         ctx.shadowBlur = 18 + pulse * 22;
         ctx.drawImage(sprite, -256 * scale, -292 * scale, 512 * scale, 512 * scale);
@@ -1042,7 +1145,7 @@
       ctx.textAlign = "center";
       ctx.shadowColor = tower.level >= 3 ? "#ffd86b" : tower.color;
       ctx.shadowBlur = 8;
-      ctx.fillText(`LV ${tower.level}${tower.path ? tower.path === "power" ? " / PWR" : " / ALT" : ""}`, 0, 44);
+      ctx.fillText(tierCode(tower), 0, 44);
       ctx.restore();
     }
   }
@@ -1205,16 +1308,24 @@
       const sprite = enemySprites[enemy.kind] || enemySprites.grunt;
       ctx.save();
       ctx.translate(enemy.x, enemy.y);
-      ctx.fillStyle = enemy.kind === "boss" ? "#f2b84b" : enemy.kind === "elite" ? "#ff4d6d" : enemy.kind === "runner" ? "#b25cff" : "#ff7a7a";
+      ctx.fillStyle = (enemy.boss || enemy.kind === "boss") ? "#f2b84b" : enemy.kind === "elite" ? "#ff4d6d" : enemy.kind === "runner" ? "#b25cff" : "#ff7a7a";
       ctx.shadowColor = ctx.fillStyle;
       ctx.shadowBlur = 12 + enemy.hitFlash * 18;
-      if (sprite.complete) {
-        const size = enemy.kind === "boss" ? 112 : enemy.kind === "runner" ? 62 : enemy.kind === "elite" ? 66 : 54;
+      if (sprite.complete && sprite.naturalWidth) {
+        const size = enemy.size || ((enemy.boss || enemy.kind === "boss") ? 112 : enemy.kind === "runner" ? 62 : enemy.kind === "elite" ? 66 : 54);
         ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
       } else {
         ctx.beginPath();
         ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
         ctx.fill();
+      }
+      if (enemy.armor) {
+        ctx.strokeStyle = "#ffd86b"; ctx.lineWidth = enemy.boss ? 3 : 2;
+        ctx.beginPath(); ctx.ellipse(0, 8, enemy.radius + 8, enemy.radius * .55, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+      if (enemy.kind === "warboss") {
+        ctx.fillStyle = "#ffd86b"; ctx.font = "bold 13px Arial"; ctx.textAlign = "center";
+        ctx.fillText("WARBOSS", 0, -75);
       }
       if (enemy.hitFlash > 0) {
         ctx.globalAlpha = enemy.hitFlash * 0.65;
@@ -1454,6 +1565,7 @@
   });
   window.addEventListener("emeraldarcade:pause", () => { pointer.active = false; updateHud(); });
   padButtons.forEach(button => button.addEventListener("click", () => buildOrUpgrade(pads[Number(button.dataset.pad)])));
+  commandTabs.forEach(button => button.addEventListener("click", () => setCommandView(button.dataset.commandTab)));
   pathButtons.forEach(button => button.addEventListener("click", () => upgradeSelected(button.dataset.upgradePath)));
   moveButton.addEventListener("click", beginMove);
   sellButton.addEventListener("click", sellSelected);
