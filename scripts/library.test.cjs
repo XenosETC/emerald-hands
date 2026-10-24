@@ -7,8 +7,8 @@ const lib = require('../arcade-library.js');
 const root = path.resolve(__dirname, '..');
 
 test('every released game has one catalog entry, local page, and visit hook', () => {
-  assert.equal(lib.games.length, 16);
-  assert.equal(new Set(lib.games.map(game => game.id)).size, 16);
+  assert.equal(lib.games.length, 17);
+  assert.equal(new Set(lib.games.map(game => game.id)).size, 17);
   const hub = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   for (const game of lib.games) {
     assert.ok(hub.includes(`href="${game.path}"`), game.id);

@@ -1,0 +1,160 @@
+{
+  "result": "PASS",
+  "run": {
+    "mission": 3,
+    "bossName": "RIFT BLOOM",
+    "width": 4400,
+    "mode": "won",
+    "x": 3881.958333333451,
+    "y": 354,
+    "hp": 5,
+    "surge": {
+      "status": "idle",
+      "time": 0,
+      "entryX": 0,
+      "entryY": 354,
+      "passed": 0,
+      "cleared": [
+        false,
+        false,
+        false
+      ],
+      "reward": null
+    },
+    "weaponMods": [],
+    "completedEvents": [],
+    "weapon": "PULSE",
+    "weapons": [
+      "RIFLE",
+      "PULSE"
+    ],
+    "upgrades": [],
+    "grenades": 3,
+    "score": 9150,
+    "kills": 5,
+    "bossHp": 0,
+    "pose": {
+      "stride": 380.72083333333467,
+      "recoil": 0.925,
+      "land": 0,
+      "aim": 0,
+      "grounded": true
+    },
+    "effects": 6,
+    "effectKinds": [
+      "shell",
+      "hit",
+      "blast"
+    ],
+    "combat": {
+      "shots": 120,
+      "hits": 14,
+      "pierces": 0
+    },
+    "shotStyle": "standard",
+    "gates": [],
+    "hitstop": 0,
+    "bossActive": true,
+    "bossPhase": 2,
+    "bossOpen": 0.30252177406076936,
+    "bossExposed": false,
+    "bossIntent": "ROOT WAVE / HOLD JUMP",
+    "checkpoint": 3540,
+    "combo": 0,
+    "dashCool": 1.433333333333334,
+    "hazards": [
+      {
+        "x": 4034.2577515861676,
+        "y": 378,
+        "h": 20,
+        "high": false,
+        "kind": "rootwave",
+        "w": 72,
+        "vx": -290,
+        "timer": 0.8333333333333341
+      }
+    ],
+    "time": 23.30833333333265,
+    "bullets": 3,
+    "enemies": [
+      {
+        "type": "wisp",
+        "x": 850,
+        "y": 280.25447408785067,
+        "hp": 3,
+        "state": "recovery",
+        "animStride": 0,
+        "leap": 0,
+        "land": 0,
+        "recoil": 0.9,
+        "lock": null
+      },
+      {
+        "type": "wisp",
+        "x": 1500,
+        "y": 272.1545199151116,
+        "hp": 3,
+        "state": "patrol",
+        "animStride": 0,
+        "leap": 0,
+        "land": 0,
+        "recoil": 0,
+        "lock": null
+      },
+      {
+        "type": "wisp",
+        "x": 2260,
+        "y": 277.1287543888743,
+        "hp": 3,
+        "state": "windup",
+        "animStride": 0,
+        "leap": 0,
+        "land": 0,
+        "recoil": 0,
+        "lock": {
+          "x": 2847.0833333333667,
+          "y": 374
+        }
+      },
+      {
+        "type": "wisp",
+        "x": 2880,
+        "y": 266.0930147498818,
+        "hp": 3,
+        "state": "windup",
+        "animStride": 0,
+        "leap": 0,
+        "land": 0,
+        "recoil": 0,
+        "lock": {
+          "x": 3404.0000000000828,
+          "y": 374
+        }
+      }
+    ],
+    "threats": [
+      {
+        "x": 3837.057256660651,
+        "y": 413.87236993209007
+      },
+      {
+        "x": 3816.3024943511587,
+        "y": 320.1838812379699
+      }
+    ]
+  },
+  "retries": 0,
+  "checks": [
+    "actual stalker wind-up and committed leap",
+    "wisp charging and target lock",
+    "paused simulation and canvas freeze",
+    "new grove art",
+    "root wave warning and moving front",
+    "jump input over travelling wave",
+    "petal recovery opening",
+    "phase two",
+    "normal-health boss clear",
+    "390px deployment layout"
+  ],
+  "errors": []
+}

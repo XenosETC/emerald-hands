@@ -648,3 +648,6 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
 
 .game-card--unstable-launch .game-art::after{display:none}
 .shard-faq{margin:48px 0;scroll-margin-top:24px}.shard-faq-intro{max-width:760px;color:#b7c9c1;line-height:1.7}.shard-faq details{border:1px solid #a6c4b12b;border-radius:12px;margin:12px 0;background:#101e19;padding:16px 20px}.shard-faq summary{font-weight:600;cursor:pointer;color:#e0e9cf;line-height:1.5}.shard-faq details p{color:#b7c9c1;line-height:1.7;max-width:850px}.shard-faq a{color:#d6e9a7;text-underline-offset:3px}.shard-faq table{border-collapse:collapse;width:100%;font-size:14px;table-layout:fixed}.shard-faq caption{text-align:left;padding:12px 0;color:#a4b9ac}.shard-faq th,.shard-faq td{text-align:left;vertical-align:top;border-bottom:1px solid #a6c4b120;padding:12px 10px;overflow-wrap:anywhere}.shard-faq th{color:#e0e9cf}.shard-faq td{color:#b7c9c1}.shard-faq summary:focus-visible{outline:2px solid #d6e9a7;outline-offset:5px}@media(max-width:650px){.shard-faq details{padding:14px 12px}.shard-faq table{font-size:12px}.shard-faq th,.shard-faq td{padding:10px 5px}}
+
+.game-card--kontra .game-art { background: #091b23; padding: 0; overflow: hidden; }
+.game-card--kontra .game-art img { width: 100%; height: 100%; object-fit: cover; display: block; }

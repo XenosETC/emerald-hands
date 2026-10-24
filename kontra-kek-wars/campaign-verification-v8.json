@@ -1,0 +1,40 @@
+{
+  "result": "PASS",
+  "results": [
+    {
+      "mission": 1,
+      "score": 12500,
+      "armor": 2,
+      "kills": 10,
+      "retries": 0,
+      "weapon": "SPREAD"
+    },
+    {
+      "mission": 2,
+      "score": 24700,
+      "armor": 3,
+      "kills": 22,
+      "retries": 0,
+      "weapon": "SPREAD"
+    },
+    {
+      "mission": 3,
+      "score": 32850,
+      "armor": 3,
+      "kills": 27,
+      "retries": 0,
+      "weapon": "PULSE"
+    }
+  ],
+  "checks": [
+    "three realms completed by keyboard inputs without state injection",
+    "realm-clear rewards and score carry",
+    "pulse weapon switching",
+    "boss phase warnings",
+    "pause freeze",
+    "fresh realm-three deploy and restart",
+    "phone deployment layout",
+    "best score persistence"
+  ],
+  "errors": []
+}

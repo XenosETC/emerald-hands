@@ -12,6 +12,7 @@ const types = {
   ".jpg": "image/jpeg",
   ".png": "image/png",
   ".webp": "image/webp",
+  ".svg": "image/svg+xml",
 };
 
 createServer((request, response) => {

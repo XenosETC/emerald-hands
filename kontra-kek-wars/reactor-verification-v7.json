@@ -1,0 +1,345 @@
+{
+  "result": "PASS",
+  "earned": {
+    "mission": 2,
+    "bossName": "TEMPEST WARDEN",
+    "width": 4800,
+    "mode": "playing",
+    "x": 2512.166666666669,
+    "y": 354,
+    "hp": 5,
+    "surge": {
+      "status": "claimed",
+      "time": 3.274999999999991,
+      "entryX": 2482.166666666669,
+      "entryY": 354,
+      "passed": 3,
+      "cleared": [
+        true,
+        true,
+        true
+      ],
+      "reward": "overclock",
+      "notice": 1.9583333333333344,
+      "entryGrounded": true
+    },
+    "weaponMods": [
+      "overclock"
+    ],
+    "completedEvents": [
+      "reactor-surge"
+    ],
+    "weapon": "SPREAD",
+    "weapons": [
+      "RIFLE",
+      "SPREAD"
+    ],
+    "upgrades": [],
+    "grenades": 3,
+    "score": 3800,
+    "kills": 9,
+    "bossHp": 120,
+    "pose": {
+      "stride": 295.8833333333275,
+      "recoil": 0,
+      "land": 0,
+      "aim": 0,
+      "grounded": true
+    },
+    "effects": 2,
+    "effectKinds": [
+      "shell"
+    ],
+    "combat": {
+      "shots": 77,
+      "hits": 33,
+      "pierces": 0
+    },
+    "shotStyle": "overclock",
+    "gates": [],
+    "hitstop": 0,
+    "bossActive": false,
+    "bossPhase": 1,
+    "bossIntent": "",
+    "checkpoint": 2040,
+    "combo": 0,
+    "dashCool": 0,
+    "hazards": [],
+    "time": 15.283333333333106,
+    "bullets": 6,
+    "enemies": [
+      {
+        "type": "drone",
+        "x": 3010,
+        "y": 251.94971547686342,
+        "hp": 3,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "rocketeer",
+        "x": 3510,
+        "y": 360,
+        "hp": 5,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "drone",
+        "x": 3700,
+        "y": 270,
+        "hp": 3,
+        "state": "patrol",
+        "animStride": 0
+      }
+    ],
+    "threats": []
+  },
+  "carried": {
+    "mission": 3,
+    "bossName": "RIFT BLOOM",
+    "width": 4400,
+    "mode": "playing",
+    "x": 70,
+    "y": 354,
+    "hp": 5,
+    "surge": {
+      "status": "idle",
+      "time": 0,
+      "entryX": 0,
+      "entryY": 354,
+      "passed": 0,
+      "cleared": [
+        false,
+        false,
+        false
+      ],
+      "reward": null
+    },
+    "weaponMods": [
+      "overclock"
+    ],
+    "completedEvents": [
+      "reactor-surge"
+    ],
+    "weapon": "SPREAD",
+    "weapons": [
+      "RIFLE",
+      "SPREAD"
+    ],
+    "upgrades": [],
+    "grenades": 3,
+    "score": 10900,
+    "kills": 9,
+    "bossHp": 110,
+    "pose": {
+      "stride": 0,
+      "recoil": 0,
+      "land": 0,
+      "aim": 0,
+      "grounded": true
+    },
+    "effects": 0,
+    "effectKinds": [],
+    "combat": {
+      "shots": 0,
+      "hits": 0,
+      "pierces": 0
+    },
+    "shotStyle": "standard",
+    "gates": [],
+    "hitstop": 0,
+    "bossActive": false,
+    "bossPhase": 1,
+    "bossIntent": "",
+    "checkpoint": 70,
+    "combo": 0,
+    "dashCool": 0,
+    "hazards": [],
+    "time": 0,
+    "bullets": 0,
+    "enemies": [
+      {
+        "type": "stalker",
+        "x": 540,
+        "y": 360,
+        "hp": 4,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "wisp",
+        "x": 850,
+        "y": 285,
+        "hp": 3,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "stalker",
+        "x": 1200,
+        "y": 360,
+        "hp": 4,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "wisp",
+        "x": 1500,
+        "y": 285,
+        "hp": 3,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "stalker",
+        "x": 1980,
+        "y": 360,
+        "hp": 4,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "wisp",
+        "x": 2260,
+        "y": 285,
+        "hp": 3,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "stalker",
+        "x": 2550,
+        "y": 360,
+        "hp": 4,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "wisp",
+        "x": 2880,
+        "y": 285,
+        "hp": 3,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "stalker",
+        "x": 3180,
+        "y": 360,
+        "hp": 4,
+        "state": "patrol",
+        "animStride": 0
+      }
+    ],
+    "threats": []
+  },
+  "rails": {
+    "mission": 2,
+    "bossName": "TEMPEST WARDEN",
+    "width": 4800,
+    "mode": "playing",
+    "x": 2510.4583333333353,
+    "y": 354,
+    "hp": 5,
+    "surge": {
+      "status": "claimed",
+      "time": 3.2833333333333243,
+      "entryX": 2480.4583333333353,
+      "entryY": 354,
+      "passed": 3,
+      "cleared": [
+        true,
+        true,
+        true
+      ],
+      "reward": "rails",
+      "notice": 1.950000000000001,
+      "entryGrounded": true
+    },
+    "weaponMods": [
+      "rails"
+    ],
+    "completedEvents": [
+      "reactor-surge"
+    ],
+    "weapon": "SPREAD",
+    "weapons": [
+      "RIFLE",
+      "SPREAD"
+    ],
+    "upgrades": [],
+    "grenades": 3,
+    "score": 3800,
+    "kills": 9,
+    "bossHp": 120,
+    "pose": {
+      "stride": 295.7124999999942,
+      "recoil": 0.32500000000000023,
+      "land": 0,
+      "aim": 0,
+      "grounded": true
+    },
+    "effects": 2,
+    "effectKinds": [
+      "shell"
+    ],
+    "combat": {
+      "shots": 77,
+      "hits": 33,
+      "pierces": 0
+    },
+    "shotStyle": "rails",
+    "gates": [],
+    "hitstop": 0,
+    "bossActive": false,
+    "bossPhase": 1,
+    "bossIntent": "",
+    "checkpoint": 2040,
+    "combo": 0,
+    "dashCool": 0,
+    "hazards": [],
+    "time": 15.291666666666439,
+    "bullets": 6,
+    "enemies": [
+      {
+        "type": "drone",
+        "x": 3010,
+        "y": 252.31396121157442,
+        "hp": 3,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "rocketeer",
+        "x": 3510,
+        "y": 360,
+        "hp": 5,
+        "state": "patrol",
+        "animStride": 0
+      },
+      {
+        "type": "drone",
+        "x": 3700,
+        "y": 270,
+        "hp": 3,
+        "state": "patrol",
+        "animStride": 0
+      }
+    ],
+    "threats": []
+  },
+  "checks": [
+    "safe bypass",
+    "offer freezes combat",
+    "zero-damage gate clear using displayed openings",
+    "pause freezes gate clock and canvas pixels",
+    "reward screen cannot be skipped with Enter",
+    "real death/retry keeps earned modifier",
+    "Stormforge boss clear and realm-three carryover",
+    "both weapon choices show distinct shot feedback",
+    "phone reward buttons fit and work",
+    "no duplicate claims or page errors"
+  ],
+  "errors": []
+}
