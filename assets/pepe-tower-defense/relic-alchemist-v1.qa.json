@@ -1,0 +1,38 @@
+[
+  {
+    "key": "relic-base-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 89750,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "alchemist-tier3-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 76128,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "alchemist-long-watch-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 75516,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "alchemist-evolved-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 78316,
+    "alphaMin": 0,
+    "alphaMax": 255
+  }
+]

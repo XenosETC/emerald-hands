@@ -49,6 +49,8 @@
   pepe.src = "assets/pepecoin-run/pepecoin-classic.png";
   const courtyard = loadImage("assets/pepe-tower-defense/emerald-vault-courtyard-v1.png");
   courtyard.addEventListener("load", () => { if (!state.playing) draw(); });
+  const relicBaseSprite = loadImage("assets/pepe-tower-defense/relic-base-v1.webp");
+  relicBaseSprite.addEventListener("load", () => { if (!state.playing) draw(); });
   const flame = new Image();
   flame.src = "assets/pepe-relic-rumble/origin-flame.png";
   const towerSprites = {
@@ -57,6 +59,7 @@
     relic: loadImage("assets/pepe-tower-defense/relic-cannon-sprite.png"),
     mage: loadImage("assets/pepe-tower-defense/pepe-mage-sprite.png"),
     archer: loadImage("assets/pepe-tower-defense/pepe-archer-sprite.png"),
+    alchemist: loadImage("assets/pepe-tower-defense/alchemist-concept-v1.webp"),
   };
   const evolvedTowerSprites = {
     pepe: loadImage("assets/pepe-tower-defense/pepe-blaster-evolved-sprite.png"),
@@ -64,6 +67,7 @@
     relic: loadImage("assets/pepe-tower-defense/relic-cannon-evolved-sprite.png"),
     mage: loadImage("assets/pepe-tower-defense/pepe-mage-evolved-sprite.png"),
     archer: loadImage("assets/pepe-tower-defense/pepe-archer-evolved-sprite.png"),
+    alchemist: loadImage("assets/pepe-tower-defense/alchemist-evolved-v1.webp"),
   };
   const tierThreeSprites = Object.fromEntries(Object.keys(towerSprites).map(type => [type, loadImage(`assets/pepe-tower-defense/${type}-tier3-v1.webp`)]));
   const longWatchSprites = Object.fromEntries(Object.keys(towerSprites).map(type => [type, loadImage(`assets/pepe-tower-defense/${type}-long-watch-v1.webp`)]));
@@ -123,6 +127,7 @@
     relic: { name: "Relic Cannon", cost: 140, range: 165, damage: 38, rate: 1.05, color: "#d8b45f", splash: 54, slow: 0 },
     mage: { name: "Pepe Mage", cost: 125, range: 170, damage: 18, rate: 0.78, color: "#a855ff", splash: 32, slow: 0.12 },
     archer: { name: "Pepe Archer", cost: 105, range: 220, damage: 30, rate: 0.72, color: "#9cff6b", splash: 0, slow: 0 },
+    alchemist: { name: "Pepe Alchemist", cost: 135, range: 150, damage: 15, rate: .95, color: "#b6f34d", splash: 0, slow: 0 },
   };
   const CAMPAIGN_WAVES = 20;
   const enemyTypes = {
@@ -193,7 +198,7 @@
   }
 
   function updateMasteryLabels() {
-    const roles = { pepe: "beam DPS", shard: "control field", relic: "splash burst", mage: "shard volley", archer: "emerald arrows" };
+    const roles = { pepe: "beam DPS", shard: "control field", relic: "splash burst", mage: "shard volley", archer: "emerald arrows", alchemist: "armor solvent" };
     towerButtons.forEach((button) => {
       const type = button.dataset.tower;
       const actions = mastery[type].placements + mastery[type].upgrades;
@@ -369,7 +374,7 @@
     vaultLabel.textContent = state.vault;
     bestLabel.textContent = format(state.best);
     const spec = towerTypes[selectedTower];
-    const roles = { pepe: "Direct beam damage", shard: "48% slow for 1.6 seconds", relic: "54-unit splash radius", mage: "32-unit splash and 12% slow", archer: "Long-range direct damage" };
+    const roles = { pepe: "Direct beam damage", shard: "48% slow for 1.6 seconds", relic: "54-unit splash radius", mage: "32-unit splash and 12% slow", archer: "Long-range direct damage", alchemist: "Weakens armor by 10 points for 2s (bosses: 5); refreshes without stacking" };
     const guide = `${spec.name} · Level 1: ${spec.damage} damage, ${spec.range} range, ${(spec.rate / 1.08).toFixed(2)} seconds per attack. ${roles[selectedTower]}. Tier 3 milestone: ${upgradeName({type:selectedTower,level:3})}. Tier 5 evolution: ${upgradeName({type:selectedTower,level:5})}.`;
     if (towerGuide.textContent !== guide) towerGuide.textContent = guide;
     padButtons.forEach(button => {
@@ -485,6 +490,7 @@
       level: 1,
     });
     inspectedTower = towers[towers.length - 1];
+    if (inspectedTower.type === "alchemist") Object.assign(inspectedTower, { armorBreak: .10, bossArmorBreak: .05, acidDuration: 2 });
     setCommandView("manage");
     recordMastery(selectedTower, "placements");
     statusLabel.textContent = `${type.name} placed`;
@@ -501,6 +507,7 @@
     relic: { name: "Siege Radius", detail: "+14 splash radius and +8 range per upgrade" },
     mage: { name: "Arcane Field", detail: "+10 splash radius and +10 range per upgrade" },
     archer: { name: "Rapid Quiver", detail: "14% shorter attack interval per upgrade" },
+    alchemist: { name: "Corrosive Catalyst", detail: "+2 armor points (+1 boss) and +0.4s duration per tier" },
   };
 
   function canManageTower() {
@@ -515,9 +522,11 @@
     relic: ["Wide Shell", "Heavy Charge", "Vault Cracker", "Ancient Reactor", "Cataclysm Core"],
     mage: ["Shard Volley", "Triple Cast", "Arcane Splash", "Crown Sigil", "Shard Storm"],
     archer: ["Swift Nock", "Split Shaft", "Rapid Quiver", "True Aim", "Legend Volley"],
+    alchemist: ["Etching Agent", "Acid Bath", "Armor Solvent", "Royal Reagent", "Philosopher's Venom"],
   };
-  function pathTitle(tower, choice) { return choice === "power" ? "Firepower" : choice === "utility" ? "Long Watch" : specialPaths[tower.type].name; }
-  function tierName(tower, choice, tier) { return (choice === "power" ? powerTierNames : choice === "utility" ? utilityTierNames : specialTierNames[tower.type])[tier - 1]; }
+  const alchemistTierNames = { power: ["Hot Mixture", "Concentrated Acid", "Shatter Flask", "Crown Retort", "Dragonfire Tonic"], utility: ["Measuring Glass", "Distant Delivery", "Surveyor's Retort", "Farwatch Lab", "Emerald Observatory"] };
+  function pathTitle(tower, choice) { if(tower.type === "alchemist") return { power: "Volatile Brews", special: "Corrosive Catalyst", utility: "Surveyor's Lab" }[choice]; return choice === "power" ? "Firepower" : choice === "utility" ? "Long Watch" : specialPaths[tower.type].name; }
+  function tierName(tower, choice, tier) { if(tower.type === "alchemist" && choice !== "special") return alchemistTierNames[choice][tier - 1]; return (choice === "power" ? powerTierNames : choice === "utility" ? utilityTierNames : specialTierNames[tower.type])[tier - 1]; }
 
   // Rebuild from the base spec so purchasing the same crosspath in a different order gives identical stats.
   function rebuildTowerStats(tower) {
@@ -539,6 +548,12 @@
     if (primaryTier >= 3) { const level = tower.level; tower.level = 3; applyUpgrade(tower); tower.level = level; }
     if (primaryTier >= 5) { const level = tower.level; tower.level = 5; applyUpgrade(tower); tower.level = level; }
     tower.evolved = primaryTier >= 5;
+    if (tower.type === "alchemist") {
+      tower.armorBreak = .10 + tower.tiers.special * .02;
+      tower.bossArmorBreak = .05 + tower.tiers.special * .01;
+      tower.acidDuration = 2 + tower.tiers.special * .4;
+      tower.splash = tower.tiers.power >= 3 ? 24 + (tower.tiers.power - 3) * 12 : 0;
+    }
   }
 
   function updateTowerPanel() {
@@ -550,8 +565,9 @@
     const portrait = towerVisualSprite(tower).src;
     if (selectedPortrait.src !== portrait) selectedPortrait.src = portrait;
     const visualLabels = { base: "Base defender", tierThree: "Tier 3 reinforced form", evolved: "Tier 5 evolution", longWatch: "Long Watch form" };
-    document.querySelector("#towerFormLabel").textContent = visualLabels[towerVisualStage(tower)];
-    towerDetails.textContent = `Pad ${pads.indexOf(tower.pad) + 1}: ${tower.damage.toFixed(1)} damage, ${Math.round(tower.range)} range, ${(tower.rate / (1 + tower.level * .08)).toFixed(2)}s attack, ${Math.round(tower.slow * 100)}% slow, ${Math.round(tower.splash)} splash. ${movingTower ? "Choose an empty pad to move, or cancel." : "Crosspath limit: 5 / 2 / 0."}`;
+    document.querySelector("#towerFormLabel").textContent = tower.type === "alchemist" && towerVisualStage(tower) === "longWatch" ? "Surveyor's Lab form" : visualLabels[towerVisualStage(tower)];
+    const acidDetails = tower.type === "alchemist" ? ` Acid: ${Math.round(tower.armorBreak * 100)} armor points (${Math.round(tower.bossArmorBreak * 100)} boss), ${tower.acidDuration.toFixed(1)}s; refreshes, no stacks.` : "";
+    towerDetails.textContent = `Pad ${pads.indexOf(tower.pad) + 1}: ${tower.damage.toFixed(1)} damage, ${Math.round(tower.range)} range, ${(tower.rate / (1 + tower.level * .08)).toFixed(2)}s attack, ${Math.round(tower.slow * 100)}% slow, ${Math.round(tower.splash)} splash. ${movingTower ? "Choose an empty pad to move, or cancel." : "Crosspath limit: 5 / 2 / 0."}${acidDetails}`;
     pathButtons.forEach(button => {
       const choice = button.dataset.upgradePath;
       const tier = tower.tiers[choice];
@@ -561,7 +577,7 @@
       if (!reason) {
         const preview = { ...tower, tiers: { ...tower.tiers, [choice]: tier + 1 } };
         rebuildTowerStats(preview);
-        nextStats = ` Next: ${preview.damage.toFixed(1)} dmg / ${Math.round(preview.range)} range / ${(preview.rate / (1 + preview.level * .08)).toFixed(2)}s / ${Math.round(preview.slow * 100)}% slow / ${Math.round(preview.splash)} splash.`;
+        nextStats = ` Next: ${preview.damage.toFixed(1)} dmg / ${Math.round(preview.range)} range / ${(preview.rate / (1 + preview.level * .08)).toFixed(2)}s / ${Math.round(preview.slow * 100)}% slow / ${Math.round(preview.splash)} splash.${tower.type === "alchemist" ? ` Acid: ${Math.round(preview.armorBreak * 100)} points (${Math.round(preview.bossArmorBreak * 100)} boss), ${preview.acidDuration.toFixed(1)}s.` : ""}`;
       }
       const label = `${pathTitle(tower, choice)} ${tier}/5 - ${reason || `T${tier + 1}: ${tierName(tower, choice, tier + 1)} - ${cost} shards`}.${nextStats}`;
       const text = button.querySelector(".path-text");
@@ -626,6 +642,7 @@
       shard: ["Slow Field", "Deep Freeze", "Chain Chill", "Crystal Prison", "Absolute Zero"],
       relic: ["Relic Shell", "Heavy Charge", "Vault Cracker", "Ancient Reactor", "Cataclysm Core"],
       mage: ["Shard Spell", "Triple Cast", "Arcane Splash", "Crown Sigil", "Shard Storm"],
+      alchemist: ["Acid Flask", "Concentrated Acid", "Armor Solvent", "Royal Reagent", "Philosopher's Venom"],
       archer: ["Emerald Arrow", "Piercing Shot", "Rapid Quiver", "True Aim", "Legend Volley"],
     };
     return names[tower.type]?.[Math.min(tower.level - 1, 4)] || "Upgraded";
@@ -676,6 +693,8 @@
   function updateEnemies(dt) {
     for (let i = enemies.length - 1; i >= 0; i -= 1) {
       const enemy = enemies[i];
+      enemy.acidTimer = Math.max(0, (enemy.acidTimer || 0) - dt);
+      if (!enemy.acidTimer) enemy.armorBreak = 0;
       const slowedTime = Math.min(dt, enemy.slowTimer);
       let travel = enemy.speed * (dt - slowedTime * (enemy.slowStrength || 0));
       enemy.slowTimer = Math.max(0, enemy.slowTimer - dt);
@@ -732,8 +751,18 @@
     enemy.slowTimer = Math.max(enemy.slowTimer, duration);
   }
 
+  function effectiveArmor(enemy) {
+    return Math.max(0, (enemy.armor || 0) - (enemy.acidTimer > 0 ? enemy.armorBreak || 0 : 0));
+  }
+  function applyAcid(enemy, tower) {
+    const strength = enemy.boss || enemy.kind === "boss" || enemy.kind === "warboss" ? tower.bossArmorBreak : tower.armorBreak;
+    // Preserve the strongest active coating; never add strengths together.
+    enemy.armorBreak = Math.max(enemy.acidTimer > 0 ? enemy.armorBreak || 0 : 0, strength);
+    enemy.acidTimer = Math.max(enemy.acidTimer || 0, tower.acidDuration);
+  }
+
   function damageEnemy(enemy, damage, slow, splash) {
-    const dealt = damage * (1 - (enemy.armor || 0));
+    const dealt = damage * (1 - effectiveArmor(enemy));
     enemy.hp -= dealt;
     enemy.hitFlash = 1;
     floaters.push({
@@ -747,7 +776,7 @@
     if (splash) {
       bursts.push({ x: enemy.x, y: enemy.y, r: 0, max: splash, color: "#d8b45f", life: 0.32 });
       for (const other of enemies) {
-        if (other !== enemy && distance(enemy.x, enemy.y, other.x, other.y) < splash) other.hp -= damage * 0.45 * (1 - (other.armor || 0));
+        if (other !== enemy && distance(enemy.x, enemy.y, other.x, other.y) < splash) other.hp -= damage * 0.45 * (1 - effectiveArmor(other));
       }
     }
   }
@@ -795,6 +824,11 @@
       tower.cooldown += tower.rate / (1 + tower.level * 0.08);
       tower.attackPulse = 1;
       tower.aimAngle = Math.atan2(target.y - tower.y, target.x - tower.x);
+      if (tower.type === "alchemist") {
+        applyAcid(target, tower);
+        if (tower.splash) for(const other of enemiesNear(target.x, target.y, tower.splash, target)) applyAcid(other, tower);
+        bursts.push({ x: target.x, y: target.y, r: 0, max: Math.max(20, tower.splash), color: tower.color, life: .24 });
+      }
       damageEnemy(target, tower.damage, tower.slow, tower.splash);
       applyMilestoneHit(tower, target);
       fireShot(tower, target);
@@ -1330,6 +1364,12 @@
         ctx.strokeStyle = "#ffd86b"; ctx.lineWidth = enemy.boss ? 3 : 2;
         ctx.beginPath(); ctx.ellipse(0, 8, enemy.radius + 8, enemy.radius * .55, 0, 0, Math.PI * 2); ctx.stroke();
       }
+      if (enemy.acidTimer > 0) {
+        ctx.fillStyle = "#caff64"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center";
+        const reduction = Math.round(Math.min(enemy.armor || 0, enemy.armorBreak) * 100);
+        ctx.fillText(reduction ? "ACID -" + reduction : "ACID", 0, -enemy.radius - 23);
+        ctx.fillRect(-12, enemy.radius + 10, 24, 3);
+      }
       if (enemy.kind === "warboss") {
         ctx.fillStyle = "#ffd86b"; ctx.font = "bold 13px Arial"; ctx.textAlign = "center";
         ctx.fillText("WARBOSS", 0, -75);
@@ -1409,6 +1449,13 @@
         ctx.closePath();
         ctx.fill();
         ctx.restore();
+      } else if (shot.type === "alchemist") {
+        const progress = 1 - alpha;
+        const x = shot.x + (shot.tx - shot.x) * progress;
+        const y = shot.y + (shot.ty - shot.y) * progress - Math.sin(progress * Math.PI) * 35;
+        ctx.save(); ctx.translate(x, y); ctx.rotate(progress * 5);
+        ctx.fillStyle = "#b6f34d"; ctx.beginPath(); ctx.arc(0, 2, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#e3be6c"; ctx.fillRect(-3, -9, 6, 7); ctx.restore();
       } else if (shot.type === "archer") {
         const progress = 1 - alpha;
         const x = shot.x + (shot.tx - shot.x) * progress;
@@ -1470,6 +1517,13 @@
     const color = relicHitFlash > 0 ? "#ff9a82" : ratio <= .25 ? "#ff826f" : "#61ffbd";
     ctx.save();
     ctx.translate(relicBase.x, relicBase.y);
+    if (relicBaseSprite.complete && relicBaseSprite.naturalWidth) {
+      ctx.shadowColor = relicHitFlash > 0 ? "#ff7055" : "#39ff9a";
+      ctx.shadowBlur = relicHitFlash * 28;
+      ctx.filter = state.vault === 0 ? "grayscale(1) brightness(.45)" : ratio <= .25 ? "saturate(.6) brightness(.8)" : "none";
+      ctx.drawImage(relicBaseSprite, -72, -78, 144, 144);
+      ctx.filter = "none"; ctx.shadowBlur = 0;
+    } else {
     // Stone foundation and gold bands keep the objective in the jade courtyard's visual language.
     ctx.fillStyle = "rgba(0, 0, 0, .45)";
     ctx.beginPath(); ctx.ellipse(0, 39, 55, 15, 0, 0, Math.PI * 2); ctx.fill();
@@ -1488,6 +1542,7 @@
     ctx.beginPath(); ctx.moveTo(0, -45); ctx.lineTo(24, -9); ctx.lineTo(0, 24); ctx.lineTo(-24, -9); ctx.closePath(); ctx.fill();
     ctx.shadowBlur = 0; ctx.strokeStyle = "#d0ffe4"; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(0, -45); ctx.lineTo(0, 24); ctx.moveTo(-24, -9); ctx.lineTo(24, -9); ctx.stroke();
+    }
     if (ratio < .5) {
       ctx.strokeStyle = "#163328"; ctx.lineWidth = 3; ctx.beginPath();
       ctx.moveTo(5, -28); ctx.lineTo(-6, -12); ctx.lineTo(7, 0); ctx.lineTo(-3, 13); ctx.stroke();
@@ -1572,6 +1627,7 @@
     if (event.key === "3") selectTower("relic");
     if (event.key === "4") selectTower("mage");
     if (event.key === "5") selectTower("archer");
+    if (event.key === "6") selectTower("alchemist");
     if (event.key.toLowerCase() === "w") startWave();
     if (event.key === "Enter" && !state.playing) resetGame();
   });

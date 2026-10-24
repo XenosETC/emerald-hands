@@ -21,7 +21,7 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
-    <link rel="stylesheet" href="pepe-tower-command.css?v=relic-base-20261023">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=relic-alchemist-20261023">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -49,7 +49,7 @@
           <div class="status-pill" id="statusPill">
             <span class="status-dot"></span>
             <strong id="statusLabel">Place defenders on empty pads</strong>
-            <small id="statusMeta">1/2/3 select towers - click or drag a tower to build</small>
+            <small id="statusMeta">1-6 select towers - click or drag a tower to build</small>
           </div>
 
           <section class="overlay" id="gameOverlay">
@@ -105,6 +105,7 @@
               <small>105 shards - emerald arrows</small>
             </span>
           </button>
+          <button class="tower-button" type="button" data-tower="alchemist" draggable="true"><img src="assets/pepe-tower-defense/alchemist-concept-v1.webp" alt=""><span><strong>Pepe Alchemist</strong><small>135 shards - armor solvent</small></span></button>
           <details class="defender-guide"><summary>Selected defender field guide</summary><p id="towerGuide"></p></details>
 <p class="tower-dock__hint">Choose a defender, then tap a glowing pad or its number on the battlefield.</p></section>
           <section class="command-view" id="manageView" aria-label="Manage selected defender" hidden><p id="manageEmpty">Tap a placed tower or its pad number to inspect, upgrade, move or sell it.</p><section class="tower-panel" id="towerPanel" aria-labelledby="towerPanelTitle" hidden>
@@ -134,7 +135,7 @@
 
     <script src="arcade.js?v=12"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepe-tower-defense.js?v=upgrade-art-20261023"></script>
+    <script src="pepe-tower-defense.js?v=relic-alchemist-20261023"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

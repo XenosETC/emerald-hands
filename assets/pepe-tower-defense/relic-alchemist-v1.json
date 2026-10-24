@@ -1,0 +1,35 @@
+{
+  "method": "built-in imagegen",
+  "date": "2026-10-23",
+  "assets": [
+    {
+      "key": "relic-base-v1",
+      "prompt": "Use case: stylized-concept. Asset type: transparent gameplay sprite for Pepe Tower Defense, a relic base objective. Reference image 1 defines exact hand-painted rendered 3D jade stone, worn gold bands, faceted glowing emerald crystals, crisp readable game-prop detail. Reference image 2 defines the dark ancient frog-temple courtyard ground plane and overhead camera. Create ONE compact relic shrine: a large central upright emerald diamond nested in a protected brass/gold cradle, squat stepped dark jade masonry foundation, four low corner buttresses, tiny engraved frog temple motifs. No character, no gun or cannon, unmistakably a precious defensive objective. Three-quarter elevated camera matching these references; squat footprint, the top of the foundation visibly exposed. Emerald glow restrained so crystal facets stay readable. Broad stable octagonal base. Whole object centered fully inside square canvas with at least 8% transparent padding on ALL sides. Ground contact at bottom center. Real transparent alpha, no floor tile, no scenery, no labels, text, UI, yellow circle, aura ring, detached pieces or watermark. Premium polished game sprite coherent with reference towers and background, legible when displayed 128px tall.",
+      "references": [
+        "pepe-tier3-v1.png",
+        "emerald-vault-courtyard-v1.png"
+      ]
+    },
+    {
+      "key": "alchemist-tier3-v1",
+      "prompt": "Use case: stylized-concept. Asset: ONE transparent Pepe Tower Defense upgrade sprite. Reference is the existing Alchemist base sprite, preserve its recognizable identity and composition. Tier 3 reinforced form. Same Pepe, exact goggles, apron, raised potion hand pose, camera and turret silhouette; reinforce existing brass retort and add a second compact condenser coil, thicker gold corner armor. Modest progression, not ultimate. Match hand-painted 3D fantasy game rendering, dark jade stone, worn brass/gold and bright faceted emeralds. Full sprite completely visible, centered square frame with 8% transparent margin on all four sides, no clipping of raised flask, same bottom anchor and three-quarter elevated camera. True transparent alpha, no scenery, no text, labels, watermark, circle or ground aura. Do not add floating ornaments or change Pepe into another character.",
+      "references": [
+        "alchemist-concept-v1.png"
+      ]
+    },
+    {
+      "key": "alchemist-long-watch-v1",
+      "prompt": "Use case: stylized-concept. Asset: ONE transparent Pepe Tower Defense upgrade sprite. Reference is the existing Alchemist base sprite, preserve its recognizable identity and composition. Long Watch / Surveyor's Lab specialist form. Same Pepe, exact goggles, apron, raised potion hand pose, camera and turret silhouette; one small brass telescope rangefinder integrated into left laboratory apparatus, graduated long delivery neck and subtle violet optics. Keep acid green and amber, no weapon cannon. Match hand-painted 3D fantasy game rendering, dark jade stone, worn brass/gold and bright faceted emeralds. Full sprite completely visible, centered square frame with 8% transparent margin on all four sides, no clipping of raised flask, same bottom anchor and three-quarter elevated camera. True transparent alpha, no scenery, no text, labels, watermark, circle or ground aura. Do not add floating ornaments or change Pepe into another character.",
+      "references": [
+        "alchemist-concept-v1.png"
+      ]
+    },
+    {
+      "key": "alchemist-evolved-v1",
+      "prompt": "Use case: stylized-concept. Asset: ONE transparent Pepe Tower Defense upgrade sprite. Reference is the existing Alchemist base sprite, preserve its recognizable identity and composition. Tier 5 ultimate form. Same Pepe, exact goggles, apron, raised potion hand pose, camera and core turret silhouette; regal reinforced gold-edged jade lab, crown-shaped brass condenser apparatus, richer emerald potion vessels, elaborate but compact alchemical equipment. Keep readable at 120 pixels. Match hand-painted 3D fantasy game rendering, dark jade stone, worn brass/gold and bright faceted emeralds. Full sprite completely visible, centered square frame with 8% transparent margin on all four sides, no clipping of raised flask, same bottom anchor and three-quarter elevated camera. True transparent alpha, no scenery, no text, labels, watermark, circle or ground aura. Do not add floating ornaments or change Pepe into another character.",
+      "references": [
+        "alchemist-concept-v1.png"
+      ]
+    }
+  ]
+}

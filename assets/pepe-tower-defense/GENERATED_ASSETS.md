@@ -20,3 +20,7 @@ Use-case game-asset. Seamless-looking dark emerald stone material backdrop for a
 ## Coherent upgrade forms - 2026-10-23
 
 Built-in imagegen created five tier-3 sprites, five Long Watch sprites and one Alchemist concept from the existing five tower references. See visual-upgrades-v1.json for complete prompts, reference identities and reframe edits. PNG originals are retained; transparent 512px WebP runtime copies are mechanically framed and compressed, with bounds and sizes in visual-upgrades-v1.qa.json. No generated sprite changes combat behavior. Alchemist remains a proposal only.
+
+## Relic and Alchemist release - 2026-10-23
+
+Built-in imagegen produced relic-base-v1 plus alchemist-tier3-v1, alchemist-long-watch-v1 and alchemist-evolved-v1. All originals are retained as PNG. Transparent 512px WebP copies use the prior bottom anchor at 496; no semantic repaint or background removal was used. Complete prompts/reference roles: relic-alchemist-v1.json. Framing/alpha/size receipt: relic-alchemist-v1.qa.json. The earlier Alchemist concept sprite is now the playable base form. The generated relic is used at the visible path endpoint with dynamic health feedback.

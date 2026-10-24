@@ -51,7 +51,7 @@ function game(file) {
     },
     querySelectorAll(selector) {
       if (file !== 'pepe-tower-defense.js') return [];
-      const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special'],['upgradePath','utility']] : selector === '[data-command-tab]' ? ['build','manage','intel'].map(view=>['commandTab',view]) : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer'].map(type=>['tower',type]) : [];
+      const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special'],['upgradePath','utility']] : selector === '[data-command-tab]' ? ['build','manage','intel'].map(view=>['commandTab',view]) : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer','alchemist'].map(type=>['tower',type]) : [];
       return entries.map(([key,value])=>{const id=`${key}:${value}`;if(!nodes.has(id)){const item=node();item.dataset[key]=value;nodes.set(id,item);}return nodes.get(id);});
     },
   });
@@ -99,8 +99,8 @@ function towerGame() {
   return g;
 }
 
-test('All five towers select coherent tier-3 and Long Watch visuals from their actual path state',()=>{
-  for(const type of ['pepe','shard','relic','mage','archer']) {
+test('All six towers select coherent tier-3 and Long Watch visuals from their actual path state',()=>{
+  for(const type of ['pepe','shard','relic','mage','archer','alchemist']) {
     const g=towerGame();g.act(`selectTower("${type}");buildOrUpgrade(pads[0]);state.shards=10000`);
     assert.equal(g.act('towerVisualStage(towers[0])'),'base');
     g.act('upgradeSelected("power");upgradeSelected("power")');assert.equal(g.act('towerVisualStage(towers[0])'),'base');
@@ -153,4 +153,72 @@ test('Relic destruction clamps health, ends once, and replay restores the relic'
   assert.equal(g.records.length,1);
   assert.match(g.nodes.get('#overlayTitle').textContent,/relic base was destroyed/);
   g.start();assert.equal(g.act('state.vault'),100);assert.equal(g.act('relicHitFlash'),0);
+});
+
+test('Alchemist is affordable from a fresh run, has named paths, and obeys move/sell/crosspath rules',()=>{
+  const g=towerGame();g.act('selectTower("alchemist");buildOrUpgrade(pads[0])');
+  assert.equal(g.act('state.shards'),45);assert.equal(g.act('towers[0].armorBreak'),.1);
+  assert.match(g.nodes.get('#towerDetails').textContent,/10 armor points \(5 boss\), 2.0s/);
+  assert.match(g.act('pathTitle(towers[0],"power")'),/Volatile/);
+  assert.match(g.act('tierName(towers[0],"special",5)'),/Venom/);
+  g.act('state.shards=5000;upgradeSelected("special");upgradeSelected("special");upgradeSelected("special");upgradeSelected("utility");upgradeSelected("utility")');
+  assert.equal(g.act('pathLockReason(towers[0],"power")'),'Third path locked');
+  assert.equal(g.act('pathLockReason(towers[0],"utility")'),'Secondary path capped at tier 2');
+  assert.equal(g.act('towerVisualStage(towers[0])'),'tierThree');
+  const refund=g.act('Math.floor(towers[0].invested*.7)');
+  g.act('beginMove();buildOrUpgrade(pads[2])');assert.equal(g.act('towers[0].pad===pads[2]'),true);
+  const before=g.act('state.shards');g.act('sellSelected();sellSelected()');
+  assert.equal(g.act('state.shards'),before+refund);assert.equal(g.act('towers.length'),0);
+});
+
+test('Acid refreshes without stacking, caps bosses, expires, and cannot drive armor below zero',()=>{
+  const g=towerGame();g.act('selectTower("alchemist");buildOrUpgrade(pads[0]);enemies.push({x:230,y:260,pathIndex:1,speed:0,slowTimer:0,hitFlash:0,spin:0,hp:1000,armor:.2,kind:"brute"})');
+  g.act('applyAcid(enemies[0],towers[0]);applyAcid(enemies[0],towers[0])');
+  assert.equal(g.act('enemies[0].armorBreak'),.1);assert.equal(g.act('effectiveArmor(enemies[0])'),.1);
+  g.act('damageEnemy(enemies[0],100,0,0)');assert.equal(g.act('enemies[0].hp'),910);
+  g.act('updateEnemies(1);applyAcid(enemies[0],towers[0])');assert.equal(g.act('enemies[0].acidTimer'),2);
+  g.act('enemies[0].boss=true;enemies[0].armor=.25;enemies[0].acidTimer=0;applyAcid(enemies[0],towers[0])');
+  assert.equal(g.act('enemies[0].armorBreak'),.05);assert.equal(g.act('effectiveArmor(enemies[0])'),.2);
+  g.act('updateEnemies(2)');assert.equal(g.act('effectiveArmor(enemies[0])'),.25);
+  g.act('enemies[0].armor=0;applyAcid(enemies[0],towers[0])');assert.equal(g.act('effectiveArmor(enemies[0])'),0);
+});
+
+test('Acid affects splash and chained hits consistently and the base enemy armor stays unchanged',()=>{
+  const g=towerGame();g.act('selectTower("alchemist");buildOrUpgrade(pads[0]);enemies.push(...[0,10].map(dx=>({x:230+dx,y:260,pathIndex:1,speed:0,slowTimer:0,hitFlash:0,spin:0,hp:1000,armor:.2,radius:10,kind:"brute"})));enemies.forEach(e=>applyAcid(e,towers[0]));damageEnemy(enemies[0],100,0,30)');
+  assert.equal(g.act('enemies[0].hp'),910);assert.equal(g.act('enemies[1].hp'),959.5);
+  g.act('applyMilestoneHit({type:"pepe",level:3,damage:100},enemies[0])');
+  assert.ok(Math.abs(g.act('enemies[1].hp')-(959.5-32*.9))<1e-9);
+  assert.equal(g.act('enemies[0].armor'),.2);
+});
+
+test('Actual Alchemist attacks show acid, splash only on Volatile tiers 3+, and reset clears coatings',()=>{
+  const g=towerGame();g.act('selectTower("alchemist");buildOrUpgrade(pads[0]);state.shards=10000;upgradeSelected("power");upgradeSelected("power")');
+  assert.equal(g.act('towers[0].splash'),0);g.act('upgradeSelected("power")');assert.equal(g.act('towers[0].splash'),24);
+  g.act('enemies.push(...[0,10].map(dx=>({x:230+dx,y:260,pathIndex:1,speed:0,slowTimer:0,hitFlash:0,spin:0,hp:1000,maxHp:1000,armor:.2,radius:10,kind:"brute"})));updateTowers(.01);drawEnemies();drawEffects()');
+  assert.equal(g.act('enemies[1].acidTimer'),2);assert.ok(g.act('enemies[1].hp<1000'));
+  assert.equal(g.act('shots[0].type'),'alchemist');assert.ok(g.drawingCalls.some(c=>c.method==='fillText'&&c.args[0]==='ACID -10'));
+  g.act("resetGame()");assert.equal(g.act('enemies.length'),0);assert.equal(g.act('towers.length'),0);
+});
+
+test('Generated relic asset is rendered at the final waypoint and still displays health',()=>{
+  const g=towerGame();g.act('relicBaseSprite.complete=true;relicBaseSprite.naturalWidth=512;state.vault=37;drawVault()');
+  const draw=g.drawingCalls.filter(c=>c.method==='drawImage').at(-1);
+  assert.match(draw.args[0].src,/relic-base-v1.webp$/);
+  assert.ok(g.drawingCalls.some(c=>c.method==='fillText'&&c.args[0]==='37 / 100 HP'));
+});
+
+test('Alchemist acid freezes with shared pause and resumes with simulation time',()=>{
+  const g=towerGame();g.act('selectTower("alchemist");buildOrUpgrade(pads[0]);enemies.push({x:230,y:260,pathIndex:1,speed:0,slowTimer:0,hitFlash:0,spin:0,hp:10000,armor:.2,kind:"brute"});applyAcid(enemies[0],towers[0]);towers.length=0');
+  g.frame(0);g.setWallTime(1000);g.frame(0);
+  assert.equal(g.act('enemies[0].acidTimer'),2);
+  g.frame(16);g.frame(32);
+  assert.ok(g.act('enemies[0].acidTimer')<2);
+});
+
+test('Every Alchemist 5/2/0 crosspath has order-independent stats and capped boss weakening',()=>{
+  for(const primary of ['power','special','utility'])for(const secondary of ['power','special','utility'].filter(p=>p!==primary)){
+    const build=order=>{const g=towerGame();g.act('selectTower("alchemist");buildOrUpgrade(pads[0]);state.shards=10000');for(const p of order)g.act(`upgradeSelected("${p}")`);return JSON.parse(g.act('JSON.stringify([towers[0].damage,towers[0].range,towers[0].rate,towers[0].splash,towers[0].armorBreak,towers[0].bossArmorBreak,towers[0].acidDuration])'));};
+    const a=build([...Array(5).fill(primary),...Array(2).fill(secondary)]),b=build([...Array(2).fill(secondary),...Array(5).fill(primary)]);
+    assert.deepEqual(a,b);assert.ok(a[4]<=.2&&a[5]<=.1&&a[6]<=4);
+  }
 });

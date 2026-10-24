@@ -1,13 +1,11 @@
-# Pepe Alchemist - new defender proposal
+# Pepe Alchemist - playable support defender
 
-Status: reviewable design and generated sprite only; not a recruitable or implemented combat tower.
+Status: implemented in the Tower Defense shop, battlefield and inspector. Original concept and three generated upgrade forms retain the goggles, apron, acid vessels and jade/gold lab silhouette. Keyboard shortcut: 6.
 
-Role: temporary anti-armor support. It fills the roster gap between direct damage, slowing, artillery splash and multi-target magic. Visual language: recognizable Pepe face, brass goggles, leather apron, amber/green acid vessels, brass condenser, dark jade-and-gold laboratory turret. No hood/staff silhouette, ground aura or yellow ring.
+Base: 135 defense shards, 15 damage, 150 range, 0.95s base interval (existing level speed modifier applies). A hit lowers ordinary armor by 10 percentage points for 2 seconds; bosses by 5. The strongest active coating refreshes without stacking, expires in simulation time and never lowers effective armor below zero. Native enemy armor is unchanged. Direct, splash and chain hits all use effective armor.
 
-Provisional base values: 135 defense shards, 15 damage, 150 range, 0.95 seconds per attack. Proposed debuff: lower ordinary armor by 10 percentage points for 2 seconds, with a 5-point boss limit; refresh duration without adding stacks; floor effective armor at zero. There is no income generation or permanent enemy-stat change. These are design assumptions, not shipped business logic or verified balance.
+Paths share the existing 75/120/175/230/285 tier costs and 5/2/0 restrictions. Volatile Brews uses normal power damage/range scaling and adds 24/36/48 splash at tiers 3/4/5. Corrosive Catalyst uses normal special damage/range scaling and adds 2 armor points (1 boss point) and 0.4s duration per tier: max 20 points ordinary, 10 boss, 4s. Surveyor's Lab uses the normal utility range/speed scaling. Existing tier-3 and tier-5 general milestone bonuses apply.
 
-Proposed paths: Volatile Brews (impact/splash), Corrosive Catalyst (armor weakening/duration), Surveyor's Lab (range/uptime). Each follows the existing 5/2/0 crosspath constraint and the normal move/sell rules. The illustrated design sheet includes five tier names per path.
+All three tracks have five named tiers and exact stat/debuff previews. Base art is used through primary tier 2; tier-3 art for Volatile/Catalyst 3-4, evolved art for their tier 5, and Surveyor art for utility 3-5. Move/sell, refunds, pause, mastery and replay use shared rules. No income generation or permanent enemy-stat changes.
 
-Files: assets/pepe-tower-defense/alchemist-concept-v1.png (generated original); alchemist-concept-v1.webp (optimized review sprite); docs/tower-defense-visual-review.html (visual comparison and design sheet). Generation prompt and framing refinement are recorded in assets/pepe-tower-defense/visual-upgrades-v1.json.
-
-Next implementation gate: a small playable support slice with a visible acid debuff, consistent direct/splash/chain armor handling, non-stacking refresh, boss caps, pause/reset behavior and normal build/upgrade/refund guards. Test brute/warboss interactions and a naturally earned mixed-defense campaign before tuning or exposing it in the live shop.
+These values implement the earlier proposal as provisional game balance. Automated mechanics checks and browser interaction are not human campaign balance approval. Next: a human mixed-defense 20-wave playthrough to tune support value. Prompt manifest: assets/pepe-tower-defense/relic-alchemist-v1.json.
