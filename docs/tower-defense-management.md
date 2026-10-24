@@ -29,3 +29,9 @@ Five generated tier-3 forms and five Long Watch forms now appear in the battlefi
 The visual review at docs/tower-defense-visual-review.html compares all forms and presents the proposed Pepe Alchemist. The Alchemist is a design/concept only, not recruitable. Browser checks loaded all 21 review images, verified both five-tower forms in a labeled seeded fixture, matched the selected Archer portrait through native pad selection, and found no horizontal overflow at 390x844. These checks establish visual integration, not human campaign balance.
 
 Clean staged release validation: 279 root tests passed, including two dedicated visual-selection and rendering checks. Unrelated Soul World and Paradox working changes were excluded.
+
+## Relic base health - October 23, 2026
+
+The visible relic base is now the final path waypoint (1185, 404), replacing the offscreen exit. Each run starts with 100 HP. Crossing enemies are removed once and subtract their existing breach damage: crawler/runner/raider 1, elite/brute 2, boss 4, warboss 5. Health clamps at zero and destruction ends the defense once. Replay restores 100 HP. The jade-and-gold base has an attached numeric health bar, hit flash, low-health color and a cracked crystal below half health; HUD and results use relic health. More starting health makes the campaign more forgiving; no enemy or reward values were changed.
+
+Validation: 281 tests passed in a clean staged copy. A live, unseeded browser wave with no towers let all 12 first-wave enemies reach the relic; health fell from 100 to 88. Screenshot: releases/relic-base-88hp-20261023.png (local QA only).

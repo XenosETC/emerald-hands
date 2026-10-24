@@ -168,7 +168,7 @@ test('Tower Defense replay starts its first enemy at the portal without duplicat
   g.nodes.get('#waveButton').emit('click');
   g.frame(1032);
   assert.equal(enemyX(), 34, 'reset enemy must not move backward during the first frame');
-  assert.equal(g.nodes.get('#vaultLabel').textContent, 20);
+  assert.equal(g.nodes.get('#vaultLabel').textContent, 100);
   assert.equal(g.nodes.get('#shardLabel').textContent, 180);
   g.frame(1048);
   const moved = enemyX();
@@ -622,7 +622,7 @@ test('Space Unchained repair cooldown expires through actual simulation updates'
 
 test('Tower Defense fatal breach stops the update and records zero cleared waves once', () => {
   const g = game('pepe-tower-defense.js'); g.start();
-  g.read(`window.__towerRead('state.vault=1; enemies.length=0; enemies.push({x:1325,y:404,pathIndex:9,speed:60,slowTimer:0,hitFlash:0,spin:0,kind:"boss"}); update(.01); endGame("duplicate")')`);
+  g.read(`window.__towerRead('state.vault=1; enemies.length=0; enemies.push({x:1185,y:404,pathIndex:9,speed:60,slowTimer:0,hitFlash:0,spin:0,kind:"boss"}); update(.01); endGame("duplicate")')`);
   assert.equal(g.read('window.__towerRead("state.vault")'), 0);
   assert.equal(g.records.length, 1);
   assert.equal(g.records[0][1].wave, 0);
@@ -705,7 +705,7 @@ test('Tower Defense twenty wave-clear transitions reward once and replay resets 
   g.read('window.__towerRead("updateWave(0); endGame()")');
   assert.equal(g.records.length, 1);
   g.start(); assert.equal(g.nodes.get('#campaignProgress').value, 0);
-  assert.equal(g.read('window.__towerRead("state.vault")'), 20);
+  assert.equal(g.read('window.__towerRead("state.vault")'), 100);
 });
 
 test('Tower Defense upgrades reach evolution with exact costs and mastery actions', () => {
@@ -1139,8 +1139,8 @@ test('Wave 20 spawns the promised final warboss once with scaling, armor and fiv
   assert.equal(g.act('enemies.length'),1);assert.equal(g.act('enemies[0].kind'),'warboss');
   assert.ok(g.act('enemies[0].hp>9000 && enemies[0].armor===.25'));
   assert.equal(g.act('enemies[0].speed'),53);
-  g.act('enemies[0].x=1325;enemies[0].y=404;enemies[0].pathIndex=9;updateEnemies(0)');
-  assert.equal(g.act('state.vault'),15);assert.equal(g.act('enemies.length'),0);
+  g.act('enemies[0].x=1185;enemies[0].y=404;enemies[0].pathIndex=9;updateEnemies(0)');
+  assert.equal(g.act('state.vault'),95);assert.equal(g.act('enemies.length'),0);
   g.act('state.spawnLeft=0;updateWave(0)');assert.equal(g.records.length,1);assert.equal(g.records[0][1].wave,20);
 });
 

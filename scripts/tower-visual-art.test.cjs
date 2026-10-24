@@ -126,3 +126,31 @@ test('Tower rendering and inspector use the same upgrade image and missing art f
   g.act('longWatchSprites.pepe.naturalWidth=0;towerSprites.pepe.complete=true;towerSprites.pepe.naturalWidth=512');
   assert.equal(g.act('loadedTowerSprite(towers[0])===towerSprites.pepe'),true);
 });
+
+test('Relic base starts at 100 HP at the visible path endpoint and loses health exactly once per breach',()=>{
+  const g=towerGame();
+  assert.equal(g.act('state.vault'),100);
+  assert.equal(g.act('path.at(-1)===relicBase'),true);
+  assert.equal(g.act('relicBase.x < W && relicBase.y < H'),true);
+  const leak=(kind,damage)=>g.act(`enemies.push({x:relicBase.x,y:relicBase.y,pathIndex:path.length-1,speed:60,slowTimer:0,hitFlash:0,spin:0,kind:"${kind}",breachDamage:${damage}});updateEnemies(0);updateHud()`);
+  leak('grunt',1);assert.equal(g.act('state.vault'),99);
+  assert.equal(g.nodes.get('#vaultLabel').textContent,99);
+  assert.equal(g.act('enemies.length'),0);
+  g.act('updateEnemies(1)');assert.equal(g.act('state.vault'),99);
+  leak('brute',2);leak('boss',4);leak('warboss',5);
+  assert.equal(g.act('state.vault'),88);
+  assert.match(g.nodes.get('#statusMeta').textContent,/88 \/ 100 HP/);
+  g.act('drawVault()');
+  assert.ok(g.drawingCalls.some(c=>c.method==='fillText' && c.args[0]==='88 / 100 HP'));
+  assert.equal(g.act('relicHitFlash'),1);
+  g.act('updateEffects(.5)');assert.equal(g.act('relicHitFlash'),0);
+});
+
+test('Relic destruction clamps health, ends once, and replay restores the relic',()=>{
+  const g=towerGame();
+  g.act('state.vault=2;enemies.push({x:relicBase.x,y:relicBase.y,pathIndex:path.length-1,speed:60,slowTimer:0,hitFlash:0,spin:0,kind:"warboss",breachDamage:5});updateEnemies(0);endGame("duplicate")');
+  assert.equal(g.act('state.vault'),0);assert.equal(g.act('state.playing'),false);
+  assert.equal(g.records.length,1);
+  assert.match(g.nodes.get('#overlayTitle').textContent,/relic base was destroyed/);
+  g.start();assert.equal(g.act('state.vault'),100);assert.equal(g.act('relicHitFlash'),0);
+});

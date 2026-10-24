@@ -94,6 +94,10 @@
     boss: loadImage("assets/pepe-tower-defense/enemy-boss-sprite.png"),
   };
 
+  const RELIC_MAX_HEALTH = 100;
+  const relicBase = { x: 1185, y: 404 };
+  let relicHitFlash = 0;
+
   const path = [
     { x: 34, y: 345 },
     { x: 170, y: 345 },
@@ -104,7 +108,7 @@
     { x: 755, y: 238 },
     { x: 1035, y: 238 },
     { x: 1035, y: 404 },
-    { x: 1325, y: 404 },
+    relicBase,
   ];
 
   const pads = [
@@ -218,7 +222,7 @@
     wave: 1,
     score: 0,
     shards: 180,
-    vault: 20,
+    vault: RELIC_MAX_HEALTH,
     spawnLeft: 0,
     waveSpawnTotal: 0,
     spawnTimer: 0,
@@ -269,7 +273,8 @@
     state.wave = 1;
     state.score = 0;
     state.shards = 180;
-    state.vault = 20;
+    state.vault = RELIC_MAX_HEALTH;
+    relicHitFlash = 0;
     state.spawnLeft = 0;
     state.waveSpawnTotal = 0;
     state.spawnTimer = 0;
@@ -307,7 +312,7 @@
       shards: state.shards,
     });
     overlayTitle.textContent = title;
-    overlayText.textContent = `${format(score)} score · ${completedWave} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} vault integrity · ${rank}.`;
+    overlayText.textContent = `${format(score)} score · ${completedWave} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} relic health · ${rank}.`;
     startButton.textContent = "Rebuild Defense";
     overlay.classList.remove("is-hidden");
     startButton.focus();
@@ -359,7 +364,7 @@
     const brief = state.wave > CAMPAIGN_WAVES ? "Campaign complete - all 20 waves defended." : waveBrief(currentWavePlan());
     if (wavePreview.textContent !== brief) wavePreview.textContent = brief;
     campaignProgress.value = cleared;
-    campaignLabel.textContent = `${cleared} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} vault integrity`;
+    campaignLabel.textContent = `${cleared} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} relic health`;
     campaignProgress.setAttribute("aria-valuetext", campaignLabel.textContent);
     vaultLabel.textContent = state.vault;
     bestLabel.textContent = format(state.best);
@@ -696,10 +701,11 @@
           enemies.splice(i, 1);
           const damage = enemy.breachDamage ?? ((enemy.boss || enemy.kind === "boss") ? 4 : enemy.kind === "elite" ? 2 : 1);
           state.vault = Math.max(0, state.vault - damage);
+          relicHitFlash = 1;
           screenShake = Math.max(screenShake, (enemy.boss || enemy.kind === "boss") ? 16 : 8);
-          statusLabel.textContent = "Vault breach";
-          statusMeta.textContent = `${state.vault} integrity remaining`;
-          if (!state.vault) { endGame("The vault got cracked"); return; }
+          statusLabel.textContent = "Relic base hit";
+          statusMeta.textContent = `-${damage} health · Relic ${state.vault} / ${RELIC_MAX_HEALTH} HP`;
+          if (!state.vault) { endGame("The relic base was destroyed"); return; }
           break;
         }
       }
@@ -867,6 +873,7 @@
   }
 
   function updateEffects(dt) {
+    relicHitFlash = Math.max(0, relicHitFlash - dt * 2.5);
     screenShake = Math.max(0, screenShake - dt * 28);
     for (const tower of towers) {
       tower.attackPulse = Math.max(0, tower.attackPulse - dt * 4.6);
@@ -1459,23 +1466,39 @@
   }
 
   function drawVault() {
+    const ratio = clamp(state.vault / RELIC_MAX_HEALTH, 0, 1);
+    const color = relicHitFlash > 0 ? "#ff9a82" : ratio <= .25 ? "#ff826f" : "#61ffbd";
     ctx.save();
-    ctx.translate(1185, 404);
-    ctx.fillStyle = "rgba(2, 8, 6, 0.86)";
-    ctx.strokeStyle = "rgba(216, 180, 95, 0.78)";
-    ctx.lineWidth = 3;
-    ctx.fillRect(-42, -52, 84, 104);
-    ctx.strokeRect(-42, -52, 84, 104);
-    ctx.fillStyle = "#39ff9a";
-    ctx.shadowColor = "#39ff9a";
-    ctx.shadowBlur = 20;
-    ctx.beginPath();
-    ctx.moveTo(0, -28);
-    ctx.lineTo(18, 0);
-    ctx.lineTo(0, 28);
-    ctx.lineTo(-18, 0);
-    ctx.closePath();
-    ctx.fill();
+    ctx.translate(relicBase.x, relicBase.y);
+    // Stone foundation and gold bands keep the objective in the jade courtyard's visual language.
+    ctx.fillStyle = "rgba(0, 0, 0, .45)";
+    ctx.beginPath(); ctx.ellipse(0, 39, 55, 15, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#102c25"; ctx.strokeStyle = "#c1a25b"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-48, 24); ctx.lineTo(0, 43); ctx.lineTo(48, 24);
+    ctx.lineTo(48, 40); ctx.lineTo(0, 59); ctx.lineTo(-48, 40); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#234b3b";
+    ctx.beginPath(); ctx.moveTo(-48, 24); ctx.lineTo(0, 5); ctx.lineTo(48, 24); ctx.lineTo(0, 43); ctx.closePath(); ctx.fill(); ctx.stroke();
+    for (const x of [-37, 37]) {
+      ctx.fillStyle = "#183d30"; ctx.fillRect(x - 7, -24, 14, 52);
+      ctx.strokeStyle = "#b49950"; ctx.strokeRect(x - 7, -24, 14, 52);
+      ctx.fillStyle = "#d7b963"; ctx.fillRect(x - 9, -28, 18, 7);
+    }
+    ctx.fillStyle = state.vault > 0 ? color : "#3d4943";
+    ctx.shadowColor = color; ctx.shadowBlur = state.vault > 0 ? 18 + relicHitFlash * 20 : 0;
+    ctx.beginPath(); ctx.moveTo(0, -45); ctx.lineTo(24, -9); ctx.lineTo(0, 24); ctx.lineTo(-24, -9); ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0; ctx.strokeStyle = "#d0ffe4"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(0, -45); ctx.lineTo(0, 24); ctx.moveTo(-24, -9); ctx.lineTo(24, -9); ctx.stroke();
+    if (ratio < .5) {
+      ctx.strokeStyle = "#163328"; ctx.lineWidth = 3; ctx.beginPath();
+      ctx.moveTo(5, -28); ctx.lineTo(-6, -12); ctx.lineTo(7, 0); ctx.lineTo(-3, 13); ctx.stroke();
+    }
+    ctx.fillStyle = "rgba(3, 12, 9, .94)"; ctx.fillRect(-72, -92, 144, 39);
+    ctx.textAlign = "center"; ctx.fillStyle = "#f1df9c"; ctx.font = "bold 12px Inter, sans-serif";
+    ctx.fillText("RELIC BASE", 0, -77);
+    ctx.fillStyle = color; ctx.font = "bold 14px Inter, sans-serif";
+    ctx.fillText(state.vault + " / " + RELIC_MAX_HEALTH + " HP", 0, -60);
+    ctx.fillStyle = "#14271e"; ctx.fillRect(-54, -52, 108, 7);
+    ctx.fillStyle = color; ctx.fillRect(-54, -52, 108 * ratio, 7);
     ctx.restore();
   }
 

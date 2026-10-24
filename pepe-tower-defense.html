@@ -21,7 +21,7 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
-    <link rel="stylesheet" href="pepe-tower-command.css?v=upgrade-art-20261023">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=relic-base-20261023">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -42,7 +42,7 @@
             <div><span id="scoreLabel">0</span><small>score</small></div>
             <div><span id="shardLabel">180</span><small>shards</small></div>
             <div><span id="waveLabel">1</span><small>wave</small></div>
-            <div><span id="vaultLabel">20</span><small>vault</small></div>
+            <div><span id="vaultLabel">100</span><small>relic HP</small></div>
             <div><span id="bestLabel">0</span><small>best</small></div>
           </section>
 
@@ -56,7 +56,7 @@
             <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="Pepe Blaster tower">
             <p class="eyebrow">Blockchain tower defense</p>
             <h1 id="overlayTitle">Defend the Emerald Vault.</h1>
-            <p id="overlayText">Place Pepe defenders on vault pads, stop corrupt shard creeps, upgrade your defense, and survive all 20 waves. Start Defense opens the build phase; send wave one when your towers are ready.</p>
+            <p id="overlayText">Protect the 100-health relic base at the end of the path. Place Pepe defenders on vault pads, stop corrupt shard creeps, and survive all 20 waves. Start Defense opens the build phase; send wave one when your towers are ready.</p>
             <button id="startButton" type="button">Start Defense</button>
             <small>Click or drag towers from the right dock - select your tower to manage it</small>
           </section>
@@ -116,7 +116,7 @@
         <p class="tower-panel__hint">Defense shards are this run's build currency. Move to any empty pad between waves; level, path and attack cooldown stay with the tower. Selling refunds 70% of its total investment. One path can reach tier 5, another tier 2; the third locks. Sell and rebuild to reset paths.</p>
       </section></section>
           <section class="command-view" id="intelView" aria-label="Wave and enemy intelligence" hidden><section class="wave-brief" aria-labelledby="waveBriefTitle"><h2 id="waveBriefTitle">Wave intelligence</h2><p id="wavePreview"></p>
-        <div class="goblin-guide"><article><img src="assets/pepe-tower-defense/goblin-raider-v1.webp" width="64" height="64" alt="Dagger-wielding goblin raider"><div><h3>Goblin raider - wave 3+</h3><p>Fast, low health. Rapid-fire towers and slowing fields stop a rush. Breach: 1 vault integrity.</p></div></article>
+        <div class="goblin-guide"><article><img src="assets/pepe-tower-defense/goblin-raider-v1.webp" width="64" height="64" alt="Dagger-wielding goblin raider"><div><h3>Goblin raider - wave 3+</h3><p>Fast, low health. Rapid-fire towers and slowing fields stop a rush. Breach: 1 relic health.</p></div></article>
         <article><img src="assets/pepe-tower-defense/goblin-brute-v1.webp" width="64" height="64" alt="Armored goblin brute with hammer and shield"><div><h3>Goblin brute - wave 7+</h3><p>20% damage resistance, slower movement. Slow and focus fire. Breach: 2. The wave 20 warboss resists 25% and deals 5 breach damage.</p></div></article></div>
         <p class="tower-panel__hint">20 waves. Bosses on 5, 10, 15 and 20. Health and formation density rise gradually; enemy speed growth caps at wave 15. Each cleared wave gives a build break.</p>
       </section><details class="in-game-manual"><summary>How to play</summary>    <div class="game-guide" aria-label="How to play">
