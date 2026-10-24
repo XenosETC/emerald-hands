@@ -1,0 +1,11 @@
+const random=(a,b)=>a+Math.random()*(b-a);
+export class Effects{
+  constructor(){this.particles=[];this.rings=[];this.age=0;this.kind='';}
+  particle(x,y,vx,vy,color,size,life,kind='spark'){this.particles.push({x,y,vx,vy,color,size,life,max:life,kind,spin:random(-8,8),angle:random(0,7)});}
+  ignition(x,y){this.kind='launch';this.age=0;for(let i=0;i<90;i++)this.particle(x,y,random(-240,240),random(-190,45),['#e3e8bc','#638b45','#bdebdc'][i%3],random(4,18),random(1,2.6),i%4===0?'leaf':'smoke');for(let i=0;i<3;i++)this.rings.push({x,y,age:-i*.18,color:'#e2ffb3',wide:true});}
+  exhaust(x,y,boost,dt){for(let i=0;i<Math.ceil(dt*(boost?170:85));i++)this.particle(x+random(-12,12),y,random(-30,30),random(160,boost?440:280),boost?'#b9fff0':'#ffd08a',random(2,7),random(.18,.6));}
+  explode(x,y,color){this.kind='boom';this.age=0;for(let i=0;i<220;i++){const a=random(0,Math.PI*2),v=random(50,650);this.particle(x,y,Math.cos(a)*v,Math.sin(a)*v,[color,'#ffe7ab','#ff8c43','#f45366','#819689'][i%5],random(3,17),random(1.4,4),i%7===0?'bolt':i%5===0?'panel':'spark');}for(let i=0;i<22;i++)this.particle(x+random(-20,20),y,random(-140,140),random(-160,100),'#3a3944',random(24,57),random(2,4),'smoke');for(let i=0;i<4;i++)this.rings.push({x,y,age:-i*.17,color:i%2?color:'#ffe8ac',wide:false});}
+  draw(ctx,dt){this.age+=dt;const slow=this.kind==='boom'&&this.age<.8?.2:1;for(const p of this.particles){p.life-=dt*slow;p.x+=p.vx*dt*slow;p.y+=p.vy*dt*slow;p.vy+=(p.kind==='smoke'?-30:110)*dt*slow;p.angle+=p.spin*dt*slow;ctx.save();ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.translate(p.x,p.y);ctx.rotate(p.angle);ctx.fillStyle=p.color;if(p.kind==='smoke'){ctx.globalAlpha*=.45;ctx.beginPath();ctx.arc(0,0,p.size*(2-p.life/p.max),0,7);ctx.fill();}else if(p.kind==='bolt'){ctx.font=`${p.size+8}px sans-serif`;ctx.fillText('🔩',0,0);}else{ctx.fillRect(-p.size/2,-p.size/2,p.size,p.kind==='panel'?p.size*.4:p.size);}ctx.restore();}this.particles=this.particles.filter(p=>p.life>0).slice(-650);
+    for(const r of this.rings){r.age+=dt;if(r.age<0)continue;ctx.save();ctx.strokeStyle=r.color;ctx.globalAlpha=Math.max(0,1-r.age/1.3);ctx.lineWidth=Math.max(1,10-r.age*6);ctx.beginPath();ctx.ellipse(r.x,r.y,r.age*480,r.age*(r.wide?55:320),0,0,7);ctx.stroke();ctx.restore();}this.rings=this.rings.filter(r=>r.age<1.3);
+  }
+}

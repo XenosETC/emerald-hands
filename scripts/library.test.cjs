@@ -7,8 +7,8 @@ const lib = require('../arcade-library.js');
 const root = path.resolve(__dirname, '..');
 
 test('every released game has one catalog entry, local page, and visit hook', () => {
-  assert.equal(lib.games.length, 17);
-  assert.equal(new Set(lib.games.map(game => game.id)).size, 17);
+  assert.equal(lib.games.length, 18);
+  assert.equal(new Set(lib.games.map(game => game.id)).size, 18);
   const hub = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   for (const game of lib.games) {
     assert.ok(hub.includes(`href="${game.path}"`), game.id);
@@ -23,6 +23,21 @@ test('new Pepe games appear in their real genres and touch filter excludes keybo
   assert.ok(lib.select(null, { genre: 'adventure' }).some(game => game.id === 'soulWorld'));
   assert.ok(lib.select(null, { genre: 'arcade', touch: true }).some(game => game.id === 'templeRun'));
   assert.ok(!lib.select(null, { touch: true }).some(game => ['rumble', 'paradox', 'feudalism'].includes(game.id)));
+});
+
+test('One More Launch is discoverable and its visit hook preserves independent saves', () => {
+  assert.deepEqual(lib.select(null, {genre: 'arcade', touch: true, query: 'one more launch'}).map(g => g.id), ['oneMoreLaunch']);
+  assert.equal(lib.destination({id: 'oneMoreLaunch'}), 'pepe-one-more-launch/index.html');
+  const values = new Map([['pepe-one-more-launch-v1', '{"cash":420,"best":6000}'], ['emerald-arcade-v3', 'preserve-wallet']]);
+  const getStorage = {getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value)};
+  vm.runInNewContext(fs.readFileSync(path.join(root, 'arcade-visit.js'), 'utf8'), {
+    window: {ArcadeLibrary: lib}, document: {currentScript: {src: 'https://arcade.test/arcade-visit.js'}},
+    location: {pathname: '/pepe-one-more-launch/index.html', search: ''}, URL, Date, localStorage: getStorage,
+  });
+  assert.equal(lib.read(getStorage).recent[0].id, 'oneMoreLaunch');
+  assert.equal(values.get('pepe-one-more-launch-v1'), '{"cash":420,"best":6000}');
+  assert.equal(values.get('emerald-arcade-v3'), 'preserve-wallet');
+  assert.equal(values.size, 3);
 });
 
 test('favorites toggle immutably and intersect search, genre and controls', () => {

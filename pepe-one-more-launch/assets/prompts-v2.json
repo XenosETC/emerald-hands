@@ -1,0 +1,35 @@
+{
+  "mode": "Built-in imagegen",
+  "references": [
+    "assets/etc-rocket-simulator/rocket-tiers.png",
+    "assets/pepes-paradox/crown-platformer-idle.png",
+    "assets/etc-unstable-launch/emerald-space.png",
+    "assets/etc-rocket-simulator/sector-beyond-canon.webp"
+  ],
+  "prompts": [
+    {
+      "file": "assets/lily-marsh-v2.png",
+      "prompt": "Use case: stylized-concept. Production 2D side-view pixel art videogame asset for Crown Pepe: One More Launch. High-end handcrafted 32-bit pixel art, deliberate crisp pixel clusters, rich texture, atmospheric layered depth and carefully controlled colors. NOT smooth painting, NOT 3D, NOT vector art, no text, UI, labels, logo, watermark. Landscape 1536x1024. Center vertical flight lane unobstructed, scene details around edges, environment only, no rocket or characters. LILY MARSH: lush warm golden dawn swamp, huge flowering pink lotus and lily pads on turquoise reflective water, mossy ancient willow forest, hanging vines, tiny fireflies, reeds and mushrooms. Small weathered wooden launching dock centered at 72 percent down image. Canopy high on edges, open pale jade sky in central upper half. Charming living earthly wetland. Side view, level horizon, dense beautiful pixel detail."
+    },
+    {
+      "file": "assets/cloud-kingdom-v2.png",
+      "prompt": "Use case: stylized-concept. Production 2D side-view pixel art videogame asset for Crown Pepe: One More Launch. High-end handcrafted 32-bit pixel art, deliberate crisp pixel clusters, rich texture, atmospheric layered depth and carefully controlled colors. NOT smooth painting, NOT 3D, NOT vector art, no text, UI, labels, logo, watermark. Landscape 1536x1024. Center vertical flight lane unobstructed, scene details around edges, environment only, no rocket or characters. THUNDER GARDEN: enormous sunlit peach and ivory cloud continents at dizzying altitude, floating moss-covered rocky islands far along edges, distant waterfalls dissolving into mist, tiny airborne lily seedpods, distant navy thunderstorm and golden lightning. Vast blue and apricot sky and unobstructed center. Completely airborne world, no ground or pond. Beautiful epic pixel environment."
+    },
+    {
+      "file": "assets/emerald-space-v2.png",
+      "prompt": "Use case: stylized-concept. Production 2D side-view pixel art videogame asset for Crown Pepe: One More Launch. High-end handcrafted 32-bit pixel art, deliberate crisp pixel clusters, rich texture, atmospheric layered depth and carefully controlled colors. NOT smooth painting, NOT 3D, NOT vector art, no text, UI, labels, logo, watermark. Landscape 1536x1024. Center vertical flight lane unobstructed, scene details around edges, environment only, no rocket or characters. EMERALD SPACE: deep black teal outer space, enormous curved luminous emerald planet along lower quarter, thin electric green atmosphere, diagonal jade planetary rings, distant angular emerald asteroids and sparse gold satellite debris along edges, stars and dramatic emerald aurora nebula. Vast cosmic scale. Refine the supplied project references of emerald crystal cosmos into gorgeous crisp 2D pixel art; no terrestrial trees or pond. Central flight lane dark and open."
+    },
+    {
+      "file": "assets/beyond-v2.png",
+      "prompt": "Use case: stylized-concept. Production 2D side-view pixel art videogame asset for Crown Pepe: One More Launch. High-end handcrafted 32-bit pixel art, deliberate crisp pixel clusters, rich texture, atmospheric layered depth and carefully controlled colors. NOT smooth painting, NOT 3D, NOT vector art, no text, UI, labels, logo, watermark. Landscape 1536x1024. Center vertical flight lane unobstructed, scene details around edges, environment only, no rocket or characters. BEYOND THE LAST BRAIN CELL: impossible violet and midnight blue dimension, enormous broken golden celestial clockwork rings, floating upside-down ruined pagoda islands at edges, huge faceted amethyst and opal crystals, ribbonlike magenta nebulae, a distant radiant ivory portal at upper center, distorted planets and impossible scale. Rich violet gold pink palette; emphatically different from green space. Immaculate layered pixel-art fantasy cosmic environment."
+    },
+    {
+      "file": "assets/crown-ship-atlas-v2.png",
+      "prompt": "Use case: stylized-concept. Production transparent 2D pixel-art sprite atlas. Reference image 1 is the arcade's emerald spaceships: preserve black metal, emerald crystal cores, gold trim, pointed vertical silhouette. Reference image 2 is Crown Pepe: preserve recognisable broad frog head, heavy eyelids, orange smiling lips, muscular green body, black shirt with luminous green candlestick emblem, black shorts with gold edges, small gold crown with emerald center. Adapt BOTH to gorgeous crisp 32-bit pixel art with deliberate visible square pixel clusters, NOT smooth illustration. Atlas exactly 1024x1024, FOUR 512x512 equal cells, no dividing lines or labels. Transparent background and generous transparent padding inside each cell, no pixels cross cell boundaries. TOP LEFT: one small black gold emerald starter rocket pointing UP, front-side orthographic sprite, centered, full body, no character, no flame. TOP RIGHT: upgraded larger rocket pointing UP, triple engine and huge emerald core and gold fins, centered, full body, no character, no flame. BOTTOM LEFT: full body Crown Pepe seated facing viewer, arms out, legs dangling, smug facial expression, small crown; no ship. BOTTOM RIGHT: same exact Crown Pepe scale and costume but screaming in comic terror, eyes bulging, mouth open, legs and arms flailing; no ship. All four subjects fully contained in their own cells. Crisp pixel outlines, readable game silhouettes, no text, no logo, no watermark. This is game sprite art, not a scene."
+    },
+    {
+      "file": "assets/explosion-atlas-v2.png",
+      "prompt": "Use case: stylized-concept. Transparent production 2D pixel art explosion sprite sheet for a ridiculous Crown Pepe emerald spaceship game. Exactly FOUR equal cells in one horizontal row, 2048x512 landscape sheet, each 512x512 cell. Each blast centered in its cell, at least 32 pixels transparent padding, no overlap across cells. Handcrafted crisp detailed 32-bit arcade pixel art with deliberate square pixel clusters, dark purple outlines, emerald energy and incandescent gold/orange fire. Frame 1 left: small tightly compressed white-yellow spark with sharp emerald spikes. Frame 2: large outrageous expanding gold-orange fireball with emerald rings, tiny black-gold spaceship bolts and panels ejecting. Frame 3: maximum enormous cartoon mushroom-cloud explosion with emerald crystal fragments, fiery golden edge, shockwave ring, no gore, no characters. Frame 4 right: broken smoky purple and orange cloud, fading green embers and comically loose bolts. Clean truly transparent background. No text, logos, border, labels, characters, ground or rocket. All frames fully visible inside their cells, consistent center and pixel style."
+    }
+  ]
+}

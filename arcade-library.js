@@ -3,6 +3,7 @@
 
   // Navigation metadata only. Game economies, rewards and saves stay in their runtimes.
   const games = [
+    ["oneMoreLaunch", "Pepe: One More Launch", "pepe-one-more-launch/index.html", ["arcade", "adventure"], true, "Space / A D / touch"],
     ["kontra", "KONTRA: The Kek Wars", "kontra-kek-wars/index.html", ["arcade", "adventure"], true, "Keyboard / touch"],
     ["feudalism", "Pepe Feudalism", "pepe-feudalism/index.html", ["strategy", "adventure"], false, "Mouse + keyboard"],
     ["soulWorld", "Pepe Soul World", "pepe-soul-world/index.html", ["adventure", "arcade"], true, "Keyboard / touch"],

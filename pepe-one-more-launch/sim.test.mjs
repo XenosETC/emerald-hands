@@ -1,0 +1,6 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {fresh,createFlight,step,settle,buy,sanitize,MAX_UPGRADE_LEVEL} from './sim.mjs';
+function run(s,boost=false,hz=60){const f=createFlight(s);for(let i=0;i<hz*100&&!f.dead;i++)step(f,1/hz,boost);return f;}
+test('every flight explodes and pays once',()=>{const s=fresh(),f=run(s);assert.ok(f.dead);assert.ok(f.peak>100);assert.ok(settle(s,f)>=35);assert.equal(settle(s,f),0);assert.equal(s.flights,1);});
+test('boost overheats; releasing cools',()=>{const f=createFlight(fresh());for(let i=0;i<120;i++)step(f,1/60,true);const hot=f.heat;step(f,.5,false);assert.ok(f.heat<hot);assert.match(run(fresh(),true).reason,/SUN/);});
+test('upgrades are affordable, bounded and improve reachable altitude',()=>{const s=fresh();assert.equal(buy(s,'engine'),false);s.cash=100000;assert.equal(buy(s,'engine'),true);assert.ok(run(s).peak>run(fresh()).peak);s.engine=MAX_UPGRADE_LEVEL;assert.equal(buy(s,'engine'),false);assert.equal(buy(s,'unknown'),false);const top={...s,engine:20,tank:20};assert.ok(run(top).peak>5000);});
+test('save validation and frame rates preserve progression',()=>{assert.deepEqual(sanitize({cash:-3,engine:Infinity}),fresh());const a=run(fresh(),false,30),b=run(fresh(),false,120);assert.ok(Math.abs(a.peak-b.peak)/b.peak<.03);});

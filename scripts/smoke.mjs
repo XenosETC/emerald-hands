@@ -21,6 +21,7 @@ const gamePages = [
 ];
 const failures = [];
 const independentGamePages = [
+  "pepe-one-more-launch/index.html",
   "kontra-kek-wars/index.html",
   "pepe-soul-world/index.html",
   "pepe-temple-run/index.html",

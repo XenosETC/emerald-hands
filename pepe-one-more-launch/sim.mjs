@@ -1,0 +1,9 @@
+export const MAX_UPGRADE_LEVEL=60;
+export const parts = [{id:'engine',name:'Unreasonably large engine',desc:'More thrust. More altitude. More problems.',base:55},{id:'tank',name:'Suspicious extra fuel tank',desc:'Longer burns. A bigger thing to explode.',base:45},{id:'cooling',name:'Industrial desk fan',desc:'Less heat. Slightly more professional.',base:40}];
+export const fresh = () => ({cash:0,best:0,flights:0,engine:0,tank:0,cooling:0});
+export function sanitize(s){const out=fresh();for(const k of Object.keys(out))out[k]=Number.isFinite(s?.[k])?Math.max(0,Math.min(k==='cash'||k==='best'?1e9:k==='flights'?1e6:MAX_UPGRADE_LEVEL,Math.floor(s[k]))):0;return out;}
+export const cost=(s,p)=>Math.floor(p.base*1.55**Math.min(20,s[p.id])*1.18**Math.max(0,s[p.id]-20));
+export function buy(s,id){const p=parts.find(p=>p.id===id);if(!p||s[id]>=MAX_UPGRADE_LEVEL||s.cash<cost(s,p))return false;s.cash-=cost(s,p);s[id]++;return true;}
+export function createFlight(s){return {age:0,alt:0,velocity:0,heat:0,fuel:100,peak:0,dead:false,reason:'',engine:s.engine,tank:s.tank,cooling:s.cooling};}
+export function step(f,dt,boost){if(f.dead)return;f.age+=dt;const burn=f.fuel>0;const thrust=burn?(boost?38:23)*(1+f.engine*.18):0;f.fuel=Math.max(0,f.fuel-dt*(boost?12:6)/(1+f.tank*.22));f.heat=Math.max(0,f.heat+dt*(boost&&burn?23/(1+f.cooling*.22):-13));f.velocity+=(thrust-10-f.velocity*.013)*dt;f.alt=Math.max(0,f.alt+f.velocity*dt);f.peak=Math.max(f.peak,f.alt);if(f.heat>=100)f.reason='ENGINE BECAME A SMALL SUN';else if(f.alt<=0&&f.age>1)f.reason='LANDING GEAR SOLD SEPARATELY';else if(f.age>38+f.tank*.6)f.reason='STRUCTURAL INTEGRITY LEFT THE CHAT';if(f.reason)f.dead=true;}
+export function settle(s,f){if(!f.dead||f.paid)return 0;f.paid=true;const reward=35+Math.floor(f.peak*.12);s.cash+=reward;s.best=Math.max(s.best,Math.floor(f.peak));s.flights++;return reward;}

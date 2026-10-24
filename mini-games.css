@@ -651,3 +651,13 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
 
 .game-card--kontra .game-art { background: #091b23; padding: 0; overflow: hidden; }
 .game-card--kontra .game-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* One More Launch: its own illustrated aerospace-disaster cabinet. */
+.game-card--one-more-launch { border-color:#d9c07d38; }
+.game-card--one-more-launch .game-art { overflow:hidden; background:#132b29; }
+.game-card--one-more-launch .game-art img { display:block; width:100%; height:100%; object-fit:cover; object-position:56% 47%; transition:transform .6s ease; image-rendering:auto; }
+.game-card--one-more-launch:hover .game-art img { transform:scale(1.04); }
+.launch-card-stamp { position:absolute; bottom:13px; left:14px; padding:7px 9px; background:#0b211edb; border:1px solid #dfcf9255; border-radius:3px; color:#ffe1a1; font-size:8px; font-weight:750; letter-spacing:1.6px; backdrop-filter:blur(6px); }
+.game-card--one-more-launch .eyebrow { color:#e0cc8a; }
+.game-card--one-more-launch .game-body>a { color:#e9e2aa; border-color:#d7c67b44; background:#d7c67b0b; }
+@media(prefers-reduced-motion:reduce){.game-card--one-more-launch .game-art img{transition:none}.game-card--one-more-launch:hover .game-art img{transform:none}}

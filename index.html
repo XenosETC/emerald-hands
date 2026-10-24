@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#0a1110">
     <title>Emerald Arcade — Small games. Big adventures.</title>
     <link rel="preload" href="pepe-temple-run/assets/emerald-frog-temple-v1.png" as="image">
-    <link rel="stylesheet" href="mini-games.css?v=shard-faq-20261017">
+    <link rel="stylesheet" href="mini-games.css?v=launch-release-20261024">
   </head>
   <body>
     <a class="skip-link" href="#games">Skip to games</a>
@@ -19,7 +19,7 @@
       </header>
       <section class="hub-hero" aria-labelledby="hub-title">
         <div class="hub-copy">
-          <p class="eyebrow"><span aria-hidden="true">✦</span> Seventeen games. Countless little escapes.</p>
+          <p class="eyebrow"><span aria-hidden="true">✦</span> Eighteen games. Countless little escapes.</p>
           <h1 id="hub-title">One more run.<br><em>A new adventure.</em></h1>
           <p>Chase a high score. Raise a kingdom. Get lost in an emerald world. Pick a game and make it yours.</p>
           <div class="hero-actions"><a class="hub-action hub-action--primary" href="#games">Find your game <span aria-hidden="true">↗</span></a><a class="hub-action hub-action--secondary" id="continueGame" href="emerald-hands.html">Play Emerald Hands</a></div>
@@ -43,7 +43,7 @@
       </section>
       <section class="recent-section" id="recentSection" aria-labelledby="recentTitle" hidden><div class="library-heading"><div><p class="eyebrow">BACK TO YOUR WORLDS</p><h2 id="recentTitle">Continue playing</h2></div><p>Last saved progress. Each world keeps its own save.</p></div><div class="recent-games" id="recentGames" role="region" aria-label="Continue playing games; scroll for more" tabindex="0"></div></section>
       <section class="library-section" id="games" aria-labelledby="library-title" tabindex="-1">
-        <div class="library-heading"><div><p class="eyebrow">PICK YOUR NEXT ADVENTURE</p><h2 id="library-title">The game collection<span id="gameCount">16</span></h2></div><p>Quick thrills. Long quests. Your call.</p></div>
+        <div class="library-heading"><div><p class="eyebrow">PICK YOUR NEXT ADVENTURE</p><h2 id="library-title">The game collection<span id="gameCount">18</span></h2></div><p>Quick thrills. Long quests. Your call.</p></div>
         <div class="library-controls">
           <div class="game-filters" role="group" aria-label="Filter games by category">
             <button class="is-active" type="button" data-filter="all" aria-pressed="true">All games</button>
@@ -60,6 +60,10 @@
         <div class="empty-library" id="emptyLibrary" hidden><strong>No games found.</strong><p id="emptyMessage">Try a different name or explore the full collection.</p><button id="resetFilters" type="button">Show all games</button></div>
 
       <section class="game-grid" aria-label="Available mini games">
+        <article class="game-card game-card--one-more-launch" data-category="arcade adventure">
+          <div class="game-art" aria-hidden="true"><img src="pepe-one-more-launch/assets/card-key-art-v1.png" alt="" loading="lazy"><span class="launch-card-stamp">ONE MORE BAD IDEA</span></div>
+          <div class="game-body"><p class="eyebrow">Crown Pepe · Pixel rocket mayhem</p><h2>Pepe: One More Launch</h2><p>Strap the king to an emerald rocket. Blast out of the lily marsh, climb through cosmic realms, explode spectacularly, and build a worse idea.</p><div class="game-meta"><span>6 realms &amp; endless sectors</span><span>Ship upgrades · Local save</span></div><a href="pepe-one-more-launch/index.html">Strap in &amp; launch</a></div>
+        </article>
         <article class="game-card game-card--kontra" data-category="arcade adventure">
           <div class="game-art" aria-hidden="true"><img src="kontra-kek-wars/card-key-art-v2.png" alt="" loading="lazy"></div>
           <div class="game-body"><p class="eyebrow">Three realms · Retro run &amp; gun</p><h2>KONTRA: The Kek Wars</h2><p>One frog against the war machine. Storm jungle outposts, brave Stormforge, and face the Rift Bloom. Build your arsenal across a three-realm campaign.</p><div class="game-meta"><span>Boss battles &amp; weapon upgrades</span><span>Keyboard &amp; touch</span></div><a href="kontra-kek-wars/index.html">Play KONTRA</a></div>
@@ -372,6 +376,6 @@
     <script src="shard-rush-challenges.js?v=1"></script>
     <script src="arcade-daily-ui.js?v=1"></script>
     <script type="module" src="arcade-progress.mjs?v=4"></script>
-  <script src="arcade-library.js?v=library-2-kontra"></script><script src="arcade-library-ui.js?v=continue-1"></script>
+  <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-library-ui.js?v=continue-1"></script>
   </body>
 </html>
