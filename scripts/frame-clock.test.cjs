@@ -691,20 +691,20 @@ test('Tower Defense ignores dead targets so the next ready tower hits a live cre
 });
 
 
-test('Tower Defense twenty wave-clear transitions reward once and replay resets campaign', () => {
+test('Tower Defense fifty wave-clear transitions reward once and replay resets campaign', () => {
   const g = game('pepe-tower-defense.js'); g.start();
   // Synthetic clears isolate campaign transitions, not combat or human balance.
-  for (let wave=1;wave<=20;wave++) {
+  for (let wave=1;wave<=50;wave++) {
     g.nodes.get('#waveButton').emit('click');
     g.read('window.__towerRead("enemies.length=0; state.spawnLeft=0; updateWave(0); updateHud()")');
     assert.equal(g.nodes.get('#campaignProgress').value, wave);
   }
   assert.equal(g.records.length, 1);
-  assert.equal(g.records[0][1].wave, 20);
+  assert.equal(g.records[0][1].wave, 50);
   assert.equal(g.records[0][1].rank, 'Vault Architect');
-  assert.equal(g.records[0][1].score, 31000);
-  assert.equal(g.records[0][1].shards, 3800);
-  assert.equal(g.nodes.get('#waveLabel').textContent, 20);
+  assert.equal(g.records[0][1].score, 152500);
+  assert.equal(g.records[0][1].shards, 18230);
+  assert.equal(g.nodes.get('#waveLabel').textContent, 50);
   g.read('window.__towerRead("updateWave(0); endGame()")');
   assert.equal(g.records.length, 1);
   g.start(); assert.equal(g.nodes.get('#campaignProgress').value, 0);
@@ -742,13 +742,13 @@ test('Tower Defense multi-corner travel preserves boss breach damage and records
 });
 
 
-for (const hz of [30,60]) test(`Tower Defense earned-shard combat campaign at ${hz} Hz`, (t) => {
+for (const hz of [30,60]) test(`Tower Defense earned-shard first-twenty-wave checkpoint at ${hz} Hz`, (t) => {
   const g = game('pepe-tower-defense.js'); g.start();
   g.read("Math.random = () => .5");
   const outcome = JSON.parse(g.read(`window.__towerRead(\`
     const order = [0,2,4,6,1,5,7,8,3];
     let ticks = 0;
-    while(state.playing && ticks < 54000) {
+    while(state.playing && state.wave <= 20 && ticks < 54000) {
       // Deterministic purchasing policy; never grant funds, kills or clears.
       selectTower("pepe");
       for (const index of order) if (!towerAtPad(pads[index]) && state.shards >= 75) buildOrUpgrade(pads[index]);
@@ -763,11 +763,10 @@ for (const hz of [30,60]) test(`Tower Defense earned-shard combat campaign at ${
     JSON.stringify({wave:state.wave,vault:state.vault,score:state.score,ticks,towers:towers.length,playing:state.playing});
   \`)`));
   t.diagnostic(`Controller policy only: ${JSON.stringify(outcome)}; human balance remains open.`);
-  assert.equal(outcome.playing, false, JSON.stringify(outcome));
+  assert.equal(outcome.playing, true, JSON.stringify(outcome));
   assert.equal(outcome.wave, 21, JSON.stringify(outcome));
   assert.ok(outcome.vault > 0);
-  assert.equal(g.records.length, 1);
-  assert.equal(g.records[0][1].wave, 20);
+  assert.equal(g.records.length, 0);
 });
 
 
@@ -1117,17 +1116,17 @@ test('All defender paths affect actual combat stats while preserving level miles
 
 test('Tower Defense authored waves introduce goblins safely and telegraph all four bosses',()=>{
   const g=towerGame();
-  assert.equal(g.act('CAMPAIGN_WAVES'),20);
-  assert.equal(g.act('wavePlans.length'),20);
+  assert.equal(g.act('CAMPAIGN_WAVES'),50);
+  assert.equal(g.act('wavePlans.length'),50);
   assert.ok(g.act('wavePlans.slice(0,2).every(p=>p.kinds.every(k=>k==="grunt"))'));
   assert.ok(g.act('wavePlans[2].kinds.includes("goblin")'));
   assert.ok(g.act('wavePlans.slice(0,6).every(p=>!p.kinds.includes("brute"))'));
   assert.ok(g.act('wavePlans[6].kinds.includes("brute")'));
-  assert.equal(g.act('wavePlans.reduce((n,p)=>n+p.kinds.filter(k=>enemyTypes[k].boss).length,0)'),4);
+  assert.equal(g.act('wavePlans.slice(0,20).reduce((n,p)=>n+p.kinds.filter(k=>enemyTypes[k].boss).length,0)'),4);
   assert.equal(g.act('wavePlans[19].kinds.at(-1)'),'warboss');
   assert.ok(g.act('wavePlans.every((p,i)=>p.count===p.kinds.length && (!i || p.count>=wavePlans[i-1].count && p.hpScale>=wavePlans[i-1].hpScale && p.interval<=wavePlans[i-1].interval))'));
   assert.match(g.act('waveBrief(wavePlans[19])'),/Goblin warboss/);
-  assert.match(g.nodes.get('#wavePreview').textContent,/Wave 1\/20/);
+  assert.match(g.nodes.get('#wavePreview').textContent,/Wave 1\/50/);
 });
 
 test('Goblin armor resists both direct and splash hits, and slows affect real movement',()=>{
@@ -1137,24 +1136,24 @@ test('Goblin armor resists both direct and splash hits, and slows affect real mo
   g.act('updateEnemies(1)');assert.ok(Math.abs(g.act('enemies[0].x')-55.84)<1e-9);
 });
 
-test('Wave 20 spawns the promised final warboss once with scaling, armor and five-point breach',()=>{
-  const g=towerGame();g.act('state.wave=20;startWave();enemies.length=0;state.spawnLeft=1;spawnEnemy()');
-  assert.equal(g.act('enemies.length'),1);assert.equal(g.act('enemies[0].kind'),'warboss');
-  assert.ok(g.act('enemies[0].hp>9000 && enemies[0].armor===.25'));
-  assert.equal(g.act('enemies[0].speed'),53);
+test('Wave 50 spawns the final Sovereign with scaling, armor and ten-point breach',()=>{
+  const g=towerGame();g.act('state.wave=50;startWave();enemies.length=0;state.spawnLeft=currentWavePlan().count-currentWavePlan().kinds.indexOf("sovereign");spawnEnemy()');
+  assert.equal(g.act('enemies.length'),1);assert.equal(g.act('enemies[0].kind'),'sovereign');
+  assert.ok(g.act('enemies[0].hp>9000 && enemies[0].armor===.3'));
+  assert.equal(g.act('enemies[0].speed'),43);
   g.act('enemies[0].x=1185;enemies[0].y=404;enemies[0].pathIndex=9;updateEnemies(0)');
-  assert.equal(g.act('state.vault'),95);assert.equal(g.act('enemies.length'),0);
-  g.act('state.spawnLeft=0;updateWave(0)');assert.equal(g.records.length,1);assert.equal(g.records[0][1].wave,20);
+  assert.equal(g.act('state.vault'),90);assert.equal(g.act('enemies.length'),0);
+  g.act('state.spawnLeft=0;updateWave(0)');assert.equal(g.records.length,1);assert.equal(g.records[0][1].wave,50);
 });
 
 
-test('Tower Defense mixed earned-shard defense completes the expanded campaign', (t)=>{
+test('Tower Defense mixed earned-shard defense reaches the first-twenty-wave checkpoint', (t)=>{
   const g=towerGame();
   const outcome=JSON.parse(g.act(`
     const order=[0,2,4,6,1,5,7,8,3];
     const loadout={0:"pepe",2:"pepe",4:"shard",6:"pepe",1:"pepe",5:"pepe",7:"archer",8:"relic",3:"pepe"};
     let ticks=0;
-    while(state.playing && ticks<54000) {
+    while(state.playing && state.wave<=20 && ticks<54000) {
       for(const i of order) if(!towerAtPad(pads[i]) && state.shards>=towerTypes[loadout[i]].cost) {selectTower(loadout[i]);buildOrUpgrade(pads[i]);}
       for(let tier=0;tier<5;tier++)for(const i of order) {
         const tower=towerAtPad(pads[i]);
@@ -1166,7 +1165,7 @@ test('Tower Defense mixed earned-shard defense completes the expanded campaign',
     JSON.stringify({wave:state.wave,vault:state.vault,playing:state.playing,ticks});
   `));
   t.diagnostic(`Mixed-defense controller only: ${JSON.stringify(outcome)}; human balance remains open.`);
-  assert.equal(outcome.wave,21);assert.equal(outcome.playing,false);assert.ok(outcome.vault>0);assert.equal(g.records.length,1);
+  assert.equal(outcome.wave,21);assert.equal(outcome.playing,true);assert.ok(outcome.vault>0);assert.equal(g.records.length,0);
 });
 
 

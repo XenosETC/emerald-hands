@@ -21,7 +21,7 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
-    <link rel="stylesheet" href="pepe-tower-command.css?v=sunwarden-20261024">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=fifty-waves-20261024">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -56,7 +56,7 @@
             <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="Pepe Blaster tower">
             <p class="eyebrow">Blockchain tower defense</p>
             <h1 id="overlayTitle">Defend the Emerald Vault.</h1>
-            <p id="overlayText">Protect the 100-health relic base at the end of the path. Place Pepe defenders on vault pads, stop corrupt shard creeps, and survive all 20 waves. Start Defense opens the build phase; send wave one when your towers are ready.</p>
+            <p id="overlayText">Protect the 100-health relic base at the end of the path. Place Pepe defenders on vault pads, stop corrupt shard creeps, and survive all 50 waves. Start Defense opens the build phase; send wave one when your towers are ready.</p>
             <button id="startButton" type="button">Start Defense</button>
             <small>Click or drag towers from the right dock - select your tower to manage it</small>
           </section>
@@ -64,7 +64,7 @@
         </div>
 
         <aside class="tower-dock command-bay" aria-label="Defense command bay">
-          <header class="tower-dock__header"><span>Emerald Command</span><strong>Defender Bay</strong><section class="campaign-controls" aria-label="Campaign progress"><p id="campaignLabel">0 / 20 waves cleared</p><progress id="campaignProgress" value="0" max="20" aria-label="Waves cleared"></progress></section></header>
+          <header class="tower-dock__header"><span>Emerald Command</span><strong>Defender Bay</strong><section class="campaign-controls" aria-label="Campaign progress"><p id="campaignLabel">0 / 50 waves cleared</p><progress id="campaignProgress" value="0" max="50" aria-label="Waves cleared"></progress></section></header>
           <nav class="command-tabs" aria-label="Defense controls">
             <button type="button" data-command-tab="build" aria-pressed="true" aria-controls="buildView">Build</button>
             <button type="button" data-command-tab="manage" aria-pressed="false" aria-controls="manageView">Tower</button>
@@ -106,7 +106,7 @@
             </span>
           </button>
           <button class="tower-button" type="button" data-tower="alchemist" draggable="true"><img src="assets/pepe-tower-defense/alchemist-concept-v1.webp" alt=""><span><strong>Pepe Alchemist</strong><small>135 shards - armor solvent</small></span></button>
-          <button class="tower-button tower-button--hero" type="button" data-tower="hero" draggable="true"><img src="assets/pepe-tower-defense/hero-base-v1.webp" alt=""><span><strong>Pepe Sunwarden</strong><small>400 shards - hero · green lasers · one active</small></span></button>
+          <button class="tower-button tower-button--hero" type="button" data-tower="hero" draggable="true"><img src="assets/pepe-tower-defense/hero-base-v1.webp" alt=""><span><strong>Pepe Sunwarden</strong><small>400 shards - hero · green lasers · up to two</small></span></button>
           <details class="defender-guide"><summary>Selected defender field guide</summary><p id="towerGuide"></p></details>
 <p class="tower-dock__hint">Choose a defender, then tap a glowing pad or its number on the battlefield.</p></section>
           <section class="command-view" id="manageView" aria-label="Manage selected defender" hidden><p id="manageEmpty">Tap a placed tower or its pad number to inspect, upgrade, move or sell it.</p><section class="tower-panel" id="towerPanel" aria-labelledby="towerPanelTitle" hidden>
@@ -118,15 +118,15 @@
         <p class="tower-panel__hint">Defense shards are this run's build currency. Move to any empty pad between waves; level, path and attack cooldown stay with the tower. Selling refunds 70% of its total investment. One path can reach tier 5, another tier 2; the third locks. Sell and rebuild to reset paths.</p>
       </section></section>
           <section class="command-view" id="intelView" aria-label="Wave and enemy intelligence" hidden><section class="wave-brief" aria-labelledby="waveBriefTitle"><h2 id="waveBriefTitle">Wave intelligence</h2><p id="wavePreview"></p>
-        <div class="goblin-guide"><article><img src="assets/pepe-tower-defense/goblin-raider-v1.webp" width="64" height="64" alt="Dagger-wielding goblin raider"><div><h3>Goblin raider - wave 3+</h3><p>Fast, low health. Rapid-fire towers and slowing fields stop a rush. Breach: 1 relic health.</p></div></article>
+        <div class="goblin-guide"><article><img src="assets/pepe-tower-defense/jade-tyrant-v1.webp" width="64" height="64" alt="Jade Tyrant boss"><div><h3>Jade Tyrant - wave 35</h3><p>25% armor, 25% slow resistance; breach: 6. Shieldbearer and specter lackeys follow him.</p></div></article><article><img src="assets/pepe-tower-defense/relic-sovereign-v1.webp" width="64" height="64" alt="Relic Sovereign final boss"><div><h3>Relic Sovereign - wave 50</h3><p>Final boss: 30% armor, 40% slow resistance; breach: 10. Shieldbearers, a brute and specter lackeys escort him. Clear the whole wave to win.</p></div></article><article><img src="assets/pepe-tower-defense/goblin-shieldbearer-v1.webp" width="64" height="64" alt="Armored goblin shieldbearer"><div><h3>Shieldbearer - wave 21+</h3><p>40% armor; breach: 3 relic health. Alchemist acid and concentrated fire break the shield wall.</p></div></article><article><img src="assets/pepe-tower-defense/emerald-specter-v1.webp" width="64" height="64" alt="Violet and emerald specter"><div><h3>Emerald specter - wave 26+</h3><p>Fast; reduces the strength of slows by 60%. Rapid lasers and long-range damage stop it. Breach: 1 relic health.</p></div></article><article><img src="assets/pepe-tower-defense/goblin-raider-v1.webp" width="64" height="64" alt="Dagger-wielding goblin raider"><div><h3>Goblin raider - wave 3+</h3><p>Fast, low health. Rapid-fire towers and slowing fields stop a rush. Breach: 1 relic health.</p></div></article>
         <article><img src="assets/pepe-tower-defense/goblin-brute-v1.webp" width="64" height="64" alt="Armored goblin brute with hammer and shield"><div><h3>Goblin brute - wave 7+</h3><p>20% damage resistance, slower movement. Slow and focus fire. Breach: 2. The wave 20 warboss resists 25% and deals 5 breach damage.</p></div></article></div>
-        <p class="tower-panel__hint">20 waves. Bosses on 5, 10, 15 and 20. Health and formation density rise gradually; enemy speed growth caps at wave 15. Each cleared wave gives a build break.</p>
+        <p class="tower-panel__hint">50 waves. Bosses every 5 waves; major bosses on 20, 35 and 50, with lackeys escorting the later bosses. Shieldbearers from wave 21; slow-resistant specters from wave 26. Health and formation density rise gradually; enemy speed growth caps at wave 15. Each cleared wave gives a build break.</p>
       </section><details class="in-game-manual"><summary>How to play</summary>    <div class="game-guide" aria-label="How to play">
       <div><span class="game-guide__label">Build & defend</span><p><strong>Protect the vault.</strong> Place defenders on glowing pads, then send the next wave.</p></div>
-      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Select a defender and tap a pad, or drag a tower onto it. Select a placed tower to choose its upgrade path, move it between waves, or sell for a 70% refund. Upgrade up to two paths: one to tier 5 and a secondary to tier 2. The third path locks. Keys 1-7 select defenders. Sunwarden is limited to one active hero; press H or tap Emerald Nova during a wave.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Select a defender and tap a pad, or drag a tower onto it. Select a placed tower to choose its upgrade path, move it between waves, or sell for a 70% refund. Upgrade up to two paths: one to tier 5 and a secondary to tier 2. The third path locks. Keys 1-7 select defenders. Sunwarden is limited to two active heroes; press H or tap Emerald Nova during a wave.</p></div>
       <div><span class="game-guide__label">Plan the next wave</span><p>Mix damage and slowing towers. The highlighted card is your selected defender; each purchase uses in-game shards.</p></div>
     </div></details></section>
-          <footer class="command-footer"><section id="heroAbility" aria-label="Hero ability" hidden><button id="heroNovaButton" type="button">Emerald Nova · ready (H)</button><small id="heroNovaHint"></small></section><small id="nextWaveHint">Wave 1/20 - First defenses</small><button class="wave-button" id="waveButton" type="button">Start Wave</button><p id="commandHint">Choose a defender to begin.</p></footer>
+          <footer class="command-footer"><section id="heroAbility" aria-label="Hero ability" hidden><button id="heroNovaButton" type="button">Emerald Nova · ready (H)</button><small id="heroNovaHint"></small><button id="heroNovaButton2" type="button" hidden>Nova 2 · ready (H)</button><small id="heroNovaHint2" hidden></small></section><small id="nextWaveHint">Wave 1/50 - First defenses</small><button class="wave-button" id="waveButton" type="button">Start Wave</button><p id="commandHint">Choose a defender to begin.</p></footer>
         </aside>
       </section>
 
@@ -136,7 +136,7 @@
 
     <script src="arcade.js?v=12"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepe-tower-defense.js?v=no-enemy-rings-20261024"></script>
+    <script src="pepe-tower-defense.js?v=fifty-waves-20261024"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

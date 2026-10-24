@@ -1,0 +1,56 @@
+[
+  {
+    "key": "goblin-shieldbearer-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 94042,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "emerald-specter-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 91050,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "pepe-ballista-concept-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 85670,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "pepe-druid-concept-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 96144,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "jade-tyrant-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 95198,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "relic-sovereign-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 124466,
+    "alphaMin": 0,
+    "alphaMax": 255
+  }
+]

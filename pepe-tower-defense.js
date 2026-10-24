@@ -10,6 +10,8 @@
   const heroAbility = document.querySelector("#heroAbility");
   const heroNovaButton = document.querySelector("#heroNovaButton");
   const heroNovaHint = document.querySelector("#heroNovaHint");
+  const heroNovaButton2 = document.querySelector("#heroNovaButton2");
+  const heroNovaHint2 = document.querySelector("#heroNovaHint2");
   const padButtons = [...document.querySelectorAll("[data-pad]")];
   const towerButtons = [...document.querySelectorAll(".tower-button")];
   const scoreLabel = document.querySelector("#scoreLabel");
@@ -95,6 +97,10 @@
   const goblinBrute = loadImage("assets/pepe-tower-defense/goblin-brute-v1.webp");
   const enemySprites = {
     goblin: loadImage("assets/pepe-tower-defense/goblin-raider-v1.webp"),
+    shieldbearer: loadImage("assets/pepe-tower-defense/goblin-shieldbearer-v1.webp"),
+    specter: loadImage("assets/pepe-tower-defense/emerald-specter-v1.webp"),
+    tyrant: loadImage("assets/pepe-tower-defense/jade-tyrant-v1.webp"),
+    sovereign: loadImage("assets/pepe-tower-defense/relic-sovereign-v1.webp"),
     brute: goblinBrute,
     warboss: goblinBrute,
     grunt: loadImage("assets/pepe-tower-defense/enemy-crawler-sprite.png"),
@@ -135,7 +141,8 @@
     alchemist: { name: "Pepe Alchemist", cost: 135, range: 150, damage: 15, rate: .95, color: "#b6f34d", splash: 0, slow: 0 },
     hero: { name: "Pepe Sunwarden", cost: 400, range: 220, damage: 18, rate: .15, color: "#57ff8b", splash: 0, slow: 0 },
   };
-  const CAMPAIGN_WAVES = 20;
+  const CAMPAIGN_WAVES = 50;
+  const HERO_LIMIT = 2;
   const enemyTypes = {
     grunt: { name: "Crawler", hp: 70, growth: 13, speed: 58, acceleration: 2.4, reward: 13, radius: 14, size: 54, breachDamage: 1, armor: 0 },
     runner: { name: "Shard runner", hp: 70, growth: 13, speed: 92, acceleration: 2.4, reward: 18, radius: 15, size: 62, breachDamage: 1, armor: 0 },
@@ -143,25 +150,38 @@
     boss: { name: "Vault breaker", hp: 520, growth: 72, speed: 36, acceleration: 1.1, reward: 120, radius: 31, size: 112, breachDamage: 4, armor: 0, boss: true },
     goblin: { name: "Goblin raider", hp: 50, growth: 11, speed: 104, acceleration: 2, reward: 18, radius: 17, size: 76, breachDamage: 1, armor: 0 },
     brute: { name: "Goblin brute", hp: 170, growth: 27, speed: 42, acceleration: 1.5, reward: 32, radius: 23, size: 94, breachDamage: 2, armor: .2 },
+    shieldbearer: { name: "Goblin shieldbearer", hp: 190, growth: 25, speed: 36, acceleration: 1, reward: 38, radius: 23, size: 94, breachDamage: 3, armor: .4 },
+    specter: { name: "Emerald specter", hp: 65, growth: 12, speed: 115, acceleration: 1.4, reward: 24, radius: 17, size: 76, breachDamage: 1, armor: 0, slowResistance: .6 },
+    tyrant: { name: "Jade Tyrant", hp: 950, growth: 125, speed: 30, acceleration: 1, reward: 260, radius: 38, size: 146, breachDamage: 6, armor: .25, slowResistance: .25, boss: true },
+    sovereign: { name: "Relic Sovereign", hp: 1300, growth: 160, speed: 28, acceleration: 1, reward: 350, radius: 42, size: 156, breachDamage: 10, armor: .3, slowResistance: .4, boss: true },
     warboss: { name: "Goblin warboss", hp: 850, growth: 115, speed: 35, acceleration: 1.2, reward: 220, radius: 35, size: 138, breachDamage: 5, armor: .25, boss: true },
   };
   // Authored compositions are deterministic; late pressure grows without raising speeds without bound.
   function buildWavePlan(wave) {
-    const count = wave <= 12 ? 9 + wave * 3 : 45 + (wave - 12) * 2;
-    const rush = [6, 9, 14, 18].includes(wave);
-    const siege = [8, 13, 17].includes(wave);
-    const kinds = Array.from({ length: count }, (_, index) => {
-      if (wave % 5 === 0 && index === (wave === CAMPAIGN_WAVES ? count - 1 : Math.floor(count * .55))) return wave === CAMPAIGN_WAVES ? "warboss" : "boss";
-      if (wave >= 7 && index % (siege ? 3 : wave >= 16 ? 4 : 7) === 2) return "brute";
-      if (wave >= 3 && index % (rush ? 2 : wave >= 10 ? 3 : 5) === 1) return "goblin";
-      if (wave >= 4 && index % 6 === 3) return "elite";
-      if (wave >= 3 && index % 7 === 4) return "runner";
+    const extended = Math.max(0, wave - 20);
+    const count = wave <= 12 ? 9 + wave * 3 : wave <= 20 ? 45 + (wave - 12) * 2 : Math.min(88, 61 + Math.floor(extended * .9));
+    const rush = [6,9,14,18].includes(wave) || wave > 20 && wave % 5 === 1;
+    const siege = [8,13,17].includes(wave) || wave > 20 && wave % 5 === 3;
+    const majorBoss = wave === 20 ? "warboss" : wave === 35 ? "tyrant" : wave === 50 ? "sovereign" : null;
+    const bossIndex = majorBoss === "warboss" ? count-1 : Math.floor(count*.5);
+    const escort = wave === 35 ? ["shieldbearer","shieldbearer","specter","specter"] : wave === 50 ? ["shieldbearer","shieldbearer","brute","specter","specter","specter"] : [];
+    const kinds = Array.from({length:count}, (_,index) => {
+      if(majorBoss && index === bossIndex) return majorBoss;
+      if(majorBoss && index>bossIndex && index<=bossIndex+escort.length) return escort[index-bossIndex-1];
+      if(!majorBoss && wave % 5 === 0 && index === Math.floor(count*.55)) return "boss";
+      if([30,40].includes(wave) && index === Math.floor(count * .28)) return "boss";
+      if(wave >= 21 && index % (siege ? 4 : 7) === 2) return "shieldbearer";
+      if(wave >= 26 && index % (rush ? 3 : 6) === 1) return "specter";
+      if(wave >= 7 && index % (siege ? 3 : wave >= 16 ? 4 : 7) === 2) return "brute";
+      if(wave >= 3 && index % (rush ? 2 : wave >= 10 ? 3 : 5) === 1) return "goblin";
+      if(wave >= 4 && index % 6 === 3) return "elite";
+      if(wave >= 3 && index % 7 === 4) return "runner";
       return "grunt";
     });
-    const late = Math.max(0, wave - 5);
-    const endgame = Math.max(0, wave - 12);
-    return { wave, kinds, count, interval: Math.max(.3, .75 - wave * .025), hpScale: 1 + late * .055 + late * late * .006 + endgame * endgame * .10,
-      name: wave === CAMPAIGN_WAVES ? "Warboss assault" : wave % 5 === 0 ? "Vault breaker" : rush ? "Raider rush" : siege ? "Brute siege" : wave <= 2 ? "First defenses" : "Mixed assault" };
+    // Keep the established first twenty waves, then use a gentler extension instead of extrapolating its quadratic ramp.
+    const foundation = Math.min(wave,20), late = Math.max(0,foundation-5), endgame = Math.max(0,foundation-12);
+    return {wave,kinds,count,interval:Math.max(.3,.75-wave*.025),hpScale:1+late*.055+late*late*.006+endgame*endgame*.10+extended*.03+extended*extended*.0005,
+      name:majorBoss ? wave === 50 ? "Relic Sovereign and royal guard" : wave === 35 ? "Jade Tyrant and shield guard" : "Warboss assault" : wave%5===0 ? "Vault breaker" : rush ? wave>=26 ? "Specter rush" : "Raider rush" : siege ? wave>=21 ? "Shield wall" : "Brute siege" : wave<=2 ? "First defenses" : "Mixed assault"};
   }
   const wavePlans = Array.from({ length: CAMPAIGN_WAVES }, (_, i) => buildWavePlan(i + 1));
   function currentWavePlan() { return wavePlans[Math.min(CAMPAIGN_WAVES - 1, Math.max(0, state.wave - 1))]; }
@@ -204,7 +224,7 @@
   }
 
   function updateMasteryLabels() {
-    const roles = { pepe: "beam DPS", shard: "control field", relic: "splash burst", mage: "shard volley", archer: "emerald arrows", alchemist: "armor solvent", hero: "hero · rapid green lasers · one active" };
+    const roles = { pepe: "beam DPS", shard: "control field", relic: "splash burst", mage: "shard volley", archer: "emerald arrows", alchemist: "armor solvent", hero: "hero · green lasers · up to two" };
     towerButtons.forEach((button) => {
       const type = button.dataset.tower;
       const actions = mastery[type].placements + mastery[type].upgrades;
@@ -234,7 +254,7 @@
     score: 0,
     shards: 180,
     vault: RELIC_MAX_HEALTH,
-    heroNovaCooldown: 0,
+    heroNovaCooldowns: [0,0],
     spawnLeft: 0,
     waveSpawnTotal: 0,
     spawnTimer: 0,
@@ -286,7 +306,7 @@
     state.score = 0;
     state.shards = 180;
     state.vault = RELIC_MAX_HEALTH;
-    state.heroNovaCooldown = 0;
+    state.heroNovaCooldowns = [0,0];
     relicHitFlash = 0;
     state.spawnLeft = 0;
     state.waveSpawnTotal = 0;
@@ -355,14 +375,14 @@
     const kind = plan.kinds[spawned];
     if (!kind) return;
     const spec = enemyTypes[kind];
-    const hp = Math.round((spec.hp + state.wave * spec.growth) * plan.hpScale);
+    const hp = Math.round((spec.hp + Math.min(state.wave,20) * spec.growth) * plan.hpScale);
     enemies.push({ ...spec, x: path[0].x, y: path[0].y, pathIndex: 1, hp, maxHp: hp,
       speed: spec.speed + Math.min(15, state.wave) * spec.acceleration,
       slowTimer: 0, slowStrength: 0, kind, spin: Math.random() * Math.PI * 2, hitFlash: 0 });
     const boss = spec.boss;
 
     if (boss) {
-      statusLabel.textContent = kind === "warboss" ? "Goblin warboss entering" : "Boss shard entering";
+      statusLabel.textContent = spec.name + " entering";
       statusMeta.textContent = "focus fire the corrupted vault breaker";
       screenShake = Math.max(screenShake, 10);
     }
@@ -374,23 +394,28 @@
     waveLabel.textContent = Math.min(CAMPAIGN_WAVES, state.wave);
     const cleared = Math.min(CAMPAIGN_WAVES, Math.max(0, state.wave - 1));
     campaignProgress.max = CAMPAIGN_WAVES;
-    const brief = state.wave > CAMPAIGN_WAVES ? "Campaign complete - all 20 waves defended." : waveBrief(currentWavePlan());
+    const brief = state.wave > CAMPAIGN_WAVES ? `Campaign complete - all ${CAMPAIGN_WAVES} waves defended.` : waveBrief(currentWavePlan());
     if (wavePreview.textContent !== brief) wavePreview.textContent = brief;
     campaignProgress.value = cleared;
     campaignLabel.textContent = `${cleared} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} relic health`;
     campaignProgress.setAttribute("aria-valuetext", campaignLabel.textContent);
     vaultLabel.textContent = state.vault;
     bestLabel.textContent = format(state.best);
-    const deployedHero = towers.find(tower => tower.type === "hero");
-    heroAbility.hidden = !deployedHero;
-    if (deployedHero) {
-      heroNovaButton.disabled = !state.playing || !state.waveActive || state.heroNovaCooldown > 0 || Boolean(movingTower) || Boolean(window.EmeraldArcade?.isPaused?.());
-      heroNovaButton.textContent = state.heroNovaCooldown > 0 ? `Emerald Nova · ${Math.ceil(state.heroNovaCooldown)}s` : "Emerald Nova · ready (H)";
-      heroNovaHint.textContent = `${(deployedHero.damage * 5).toFixed(0)} damage in ${Math.round(deployedHero.range)} range · ${novaRecharge(deployedHero)}s recharge${state.waveActive ? "" : " · available during waves"}`;
+    const deployedHeroes = towers.filter(tower => tower.type === "hero");
+    heroAbility.hidden = !deployedHeroes.length;
+    for(const [slot,button,hint] of [[0,heroNovaButton,heroNovaHint],[1,heroNovaButton2,heroNovaHint2]]) {
+      const hero = deployedHeroes.find(tower => tower.heroSlot === slot);
+      button.hidden = hint.hidden = !hero;
+      if(!hero) continue;
+      const cooldown = state.heroNovaCooldowns[slot];
+      button.disabled = !state.playing || !state.waveActive || cooldown > 0 || Boolean(movingTower) || Boolean(window.EmeraldArcade?.isPaused?.());
+      const name = deployedHeroes.length > 1 ? "Nova " + (slot + 1) : "Emerald Nova";
+      button.textContent = cooldown > 0 ? name + " · " + Math.ceil(cooldown) + "s" : name + " · ready (H)";
+      hint.textContent = "Pad " + (pads.indexOf(hero.pad)+1) + " · " + (hero.damage*5).toFixed(0) + " damage / " + Math.round(hero.range) + " range · " + novaRecharge(hero) + "s recharge" + (state.waveActive ? "" : " · during waves");
     }
-    towerButtons.forEach(button => { if (button.dataset.tower === "hero") { button.disabled = Boolean(deployedHero); button.title = deployedHero ? "One hero at a time: select its pad to manage it" : "400 shards · one hero at a time"; } });
+    towerButtons.forEach(button => {if(button.dataset.tower === "hero") {button.disabled=deployedHeroes.length>=HERO_LIMIT;button.title=deployedHeroes.length>=HERO_LIMIT ? "Two Sunwardens deployed: select a pad to manage one" : "400 shards · up to two active Sunwardens";}});
     const spec = towerTypes[selectedTower];
-    const roles = { pepe: "Direct beam damage", shard: "48% slow for 1.6 seconds", relic: "54-unit splash radius", mage: "32-unit splash and 12% slow", archer: "Long-range direct damage", alchemist: "Weakens armor by 10 points for 2s (bosses: 5); refreshes without stacking", hero: "Rapid green lasers. One hero at a time. Press H or tap Emerald Nova during a wave for area damage" };
+    const roles = { pepe: "Direct beam damage", shard: "48% slow for 1.6 seconds", relic: "54-unit splash radius", mage: "32-unit splash and 12% slow", archer: "Long-range direct damage", alchemist: "Weakens armor by 10 points for 2s (bosses: 5); refreshes without stacking", hero: "Rapid green lasers. Up to two heroes. Select a Sunwarden and press H or tap Emerald Nova during a wave for area damage" };
     const guide = `${spec.name} · Level 1: ${spec.damage} damage, ${spec.range} range, ${(spec.rate / 1.08).toFixed(2)} seconds per attack. ${roles[selectedTower]}. Tier 3 milestone: ${upgradeName({type:selectedTower,level:3})}. Tier 5 evolution: ${upgradeName({type:selectedTower,level:5})}.`;
     if (towerGuide.textContent !== guide) towerGuide.textContent = guide;
     padButtons.forEach(button => {
@@ -401,12 +426,12 @@
       const number = String(Number(button.dataset.pad) + 1);
       if (button.textContent !== number) button.textContent = number;
       button.title = label;
-      button.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.()) || (movingTower ? Boolean(tower) : !tower && (state.shards < cost || selectedTower === "hero" && Boolean(deployedHero)));
+      button.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.()) || (movingTower ? Boolean(tower) : !tower && (state.shards < cost || selectedTower === "hero" && deployedHeroes.length >= HERO_LIMIT));
       button.setAttribute("aria-label", label);
       button.setAttribute("aria-pressed", String(Boolean(tower && tower === inspectedTower)));
     });
     const plan = currentWavePlan();
-    nextWaveHint.textContent = state.wave > CAMPAIGN_WAVES ? "20/20 waves defended" : `Wave ${plan.wave}/${CAMPAIGN_WAVES} - ${plan.name} - ${plan.count} foes`;
+    nextWaveHint.textContent = state.wave > CAMPAIGN_WAVES ? `${CAMPAIGN_WAVES}/${CAMPAIGN_WAVES} waves defended` : `Wave ${plan.wave}/${CAMPAIGN_WAVES} - ${plan.name} - ${plan.count} foes`;
     commandHint.textContent = movingTower ? "Moving: choose an empty numbered pad. Cancel in Tower controls." : state.waveActive ? `${state.spawnLeft + enemies.length} enemies remaining. Moving unlocks after the wave.` : "Build, upgrade or reposition before sending the wave.";
     padHint.textContent = movingTower ? "Move" : "Build pads";
     padControls.setAttribute("data-moving", String(Boolean(movingTower)));
@@ -482,9 +507,9 @@
     }
 
     const type = towerTypes[selectedTower];
-    if (selectedTower === "hero" && towers.some(tower => tower.type === "hero")) {
-      statusLabel.textContent = "Sunwarden already deployed";
-      statusMeta.textContent = "One hero at a time. Select his pad to upgrade or move him.";
+    if (selectedTower === "hero" && towers.filter(tower => tower.type === "hero").length >= HERO_LIMIT) {
+      statusLabel.textContent = "Two Sunwardens already deployed";
+      statusMeta.textContent = "Select a hero pad to upgrade or move him. Sell one to recruit a replacement.";
       return;
     }
     if (state.shards < type.cost) {
@@ -492,6 +517,7 @@
       statusMeta.textContent = `${type.cost} shards required for ${type.name}`;
       return;
     }
+    const heroSlot = selectedTower === "hero" ? [0,1].find(slot => !towers.some(tower => tower.type === "hero" && tower.heroSlot === slot)) : null;
     state.shards -= type.cost;
     towers.push({
       ...type,
@@ -502,6 +528,7 @@
       x: pad.x,
       y: pad.y,
       type: selectedTower,
+      heroSlot,
       cooldown: 0,
       attackPulse: 0,
       upgradePulse: 0,
@@ -593,7 +620,7 @@
     const visualLabels = { base: "Base defender", tierThree: "Tier 3 reinforced form", evolved: "Tier 5 evolution", longWatch: "Long Watch form" };
     document.querySelector("#towerFormLabel").textContent = tower.type === "alchemist" && towerVisualStage(tower) === "longWatch" ? "Surveyor's Lab form" : visualLabels[towerVisualStage(tower)];
     const acidDetails = tower.type === "alchemist" ? ` Acid: ${Math.round(tower.armorBreak * 100)} armor points (${Math.round(tower.bossArmorBreak * 100)} boss), ${tower.acidDuration.toFixed(1)}s; refreshes, no stacks.` : "";
-    const heroDetails = tower.type === "hero" ? ` Nova: ${(tower.damage * 5).toFixed(0)} damage, ${Math.round(tower.range)} range, ${novaRecharge(tower)}s recharge. One active hero.` : "";
+    const heroDetails = tower.type === "hero" ? ` Nova: ${(tower.damage * 5).toFixed(0)} damage, ${Math.round(tower.range)} range, ${novaRecharge(tower)}s recharge. Two active heroes maximum.` : "";
     towerDetails.textContent = `Pad ${pads.indexOf(tower.pad) + 1}: ${tower.damage.toFixed(1)} damage, ${Math.round(tower.range)} range, ${(tower.rate / (1 + tower.level * .08)).toFixed(2)}s attack, ${Math.round(tower.slow * 100)}% slow, ${Math.round(tower.splash)} splash. ${movingTower ? "Choose an empty pad to move, or cancel." : "Crosspath limit: 5 / 2 / 0."}${acidDetails}${heroDetails}`;
     pathButtons.forEach(button => {
       const choice = button.dataset.upgradePath;
@@ -728,7 +755,7 @@
       enemy.acidTimer = Math.max(0, (enemy.acidTimer || 0) - dt);
       if (!enemy.acidTimer) enemy.armorBreak = 0;
       const slowedTime = Math.min(dt, enemy.slowTimer);
-      let travel = enemy.speed * (dt - slowedTime * (enemy.slowStrength || 0));
+      let travel = enemy.speed * (dt - slowedTime * (enemy.slowStrength || 0) * (1 - (enemy.slowResistance || 0)));
       enemy.slowTimer = Math.max(0, enemy.slowTimer - dt);
       if (!enemy.slowTimer) enemy.slowStrength = 0;
       enemy.hitFlash = Math.max(0, enemy.hitFlash - dt * 5);
@@ -903,12 +930,13 @@
     }
   }
 
-  function activateHeroNova() {
-    const hero = towers.find(tower => tower.type === "hero");
-    if (!hero || !state.playing || !state.waveActive || movingTower || state.heroNovaCooldown > 0 || window.EmeraldArcade?.isPaused?.()) return false;
+  function activateHeroNova(slot = null) {
+    const heroes = towers.filter(tower => tower.type === "hero");
+    const hero = slot === null ? (inspectedTower?.type === "hero" ? inspectedTower : heroes.find(tower => state.heroNovaCooldowns[tower.heroSlot] <= 0) || heroes[0]) : heroes.find(tower => tower.heroSlot === slot);
+    if (!hero || !state.playing || !state.waveActive || movingTower || state.heroNovaCooldowns[hero.heroSlot] > 0 || window.EmeraldArcade?.isPaused?.()) return false;
     const targets = enemies.filter(enemy => enemy.hp > 0 && distance(hero.x, hero.y, enemy.x, enemy.y) <= hero.range);
     if (!targets.length) { statusLabel.textContent = "Nova ready - no enemies in reach"; return false; }
-    state.heroNovaCooldown = novaRecharge(hero);
+    state.heroNovaCooldowns[hero.heroSlot] = novaRecharge(hero);
     for(const enemy of targets) damageEnemy(enemy, hero.damage * 5, 0, 0);
     collectDefeatedEnemies();
     hero.aimAngle = Math.atan2(targets[0].y - hero.y, targets[0].x - hero.x);
@@ -974,7 +1002,7 @@
   }
 
   function updateEffects(dt) {
-    state.heroNovaCooldown = Math.max(0, state.heroNovaCooldown - dt);
+    state.heroNovaCooldowns = state.heroNovaCooldowns.map(value => Math.max(0,value-dt));
     relicHitFlash = Math.max(0, relicHitFlash - dt * 2.5);
     screenShake = Math.max(0, screenShake - dt * 28);
     for (const tower of towers) {
@@ -1435,9 +1463,9 @@
         ctx.fillText(reduction ? "ACID -" + reduction : "ACID", 0, -enemy.radius - 23);
         ctx.fillRect(-12, enemy.radius + 10, 24, 3);
       }
-      if (enemy.kind === "warboss") {
+      if (["warboss","tyrant","sovereign"].includes(enemy.kind)) {
         ctx.fillStyle = "#ffd86b"; ctx.font = "bold 13px Arial"; ctx.textAlign = "center";
-        ctx.fillText("WARBOSS", 0, -75);
+        ctx.fillText(enemy.kind === "sovereign" ? "RELIC SOVEREIGN" : enemy.kind === "tyrant" ? "JADE TYRANT" : "WARBOSS", 0, -(enemy.size || 138)/2 - 6);
       }
       if (enemy.hitFlash > 0) {
         ctx.globalAlpha = enemy.hitFlash * 0.65;
@@ -1721,7 +1749,8 @@
   moveButton.addEventListener("click", beginMove);
   sellButton.addEventListener("click", sellSelected);
   cancelMoveButton.addEventListener("click", () => { if (!window.EmeraldArcade?.isPaused?.()) { movingTower = null; updateHud(); } });
-  heroNovaButton.addEventListener("click", activateHeroNova);
+  heroNovaButton.addEventListener("click", () => activateHeroNova(0));
+  heroNovaButton2.addEventListener("click", () => activateHeroNova(1));
   waveButton.addEventListener("click", startWave);
   startButton.addEventListener("click", resetAndLaunch);
   soundToggle.addEventListener("click", () => {

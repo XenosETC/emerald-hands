@@ -49,3 +49,7 @@ The seventh shop defender is a single-active hero with an emerald cape and rapid
 Sunwarden facing follows enemy left/right position. Green laser and Nova origins use per-form palm anchors matched to the sprite scale, recoil and horizontal mirroring. A labeled seeded browser fixture verified both facing directions and Nova activation/recharge; mobile visual review remains open.
 
 Final Sunwarden release: 297 root tests passed in a clean staged copy. Headless checks include both facing directions with palm-origin rays for base/evolved/Sky forms, one-active-hero and Nova guards, cooldown persistence, armor/acid compatibility, render/portrait transitions and a 20-wave earned-shard controller (63 relic health, 20 Novas). Seeded desktop browser checks verified Nova button activation/recharge and visible left/right facing; no browser errors were logged. Screenshots remain local under releases/. Human campaign balance and mobile visual review remain open.
+
+## Fifty waves and two heroes - October 24, 2026
+
+Current campaign rules are in tower-defense-fifty-waves.md. Major bosses are on 20/35/50, with generated Jade Tyrant/Sovereign art and explicit lackey formations on 35/50. Shieldbearers and slow-resistant specters join the late-wave roster. Two Sunwardens now have independent slot-preserved Nova cooldowns and separate buttons. First-twenty-wave regression controllers remain; full earned-shard 50-wave controllers exercise the expanded roster at 30/60 Hz. Two further tower designs are documented and pictured in the gallery but are not recruitable.

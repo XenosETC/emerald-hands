@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-24",
+  "method": "built-in imagegen",
+  "assets": [
+    {
+      "key": "goblin-shieldbearer-v1",
+      "prompt": "Use case: stylized-concept. ONE transparent Pepe Tower Defense game sprite. Reference images establish hand-painted 3D fantasy rendering, gold/dark jade/emerald materials, elevated three-quarter camera. A new Goblin Shieldbearer enemy. Stocky smaller goblin marching right behind an ENORMOUS tall rectangular iron-and-dark-jade pavise, nearly body-height, worn gold borders, a strong pale turquoise emerald shield boss. Full iron helmet with visible green goblin face under brow, small spear behind shield, compact sturdy legs. Distinct from hammer-wielding brute and dagger raider: defense and shield dominate its silhouette. No tower pedestal. Whole subject centered square, fully visible with 8% clear transparent margin on every edge. Premium crisp texture, readable silhouette at gameplay scale. True transparent alpha, no scenery, floor tile, yellow circles, ground rings, text, label or watermark. Preserve stylistic coherence with references.",
+      "references": [
+        "goblin-brute-v1.png",
+        "goblin-raider-v1.png"
+      ],
+      "status": "playable enemy"
+    },
+    {
+      "key": "emerald-specter-v1",
+      "prompt": "Use case: stylized-concept. ONE transparent Pepe Tower Defense game sprite. Reference images establish hand-painted 3D fantasy rendering, gold/dark jade/emerald materials, elevated three-quarter camera. A new Emerald Specter enemy for the same frog-temple world. A malevolent spectral goblin-like spirit with a sharp angular ghost face and glowing emerald eyes, dark violet torn hood and flowing spectral wisps, curling translucent pale mint tail instead of legs, clawed hands reaching forward to right. Distinct floaty silhouette, restrained emerald highlights and violet smoke inside the silhouette; no platform, no circle or aura. Body must remain legible at 65px tall. Whole subject centered square, fully visible with 8% clear transparent margin on every edge. Premium crisp texture, readable silhouette at gameplay scale. True transparent alpha, no scenery, floor tile, yellow circles, ground rings, text, label or watermark. Preserve stylistic coherence with references.",
+      "references": [
+        "goblin-raider-v1.png",
+        "pepe-archer-sprite.png"
+      ],
+      "status": "playable enemy"
+    },
+    {
+      "key": "pepe-ballista-concept-v1",
+      "prompt": "Use case: stylized-concept. ONE transparent Pepe Tower Defense game sprite. Reference images establish hand-painted 3D fantasy rendering, gold/dark jade/emerald materials, elevated three-quarter camera. A new Pepe Ballista defender CONCEPT. Friendly recognizable Pepe frog in compact dark jade/gold marksman armor operating a large mechanical gold-edged jade ballista crossbow aimed right. Broad sturdy limbs, visible windlass and giant emerald bolt, no handheld bow. Low octagonal masonry turret platform matching reference architecture. Three-quarter elevated camera. A precision siege tower with clear silhouette. Whole subject centered square, fully visible with 8% clear transparent margin on every edge. Premium crisp texture, readable silhouette at gameplay scale. True transparent alpha, no scenery, floor tile, yellow circles, ground rings, text, label or watermark. Preserve stylistic coherence with references.",
+      "references": [
+        "pepe-archer-sprite.png"
+      ],
+      "status": "design only, not playable"
+    },
+    {
+      "key": "pepe-druid-concept-v1",
+      "prompt": "Use case: stylized-concept. ONE transparent Pepe Tower Defense game sprite. Reference images establish hand-painted 3D fantasy rendering, gold/dark jade/emerald materials, elevated three-quarter camera. A new Pepe Thornkeeper Druid defender CONCEPT. Friendly recognizable Pepe frog, orange lips, leaf-woven emerald cloak, antler-like wooden circlet and twisted living-wood staff with a single green bud. Curled brambles and seed pods around a dark jade/gold low turret planter, purposeful nature road-trap specialist silhouette distinct from hooded mage or archer. Three-quarter elevated camera matching reference. Whole subject centered square, fully visible with 8% clear transparent margin on every edge. Premium crisp texture, readable silhouette at gameplay scale. True transparent alpha, no scenery, floor tile, yellow circles, ground rings, text, label or watermark. Preserve stylistic coherence with references.",
+      "references": [
+        "pepe-archer-sprite.png"
+      ],
+      "status": "design only, not playable"
+    },
+    {
+      "key": "jade-tyrant-v1",
+      "prompt": "Use case: stylized-concept. ONE transparent Pepe Tower Defense boss sprite coherent with attached enemy and relic references. The JADE TYRANT, second major boss of the campaign. An enormous goblin king in dark jade plate and worn gold edging, regal angular emerald crown, menacing green goblin face and tusks, huge stone cleaver held down in one hand, ornate raised shoulder armor, deep burgundy cloak. Powerful squat boss silhouette in a forward stride facing right. Distinct from the shieldbearer: no huge shield; crown, kingly cape and massive cleaver define him. Match polished hand-painted 3D fantasy game art, chunky readable silhouette, emeralds/dark jade/gold, camera consistent with these references. Full subject fully visible with 8% transparent margin on all sides, square centered composition. True transparent alpha. No text, labels, scenery, floor, pedestal, yellow circles or aura rings. Readable when displayed 140px tall.",
+      "references": [
+        "goblin-brute-v1.png",
+        "relic-base-v1.png"
+      ],
+      "status": "playable boss"
+    },
+    {
+      "key": "relic-sovereign-v1",
+      "prompt": "Use case: stylized-concept. ONE transparent Pepe Tower Defense boss sprite coherent with attached enemy and relic references. The RELIC SOVEREIGN, FINAL boss of the campaign. A colossal corrupted ancient frog-temple golem king, no human or Pepe friendly face. Brutal carved stone frog/goblin mask with glowing violet eyes, cracked dark jade torso containing an enormous fractured emerald core, worn gold bands, shard crown, two huge articulated stone claw hands, spectral violet royal mantle and a few stone fragments held close around his legs. Ancient vault corruption made flesh. Three-quarter elevated camera, imposing upright but compact boss silhouette facing right, all pieces contained in one compact subject. Distinct from green-skinned goblin kings; jade stone body and corrupted core are unmistakable. Match polished hand-painted 3D fantasy game art, chunky readable silhouette, emeralds/dark jade/gold, camera consistent with these references. Full subject fully visible with 8% transparent margin on all sides, square centered composition. True transparent alpha. No text, labels, scenery, floor, pedestal, yellow circles or aura rings. Readable when displayed 140px tall.",
+      "references": [
+        "goblin-brute-v1.png",
+        "relic-base-v1.png"
+      ],
+      "status": "playable boss"
+    }
+  ]
+}
