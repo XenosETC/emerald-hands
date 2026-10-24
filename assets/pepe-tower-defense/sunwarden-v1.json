@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-24",
+  "method": "built-in imagegen",
+  "assets": [
+    {
+      "key": "hero-base-v1",
+      "prompt": "Use case: stylized-concept. Asset: ONE original Pepe hero gameplay sprite for Pepe Tower Defense, named Pepe Sunwarden. Reference images establish friendly unmistakable green Pepe frog identity, hand-painted polished 3D fantasy rendering, dark jade masonry, worn gold trim and luminous faceted emeralds. Create an ORIGINAL heroic frog defender, full body standing in a confident combat stance on a LOW compact octagonal jade/gold plinth (not a bulky turret). Recognizable Pepe face, large eyes, orange lips, athletic compact proportions, dark jade armor with restrained gold edges, emerald bracers. A rich EMERALD GREEN CAPE flows behind him, clearly visible and kept inside frame. One arm aims outward to the right, palm emitting one short bright GREEN LASER with a crisp narrow emerald core; other hand clenched near hip. No sword, no gun, no blue/red costume, no letter emblems. Bare expressive Pepe face, no mask. Elevated three-quarter camera matching tower references; entire figure, cape, laser and plinth visible with 8% transparent padding on all sides, full figure centered square, grounded bottom anchor. Premium crisp silhouette readable at 120px tall. True transparent alpha, no scenery, no text, labels, watermark, aura ring or yellow circle. This is base hero, keep armor relatively simple so upgrade progression has room.",
+      "references": [
+        "alchemist-concept-v1.png",
+        "pepe-tier3-v1.png"
+      ]
+    },
+    {
+      "key": "hero-tier3-v1",
+      "prompt": "Use case: stylized-concept. Generate ONE coherent upgrade sprite of the attached Pepe Sunwarden hero. Tier 3 reinforced hero: add a second layer of gold-edged jade shoulder armor and larger emerald palm bracer; same classic silhouette, still not ultimate. Preserve exact recognizable Pepe face and expression, green skin, orange lips, green cape flowing left, extended right-facing palm pose with SHORT GREEN LASER, compact legs stance on low octagonal dark jade and gold plinth, hand-painted 3D style, elevated three-quarter camera. Whole character, plinth, entire cape and laser fully visible with at least 8% transparent padding on ALL sides. Square frame; no clipping, no floor background. True transparent alpha. No guns, swords, letter emblems, red/blue suit, labels, text, watermark, yellow circles or aura rings. Do not change the character proportions or turn him into a turret.",
+      "references": [
+        "hero-base-v1.png"
+      ]
+    },
+    {
+      "key": "hero-evolved-v1",
+      "prompt": "Use case: stylized-concept. Generate ONE coherent upgrade sprite of the attached Pepe Sunwarden hero. Tier 5 Emerald Ascendant hero: regal emerald crystal crown/diadem above visible face, ornate but compact gold-edged jade armor, larger shoulder emeralds, richer emerald cape, palm laser brighter with sharp emerald core. Strong heroic final evolution, no extra arms or floating objects. Preserve exact recognizable Pepe face and expression, green skin, orange lips, green cape flowing left, extended right-facing palm pose with SHORT GREEN LASER, compact legs stance on low octagonal dark jade and gold plinth, hand-painted 3D style, elevated three-quarter camera. Whole character, plinth, entire cape and laser fully visible with at least 8% transparent padding on ALL sides. Square frame; no clipping, no floor background. True transparent alpha. No guns, swords, letter emblems, red/blue suit, labels, text, watermark, yellow circles or aura rings. Do not change the character proportions or turn him into a turret.",
+      "references": [
+        "hero-base-v1.png"
+      ]
+    },
+    {
+      "key": "hero-long-watch-v1",
+      "prompt": "Use case: stylized-concept. Generate ONE coherent upgrade sprite of the attached Pepe Sunwarden hero. Sky Guardian / Nova-range specialist: same armor silhouette with compact emerald crystal collar and brass sighting jewel in brow band, subtle pale green etched constellations on the EMERALD CAPE, extended emerald palm focus bracer. Differentiate through precision and cape detail, keep pose and palette. Preserve exact recognizable Pepe face and expression, green skin, orange lips, green cape flowing left, extended right-facing palm pose with SHORT GREEN LASER, compact legs stance on low octagonal dark jade and gold plinth, hand-painted 3D style, elevated three-quarter camera. Whole character, plinth, entire cape and laser fully visible with at least 8% transparent padding on ALL sides. Square frame; no clipping, no floor background. True transparent alpha. No guns, swords, letter emblems, red/blue suit, labels, text, watermark, yellow circles or aura rings. Do not change the character proportions or turn him into a turret.",
+      "references": [
+        "hero-base-v1.png"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+[
+  {
+    "key": "hero-base-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 64830,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "hero-tier3-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 67954,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "hero-evolved-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 79082,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "hero-long-watch-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 69508,
+    "alphaMin": 0,
+    "alphaMax": 255
+  }
+]

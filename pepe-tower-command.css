@@ -119,3 +119,9 @@ body[data-game="tower"] .pad-controls[data-moving="true"] .pad-caption { display
 body[data-game="tower"] .pad-controls[data-moving="true"] button:not(:disabled) { border-color: #8ee9ff; }
 
 #towerFormLabel { display: block; margin-top: 5px; color: #aad5ba; font-size: .65rem; }
+
+body[data-game="tower"] #heroAbility { padding: 7px 0; }
+body[data-game="tower"] #heroNovaButton { width: 100%; padding: 8px; border: 1px solid #88f9ad; border-radius: 9px; background: #17492e; color: #dbffe5; font-weight: 800; }
+body[data-game="tower"] #heroNovaButton:disabled { opacity: .5; }
+body[data-game="tower"] #heroNovaHint { display: block; margin: 4px 0; font-size: .62rem; color: #bde9ca; }
+body[data-game="tower"] .tower-button--hero { border-color: #e1cb78; }

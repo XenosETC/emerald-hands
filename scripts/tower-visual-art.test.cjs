@@ -51,7 +51,7 @@ function game(file) {
     },
     querySelectorAll(selector) {
       if (file !== 'pepe-tower-defense.js') return [];
-      const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special'],['upgradePath','utility']] : selector === '[data-command-tab]' ? ['build','manage','intel'].map(view=>['commandTab',view]) : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer','alchemist'].map(type=>['tower',type]) : [];
+      const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special'],['upgradePath','utility']] : selector === '[data-command-tab]' ? ['build','manage','intel'].map(view=>['commandTab',view]) : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer','alchemist','hero'].map(type=>['tower',type]) : [];
       return entries.map(([key,value])=>{const id=`${key}:${value}`;if(!nodes.has(id)){const item=node();item.dataset[key]=value;nodes.set(id,item);}return nodes.get(id);});
     },
   });
@@ -220,5 +220,111 @@ test('Every Alchemist 5/2/0 crosspath has order-independent stats and capped bos
     const build=order=>{const g=towerGame();g.act('selectTower("alchemist");buildOrUpgrade(pads[0]);state.shards=10000');for(const p of order)g.act(`upgradeSelected("${p}")`);return JSON.parse(g.act('JSON.stringify([towers[0].damage,towers[0].range,towers[0].rate,towers[0].splash,towers[0].armorBreak,towers[0].bossArmorBreak,towers[0].acidDuration])'));};
     const a=build([...Array(5).fill(primary),...Array(2).fill(secondary)]),b=build([...Array(2).fill(secondary),...Array(5).fill(primary)]);
     assert.deepEqual(a,b);assert.ok(a[4]<=.2&&a[5]<=.1&&a[6]<=4);
+  }
+});
+
+test('Sunwarden requires 400 shards, permits one active hero, and moving preserves his upgrades',()=>{
+  const g=towerGame();g.act('selectTower("hero");buildOrUpgrade(pads[0])');assert.equal(g.act('towers.length'),0);
+  g.act('state.shards=2000;buildOrUpgrade(pads[0])');assert.equal(g.act('state.shards'),1600);
+  g.act('buildOrUpgrade(pads[1])');assert.equal(g.act('towers.length'),1);assert.equal(g.act('state.shards'),1600);
+  g.act('upgradeSelected("special");beginMove();buildOrUpgrade(pads[2])');
+  assert.equal(g.act('towers[0].pad===pads[2]'),true);assert.equal(g.act('towers[0].tiers.special'),1);
+  assert.match(g.nodes.get('#towerDetails').textContent,/Nova:.*20s recharge/);
+  g.act('sellSelected()');assert.equal(g.act('state.shards'),1600-75+Math.floor(475*.7));
+  g.act('buildOrUpgrade(pads[1])');assert.equal(g.act('towers.length'),1);
+});
+
+test('Emerald Nova respects wave, pause, relocation, range and cooldown guards without spending an empty cast',()=>{
+  const g=towerGame();assert.equal(g.act('activateHeroNova()'),false);
+  g.act('state.shards=1000;selectTower("hero");buildOrUpgrade(pads[0])');
+  assert.equal(g.act('activateHeroNova()'),false);
+  g.act('state.waveActive=true');assert.equal(g.act('activateHeroNova()'),false);assert.equal(g.act('state.heroNovaCooldown'),0);
+  g.act('enemies.push({x:230,y:260,hp:1000,armor:.2,kind:"brute",radius:10},{x:1000,y:600,hp:1000,armor:0,radius:10})');
+  g.read('window.EmeraldArcade.isPaused=()=>true');assert.equal(g.act('activateHeroNova()'),false);
+  g.read('window.EmeraldArcade.isPaused=()=>false');g.act('movingTower=towers[0]');assert.equal(g.act('activateHeroNova()'),false);
+  g.act('movingTower=null');assert.equal(g.act('activateHeroNova()'),true);
+  assert.equal(g.act('enemies[0].hp'),928);assert.equal(g.act('enemies[1].hp'),1000);
+  assert.equal(g.act('state.heroNovaCooldown'),20);assert.equal(g.act('activateHeroNova()'),false);
+  g.act('drawEffects()');assert.ok(g.drawingCalls.some(c=>c.method==='lineTo'&&c.args[0]===230));
+});
+
+test('Nova immediately collects kills once, cannot leak dead foes, and sell/rebuy retains its cooldown',()=>{
+  const g=towerGame();g.act('state.shards=3000;selectTower("hero");buildOrUpgrade(pads[0]);state.waveActive=true;enemies.push({x:230,y:260,hp:10,armor:0,kind:"grunt",reward:13,radius:10});activateHeroNova()');
+  assert.equal(g.act('enemies.length'),0);assert.equal(g.act('state.shards'),2613);
+  const score=g.act('state.score');g.act('collectDefeatedEnemies()');assert.equal(g.act('state.score'),score);
+  g.act('sellSelected();buildOrUpgrade(pads[1])');assert.equal(g.act('state.heroNovaCooldown'),20);
+  g.act('updateEffects(5)');assert.equal(g.act('state.heroNovaCooldown'),15);
+  g.act('resetGame()');assert.equal(g.act('state.heroNovaCooldown'),0);assert.equal(g.act('towers.length'),0);
+});
+
+test('Sunwarden upgrades split between blast damage, laser speed and Nova reach/recharge with coherent art',()=>{
+  const build=()=>{const g=towerGame();g.act('state.shards=10000;selectTower("hero");buildOrUpgrade(pads[0])');return g;};
+  const power=build();power.act('upgradeSelected("power");upgradeSelected("power");upgradeSelected("power")');
+  assert.equal(power.act('towers[0].splash'),28);assert.equal(power.act('towerVisualStage(towers[0])'),'tierThree');
+  power.act('upgradeSelected("power");upgradeSelected("power")');assert.equal(power.act('towers[0].splash'),56);assert.equal(power.act('towerVisualStage(towers[0])'),'evolved');
+  const speed=build();speed.act('upgradeSelected("special");upgradeSelected("special");upgradeSelected("special")');
+  assert.ok(speed.act('towers[0].rate')<power.act('towers[0].rate'));assert.equal(speed.act('towers[0].splash'),0);
+  const range=build();range.act('upgradeSelected("utility");upgradeSelected("utility");upgradeSelected("utility");upgradeSelected("utility");upgradeSelected("utility");upgradeSelected("power");upgradeSelected("power")');
+  assert.equal(range.act('novaRecharge(towers[0])'),10);assert.equal(range.act('towerVisualStage(towers[0])'),'longWatch');
+  assert.match(range.act('towerVisualSprite(towers[0]).src'),/hero-long-watch-v1.webp$/);
+  assert.equal(range.act('pathLockReason(towers[0],"special")'),'Third path locked');
+  assert.equal(range.act('pathLockReason(towers[0],"power")'),'Secondary path capped at tier 2');
+});
+
+test('Rapid hero lasers carry attack timing consistently at 30 and 60 Hz',()=>{
+  const shots=hz=>{const g=towerGame();g.act('state.shards=1000;selectTower("hero");buildOrUpgrade(pads[0]);enemies.push({x:230,y:260,pathIndex:1,hp:100000,maxHp:100000,armor:0,radius:10,kind:"brute",reward:1})');for(let i=0;i<hz*3;i++)g.act(`updateTowers(${1/hz})`);return g.act('shots.length');};
+  assert.ok(Math.abs(shots(30)-shots(60))<=1);assert.ok(shots(60)>=21);
+});
+
+test('Nova benefits from acid through the same armor rules as normal green lasers',()=>{
+  const g=towerGame();g.act('state.shards=1000;selectTower("hero");buildOrUpgrade(pads[0]);state.waveActive=true;enemies.push({x:230,y:260,hp:1000,armor:.2,acidTimer:2,armorBreak:.1,radius:10,kind:"brute"});activateHeroNova()');
+  assert.equal(g.act('enemies[0].hp'),919);assert.equal(g.act('enemies[0].armor'),.2);
+});
+
+test('An earned-shard mixed defense can recruit Sunwarden and finish twenty waves with Nova',t=>{
+  const g=towerGame();const outcome=JSON.parse(g.act(`
+    const order=[0,4,2,6,1,5,7,8,3],loadout={0:"pepe",4:"shard",2:"hero",6:"pepe",1:"alchemist",5:"pepe",7:"archer",8:"relic",3:"pepe"};
+    let ticks=0,novaCasts=0;
+    while(state.playing && ticks<54000){
+      const hero=towers.find(t=>t.type==="hero");
+      for(const i of order){if(!hero && ![0,4,2].includes(i))continue;if(!towerAtPad(pads[i])&&state.shards>=towerTypes[loadout[i]].cost){selectTower(loadout[i]);buildOrUpgrade(pads[i]);}}
+      if(towers.some(t=>t.type==="hero")) for(let tier=0;tier<5;tier++)for(const i of order){const tower=towerAtPad(pads[i]);const main=tower?.type==="shard"||tower?.type==="hero"||tower?.type==="alchemist"?"special":"power";if(tower&&tower.tiers[main]===tier&&state.shards>=upgradeCost(tower,main)){buildOrUpgrade(pads[i]);upgradeSelected(main);}}
+      if(!state.waveActive)startWave();if(activateHeroNova())novaCasts++;update(1/30);ticks++;
+    }
+    JSON.stringify({wave:state.wave,vault:state.vault,ticks,novaCasts,hero:towers.some(t=>t.type==="hero")});
+  `));
+  t.diagnostic('Automated earned-shard controller, not human balance approval: '+JSON.stringify(outcome));
+  assert.equal(outcome.wave,21);assert.ok(outcome.vault>0);assert.equal(outcome.hero,true);assert.ok(outcome.novaCasts>0);assert.equal(g.records.length,1);
+});
+
+test('Hero portraits and battlefield forms follow upgrades while Nova controls expose recharge',()=>{
+  const g=towerGame();g.act('state.shards=10000;selectTower("hero");buildOrUpgrade(pads[0])');
+  assert.equal(g.nodes.get('#heroAbility').hidden,false);assert.equal(g.nodes.get('#heroNovaButton').disabled,true);
+  for(const path of ['power','utility']){
+    if(path==='utility')g.act('sellSelected();buildOrUpgrade(pads[0])');
+    for(let tier=1;tier<=5;tier++){
+      g.act(`upgradeSelected("${path}")`);
+      const expected=tier<3?'hero-base-v1':path==='utility'?'hero-long-watch-v1':tier===5?'hero-evolved-v1':'hero-tier3-v1';
+      assert.match(g.nodes.get('#selectedPortrait').src,new RegExp(expected+'\\.webp$'));
+      g.act('const art=towerVisualSprite(towers[0]);art.complete=true;art.naturalWidth=512;drawTowers()');
+      assert.equal(g.drawingCalls.filter(c=>c.method==='drawImage').at(-1).args[0].src,g.nodes.get('#selectedPortrait').src);
+    }
+  }
+  g.act('state.waveActive=true;state.heroNovaCooldown=7.2;updateHud()');
+  assert.equal(g.nodes.get('#heroNovaButton').textContent,'Emerald Nova · 8s');
+  assert.match(g.nodes.get('#heroNovaHint').textContent,/10s recharge/);
+});
+
+test('Sunwarden faces targets on both sides and green lasers originate at the mirrored palm in every form',()=>{
+  for(const track of ['base','power','utility'])for(const side of [-1,1]){
+    const g=towerGame();g.act('state.shards=10000;selectTower("hero");buildOrUpgrade(pads[0])');
+    if(track!=='base')g.act(`for(let i=0;i<5;i++)upgradeSelected("${track}")`);
+    g.act(`enemies.push({x:230+${side}*90,y:280,pathIndex:1,hp:10000,armor:0,radius:10,kind:"brute",reward:1});updateTowers(.01);const art=towerVisualSprite(towers[0]);art.complete=true;art.naturalWidth=512`);
+    assert.equal(g.act('heroFacing(towers[0])'),side);
+    assert.equal(g.act('shots[0].x===heroMuzzle(towers[0]).x && shots[0].y===heroMuzzle(towers[0]).y'),true);
+    assert.equal(g.act('Math.sign(shots[0].x-towers[0].x)'),side);
+    g.drawingCalls.length=0;g.act('drawTowers();drawEffects()');
+    assert.ok(g.drawingCalls.some(c=>c.method==='scale'&&c.args[0]===side&&c.args[1]===1));
+    assert.ok(g.drawingCalls.some(c=>c.method==='moveTo'&&c.args[0]===g.act('shots[0].x')&&c.args[1]===g.act('shots[0].y')));
   }
 });

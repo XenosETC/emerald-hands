@@ -24,3 +24,7 @@ Built-in imagegen created five tier-3 sprites, five Long Watch sprites and one A
 ## Relic and Alchemist release - 2026-10-23
 
 Built-in imagegen produced relic-base-v1 plus alchemist-tier3-v1, alchemist-long-watch-v1 and alchemist-evolved-v1. All originals are retained as PNG. Transparent 512px WebP copies use the prior bottom anchor at 496; no semantic repaint or background removal was used. Complete prompts/reference roles: relic-alchemist-v1.json. Framing/alpha/size receipt: relic-alchemist-v1.qa.json. The earlier Alchemist concept sprite is now the playable base form. The generated relic is used at the visible path endpoint with dynamic health feedback.
+
+## Sunwarden hero - 2026-10-24
+
+Built-in imagegen generated hero-base-v1, hero-tier3-v1, hero-evolved-v1 and hero-long-watch-v1 from the roster references. Every form preserves the green palm laser, emerald cape, Pepe face and low jade/gold plinth. Original PNGs and optimized transparent 512px WebPs are stored here. Complete prompts/reference roles: sunwarden-v1.json. Alpha/framing/size receipt: sunwarden-v1.qa.json. The bottom anchor remains pixel 496. Generated artwork was inspected directly, then seeded desktop browser checks verified the base/evolved forms, mirrored facing and Nova controls after an earlier approval-service usage block cleared.
