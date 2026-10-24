@@ -11,7 +11,7 @@
     <link rel="preload" href="assets/pepes-paradox/bamboo-distant.png" as="image">
     <link rel="preload" href="assets/pepes-paradox/bamboo-temple-path.png" as="image">
     <link rel="preload" href="assets/pepes-paradox/bamboo-foreground.png" as="image">
-    <link rel="stylesheet" href="pepes-paradox.css?v=trail-1">
+    <link rel="stylesheet" href="pepes-paradox.css?v=touch-7">
     <link rel="stylesheet" href="game-polish.css?v=1">
   </head>
   <body class="arcade-game" data-game="paradox">
@@ -19,6 +19,7 @@
       <header class="paradox-topbar arcade-topbar">
         <a href="index.html">← Emerald Arcade</a>
         <div><span>PEPE LEGENDS</span><strong>Pepe's Paradox</strong></div>
+        <button id="pauseToggle" type="button" aria-pressed="false">Pause</button>
         <button id="soundToggle" type="button" aria-pressed="true">Sound: on</button>
       </header>
       <section class="paradox-stage" aria-label="Pepe's Paradox Bamboo Mountains stage">
@@ -31,11 +32,11 @@
         </section>
         <section class="paradox-overlay" id="startOverlay">
           <p>Chapter II · The Mountain Bait</p>
-          <h1>Ascend Bamboo Mountains.</h1>
-          <p>Fallen Pepe fled into the moonlit mountain pass. Cross the moving jade shrines, recover the Origin Relics, and keep Pepina's trail alive.</p>
+          <h1>One mountain. Two realities.</h1>
+          <p>Pursue Fallen through Bamboo Mountains. Shift between Jade and Echo to reveal spectral stepping stones, cross the ravines, and recover Pepina’s lost relics.</p>
           <button id="startButton" type="button">Begin the Pursuit</button>
           <p id="completionReport" role="status" hidden></p>
-          <small>A/D or arrows move · Space jump · Shift dash · Enter advances dialogue</small>
+          <small>A/D or arrows move · Space jump · Shift dash · Q realm shift · Enter advances dialogue</small>
         </section>
         <section class="dialogue" id="dialogue" hidden aria-live="polite">
           <img id="speakerPortrait" src="assets/pepe-relic-rumble/fallen-idle.png" alt="">
@@ -43,18 +44,25 @@
           <button id="dialogueNext" type="button">Continue</button>
         </section>
       </section>
-      <p id="recoveryStatus" role="status">Falls return you to your last safe footing. Collected items stay collected.</p>
+      <nav class="paradox-controls" aria-label="Touch game controls">
+        <button type="button" data-paradox-control="left" aria-label="Move left">◀</button>
+        <button type="button" data-paradox-control="right" aria-label="Move right">▶</button>
+        <button type="button" data-paradox-control="shift">Q · Realm</button>
+        <button type="button" data-paradox-control="dash">Dash</button>
+        <button type="button" data-paradox-control="jump" aria-label="Jump, hold to jump again on landing">Jump ↟</button>
+      </nav>
+      <p id="recoveryStatus" role="status">Lanterns mark safe footing. Falls preserve your collectibles; dash through wisps to disperse them.</p>
       <section class="trail-summary" aria-label="Trail objective"><p id="trailGoal">Follow the trail to Fallen, then reach the temple gate.</p><progress id="trailProgress" value="0" max="1" aria-label="Trail progress"></progress></section>
     </main>
 
     <footer class="game-guide" aria-label="How to play">
-      <div><span class="game-guide__label">Chapter II · Adventure</span><p><strong>Follow Pepina into the mountains.</strong> Find shards, hidden frogs, and Origin Relics along the way.</p></div>
-      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Keyboard required. <kbd>A</kbd> <kbd>D</kbd> / arrows move · <kbd>Space</kbd> jump · <kbd>Shift</kbd> dash.</p></div>
+      <div><span class="game-guide__label">Chapter II · Adventure</span><p><strong>Follow Pepina into the mountains.</strong> Jump over hostile wisps or dash through to disperse them; shift realities to reveal stepping stones. Find shards, hidden frogs, and Origin Relics along the way.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Keyboard or touch buttons. Hold Move and tap or hold Jump. Tap Dash or Realm to use abilities. <kbd>A</kbd> <kbd>D</kbd> / arrows move · <kbd>Space</kbd> jump · <kbd>Shift</kbd> dash · <kbd>Q</kbd> shift realm.</p></div>
       <div><span class="game-guide__label">Keep the story moving</span><p>Press <kbd>Enter</kbd> or choose Continue to advance dialogue. A wide screen gives the clearest view of the next jump.</p></div>
     </footer>
     <script src="arcade.js?v=12"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepes-paradox.js?v=finish-7"></script>
+    <script src="pepes-paradox.js?v=touch-7"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

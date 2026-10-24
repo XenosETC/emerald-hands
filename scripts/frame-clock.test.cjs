@@ -50,6 +50,9 @@ function game(file) {
       return nodes.get(selector);
     },
     querySelectorAll(selector) {
+      if(file==='pepes-paradox.js'&&selector==='[data-paradox-control]')return ['left','right','shift','dash','jump'].map(action=>{
+        const id='paradox-control:'+action;if(!nodes.has(id)){const item=node();item.dataset.paradoxControl=action;nodes.set(id,item);}return nodes.get(id);
+      });
       if (file !== 'pepe-tower-defense.js') return [];
       const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special'],['upgradePath','utility']] : selector === '[data-command-tab]' ? ['build','manage','intel'].map(view=>['commandTab',view]) : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer'].map(type=>['tower',type]) : [];
       return entries.map(([key,value])=>{const id=`${key}:${value}`;if(!nodes.has(id)){const item=node();item.dataset[key]=value;nodes.set(id,item);}return nodes.get(id);});
@@ -1012,8 +1015,8 @@ test('Paradox walk, jump and dash trajectories match at 30, 60 and 120 Hz', () =
 
 test('Paradox story pauses cannot jump moving platforms or displace their rider on resume', () => {
   const g=game('pepes-paradox.js');g.start();
-  g.read('window.__paradoxRead("player.x=710; player.y=316; player.grounded=true; beginTaunt(); update(10); advanceDialogue(); advanceDialogue(); advanceDialogue(); update(1.6); update(0)")');
-  assert.equal(g.read('window.__paradoxRead("state.mode")'),'playing');
+  g.read('window.__paradoxRead("player.x=710; player.y=316; player.grounded=true; beginTaunt(); update(10); advanceDialogue(); advanceDialogue(); advanceDialogue(); update(0)")');
+  assert.equal(g.read('window.__paradoxRead("state.mode")'),'escape');
   assert.equal(g.read('window.__paradoxRead("state.platformTime")'),0);
   assert.equal(g.read('window.__paradoxRead("platforms[6].x")'),700);
   assert.equal(g.read('window.__paradoxRead("player.x")'),710);
@@ -1203,4 +1206,161 @@ test('Long Watch crosspath extends real target acquisition and insufficient shar
   assert.equal(g.act('targetFor(towers[0])===enemies[0]'),true);
   g.act('updateTowers(0)');assert.ok(g.act('enemies[0].hp<1000'));
   const tiers=g.act('JSON.stringify(towers[0].tiers)');g.act('state.shards=0');assert.equal(g.act('upgradeSelected("power")'),false);assert.equal(g.act('JSON.stringify(towers[0].tiers)'),tiers);
+});
+
+
+test('Paradox realm stones change collision and never become recovery checkpoints',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  const read=code=>g.read(`window.__paradoxRead(${JSON.stringify(code)})`);
+  read('player.x=930;player.y=330;player.vy=600;player.grounded=false;update(.033)');
+  assert.ok(read('player.y+player.h')>500,'inactive Echo stone must not catch the player');
+  read('shiftRealm();player.x=930;player.y=330;player.vy=600;player.grounded=false;update(.033)');
+  assert.equal(read('player.y+player.h'),500);
+  assert.equal(read('player.grounded'),true);
+  assert.equal(read('checkpoint.x'),180,'spectral stones cannot strand a recovered player');
+  read('shiftRealm()');assert.equal(read('ability.realm'),'echo','shift must recharge');
+  read('update(.61);shiftRealm()');assert.equal(read('ability.realm'),'jade');
+});
+
+test('Paradox jump forgiveness, dash recharge, pause and replay keep abilities coherent',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  const read=code=>g.read(`window.__paradoxRead(${JSON.stringify(code)})`);
+  read('player.grounded=false;ability.coyote=.08;jump()');assert.equal(read('player.vy'),-740);
+  read('ability.coyote=0;player.vy=100;jump()');assert.equal(read('player.vy'),100);
+  read('player.x=300;player.y=450;player.vy=200;update(.033)');assert.equal(read('player.vy'),-740,'buffered jump fires on landing');
+  read('dash();update(.25);dash()');assert.equal(read('player.dash'),0,'dash cannot be spammed');
+  read('ability.jumpBuffer=.1;clearInput()');assert.equal(read('ability.jumpBuffer'),0);
+  read('window.EmeraldArcade.isPaused=()=>true');const t=read('state.time');read('update(2);shiftRealm()');assert.equal(read('state.time'),t);assert.equal(read('ability.realm'),'jade');
+  read('window.EmeraldArcade.isPaused=()=>false;state.mode="won";start()');assert.equal(read('ability.dashCooldown'),0);assert.equal(read('ability.realm'),'jade');
+});
+
+
+test('Paradox accepts pursuit movement during escape and wisps cannot chain hits',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  const read=code=>g.read(`window.__paradoxRead(${JSON.stringify(code)})`);
+  read('beginTaunt();advanceDialogue();advanceDialogue();advanceDialogue();keys.add("KeyD");update(.033)');
+  assert.equal(read('state.mode'),'escape');assert.ok(read('player.x')>180);
+  read('player.x=wisps[0].x-52;player.y=wisps[0].y-80;update(0)');
+  assert.ok(read('ability.hurt')>1);
+  read('player.x=wisps[0].x-52;player.y=wisps[0].y-80;player.vy=12;update(0)');
+  assert.equal(read('player.vy'),12,'protection must prevent repeated knockback');
+});
+
+
+test('Paradox keeps held direction through dialogue and recovery, but clears it on blur',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  const read=code=>g.read(`window.__paradoxRead(${JSON.stringify(code)})`);
+  read('keys.add("KeyD");beginTaunt();advanceDialogue();advanceDialogue();advanceDialogue();update(.033)');
+  assert.ok(read('player.x')>180);
+  read('player.y=900;update(0)');assert.equal(read('keys.has("KeyD")'),true);assert.ok(read('ability.hurt')>1);
+  const x=read('player.x');read('update(.033)');assert.ok(read('player.x')>x);
+  g.read('window.emit("blur")');assert.equal(read('keys.size'),0);
+});
+
+test('Paradox touch jump release does not cancel a separately held movement finger',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  const right=g.nodes.get('paradox-control:right'),jump=g.nodes.get('paradox-control:jump');
+  right.emit('pointerdown',{pointerId:1});jump.emit('pointerdown',{pointerId:2});jump.emit('pointerup',{pointerId:2});
+  assert.equal(g.read(`window.__paradoxRead(${JSON.stringify('touchHeld("right")')})`),true);
+  right.emit('pointercancel',{pointerId:1});assert.equal(g.read('window.__paradoxRead("keys.size")'),0);
+});
+
+test('Paradox wisps patrol within bounds, disperse on dash, and reform after protection window',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  const read=code=>g.read(`window.__paradoxRead(${JSON.stringify(code)})`);
+  read('player.x=wisps[0].x-52;player.y=wispY(wisps[0])-80;dash();updateWisps(0)');
+  assert.equal(read('ability.dispersals'),1);assert.equal(read('wisps[0].banished'),3.5);assert.equal(read('ability.hits'),0);
+  read('window.EmeraldArcade.isPaused=()=>true;update(2)');assert.equal(read('wisps[0].banished'),3.5);
+  read('window.EmeraldArcade.isPaused=()=>false;player.x=100;player.dash=0;updateWisps(3.6)');assert.equal(read('wisps[0].banished'),0);
+  for(const t of [0,3,15,100]){read(`state.platformTime=${t};updateWisps(0)`);assert.equal(read('wisps.every(w=>Math.abs(w.x-w.homeX)<=w.range)'),true);}
+});
+
+test('Paradox finish requires actual footing rather than crossing the gate while falling',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  const read=code=>g.read(`window.__paradoxRead(${JSON.stringify(code)})`);
+  read('state.tauntDone=true;player.x=5150;player.y=650;player.vy=20;player.grounded=false;update(0)');assert.equal(read('state.finished'),false);
+  read('player.y=456;player.vy=0;update(0)');assert.equal(read('state.mode'),'won');assert.equal(g.records.length,1);
+});
+
+
+
+
+
+for(const config of [{hz:30,realm:"jade",recover:false},{hz:60,realm:"echo",recover:true},{hz:120,realm:"jade",recover:true}]){
+  test(`Paradox full-stage touch input: ${config.hz} Hz ${config.realm}, recovery=${config.recover}`,t=>{
+    const g=game('pepes-paradox.js');g.start();
+    const control=(action,type,id)=>g.nodes.get('paradox-control:'+action).emit(type,{pointerId:id});
+    const snapshot=()=>g.read('window.__pepesParadoxDebug.getState()');
+    const down=(action,id)=>control(action,'pointerdown',id);
+    const up=(action,id)=>control(action,'pointerup',id);
+    down('right',1);
+    if(!config.recover)down('jump',2);
+    if(config.realm==='echo'){down('shift',3);up('shift',3);}
+    let recovered=false,paused=false,lines=0,last=null;
+    g.frame(0);
+    for(let tick=1;tick<config.hz*65;tick++){
+      const s=snapshot();last=s;
+      if(s.mode==='won')break;
+      if(s.mode==='cutscene'){g.nodes.get('#dialogueNext').emit('click');lines++;}
+      if(config.recover&&s.falls>0&&!recovered){
+        recovered=true;assert.ok(s.protection>0);assert.ok(s.touches.includes('right'));
+        down('jump',2);
+      }
+      if(!paused&&s.x>1700){
+        g.read('window.EmeraldArcade.isPaused=()=>true;window.emit("emeraldarcade:pause")');
+        assert.equal(snapshot().touches.length,0);
+        const x=snapshot().x;g.frame(tick*1000/config.hz);assert.equal(snapshot().x,x);
+        g.read('window.EmeraldArcade.isPaused=()=>false;window.emit("emeraldarcade:pause")');
+        down('right',1);down('jump',2);paused=true;
+      }
+      g.frame(tick*1000/config.hz);
+    }
+    const final=snapshot();
+    assert.equal(final.mode,'won',JSON.stringify(final));assert.equal(lines,3);assert.ok(paused);
+    assert.ok(final.falls<=2,'held jump must not repeatedly fall into the same ravine: '+JSON.stringify(final));
+    if(config.recover)assert.ok(recovered);
+    assert.equal(g.records.length,1);assert.equal(final.touches.length,0);
+    up('right',1);up('jump',2);g.start();
+    assert.equal(snapshot().x,180);assert.equal(snapshot().falls,0);assert.equal(snapshot().touches.length,0);
+    down('right',1);g.frame(70000);g.frame(70016);assert.ok(snapshot().x>180,'touch works after replay');
+    t.diagnostic('Headless full-stage pointer-event controller; not a browser/mobile rendering check: '+JSON.stringify({hz:config.hz,realm:config.realm,falls:final.falls,hits:final.hits,shards:final.shards,relics:final.relics,mode:final.mode}));
+  });
+}
+
+test('Paradox pointer cancellation releases only its own finger and blur clears all fingers',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  const right=g.nodes.get('paradox-control:right'),jump=g.nodes.get('paradox-control:jump');
+  right.emit('pointerdown',{pointerId:1});right.emit('pointerdown',{pointerId:3});jump.emit('pointerdown',{pointerId:2});
+  right.emit('pointercancel',{pointerId:1});jump.emit('lostpointercapture',{pointerId:2});
+  assert.equal(g.read(`window.__paradoxRead(${JSON.stringify('touchHeld("right")')})`),true);
+  assert.equal(g.read(`window.__paradoxRead(${JSON.stringify('touchHeld("jump")')})`),false);
+  g.read('window.emit("blur")');assert.equal(g.read('window.__paradoxRead("touchPointers.size")'),0);
+});
+
+
+test('Paradox Continue responds to a secondary touch without a compatibility click and suppresses duplicate click',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  const read=code=>g.read(`window.__paradoxRead(${JSON.stringify(code)})`);
+  g.nodes.get('paradox-control:right').emit('pointerdown',{pointerId:1,pointerType:'touch'});
+  g.nodes.get('paradox-control:jump').emit('pointerdown',{pointerId:2,pointerType:'touch'});
+  read('beginTaunt()');const next=g.nodes.get('#dialogueNext');
+  next.emit('pointerdown',{pointerId:30,pointerType:'touch',isPrimary:false});
+  next.emit('pointerup',{pointerId:30,pointerType:'touch',isPrimary:false});
+  assert.equal(read('state.cutsceneStep'),1);assert.equal(read('touchPointers.size'),2);
+  next.emit('click',{detail:1});assert.equal(read('state.cutsceneStep'),1,'a synthesized click must not skip a second line');
+  next.emit('pointerdown',{pointerId:31,pointerType:'touch'});next.emit('pointercancel',{pointerId:31,pointerType:'touch'});next.emit('pointerup',{pointerId:31,pointerType:'touch'});
+  assert.equal(read('state.cutsceneStep'),1,'cancelled touch must not advance dialogue');
+  next.emit('click',{detail:0});assert.equal(read('state.cutsceneStep'),2,'keyboard activation stays usable');
+});
+
+test('Paradox Pause responds to a secondary touch and does not toggle twice',()=>{
+  const g=game('pepes-paradox.js');g.start();
+  g.read('window.EmeraldArcade.paused=false;window.EmeraldArcade.isPaused=()=>window.EmeraldArcade.paused;window.EmeraldArcade.setPaused=value=>{window.EmeraldArcade.paused=value;window.emit("emeraldarcade:pause")};');
+  const right=g.nodes.get('paradox-control:right'),pause=g.nodes.get('#pauseToggle');
+  right.emit('pointerdown',{pointerId:1,pointerType:'touch'});
+  pause.emit('pointerdown',{pointerId:30,pointerType:'touch',isPrimary:false});pause.emit('pointerup',{pointerId:30,pointerType:'touch',isPrimary:false});
+  assert.equal(g.read('window.EmeraldArcade.isPaused()'),true);
+  assert.equal(g.read('window.__paradoxRead("touchPointers.size")'),0);
+  pause.emit('click',{detail:0,pointerType:'touch'});assert.equal(g.read('window.EmeraldArcade.isPaused()'),true);
+  pause.emit('click',{detail:0});assert.equal(g.read('window.EmeraldArcade.isPaused()'),false);
 });

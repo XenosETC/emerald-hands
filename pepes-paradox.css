@@ -28,3 +28,51 @@ canvas { display:block; width:100%; height:100%; }
 @media(max-width:760px){.paradox-shell{width:100%;padding:0}.paradox-topbar{border-radius:0}.paradox-topbar div{display:none}.paradox-hud{grid-template-columns:1fr 1fr;inset:7px}.dialogue{grid-template-columns:70px 1fr;inset:auto 2% 2%}.dialogue img{width:64px;height:64px}.dialogue button{grid-column:1/-1}.paradox-overlay h1{font-size:2.6rem}}
 
 .trail-summary{padding:12px 16px;color:#dfffee}.trail-summary p{margin:0 0 8px;line-height:1.5}#trailProgress{width:100%;height:12px;accent-color:#7eff97}
+
+.paradox-controls{display:flex;gap:10px;padding:12px 16px;background:#06130e;border:1px solid #284d38;border-radius:12px;margin-top:10px}
+.paradox-controls button{touch-action:none;user-select:none;min-height:48px;flex:1;border:1px solid #57996c;border-radius:9px;background:linear-gradient(#183d2b,#0a2015);font-weight:800}
+.paradox-controls button:active{background:#37664a;transform:translateY(1px)}
+button:focus-visible,canvas:focus-visible{outline:3px solid #e9c96c;outline-offset:3px}
+@media(max-width:760px){.paradox-hud{grid-template-columns:1.5fr repeat(3,1fr);gap:3px}.paradox-hud>div{padding:4px}.paradox-hud small{font-size:8px;letter-spacing:.02em}.paradox-hud strong{font-size:10px}.paradox-overlay{padding:12px}.paradox-overlay h1{font-size:clamp(1.4rem,5vw,2.6rem)}.paradox-overlay p{font-size:12px;margin:5px}.paradox-overlay small{font-size:9px}.paradox-overlay button{padding:9px 16px;margin:6px}.paradox-controls{gap:5px;padding:8px}.paradox-controls button{font-size:12px}.dialogue{grid-template-columns:40px 1fr auto;padding:7px;gap:8px}.dialogue img{width:40px;height:40px}.dialogue p{font-size:12px}.dialogue button{grid-column:auto;font-size:11px;padding:8px}}
+
+body[data-game="paradox"]{padding-bottom:100px}
+body[data-game="paradox"] .paradox-controls{position:relative;z-index:2}
+body[data-game="paradox"] #recoveryStatus{margin:8px 0;padding:10px 16px;min-height:44px;color:#c8d6c9;font-size:.9rem;line-height:1.5;border-left:2px solid #bfa777;background:rgba(16,31,23,.7)}
+@media(max-width:760px){body[data-game="paradox"] .paradox-hud{grid-template-columns:repeat(3,minmax(0,1fr))}body[data-game="paradox"] .paradox-hud>div:first-child{display:flex;align-items:center;justify-content:space-between;gap:8px}body[data-game="paradox"] .paradox-hud strong{font-size:.75rem}body[data-game="paradox"] .paradox-hud small{font-size:.6rem}body[data-game="paradox"] .paradox-controls{margin-top:8px}body[data-game="paradox"] .paradox-controls button{min-height:52px}}
+
+.paradox-controls button[aria-pressed="true"]{background:#3b6749;box-shadow:inset 0 0 0 2px #b7d89c}
+.paradox-controls{touch-action:none;-webkit-user-select:none;overscroll-behavior:contain}
+@media(pointer:coarse){
+  body[data-game="paradox"] .arcade-pet-companion,
+  body[data-game="paradox"] .arcade-pet-dock-toggle,
+  body[data-game="paradox"] .arcade-pet-assist,
+  body[data-game="paradox"] .arcade-runtime-dock{display:none}
+  body[data-game="paradox"] .paradox-controls{gap:6px;padding:8px;margin:0;border-radius:0 0 10px 10px}
+  body[data-game="paradox"] .paradox-controls button{min-height:54px}
+  body[data-game="paradox"] .paradox-topbar{gap:6px;padding:7px}
+  body[data-game="paradox"] .paradox-topbar button{padding:8px;font-size:.75rem}
+  body[data-game="paradox"] .dialogue{position:absolute;grid-area:2/1;inset:auto 7px 7px;margin:0;z-index:5;grid-template-columns:34px 1fr auto;padding:8px;gap:7px}
+  body[data-game="paradox"] .dialogue img{width:32px;height:32px}
+  body[data-game="paradox"] .dialogue p{font-size:.75rem}
+  body[data-game="paradox"] .dialogue button{min-height:44px;font-size:.7rem;padding:6px;grid-column:auto}
+}
+@media(pointer:coarse) and (max-height:600px){
+  body[data-game="paradox"] .paradox-shell{width:100%;padding:0}
+  body[data-game="paradox"] .paradox-topbar{height:48px;padding:1px 8px;border-radius:0}
+  body[data-game="paradox"] .paradox-topbar>a{padding:4px 8px;font-size:.7rem;max-width:none}
+  body[data-game="paradox"] .paradox-topbar>div strong{font-size:.85rem}
+  body[data-game="paradox"] .paradox-topbar>div>span{display:none}
+  body[data-game="paradox"] .paradox-stage{display:block;aspect-ratio:auto;border-radius:0}
+  body[data-game="paradox"] .paradox-stage>canvas{display:block;width:min(100%,calc((100dvh - 112px)*16/9));height:auto;margin:auto;aspect-ratio:16/9}
+  body[data-game="paradox"] .paradox-hud{position:absolute;inset:4px 6px auto;margin:0;display:flex;justify-content:space-between;gap:5px}
+  body[data-game="paradox"] .paradox-hud>div{padding:3px 6px;background:rgba(0,10,5,.82)}
+  body[data-game="paradox"] .paradox-hud small{font-size:8px}
+  body[data-game="paradox"] .paradox-hud strong{font-size:10px}
+  body[data-game="paradox"] .paradox-hud>div:first-child{display:grid}
+  body[data-game="paradox"] .paradox-controls{padding:3px 6px}
+  body[data-game="paradox"] .paradox-controls button{min-height:48px}
+  body[data-game="paradox"] .paradox-overlay{position:absolute;inset:0;min-height:0;padding:10px}
+  body[data-game="paradox"] .paradox-overlay h1{font-size:1.7rem}
+  body[data-game="paradox"] .paradox-overlay p{font-size:11px;margin:4px}
+  body[data-game="paradox"] .paradox-overlay small{font-size:9px}
+}
