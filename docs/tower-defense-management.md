@@ -12,7 +12,7 @@ Moving is free between waves and preserves the tower object, cooldown, tiers and
 
 ## Expanded campaign
 
-Twenty authored waves replace twelve. Raiders arrive from wave 3 and brutes from wave 7. Raiders are fast with lower health. Brutes resist 20% of direct and splash damage but remain susceptible to slows. Bosses arrive on 5, 10, 15 and 20; the final warboss resists 25% damage and breaches for five vault integrity. The brute and warboss share the generated armored goblin character; size, boss label and armor ring distinguish the warboss.
+Twenty authored waves replace twelve. Raiders arrive from wave 3 and brutes from wave 7. Raiders are fast with lower health. Brutes resist 20% of direct and splash damage but remain susceptible to slows. Bosses arrive on 5, 10, 15 and 20; the final warboss resists 25% damage and breaches for five vault integrity. The brute and warboss share the generated armored goblin character; size and the boss label distinguish the warboss.
 
 Health increases gradually and ramps more strongly after wave 12. Enemy speed growth caps at wave 15, and spawn intervals bottom out at 0.30 seconds. Wave previews disclose the authored roster, health multiplier and interval before launch. Every clear gives a build break. Campaign results/progress and the arcade front-page description now reflect twenty waves. Existing rank thresholds and shared reward caps remain unchanged.
 

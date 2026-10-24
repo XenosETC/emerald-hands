@@ -1429,10 +1429,6 @@
         ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
         ctx.fill();
       }
-      if (enemy.armor) {
-        ctx.strokeStyle = "#ffd86b"; ctx.lineWidth = enemy.boss ? 3 : 2;
-        ctx.beginPath(); ctx.ellipse(0, 8, enemy.radius + 8, enemy.radius * .55, 0, 0, Math.PI * 2); ctx.stroke();
-      }
       if (enemy.acidTimer > 0) {
         ctx.fillStyle = "#caff64"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center";
         const reduction = Math.round(Math.min(enemy.armor || 0, enemy.armorBreak) * 100);
