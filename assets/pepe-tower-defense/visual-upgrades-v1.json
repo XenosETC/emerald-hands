@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "date": "2026-10-23",
+  "method": "Built-in imagegen; originals preserved, runtime WebP framing/compression only",
+  "sprites": [
+    {
+      "key": "pepe-tier3-v1",
+      "source": "pepe-blaster-sprite.png",
+      "png": "pepe-tier3-v1.png",
+      "runtime": "pepe-tier3-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Tier 3 upgrade, Emerald Overclock. Make the blaster recognisably more powerful than the reference with two compact emerald emitter rails alongside the existing cannon, reinforced dark jade armor, three gold-capped green power crystals and an upgraded Pepe helmet. Retain the main forward-facing emerald barrel and clearly visible frog face. Medium stage, not maximal tier-five extravagance."
+    },
+    {
+      "key": "pepe-long-watch-v1",
+      "source": "pepe-blaster-sprite.png",
+      "png": "pepe-long-watch-v1.png",
+      "runtime": "pepe-long-watch-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Third-path Long Watch primary upgrade, Farwatch Blaster. Distinct long-range silhouette: one visibly elongated precision emerald cannon, a compact brass-and-jade telescope sight mounted above it, a raised angular optical mast and restrained violet optical accents. Pepe wears a targeting monocle. Fewer bulky emitter pods than the damage path. Preserve recognizable cannon tower base and frog face."
+    },
+    {
+      "key": "shard-tier3-v1",
+      "source": "shard-slow-sprite.png",
+      "png": "shard-tier3-v1.png",
+      "runtime": "shard-tier3-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Tier 3 upgrade, Chain Chill. Strengthen the blue ice-crystal control tower with three larger angular cyan crystal spires, reinforced dark jade stepped base, chunky frost conduits and a recognizable Pepe face relief. Replace the thin circular orbital ring with separated angular crystal supports. Strong icy cyan identity. Medium upgrade, not final-tier extravagance."
+    },
+    {
+      "key": "shard-long-watch-v1",
+      "source": "shard-slow-sprite.png",
+      "png": "shard-long-watch-v1.png",
+      "runtime": "shard-long-watch-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Third-path Long Watch primary upgrade, Horizon Frost Beacon. Make a tall narrow cyan crystal watch-spire with a faceted pointed central prism, four outward-aimed angular crystalline signal vanes and brass optical brackets. Subtle violet sighting-crystal accents distinguish the range path from pure icy power. Preserve the dark jade base, blue ice theme and Pepe face relief. No circular orbit structure."
+    },
+    {
+      "key": "relic-tier3-v1",
+      "source": "relic-cannon-sprite.png",
+      "png": "relic-tier3-v1.png",
+      "runtime": "relic-tier3-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Tier 3 upgrade, Vault Cracker. Beef up the existing artillery cannon with reinforced double-layer dark jade barrel armor, thick gold breech braces, three chunky emerald power chambers and a broader angular recoil mount. Retain a single short heavy cannon, small Pepe face medallion, and warm amber lower vents. Medium-tier siege weapon, no scattered ammunition or scenery."
+    },
+    {
+      "key": "relic-long-watch-v1",
+      "source": "relic-cannon-sprite.png",
+      "png": "relic-long-watch-v1.png",
+      "runtime": "relic-long-watch-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Third-path Long Watch primary upgrade, Farwatch Relic Howitzer. Clearly elongated slender artillery barrel on a raised angled precision mount, a brass sextant-like angular aiming instrument and violet rangefinding crystal mounted beside the breech. Retain emerald energy in the barrel and Pepe face medallion. Distinct tall long-range silhouette, less wide and bulky than the damage upgrade; same dark jade and gold base."
+    },
+    {
+      "key": "mage-tier3-v1",
+      "source": "pepe-mage-sprite.png",
+      "png": "mage-tier3-v1.png",
+      "runtime": "mage-tier3-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Tier 3 upgrade, Arcane Splash. Upgrade the frog mage with a broader jade-and-gold mantle, an angular triple-prism staff and three separated floating emerald spell shards near the raised hand. Reinforced square crenellations and larger emerald crystals on the familiar dark stone base. Remove the original circular magic halo, retain Pepe's expressive face and readable hood. Medium-stage upgrade."
+    },
+    {
+      "key": "mage-long-watch-v1",
+      "source": "pepe-mage-sprite.png",
+      "png": "mage-long-watch-v1.png",
+      "runtime": "mage-long-watch-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Third-path Long Watch primary upgrade, Astral Surveyor Pepe. A recognizable hooded Pepe mage on the same jade-and-gold tower base, carrying a tall angular crystal sighting staff and a small brass star-chart instrument without any letters. Emerald cloak with restrained violet optical crystal accents, high pointed observatory-like roof brackets behind the mage. Replace all circular floating halos with separate faceted star shards. Long-range scholarly silhouette."
+    },
+    {
+      "key": "archer-tier3-v1",
+      "source": "pepe-archer-sprite.png",
+      "png": "archer-tier3-v1.png",
+      "runtime": "archer-tier3-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Tier 3 upgrade, Rapid Quiver. Upgrade the frog archer with a reinforced compound emerald bow, a larger visibly split twin quiver, layered jade-and-gold shoulder armor and three chunky emerald arrowheads. Preserve the drawn bow pose, hooded Pepe face, direction and stone turret base. Medium-stage expert archer, no decorative orbiting arrows or halos.",
+      "reframePrompt": "Reframe this exact finished game tower sprite without redesigning anything. The very top of the weapon or flask is too close to the image edge. Zoom out the entire object about 18 percent and complete any tiny clipped top tip naturally, preserving the original design, face, pose, colors, camera angle, materials and all equipment. Entire tower and highest equipment tip must be fully inside the frame with at least 8 percent truly transparent margin on every side. Square image, bottom-centered within those margins. True alpha background. No new objects, no text, no scenery, no ground shadow, no decorative halos or yellow rings. Keep the exact same coherent tower identity."
+    },
+    {
+      "key": "archer-long-watch-v1",
+      "source": "pepe-archer-sprite.png",
+      "png": "archer-long-watch-v1.png",
+      "runtime": "archer-long-watch-v1.webp",
+      "prompt": "Edit this existing tower sprite into the specified upgrade, for the same Pepe Tower Defense game. Preserve its exact three-quarter isometric camera, bottom-center anchoring, dark jade stone and gold architecture, recognisable Pepe identity, hand-painted 3D game-art style and compact footprint. One entire tower, uncropped, centered, generous transparent margins, square composition and true alpha. This is an actual small gameplay sprite, not concept-art scenery. No text, numbers, frames, extra towers, ground plane, cast shadow, decorative yellow circles, orbit rings or aura halos. Physical round barrels/lenses are fine. Keep large readable shapes at 120px. Third-path Long Watch primary upgrade, Horizon Marksman Pepe. Distinct long-range hooded frog archer on a raised narrow watchtower parapet, very long elegant emerald precision bow, compact brass sight mounted on the bow and violet rangefinding crystal on the shoulder. Single heavy jade arrow, green-and-gold cloak, visible Pepe face. Taller watchtower silhouette with angular lookout fins, no orbiting arrows or circular halos.",
+      "reframePrompt": "Reframe this exact finished game tower sprite without redesigning anything. The very top of the weapon or flask is too close to the image edge. Zoom out the entire object about 18 percent and complete any tiny clipped top tip naturally, preserving the original design, face, pose, colors, camera angle, materials and all equipment. Entire tower and highest equipment tip must be fully inside the frame with at least 8 percent truly transparent margin on every side. Square image, bottom-centered within those margins. True alpha background. No new objects, no text, no scenery, no ground shadow, no decorative halos or yellow rings. Keep the exact same coherent tower identity."
+    },
+    {
+      "key": "alchemist-concept-v1",
+      "source": null,
+      "png": "alchemist-concept-v1.png",
+      "runtime": "alchemist-concept-v1.webp",
+      "prompt": "Create one original Pepe Alchemist tower design for the same emerald-vault fantasy tower defense roster. Square transparent game sprite, full tower, front three-quarter isometric camera looking down slightly. A clearly recognizable green Pepe frog with expressive large eyes and orange mouth, brass chemical goggles on his forehead, dark jade tunic and brown leather alchemist apron, standing behind a compact angular dark jade stone and antique gold crenellated laboratory turret. One raised hand holds a chunky glass flask of bright amber-green acid, the other grips a short brass stirring rod. Two or three large readable green and amber potion vessels, one compact brass condenser, emerald corner crystals and modest red-brown leather straps. Distinct chemical-support silhouette, not another mage with a staff or hood. Match polished hand-painted 3D Pepe tower sprites: chunky clean shapes, dark jade/gold base, strong face read at 120 pixels. Base-tier design, restrained equipment, not an ultimate form. One character on one compact tower, bottom-center anchoring, generous transparent margins, entire sprite including all equipment uncropped. True alpha background. No text, no letters, no numbers, no UI, no floor, no cast shadow, no orbiting elements, no decorative yellow rings or halos. This is a reviewable new-tower concept, not scenery.",
+      "reframePrompt": "Reframe this exact finished game tower sprite without redesigning anything. The very top of the weapon or flask is too close to the image edge. Zoom out the entire object about 18 percent and complete any tiny clipped top tip naturally, preserving the original design, face, pose, colors, camera angle, materials and all equipment. Entire tower and highest equipment tip must be fully inside the frame with at least 8 percent truly transparent margin on every side. Square image, bottom-centered within those margins. True alpha background. No new objects, no text, no scenery, no ground shadow, no decorative halos or yellow rings. Keep the exact same coherent tower identity."
+    }
+  ]
+}

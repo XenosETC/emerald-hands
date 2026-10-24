@@ -117,3 +117,5 @@ body[data-game="tower"] #cancelMoveButton { grid-column: 1 / -1; }
 body[data-game="tower"] .pad-controls[data-moving="true"] { background: #173c45; border-color: #8ee9ff; }
 body[data-game="tower"] .pad-controls[data-moving="true"] .pad-caption { display: inline; color: #b4f3ff; }
 body[data-game="tower"] .pad-controls[data-moving="true"] button:not(:disabled) { border-color: #8ee9ff; }
+
+#towerFormLabel { display: block; margin-top: 5px; color: #aad5ba; font-size: .65rem; }

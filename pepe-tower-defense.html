@@ -21,7 +21,7 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
-    <link rel="stylesheet" href="pepe-tower-command.css?v=crosspaths-20261023">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=upgrade-art-20261023">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -108,7 +108,7 @@
           <details class="defender-guide"><summary>Selected defender field guide</summary><p id="towerGuide"></p></details>
 <p class="tower-dock__hint">Choose a defender, then tap a glowing pad or its number on the battlefield.</p></section>
           <section class="command-view" id="manageView" aria-label="Manage selected defender" hidden><p id="manageEmpty">Tap a placed tower or its pad number to inspect, upgrade, move or sell it.</p><section class="tower-panel" id="towerPanel" aria-labelledby="towerPanelTitle" hidden>
-        <header class="selected-heading"><img id="selectedPortrait" src="assets/pepe-tower-defense/pepe-blaster-sprite.png" width="56" height="56" alt=""><h2 id="towerPanelTitle">Selected defender</h2></header>
+        <header class="selected-heading"><img id="selectedPortrait" src="assets/pepe-tower-defense/pepe-blaster-sprite.png" width="56" height="56" alt=""><div><h2 id="towerPanelTitle">Selected defender</h2><small id="towerFormLabel">Base defender</small></div></header>
         <p id="towerDetails"></p>
         <div class="tower-actions"><button type="button" id="moveTowerButton">Move tower - free</button><button type="button" id="cancelMoveButton" hidden>Cancel move</button><button type="button" id="sellTowerButton">Sell tower</button></div>
         <div class="tower-paths" aria-label="Upgrade paths"><button type="button" data-upgrade-path="power"><span class="path-text"></span><span class="path-pips" aria-hidden="true"><i data-tier="1"></i><i data-tier="2"></i><i data-tier="3"></i><i data-tier="4"></i><i data-tier="5"></i></span></button><button type="button" data-upgrade-path="special"><span class="path-text"></span><span class="path-pips" aria-hidden="true"><i data-tier="1"></i><i data-tier="2"></i><i data-tier="3"></i><i data-tier="4"></i><i data-tier="5"></i></span></button><button type="button" data-upgrade-path="utility"><span class="path-text"></span><span class="path-pips" aria-hidden="true"><i data-tier="1"></i><i data-tier="2"></i><i data-tier="3"></i><i data-tier="4"></i><i data-tier="5"></i></span></button></div>
@@ -134,7 +134,7 @@
 
     <script src="arcade.js?v=12"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepe-tower-defense.js?v=no-halo-20261023"></script>
+    <script src="pepe-tower-defense.js?v=upgrade-art-20261023"></script>
   <script src="arcade-library.js?v=library-2"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

@@ -1,0 +1,217 @@
+{
+  "method": "Alpha-bounds framing and compression only; no painting or semantic changes",
+  "runtimeFrame": 512,
+  "contentLimit": 480,
+  "bottomAnchor": 496,
+  "checks": [
+    {
+      "key": "pepe-tier3-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 45,
+        "top": 6,
+        "width": 1161,
+        "height": 1236
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 451,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 95088
+    },
+    {
+      "key": "pepe-long-watch-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 51,
+        "top": 33,
+        "width": 1197,
+        "height": 1187
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 480,
+      "contentHeight": 476,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 89338
+    },
+    {
+      "key": "shard-tier3-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 250,
+        "top": 15,
+        "width": 754,
+        "height": 1226
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 295,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 71082
+    },
+    {
+      "key": "shard-long-watch-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 256,
+        "top": 16,
+        "width": 741,
+        "height": 1215
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 293,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 81834
+    },
+    {
+      "key": "relic-tier3-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 65,
+        "top": 32,
+        "width": 1137,
+        "height": 1190
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 459,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 110068
+    },
+    {
+      "key": "relic-long-watch-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 133,
+        "top": 21,
+        "width": 1114,
+        "height": 1189
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 450,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 96426
+    },
+    {
+      "key": "mage-tier3-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 217,
+        "top": 42,
+        "width": 870,
+        "height": 1194
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 350,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 74262
+    },
+    {
+      "key": "mage-long-watch-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 265,
+        "top": 19,
+        "width": 846,
+        "height": 1208
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 336,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 72828
+    },
+    {
+      "key": "archer-tier3-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 263,
+        "top": 120,
+        "width": 771,
+        "height": 1063
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 348,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 76002
+    },
+    {
+      "key": "archer-long-watch-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 302,
+        "top": 97,
+        "width": 754,
+        "height": 1101
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 329,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 64710
+    },
+    {
+      "key": "alchemist-concept-v1",
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "sourceBounds": {
+        "left": 215,
+        "top": 109,
+        "width": 840,
+        "height": 1089
+      },
+      "runtimeWidth": 512,
+      "runtimeHeight": 512,
+      "contentWidth": 370,
+      "contentHeight": 480,
+      "bottomAnchor": 496,
+      "alphaMin": 0,
+      "alphaMax": 255,
+      "bytes": 66394
+    }
+  ]
+}

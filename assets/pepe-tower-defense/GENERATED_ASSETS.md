@@ -16,3 +16,7 @@ One original game enemy sprite, use-case game-asset, a stocky emerald green gobl
 
 ### Command-panel material
 Use-case game-asset. Seamless-looking dark emerald stone material backdrop for a compact tower defense command panel, premium hand-painted fantasy game UI, jade vault courtyard atmosphere. Landscape 3:2 composition. Almost-black deep green worn stone slabs, extremely subtle etched geometric lines, faint emerald glow at outer corners, small restrained antique gold inlays near edges. Large calm very dark center negative space for readable overlaid UI controls. Soft diffuse lighting, low contrast, elegant tactile stone. Flat front-facing material only, no perspective scene, no characters, no props, no icons, no buttons, no text, no letters, no numbers, no emblem, no watermark, no thick ornamental border. This will be used as a subtle background beneath game controls, never as an image of fake controls.
+
+## Coherent upgrade forms - 2026-10-23
+
+Built-in imagegen created five tier-3 sprites, five Long Watch sprites and one Alchemist concept from the existing five tower references. See visual-upgrades-v1.json for complete prompts, reference identities and reframe edits. PNG originals are retained; transparent 512px WebP runtime copies are mechanically framed and compressed, with bounds and sizes in visual-upgrades-v1.qa.json. No generated sprite changes combat behavior. Alchemist remains a proposal only.

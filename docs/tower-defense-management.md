@@ -21,3 +21,11 @@ Health increases gradually and ramps more strongly after wave 12. Enemy speed gr
 277 root tests passed, including a 92-test frame/game suite. Checks cover crosspath caps in every permutation, order-independent stats, affordability, preview immutability, real attacks and armor, moving/selling, pause/results/replay, twenty-wave transitions and earned-shard campaigns at 30/60 Hz plus a mixed-defense controller. These simulations establish viability, not human balance approval. A longer human playtest is the next balance gate.
 
 Browser verification: normal 180-shard start and a native tier-one purchase; phone tower relocation; in-game enemy portraits; page remains one viewport at 390x844; full 5/2/0 upgrades, lock states and displayed refund verified through native controls in a clearly labeled seeded-funds QA fixture. Seeded fixtures and screenshots remain local under releases/ and are excluded from the web commit. Generated image prompts, originals and optimized runtime assets are documented in assets/pepe-tower-defense/GENERATED_ASSETS.md.
+
+## Visual upgrades - October 23, 2026
+
+Five generated tier-3 forms and five Long Watch forms now appear in the battlefield and selected-tower portrait. Primary tiers 0-2 retain base art; Firepower/role tiers 3-4 use reinforced art and tier 5 retains the original evolution; Long Watch primary tiers 3-5 use its range-specialist art. Secondary tiers never change the primary form. No combat stats or purchases changed. Runtime WebP sprites share a 512px frame and bottom anchor; original PNGs and prompts are retained.
+
+The visual review at docs/tower-defense-visual-review.html compares all forms and presents the proposed Pepe Alchemist. The Alchemist is a design/concept only, not recruitable. Browser checks loaded all 21 review images, verified both five-tower forms in a labeled seeded fixture, matched the selected Archer portrait through native pad selection, and found no horizontal overflow at 390x844. These checks establish visual integration, not human campaign balance.
+
+Clean staged release validation: 279 root tests passed, including two dedicated visual-selection and rendering checks. Unrelated Soul World and Paradox working changes were excluded.

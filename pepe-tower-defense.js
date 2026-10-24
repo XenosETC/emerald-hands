@@ -65,6 +65,24 @@
     mage: loadImage("assets/pepe-tower-defense/pepe-mage-evolved-sprite.png"),
     archer: loadImage("assets/pepe-tower-defense/pepe-archer-evolved-sprite.png"),
   };
+  const tierThreeSprites = Object.fromEntries(Object.keys(towerSprites).map(type => [type, loadImage(`assets/pepe-tower-defense/${type}-tier3-v1.webp`)]));
+  const longWatchSprites = Object.fromEntries(Object.keys(towerSprites).map(type => [type, loadImage(`assets/pepe-tower-defense/${type}-long-watch-v1.webp`)]));
+  function towerVisualStage(tower) {
+    if ((tower.tiers?.utility || 0) >= 3) return "longWatch";
+    if (tower.evolved) return "evolved";
+    if (tower.level >= 3) return "tierThree";
+    return "base";
+  }
+  function towerVisualSprite(tower) {
+    const stages = { base: towerSprites, tierThree: tierThreeSprites, evolved: evolvedTowerSprites, longWatch: longWatchSprites };
+    return stages[towerVisualStage(tower)][tower.type];
+  }
+  function loadedTowerSprite(tower) {
+    const selected = towerVisualSprite(tower);
+    if (selected.complete && selected.naturalWidth) return selected;
+    const fallback = tower.evolved ? evolvedTowerSprites[tower.type] : towerSprites[tower.type];
+    return fallback.complete && fallback.naturalWidth ? fallback : towerSprites[tower.type];
+  }
   const goblinBrute = loadImage("assets/pepe-tower-defense/goblin-brute-v1.webp");
   const enemySprites = {
     goblin: loadImage("assets/pepe-tower-defense/goblin-raider-v1.webp"),
@@ -524,8 +542,10 @@
     if (!inspectedTower) return;
     const tower = inspectedTower;
     towerPanelTitle.textContent = `${tower.name} - ${tierCode(tower)}`;
-    const portrait = (tower.evolved ? evolvedTowerSprites : towerSprites)[tower.type].src;
+    const portrait = towerVisualSprite(tower).src;
     if (selectedPortrait.src !== portrait) selectedPortrait.src = portrait;
+    const visualLabels = { base: "Base defender", tierThree: "Tier 3 reinforced form", evolved: "Tier 5 evolution", longWatch: "Long Watch form" };
+    document.querySelector("#towerFormLabel").textContent = visualLabels[towerVisualStage(tower)];
     towerDetails.textContent = `Pad ${pads.indexOf(tower.pad) + 1}: ${tower.damage.toFixed(1)} damage, ${Math.round(tower.range)} range, ${(tower.rate / (1 + tower.level * .08)).toFixed(2)}s attack, ${Math.round(tower.slow * 100)}% slow, ${Math.round(tower.splash)} splash. ${movingTower ? "Choose an empty pad to move, or cancel." : "Crosspath limit: 5 / 2 / 0."}`;
     pathButtons.forEach(button => {
       const choice = button.dataset.upgradePath;
@@ -1088,7 +1108,7 @@
 
   function drawTowers() {
     for (const tower of towers) {
-      const sprite = tower.evolved ? evolvedTowerSprites[tower.type] : towerSprites[tower.type];
+      const sprite = loadedTowerSprite(tower);
       const pulse = tower.attackPulse;
       const upgradePulse = tower.upgradePulse || 0;
       const evolvePulse = tower.evolvePulse || 0;
@@ -1122,8 +1142,9 @@
       }
       ctx.restore();
 
-      if (!tower.evolved) drawUpgradeDetails(tower, pulse, upgradePulse);
-      else drawEvolvedCrown(tower, evolvePulse);
+      // Let the generated silhouette carry tier-3 and Long Watch identity without extra orbiting clutter.
+      if (towerVisualStage(tower) === "base") drawUpgradeDetails(tower, pulse, upgradePulse);
+      else if (towerVisualStage(tower) === "evolved") drawEvolvedCrown(tower, evolvePulse);
 
       if (pulse > 0) {
         ctx.save();
