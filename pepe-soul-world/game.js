@@ -27,7 +27,7 @@ import {GUARDIAN_STYLE} from './enemy-motion.js';
 import {createJournal} from './journal.js?v=temple-finish-20261015';
 import {ITEMS,stats,useItem,consumablePreview} from './systems.js?v=flasks-20261013';
 import {SAVE_KEY,GROUND,WORLDS,readSave,createState,step,act,enterWorld,revive,snapshot,levelFor,maxHealth,canRelease,canRift,canDomain,domainReady,DOMAIN} from './core.js?v=enemy-timing-20261014';
-import {loadArt,Renderer} from './render.js?v=warp-color-20261017';
+import {loadArt,Renderer} from './render.js?v=warp-jade-20261023';
 import {Sound} from './audio.js?v=safe-20261013';
 const practice=new URLSearchParams(location.search).get('practice')==='1';
 const storageKey=practice?'pepe-soul-world-practice-v1':SAVE_KEY;
