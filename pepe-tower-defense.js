@@ -145,7 +145,7 @@
     alchemist: { name: "Pepe Alchemist", cost: 135, range: 150, damage: 15, rate: .95, color: "#b6f34d", splash: 0, slow: 0 },
     hero: { name: "Pepe Sunwarden", cost: 400, range: 220, damage: 18, rate: .15, color: "#57ff8b", splash: 0, slow: 0 },
     ballista: { name: "Pepe Ballista", cost: 185, range: 300, damage: 95, rate: 1.6, color: "#b1ee6a", splash: 0, slow: 0 },
-    druid: { name: "Pepe Thornkeeper", cost: 155, range: 140, damage: 8, rate: 2, color: "#79d454", splash: 0, slow: 0 },
+    druid: { name: "Pepe Thornkeeper", cost: 155, range: 140, damage: 10, rate: 2, color: "#79d454", splash: 0, slow: 0 },
   };
   const CAMPAIGN_WAVES = 50;
   const HERO_LIMIT = 2;
@@ -184,9 +184,9 @@
       if(wave >= 3 && index % 7 === 4) return "runner";
       return "grunt";
     });
-    // Keep the established first twenty waves, then use a gentler extension instead of extrapolating its quadratic ramp.
+    // Preserve the opening campaign; late health pressure now rises steadily against the expanded nine-defender roster.
     const foundation = Math.min(wave,20), late = Math.max(0,foundation-5), endgame = Math.max(0,foundation-12);
-    return {wave,kinds,count,interval:Math.max(.3,.75-wave*.025),hpScale:1+late*.055+late*late*.006+endgame*endgame*.10+extended*.03+extended*extended*.0005,
+    return {wave,kinds,count,interval:Math.max(.3,.75-wave*.025),hpScale:1+late*.055+late*late*.006+endgame*endgame*.10+extended*.06+extended*extended*.0015,
       name:majorBoss ? wave === 50 ? "Relic Sovereign and royal guard" : wave === 35 ? "Jade Tyrant and shield guard" : "Warboss assault" : wave%5===0 ? "Vault breaker" : rush ? wave>=26 ? "Specter rush" : "Raider rush" : siege ? wave>=21 ? "Shield wall" : "Brute siege" : wave<=2 ? "First defenses" : "Mixed assault"};
   }
   const wavePlans = Array.from({ length: CAMPAIGN_WAVES }, (_, i) => buildWavePlan(i + 1));
@@ -1753,9 +1753,10 @@
 
   function scalePointer(event) {
     const rect = canvas.getBoundingClientRect();
+    const scale = Math.min(rect.width / W, rect.height / H);
     return {
-      x: ((event.clientX - rect.left) / rect.width) * W,
-      y: ((event.clientY - rect.top) / rect.height) * H,
+      x: (event.clientX - rect.left - (rect.width - W * scale) / 2) / scale,
+      y: (event.clientY - rect.top - (rect.height - H * scale) / 2) / scale,
     };
   }
 

@@ -127,3 +127,53 @@ body[data-game="tower"] #heroAbility small { display: block; margin: 4px 0; font
 body[data-game="tower"] .tower-button--hero { border-color: #e1cb78; }
 
 body[data-game="tower"] #heroAbility [hidden] { display: none !important; }
+
+/* Phone controls stay large enough to tap; the battlefield keeps its original proportions. */
+@media (max-width:760px) and (orientation:portrait) {
+  body[data-game="tower"] .game-shell { height: calc(100dvh - 64px - env(safe-area-inset-bottom,0px)); }
+  body[data-game="tower"] .stage-wrap { grid-template-rows: auto minmax(0,1fr); }
+  body[data-game="tower"] .playfield { grid-template-rows: auto auto auto; }
+  body[data-game="tower"] .playfield > canvas { aspect-ratio:16 / 9; height:auto; width:100%; }
+  body[data-game="tower"] .pad-controls > div { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  body[data-game="tower"] .pad-controls button { min-height:44px; touch-action:manipulation; }
+  body[data-game="tower"] .command-tabs button, body[data-game="tower"] .wave-button { min-height:44px; }
+  body[data-game="tower"] .tower-button { min-height:64px; }
+  body[data-game="tower"] .tower-button strong { font-size:.78rem; }
+  body[data-game="tower"] .tower-button small { font-size:.65rem; line-height:1.35; }
+  body[data-game="tower"] .tower-actions button { min-height:44px; }
+  body[data-game="tower"] .overlay p { font-size:.75rem; }
+}
+@media (max-width:760px) and (orientation:portrait) and (max-height:740px) {
+  body[data-game="tower"] { overflow-y:auto; }
+  body[data-game="tower"] .game-shell { height:790px; padding-bottom:76px; }
+}
+/* Landscape phones use a side bay instead of squeezing two stacked panels. */
+@media (orientation:landscape) and (max-height:540px) {
+  body[data-game="tower"] .game-shell { height:calc(100dvh - 52px - env(safe-area-inset-bottom,0px)); grid-template-rows:36px minmax(0,1fr); gap:4px; padding:4px; }
+  body[data-game="tower"] .stage-wrap { grid-template-columns:minmax(0,1fr) minmax(270px,36%); grid-template-rows:minmax(0,1fr); }
+  body[data-game="tower"] .command-bay { border-left:1px solid #bdae5a66; border-top:0; padding:5px; gap:4px; }
+  body[data-game="tower"] .tower-dock__header { display:none; }
+  body[data-game="tower"] .pad-caption { display:none; }
+  body[data-game="tower"] .pad-controls > div { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  body[data-game="tower"] .pad-controls button, body[data-game="tower"] .command-tabs button, body[data-game="tower"] .wave-button { min-height:44px; }
+  body[data-game="tower"] .status-pill { display:none; }
+  body[data-game="tower"] .command-footer > p { display:none; }
+  body[data-game="tower"] .overlay { gap:4px; padding:8px; }
+  body[data-game="tower"] .overlay img, body[data-game="tower"] .overlay .eyebrow, body[data-game="tower"] .overlay small { display:none; }
+  body[data-game="tower"] .overlay h1 { font-size:1.15rem; }
+  body[data-game="tower"] .overlay p { font-size:.7rem; }
+}
+@media(max-width:1000px) {
+  body[data-game="tower"] .arcade-pet-dock-toggle { bottom:max(12px,env(safe-area-inset-bottom)) !important; }
+  body[data-game="tower"] .arcade-pet-companion { bottom:max(4px,env(safe-area-inset-bottom)); width:50px; height:56px; }
+  body[data-game="tower"] .arcade-pet-companion .arcade-pet-sprite { width:46px; height:46px; }
+  body[data-game="tower"] .arcade-pet-companion .arcade-pet-name { display:none; }
+}
+body[data-game="tower"] .playfield > canvas { object-fit:contain; }
+@media (orientation:landscape) and (max-height:540px) {
+  body[data-game="tower"] .command-bay { grid-template-rows:auto minmax(0,1fr) auto; }
+  body[data-game="tower"] .pad-controls > div { grid-template-columns:repeat(9,minmax(0,1fr)); }
+}
+@media (orientation:landscape) and (max-height:540px) and (max-width:780px) {
+  body[data-game="tower"] .pad-controls > div { grid-template-columns:repeat(5,minmax(0,1fr)); }
+}

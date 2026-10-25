@@ -4,7 +4,7 @@ Implemented: 50 waves, two active Sunwardens with independent Novas, two new ord
 
 ## Difficulty and encounters
 
-Waves 1-20 keep their established rosters and health curve. After 20, base health growth uses wave 20 values; a gentler additional multiplier grows by 0.03 per extra wave plus 0.0005 times extra-wave squared. Density rises from 61 to 88 enemies; speed growth remains capped at wave 15 and spawn interval at 0.30s. This respects the existing tier-five upgrade ceiling.
+Waves 1-20 keep their established rosters and health curve. After 20, base health growth uses wave 20 values; the October 24 balance pass adds 0.06 per extra wave plus 0.0015 times extra-wave squared. Density rises from 61 to 88 enemies; speed growth remains capped at wave 15 and spawn interval at 0.30s. This respects the existing tier-five upgrade ceiling.
 
 Shieldbearers start on 21: 40% armor, three relic breach damage, slow movement. Alchemist acid reduces armor normally. Emerald specters start on 26: fast, 60% reduction in slow strength, one breach damage. They still take damage from all current defenders and remain partially slowable.
 

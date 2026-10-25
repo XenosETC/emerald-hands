@@ -8,7 +8,7 @@ Both former concepts are now recruitable in the nine-defender roster. Base sprit
 
 ## Pepe Thornkeeper
 
-155 run shards; 8 damage per thorn charge, 140 placement range, 2s base planting interval. During waves it plants at the nearest reachable path point. A base patch holds 10 charges, lasts 8s and hits each enemy at most once; maximum 3 patches per tower. Damage obeys normal armor and acid rules. Swept movement checks prevent fast enemies from skipping traps and resolve trap kills before a breach.
+155 run shards; 10 damage per thorn charge, 140 placement range, 2s base planting interval. During waves it plants at the nearest reachable path point. A base patch holds 10 charges, lasts 8s and hits each enemy at most once; maximum 3 patches per tower. Damage obeys normal armor and acid rules. Swept movement checks prevent fast enemies from skipping traps and resolve trap kills before a breach.
 
 Briar Thorns uses shared power damage scaling. Seedbank uses shared special scaling plus 3 charges and 2s lifetime per tier; the fourth patch slot unlocks at tier 3. Wild Reach uses shared utility scaling and adds 2 collision-radius units per tier. Patches snapshot their planting stats, expire in simulation time and do not stockpile between waves beyond their normal expiry. Moving or selling removes owned patches; replay clears all patches. Keyboard 9 selects it.
 

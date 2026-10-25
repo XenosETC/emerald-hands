@@ -836,7 +836,8 @@
     const dockState = {
       x: savedDock?.x ?? null,
       y: savedDock?.y ?? null,
-      collapsed: Boolean(savedDock?.collapsed),
+      // Tower Defense needs the bottom action row clear on phones; Menu keeps every shared command available.
+      collapsed: Boolean(savedDock?.collapsed) || (document.body?.dataset?.game === "tower" && window.innerWidth <= 1000),
     };
 
     function constrainDock(x, y) {

@@ -343,7 +343,7 @@ test('Fifty authored waves gate new enemies, announce major bosses, and include 
     assert.match(g.act(`waveBrief(wavePlans[${index}])`),kind==='tyrant'?/Jade Tyrant/:/Relic Sovereign/);
   }
   assert.ok(g.act('wavePlans.every(p=>p.count===p.kinds.length&&p.count<=88&&p.interval>=.3&&Number.isFinite(p.hpScale))'));
-  assert.ok(g.act('wavePlans[49].hpScale>wavePlans[19].hpScale && wavePlans[49].hpScale<12'));
+  assert.ok(g.act('wavePlans[49].hpScale>wavePlans[19].hpScale && wavePlans[49].hpScale<15'));
 });
 
 test('Shieldbearer armor responds to acid and specters resist slows without becoming immune',()=>{
@@ -391,8 +391,8 @@ test('Thornkeeper plants bounded patches only during waves, with visible charge 
 
 test('Fast enemies cannot skip thorn patches, and remaining stationary cannot drain extra charges',()=>{
   const g=towerGame();g.act('selectTower("druid");buildOrUpgrade(pads[0]);state.waveActive=true;plantThorns(towers[0]);enemies.push({...enemyTypes.specter,x:170,y:170,pathIndex:3,speed:600,hp:100,maxHp:100,slowTimer:0,hitFlash:0,spin:0,kind:"specter"});thornPatches[0].x=300;thornPatches[0].y=170;updateEnemies(.3)');
-  assert.equal(g.act('enemies[0].hp'),92);assert.equal(g.act('thornPatches[0].charges'),9);
-  g.act('thornContact(enemies[0],300,170,300,170);thornContact(enemies[0],300,170,300,170)');assert.equal(g.act('enemies[0].hp'),92);assert.equal(g.act('thornPatches[0].charges'),9);
+  assert.equal(g.act('enemies[0].hp'),90);assert.equal(g.act('thornPatches[0].charges'),9);
+  g.act('thornContact(enemies[0],300,170,300,170);thornContact(enemies[0],300,170,300,170)');assert.equal(g.act('enemies[0].hp'),90);assert.equal(g.act('thornPatches[0].charges'),9);
 });
 
 test('Thorn kills cannot breach and moving, selling or replay clears owned patches',()=>{
@@ -410,13 +410,15 @@ test('Both new defenders have order-independent 5/2/0 upgrades and complete name
   }
 });
 
-for(const hz of [30]) test('Ballista and Thornkeeper support an earned 50-wave campaign with earned shards at '+hz+' Hz',t=>{
+for(const earlyNew of [false,true]) test('Ballista and Thornkeeper support an earned 50-wave campaign with '+(earlyNew?'early new defenders':'early heroes')+' at 30 Hz',t=>{
+  const hz=30;
   const g=towerGame();const outcome=JSON.parse(g.act(`
     const order=[0,4,2,6,1,5,7,8,3],loadout={0:"pepe",4:"shard",2:"hero",6:"hero",1:"alchemist",5:"ballista",7:"archer",8:"relic",3:"druid"};
+    if(${earlyNew}){loadout[2]="ballista";loadout[6]="druid";loadout[5]="hero";loadout[3]="hero";}
     let ticks=0,novaCasts=0,sawTraps=false,sawBolt=false;
     while(state.playing&&ticks<200000){
-      for(const i of order){if(towers.filter(t=>t.type==="hero").length<2&&![0,4,2,6].includes(i))continue;if(!towerAtPad(pads[i])&&state.shards>=towerTypes[loadout[i]].cost){selectTower(loadout[i]);buildOrUpgrade(pads[i]);}}
-      if(towers.filter(t=>t.type==="hero").length===2){
+      for(const i of order){if(!${earlyNew}&&towers.filter(t=>t.type==="hero").length<2&&![0,4,2,6].includes(i))continue;if(!towerAtPad(pads[i])&&state.shards>=towerTypes[loadout[i]].cost){selectTower(loadout[i]);buildOrUpgrade(pads[i]);}}
+      if(${earlyNew}?towers.length>=4:towers.filter(t=>t.type==="hero").length===2){
         for(let tier=0;tier<5;tier++)for(const i of order){const tower=towerAtPad(pads[i]);const main=tower?.type==="shard"||tower?.type==="alchemist"||tower?.type==="hero"&&tower.heroSlot===1?"special":"power";if(tower&&tower.tiers[main]===tier&&state.shards>=upgradeCost(tower,main)){buildOrUpgrade(pads[i]);upgradeSelected(main);}}
         for(const tower of towers){const primary=tower.path;const second=tower.type==="hero"?(primary==="power"?"special":"power"):"utility";if(tower.tiers[primary]===5&&tower.tiers[second]<2&&state.shards>=upgradeCost(tower,second)){buildOrUpgrade(tower.pad);upgradeSelected(second);}}
       }
@@ -426,4 +428,14 @@ for(const hz of [30]) test('Ballista and Thornkeeper support an earned 50-wave c
   `));
   t.diagnostic('Automated earned-shard controller, not human balance approval: '+JSON.stringify(outcome));
   assert.equal(outcome.sawTraps,true);assert.equal(outcome.sawBolt,true);assert.equal(outcome.wave,51);assert.ok(outcome.vault>0);assert.equal(outcome.heroes,2);assert.ok(outcome.novaCasts>0);assert.equal(g.records.length,1);
+});
+
+test('Letterboxed battlefield taps map to the original world coordinates',()=>{
+  const g=towerGame();g.nodes.get('#gameCanvas').getBoundingClientRect=()=>({left:10,top:20,width:500,height:200});
+  assert.equal(g.act('scalePointer({clientX:260,clientY:120}).x'),640);
+  assert.equal(g.act('scalePointer({clientX:260,clientY:120}).y'),360);
+  assert.ok(g.act('scalePointer({clientX:10,clientY:120}).x<0'));
+  const p=JSON.parse(g.act('JSON.stringify(pads[0])')),scale=200/720;
+  g.nodes.get('#gameCanvas').emit('click',{clientX:10+(500-1280*scale)/2+p.x*scale,clientY:20+p.y*scale});
+  assert.equal(g.act('towers.length'),1);assert.equal(g.act('towers[0].pad===pads[0]'),true);
 });
