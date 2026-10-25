@@ -472,3 +472,39 @@ test('Boss health and guard counter track the actual fixed wave queue without ph
   g.act('enemies.find(e=>e.isEscort).hp=0;collectDefeatedEnemies();updateHud()');assert.match(g.nodes.get('#bossHealthLabel').textContent,/5 guards/);
   g.act('state.spawnLeft=0;enemies.length=0;updateHud()');assert.equal(g.nodes.get('#bossHealth').hidden,true);
 });
+
+test('Every wave gets deterministic spacing within a bounded train budget and fixed boss gaps',()=>{
+  const g=towerGame();
+  const results=JSON.parse(g.act(`JSON.stringify(wavePlans.map(plan=>{
+    let before=0,after=0;for(let i=1;i<plan.count;i++){
+      const fixed=plan.majorBoss&&i>=plan.bossIndex&&i<=plan.bossIndex+plan.escort.length+1;
+      const base=fixed?(i===plan.bossIndex?2:1.1):plan.interval;
+      const delay=arrivalDelay(plan,i);if(delay<base-1e-9||!Number.isFinite(delay))throw Error('Bad spacing');
+      if(fixed&&delay!==base)throw Error('Guard cadence changed');before+=base;after+=delay;
+    }return {wave:plan.wave,before,after};}))`));
+  assert.equal(results.length,50);
+  for(const result of results){assert.ok(result.after>result.before);assert.ok(result.after<=result.before*1.25+1e-8);}
+  assert.ok(g.act('arrivalDelay(wavePlans[27],3)>=wavePlans[27].interval'));
+});
+
+test('Wave spawn timing stays stable across frame rates and never dumps a catch-up burst',()=>{
+  for(const wave of [1,10,28,35,50]){
+    const profiles=[];
+    for(const hz of [30,60]){
+      const g=towerGame();const profile=JSON.parse(g.act(`(()=>{
+        let elapsed=0;const stamps=[],spawnBefore=spawnEnemy;spawnEnemy=()=>{stamps.push(elapsed);spawnBefore();};state.wave=${wave};startWave();
+        const plan=currentWavePlan();while(state.spawnLeft>0&&elapsed<200){elapsed+=1/${hz};updateWave(1/${hz});}
+        return JSON.stringify({stamps,count:plan.count,expected:Array.from({length:plan.count-1},(_,i)=>arrivalDelay(plan,i+1)).reduce((a,b)=>a+b,0)});
+      })()`));
+      assert.equal(profile.stamps.length,profile.count);assert.ok(Math.abs(profile.stamps.at(-1)-profile.expected)<1/hz+1e-7);profiles.push(profile);
+    }
+    for(let i=0;i<profiles[0].count;i++)assert.ok(Math.abs(profiles[0].stamps[i]-profiles[1].stamps[i])<1/30+1e-7);
+  }
+  const g=towerGame();g.act('startWave();updateWave(5)');assert.equal(g.act('enemies.length'),2);assert.ok(g.act('state.spawnTimer>0'));
+});
+
+test('Compact ordinary art leaves boss size, collision radii and armored damage intact',()=>{
+  const g=towerGame();g.act('enemies.push({...enemyTypes.brute,kind:"brute",x:100,y:100,hp:100,maxHp:100,hitFlash:0},{...enemyTypes.sovereign,kind:"sovereign",x:300,y:100,hp:100,maxHp:100,hitFlash:0});for(const k of ["brute","sovereign"]){enemySprites[k].complete=true;enemySprites[k].naturalWidth=512;}drawEnemies();damageEnemy(enemies[0],20,0,0)');
+  const images=g.drawingCalls.filter(c=>c.method==='drawImage');assert.equal(images[0].args[3],68);assert.equal(images[1].args[3],156);
+  assert.equal(g.act('enemies[0].radius'),23);assert.equal(g.act('enemies[1].radius'),42);assert.equal(g.act('enemies[0].hp'),84);
+});

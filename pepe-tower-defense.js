@@ -191,17 +191,40 @@
     });
     // Preserve the opening campaign; late health pressure now rises steadily against the expanded nine-defender roster.
     const foundation = Math.min(wave,20), late = Math.max(0,foundation-5), endgame = Math.max(0,foundation-12);
-    return {wave,kinds,count,majorBoss,bossIndex,escort,interval:Math.max(.3,.75-wave*.025),hpScale:1+late*.055+late*late*.006+endgame*endgame*.10+extended*.06+extended*extended*.0015,
+    const plan = {wave,kinds,count,majorBoss,bossIndex,escort,interval:Math.max(.3,.75-wave*.025),hpScale:1+late*.055+late*late*.006+endgame*endgame*.10+extended*.06+extended*extended*.0015,
       name:majorBoss ? wave === 50 ? "Relic Sovereign and royal guard" : wave === 35 ? "Jade Tyrant and shield guard" : "Warboss assault" : wave%5===0 ? "Vault breaker" : rush ? wave>=26 ? "Specter rush" : "Raider rush" : siege ? wave>=21 ? "Shield wall" : "Brute siege" : wave<=2 ? "First defenses" : "Mixed assault"};
+    let baseline = 0, extra = 0;
+    for (let i = 1; i < count; i++) {
+      const raw = unscaledArrivalDelay(plan, i);
+      const fixed = majorBoss && i >= bossIndex && i <= bossIndex + escort.length + 1;
+      const before = fixed ? raw : plan.interval;
+      baseline += before; extra += raw - before;
+    }
+    // Bound the full train extension, preserving pressure and campaign length.
+    plan.spacingScale = extra ? Math.min(1, baseline * .25 / extra) : 1;
+    return plan;
   }
   const wavePlans = Array.from({ length: CAMPAIGN_WAVES }, (_, i) => buildWavePlan(i + 1));
   function currentWavePlan() { return wavePlans[Math.min(CAMPAIGN_WAVES - 1, Math.max(0, state.wave - 1))]; }
   function arrivalDelay(plan, nextIndex) {
-    if (!plan.majorBoss) return plan.interval;
+    const raw = unscaledArrivalDelay(plan, nextIndex);
+    if (plan.majorBoss && nextIndex >= plan.bossIndex && nextIndex <= plan.bossIndex + plan.escort.length + 1) return raw;
+    return plan.interval + (raw - plan.interval) * plan.spacingScale;
+  }
+  function unscaledArrivalDelay(plan, nextIndex) {
     // Separate the boss entrance from its guard train; no instant stacked spawn burst.
-    if (nextIndex === plan.bossIndex) return 2;
-    if (nextIndex > plan.bossIndex && nextIndex <= plan.bossIndex + plan.escort.length + 1) return 1.1;
-    return plan.interval;
+    if (plan.majorBoss && nextIndex === plan.bossIndex) return 2;
+    if (plan.majorBoss && nextIndex > plan.bossIndex && nextIndex <= plan.bossIndex + plan.escort.length + 1) return 1.1;
+    const previous = enemyTypes[plan.kinds[nextIndex - 1]];
+    const next = enemyTypes[plan.kinds[nextIndex]];
+    if (!previous || !next) return plan.interval;
+    // Give large, slow enemies room to leave the entrance. Fast enemies can still
+    // overtake, and slows can still form useful splash/line-shot groups in combat.
+    const gap = clamp(Math.min(previous.size, next.size) * .4, 22, 38);
+    const speed = previous.speed + Math.min(15, plan.wave) * previous.acceleration;
+    const clearance = Math.min(.8, gap / speed);
+    const breather = nextIndex % 6 === 0 ? .12 : 0;
+    return Math.max(plan.interval, clearance) + breather;
   }
   function encounterAdvice(plan) {
     if (!plan.majorBoss) return "";
@@ -210,7 +233,7 @@
   function waveBrief(plan) {
     const counts = {};
     for (const kind of plan.kinds) counts[kind] = (counts[kind] || 0) + 1;
-    return `Wave ${plan.wave}/${CAMPAIGN_WAVES}: ${plan.name} - ${Object.entries(counts).map(([kind,count]) => `${count} ${enemyTypes[kind].name}${count === 1 ? "" : "s"}`).join(", ")}. Enemy health x${plan.hpScale.toFixed(2)}; ordinary arrivals every ${plan.interval.toFixed(2)}s.${encounterAdvice(plan)} Inspect, upgrade or move your towers before sending it.`;
+    return `Wave ${plan.wave}/${CAMPAIGN_WAVES}: ${plan.name} - ${Object.entries(counts).map(([kind,count]) => `${count} ${enemyTypes[kind].name}${count === 1 ? "" : "s"}`).join(", ")}. Enemy health x${plan.hpScale.toFixed(2)}; ordinary arrivals at least ${plan.interval.toFixed(2)}s apart, with extra room for slow foes and a short gap every six.${encounterAdvice(plan)} Inspect, upgrade or move your towers before sending it.`;
   }
   const mastery = loadMastery();
 
@@ -386,7 +409,7 @@
     state.spawnLeft = state.waveSpawnTotal;
     spawnEnemy();
     state.spawnLeft -= 1;
-    state.spawnTimer = currentWavePlan().interval;
+    state.spawnTimer = arrivalDelay(currentWavePlan(), 1);
     statusLabel.textContent = `Wave ${state.wave}: ${currentWavePlan().name}`;
     statusMeta.textContent = `${state.spawnLeft + enemies.length} corrupt units in this wave`;
     waveButton.textContent = "Wave Running";
@@ -1085,7 +1108,8 @@
     if (state.spawnLeft > 0 && state.spawnTimer <= 0) {
       spawnEnemy();
       state.spawnLeft -= 1;
-      state.spawnTimer = arrivalDelay(currentWavePlan(), state.waveSpawnTotal - state.spawnLeft);
+      // Carry the small fractional frame remainder without dumping a catch-up burst.
+      state.spawnTimer = Math.max(-.05, state.spawnTimer) + arrivalDelay(currentWavePlan(), state.waveSpawnTotal - state.spawnLeft);
       statusMeta.textContent = `${state.spawnLeft + enemies.length} corrupt units in this wave`;
     }
     if (state.spawnLeft <= 0 && enemies.length === 0) {
@@ -1548,15 +1572,19 @@
       ctx.translate(enemy.x, enemy.y);
       ctx.fillStyle = (enemy.boss || enemy.kind === "boss") ? "#f2b84b" : enemy.kind === "elite" ? "#ff4d6d" : enemy.kind === "runner" ? "#b25cff" : "#ff7a7a";
       ctx.shadowColor = ctx.fillStyle;
-      ctx.shadowBlur = 12 + enemy.hitFlash * 18;
+      ctx.shadowBlur = (enemy.boss ? 8 : 3) + enemy.hitFlash * 14;
       if (sprite.complete && sprite.naturalWidth) {
-        const size = enemy.size || ((enemy.boss || enemy.kind === "boss") ? 112 : enemy.kind === "runner" ? 62 : enemy.kind === "elite" ? 66 : 54);
+        const baseSize = enemy.size || ((enemy.boss || enemy.kind === "boss") ? 112 : enemy.kind === "runner" ? 62 : enemy.kind === "elite" ? 66 : 54);
+        // Ordinary art should not swallow the gaps between its actual hit areas.
+        // Bosses retain their large silhouettes and all collision radii stay intact.
+        const size = enemy.boss || enemy.kind === "boss" ? baseSize : Math.min(baseSize, enemy.radius * 2 + 22);
         ctx.drawImage(sprite, -size / 2, -size / 2, size, size);
       } else {
         ctx.beginPath();
         ctx.arc(0, 0, enemy.radius, 0, Math.PI * 2);
         ctx.fill();
       }
+      ctx.shadowBlur = 0;
       if (enemy.acidTimer > 0) {
         ctx.fillStyle = "#caff64"; ctx.font = "bold 11px Arial"; ctx.textAlign = "center";
         const reduction = Math.round(Math.min(enemy.armor || 0, enemy.armorBreak) * 100);
