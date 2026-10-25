@@ -192,3 +192,5 @@ body[data-game="tower"] .wave-button[hidden] { display:none; }
   body[data-game="tower"] #heroAbility button { min-height:44px; font-size:.72rem; }
   body[data-game="tower"] #heroAbility small { display:none; }
 }
+body[data-game="tower"] #resumeDefenseButton[hidden] { display:none; }
+body[data-game="tower"] #checkpointHint { color:#a8d8bd; font-size:.61rem; line-height:1.3; }

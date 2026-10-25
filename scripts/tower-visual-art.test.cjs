@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 // Run each shipped game, its actual start button and scheduled frames. The two
 // clocks model shared pause: wall time advances while delivered RAF time does not.
-function game(file) {
+function game(file, savedValues) {
   let wallTime = 0;
   let nextFrame = 0;
   const frames = new Map();
@@ -15,7 +15,7 @@ function game(file) {
   const sessions = [];
   const records = [];
   const timers = [];
-  const saves = new Map();
+  const saves = savedValues || new Map();
   function node() {
     const listeners = new Map();
     return {
@@ -68,7 +68,7 @@ function game(file) {
     Image: class { complete = false; naturalWidth = 0; addEventListener() {} },
     Math: Object.assign(Object.create(Math), { random: () => 0.5 }),
     crypto: { randomUUID: () => 'test-unit' },
-    localStorage: { getItem: key => saves.get(key) ?? null, setItem: (key, value) => saves.set(key, String(value)) },
+    localStorage: { getItem: key => saves.get(key) ?? null, setItem: (key, value) => saves.set(key, String(value)), removeItem: key => saves.delete(key) },
     fetch() { throw new Error('offline test'); },
     AbortSignal: { timeout: () => ({}) },
   });
@@ -77,9 +77,10 @@ function game(file) {
   if (file === 'pepe-tower-defense.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__towerRead = expression => eval(expression); })();');
   if (file === 'pepe-wars.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__warsRead = expression => eval(expression); })();');
   if (file === 'pepes-paradox.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__paradoxRead = expression => eval(expression); })();');
+  if (file === "pepe-tower-defense.js") read(fs.readFileSync(path.join(__dirname, "..", "pepe-tower-checkpoint.js"), "utf8"));
   read(source);
   return {
-    read, nodes, sessions, records, timers, drawingCalls,
+    read, nodes, sessions, records, timers, drawingCalls, saves,
     start: () => nodes.get('#startButton').emit('click'),
     setWallTime: value => { wallTime = value; },
     pending: () => frames.size,
@@ -459,7 +460,7 @@ test('Strong targeting focuses maximum health in range; First protects against a
   g.act('beginMove();buildOrUpgrade(pads[1])');assert.equal(g.act('towers[0].targetMode'),'strong');
   g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[0].targetMode'),'first');
   g.act('selectTower("druid");buildOrUpgrade(pads[2])');assert.equal(g.nodes.get('#targetModeButton').disabled,true);
-  g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[1].targetMode'),undefined);
+  g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[1].targetMode'),'first');
 });
 
 test('Boss health and guard counter track the actual fixed wave queue without phantom reinforcements',()=>{
@@ -507,4 +508,56 @@ test('Compact ordinary art leaves boss size, collision radii and armored damage 
   const g=towerGame();g.act('enemies.push({...enemyTypes.brute,kind:"brute",x:100,y:100,hp:100,maxHp:100,hitFlash:0},{...enemyTypes.sovereign,kind:"sovereign",x:300,y:100,hp:100,maxHp:100,hitFlash:0});for(const k of ["brute","sovereign"]){enemySprites[k].complete=true;enemySprites[k].naturalWidth=512;}drawEnemies();damageEnemy(enemies[0],20,0,0)');
   const images=g.drawingCalls.filter(c=>c.method==='drawImage');assert.equal(images[0].args[3],68);assert.equal(images[1].args[3],156);
   assert.equal(g.act('enemies[0].radius'),23);assert.equal(g.act('enemies[1].radius'),42);assert.equal(g.act('enemies[0].hp'),84);
+});
+
+function checkpointGame(savedValues) {
+  const g=game('pepe-tower-defense.js',savedValues);
+  g.act=expression=>g.read(`window.__towerRead(${JSON.stringify(expression)})`);
+  return g;
+}
+
+test('Build checkpoints restore both heroes, tower paths, refunds and targeting without rewards or mastery replay',()=>{
+  const g=towerGame();g.act(`state.shards=100000;state.score=123456;state.wave=35;state.vault=67;
+    for(const [i,type]of ['hero','hero','ballista','druid','alchemist','shard','relic','mage','archer'].entries()){
+      selectTower(type);buildOrUpgrade(pads[i]);for(let n=0;n<3;n++)upgradeSelected('power');for(let n=0;n<2;n++)upgradeSelected('special');
+    }state.heroNovaCooldowns=[9,16];for(const t of towers){t.cooldown=.37;t.aimAngle=-1;if(t.type!=='druid')t.targetMode='strong';}saveBuildCheckpoint();`);
+  const before=g.act('JSON.stringify(readBuildCheckpoint())'),stats=g.act('JSON.stringify(towers.map(t=>[t.damage,t.range,t.rate,t.invested,t.heroSlot,t.targetMode]))');
+  const mastery=g.saves.get('pepe-tower-defense-mastery-v1');const h=checkpointGame(g.saves);
+  assert.equal(h.nodes.get('#resumeDefenseButton').hidden,false);assert.match(h.nodes.get('#resumeDefenseButton').textContent,/35/);
+  h.nodes.get('#resumeDefenseButton').emit('click');
+  assert.equal(h.act('JSON.stringify(readBuildCheckpoint())'),before);assert.equal(h.act('JSON.stringify(towers.map(t=>[t.damage,t.range,t.rate,t.invested,t.heroSlot,t.targetMode]))'),stats);
+  assert.equal(h.act('state.playing&&!state.waveActive&&enemies.length===0&&thornPatches.length===0&&shots.length===0'),true);
+  assert.equal(h.act('JSON.stringify(state.heroNovaCooldowns)'),'[9,16]');assert.equal(h.records.length,0);assert.equal(g.saves.get('pepe-tower-defense-mastery-v1'),mastery);
+  assert.equal(h.pending(),1);
+});
+
+test('Mid-wave refresh rolls back only to the pre-wave build phase, without duplicating earnings or traps',()=>{
+  const g=towerGame();g.act('selectTower("druid");buildOrUpgrade(pads[0]);state.heroNovaCooldowns=[12,7];startWave()');const before=g.act('JSON.stringify(readBuildCheckpoint())');
+  g.act('state.shards=1000;state.score=9000;state.vault=3;state.heroNovaCooldowns=[0,0];plantThorns(towers[0]);upgradeSelected("power");saveBuildCheckpoint()');g.read('window.emit("pagehide")');
+  assert.equal(g.act('JSON.stringify(readBuildCheckpoint())'),before);
+  const h=checkpointGame(g.saves);h.nodes.get('#resumeDefenseButton').emit('click');
+  assert.equal(h.act('state.wave'),1);assert.equal(h.act('state.shards'),25);assert.equal(h.act('state.vault'),100);assert.equal(h.act('state.score'),0);
+  assert.equal(h.act('towers[0].tiers.power'),0);assert.equal(h.act('thornPatches.length'),0);assert.equal(h.act('JSON.stringify(state.heroNovaCooldowns)'),'[12,7]');assert.equal(h.records.length,0);
+});
+
+test('Build-break moves, sales and wave-clear rewards persist once, while completed defenses discard checkpoints',()=>{
+  const g=towerGame();g.act('selectTower("pepe");buildOrUpgrade(pads[0]);beginMove();buildOrUpgrade(pads[1])');
+  assert.equal(g.act('readBuildCheckpoint().towers[0].pad'),1);g.act('sellSelected()');assert.equal(g.act('readBuildCheckpoint().towers.length'),0);assert.equal(g.act('readBuildCheckpoint().shards'),157);
+  g.act('state.wave=10;state.shards=100;state.waveActive=true;state.spawnLeft=0;enemies.length=0;updateWave(0);updateWave(0)');
+  assert.equal(g.act('readBuildCheckpoint().wave'),11);assert.equal(g.act('readBuildCheckpoint().shards'),275);assert.equal(g.act('state.score'),1500);
+  g.act('endGame("Finished");endGame("Duplicate")');assert.equal(g.act('readBuildCheckpoint()'),null);assert.equal(g.records.length,1);
+  const h=checkpointGame(g.saves);assert.equal(h.nodes.get('#resumeDefenseButton').hidden,true);
+});
+
+test('Checkpoint validation rejects corrupt, impossible and duplicate layouts; blocked saving does not stop play',()=>{
+  const store=require('../pepe-tower-checkpoint.js'),types=['pepe','hero','ballista','druid'];
+  const base={version:1,wave:2,score:100,shards:180,vault:90,selectedTower:'pepe',heroNovaCooldowns:[0,0],towers:[{type:'pepe',pad:0,heroSlot:null,tiers:{power:0,special:0,utility:0},targetMode:'first',cooldown:0,aimAngle:0}]};
+  for(const mutate of [v=>v.wave=51,v=>v.vault=0,v=>v.shards=-1,v=>v.heroNovaCooldowns=[21,0],v=>v.towers.push({...v.towers[0]}),v=>v.towers[0].tiers={power:5,special:3,utility:0},v=>v.towers[0].tiers={power:1,special:1,utility:1},v=>v.towers[0].type='unknown',v=>v.towers[0].pad=9,v=>v.towers[0].heroSlot=0,v=>{v.towers=[0,1].map(pad=>({...v.towers[0],pad,type:'hero',heroSlot:0}));}]){
+    const v=JSON.parse(JSON.stringify(base));mutate(v);assert.equal(store.decode(JSON.stringify(v),types),null);
+  }
+  for(const raw of ['{','null','[]','x'.repeat(17000)])assert.equal(store.decode(raw,types),null);
+  const valid=store.decode(JSON.stringify(base),types);assert.ok(valid);assert.notEqual(valid.towers[0].tiers,base.towers[0].tiers);
+  const h=checkpointGame(new Map([[store.KEY,'corrupt']]));assert.equal(h.nodes.get('#resumeDefenseButton').hidden,true);
+  h.read('localStorage.setItem=()=>{throw new Error("storage blocked")}');h.start();h.act('buildOrUpgrade(pads[0])');
+  assert.equal(h.act('state.playing&&towers.length===1'),true);assert.match(h.nodes.get('#checkpointHint').textContent,/unavailable/);
 });

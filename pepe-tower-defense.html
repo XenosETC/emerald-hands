@@ -21,7 +21,7 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
-    <link rel="stylesheet" href="pepe-tower-command.css?v=wave-spacing-20261024">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=build-checkpoints-20261025">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -57,7 +57,7 @@
             <p class="eyebrow">Blockchain tower defense</p>
             <h1 id="overlayTitle">Defend the Emerald Vault.</h1>
             <p id="overlayText">Protect the 100-health relic base at the end of the path. Place Pepe defenders on vault pads, stop corrupt shard creeps, and survive all 50 waves. Start Defense opens the build phase; send wave one when your towers are ready.</p>
-            <button id="startButton" type="button">Start Defense</button>
+            <button id="resumeDefenseButton" type="button" hidden>Resume Defense</button><button id="startButton" type="button">Start Defense</button>
             <small>Click or drag towers from the right dock - select your tower to manage it</small>
           </section>
           <section class="pad-controls" aria-label="Build or select by pad"><span class="pad-caption" id="padHint">Build pads</span><div><button type="button" data-pad="0" disabled>Pad 1</button><button type="button" data-pad="1" disabled>Pad 2</button><button type="button" data-pad="2" disabled>Pad 3</button><button type="button" data-pad="3" disabled>Pad 4</button><button type="button" data-pad="4" disabled>Pad 5</button><button type="button" data-pad="5" disabled>Pad 6</button><button type="button" data-pad="6" disabled>Pad 7</button><button type="button" data-pad="7" disabled>Pad 8</button><button type="button" data-pad="8" disabled>Pad 9</button></div></section>
@@ -127,7 +127,7 @@
       <div id="game-controls"><span class="game-guide__label">Controls</span><p>Select a defender and tap a pad, or drag a tower onto it. Select a placed tower to choose its upgrade path, move it between waves, or sell for a 70% refund. Upgrade up to two paths: one to tier 5 and a secondary to tier 2. The third path locks. Keys 1-9 select defenders. Sunwarden is limited to two active heroes; press H or tap Emerald Nova during a wave.</p></div>
       <div><span class="game-guide__label">Plan the next wave</span><p>Mix damage and slowing towers. The highlighted card is your selected defender; each purchase uses in-game shards.</p></div>
     </div></details></section>
-          <footer class="command-footer"><section id="heroAbility" aria-label="Hero ability" hidden><button id="heroNovaButton" type="button">Emerald Nova · ready (H)</button><small id="heroNovaHint"></small><button id="heroNovaButton2" type="button" hidden>Nova 2 · ready (H)</button><small id="heroNovaHint2" hidden></small></section><section id="bossHealth" aria-label="Boss encounter" hidden><small id="bossHealthLabel"></small><progress id="bossHealthBar" aria-label="Boss health" max="1" value="1"></progress></section><small id="nextWaveHint">Wave 1/50 - First defenses</small><button class="wave-button" id="waveButton" type="button">Start Wave</button><p id="commandHint">Choose a defender to begin.</p></footer>
+          <footer class="command-footer"><small id="checkpointHint"></small><section id="heroAbility" aria-label="Hero ability" hidden><button id="heroNovaButton" type="button">Emerald Nova · ready (H)</button><small id="heroNovaHint"></small><button id="heroNovaButton2" type="button" hidden>Nova 2 · ready (H)</button><small id="heroNovaHint2" hidden></small></section><section id="bossHealth" aria-label="Boss encounter" hidden><small id="bossHealthLabel"></small><progress id="bossHealthBar" aria-label="Boss health" max="1" value="1"></progress></section><small id="nextWaveHint">Wave 1/50 - First defenses</small><button class="wave-button" id="waveButton" type="button">Start Wave</button><p id="commandHint">Choose a defender to begin.</p></footer>
         </aside>
       </section>
 
@@ -137,7 +137,7 @@
 
     <script src="arcade.js?v=13"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepe-tower-defense.js?v=wave-spacing-20261024"></script>
+    <script src="pepe-tower-checkpoint.js?v=1"></script><script src="pepe-tower-defense.js?v=build-checkpoints-20261025"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

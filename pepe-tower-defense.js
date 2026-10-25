@@ -3,6 +3,10 @@
   const ctx = canvas.getContext("2d", { alpha: false });
   const overlay = document.querySelector("#gameOverlay");
   const startButton = document.querySelector("#startButton");
+  const resumeButton = document.querySelector("#resumeDefenseButton");
+  const checkpointHint = document.querySelector("#checkpointHint");
+  const checkpointStore = window.EmeraldTowerCheckpoint;
+  let resumeCheckpoint = null;
   const overlayTitle = document.querySelector("#overlayTitle");
   const overlayText = document.querySelector("#overlayText");
   const soundToggle = document.querySelector("#soundToggle");
@@ -334,7 +338,63 @@
     return "Fresh Defender";
   }
 
-  function resetGame() {
+  function readBuildCheckpoint() {
+    if (!checkpointStore) return null;
+    try { return checkpointStore.decode(localStorage.getItem(checkpointStore.KEY), Object.keys(towerTypes)); }
+    catch { return null; }
+  }
+
+  function clearBuildCheckpoint() {
+    resumeCheckpoint = null;
+    resumeButton.hidden = true;
+    if (!checkpointStore) return;
+    try { localStorage.removeItem(checkpointStore.KEY); }
+    catch { try { localStorage.setItem(checkpointStore.KEY, "null"); } catch { /* blocked storage */ } }
+  }
+
+  function saveBuildCheckpoint() {
+    if (!state.playing || state.waveActive || movingTower) return false;
+    if (!checkpointStore) { checkpointHint.textContent = "Build-break saving is unavailable."; return false; }
+    const data = checkpointStore.normalize({ version: 1, wave: state.wave, score: state.score, shards: state.shards,
+      vault: state.vault, selectedTower, heroNovaCooldowns: state.heroNovaCooldowns,
+      towers: towers.map(tower => ({ type: tower.type, pad: pads.indexOf(tower.pad), tiers: tower.tiers,
+        heroSlot: tower.heroSlot, cooldown: Math.max(0, tower.cooldown), aimAngle: tower.aimAngle,
+        targetMode: tower.targetMode || "first" })) }, Object.keys(towerTypes));
+    if (!data) { checkpointHint.textContent = "This build break could not be saved."; return false; }
+    try {
+      localStorage.setItem(checkpointStore.KEY, JSON.stringify(data));
+      resumeCheckpoint = data;
+      checkpointHint.textContent = `Saved: wave ${state.wave} build phase. Refresh returns here.`;
+      return true;
+    } catch { checkpointHint.textContent = "Saving is unavailable on this device. Keep this tab open."; return false; }
+  }
+
+  function resumeDefense() {
+    if (state.playing || window.EmeraldArcade?.isPaused?.()) return false;
+    const saved = readBuildCheckpoint();
+    if (!saved) { resumeButton.hidden = true; return false; }
+    // Rebuild derived stats and refunds from current specs; never trust serialized combat values.
+    const restored = saved.towers.map(item => {
+      const spec = towerTypes[item.type], pad = pads[item.pad];
+      const tower = { ...spec, ...item, pad, x: pad.x, y: pad.y, level: 1, path: null,
+        invested: spec.cost + PATH_KEYS.reduce((sum, key) => sum + PATH_COSTS.slice(0, item.tiers[key]).reduce((a,b) => a+b, 0), 0),
+        attackPulse: 0, upgradePulse: 0, evolvePulse: 0, evolved: false };
+      rebuildTowerStats(tower);
+      if (!PATH_KEYS.some(key => tower.tiers[key])) tower.path = null;
+      return tower;
+    });
+    resetGame(false);
+    Object.assign(state, { wave: saved.wave, score: saved.score, shards: saved.shards, vault: saved.vault,
+      heroNovaCooldowns: [...saved.heroNovaCooldowns] });
+    towers.push(...restored);
+    selectTower(saved.selectedTower);
+    statusLabel.textContent = `Wave ${state.wave} build phase restored`;
+    statusMeta.textContent = "Inspect your defense, then send the wave when ready.";
+    saveBuildCheckpoint(); updateHud(); canvas.focus();
+    return true;
+  }
+
+  function resetGame(saveCheckpoint = true) {
     window.EmeraldArcade?.beginSession("towerDefense", "pepe-tower-defense.html");
     cancelAnimationFrame(raf);
     enemies.length = 0;
@@ -363,6 +423,7 @@
     statusLabel.textContent = "Place defenders on empty pads";
     statusMeta.textContent = `Build with 180 shards, then press Start Wave. Survive all ${CAMPAIGN_WAVES} waves.`;
     updateHud();
+    if (saveCheckpoint) saveBuildCheckpoint();
     last = null;
     raf = requestAnimationFrame(loop);
   }
@@ -375,6 +436,8 @@
 
   function endGame(title) {
     if (!state.playing) return;
+    clearBuildCheckpoint();
+    checkpointHint.textContent = "Defense finished. Start a new run to save a fresh build phase.";
     state.playing = false;
     state.waveActive = false;
     const score = Math.floor(state.score);
@@ -404,6 +467,7 @@
     if (!state.playing) resetGame();
     if (state.waveActive) return;
     movingTower = null;
+    saveBuildCheckpoint();
     state.waveActive = true;
     state.waveSpawnTotal = currentWavePlan().count;
     state.spawnLeft = state.waveSpawnTotal;
@@ -554,6 +618,7 @@
       inspectedTower = movingTower;
       movingTower = null;
       statusLabel.textContent = "Tower moved - no shards spent";
+      saveBuildCheckpoint();
       updateHud();
       return;
     }
@@ -588,6 +653,7 @@
       x: pad.x,
       y: pad.y,
       type: selectedTower,
+      targetMode: "first",
       heroSlot,
       cooldown: 0,
       attackPulse: 0,
@@ -607,6 +673,7 @@
     statusMeta.textContent = "select it to choose upgrades, move or sell";
     bursts.push({ x: pad.x, y: pad.y, r: 0, max: 58, color: type.color, life: 0.28, fill: true });
     floaters.push({ x: pad.x, y: pad.y - 34, text: "BUILT", color: type.color, life: 0.75 });
+    saveBuildCheckpoint();
     updateHud();
   }
 
@@ -751,6 +818,7 @@
     statusLabel.textContent = `${tower.name} - ${tierCode(tower)}`;
     statusMeta.textContent = tierName(tower, choice, tower.tiers[choice]);
     bursts.push({ x: tower.x, y: tower.y, r: 0, max: tower.range * .42, color: tower.color, life: .34, fill: true });
+    saveBuildCheckpoint();
     updateHud();
     return true;
   }
@@ -773,6 +841,7 @@
     inspectedTower = null;
     statusLabel.textContent = `${tower.name} sold`;
     statusMeta.textContent = `${refund} defense shards refunded (70% of ${tower.invested} invested)`;
+    saveBuildCheckpoint();
     updateHud();
     return true;
   }
@@ -1121,6 +1190,7 @@
       statusMeta.textContent = "build upgrades before starting the next wave";
       waveButton.textContent = "Start Next Wave";
       if (state.wave > CAMPAIGN_WAVES) endGame("Vault defended");
+      else saveBuildCheckpoint();
     }
   }
 
@@ -1886,6 +1956,7 @@
   targetModeButton.addEventListener("click", () => {
     if (!canManageTower() || movingTower || inspectedTower.type === "druid") return;
     inspectedTower.targetMode = inspectedTower.targetMode === "strong" ? "first" : "strong";
+    saveBuildCheckpoint();
     updateHud();
   });
   cancelMoveButton.addEventListener("click", () => { if (!window.EmeraldArcade?.isPaused?.()) { movingTower = null; updateHud(); } });
@@ -1893,6 +1964,9 @@
   heroNovaButton2.addEventListener("click", () => activateHeroNova(1));
   waveButton.addEventListener("click", startWave);
   startButton.addEventListener("click", resetAndLaunch);
+  resumeButton.addEventListener("click", resumeDefense);
+  window.addEventListener("pagehide", saveBuildCheckpoint);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveBuildCheckpoint(); });
   soundToggle.addEventListener("click", () => {
     soundOn = !soundOn;
     soundToggle.textContent = `Sound: ${soundOn ? "on" : "off"}`;
@@ -1900,6 +1974,14 @@
   });
 
   updateMasteryLabels();
+  resumeCheckpoint = readBuildCheckpoint();
+  resumeButton.hidden = !resumeCheckpoint;
+  checkpointHint.textContent = checkpointStore ? "Build phases save on this device." : "Build-break saving is unavailable.";
+  if (resumeCheckpoint) {
+    resumeButton.textContent = `Resume wave ${resumeCheckpoint.wave}`;
+    startButton.textContent = "Start New Defense";
+    overlayText.textContent = `Your wave ${resumeCheckpoint.wave} build phase is saved with ${resumeCheckpoint.vault} relic health. Resume it, or start a new defense to replace this save. Refreshing during a wave returns to its saved build phase.`;
+  }
   updateHud();
   draw();
 })();
