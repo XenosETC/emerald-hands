@@ -411,9 +411,9 @@ test('Both new defenders have order-independent 5/2/0 upgrades and complete name
   }
 });
 
-for(const earlyNew of [false,true]) test('Ballista and Thornkeeper support an earned 50-wave campaign with '+(earlyNew?'early new defenders':'early heroes')+' at 30 Hz',t=>{
+for(const [earlyNew,speed] of [[false,1],[true,1],[false,2]]) test('Ballista and Thornkeeper support an earned 50-wave campaign with '+(earlyNew?'early new defenders':'early heroes')+' at '+speed+'x / 30 Hz',t=>{
   const hz=30;
-  const g=towerGame();const outcome=JSON.parse(g.act(`
+  const g=towerGame();if(speed===2)g.nodes.get('#speedButton').emit('click');const outcome=JSON.parse(g.act(`
     const order=[0,4,2,6,1,5,7,8,3],loadout={0:"pepe",4:"shard",2:"hero",6:"hero",1:"alchemist",5:"ballista",7:"archer",8:"relic",3:"druid"};
     if(${earlyNew}){loadout[2]="ballista";loadout[6]="druid";loadout[5]="hero";loadout[3]="hero";}
     let ticks=0,novaCasts=0,sawTraps=false,sawBolt=false,defeatedMajors=0; const collectBefore=collectDefeatedEnemies;collectDefeatedEnemies=()=>{defeatedMajors+=enemies.filter(e=>e.hp<=0&&["warboss","tyrant","sovereign"].includes(e.kind)).length;collectBefore();};
@@ -423,12 +423,12 @@ for(const earlyNew of [false,true]) test('Ballista and Thornkeeper support an ea
         for(let tier=0;tier<5;tier++)for(const i of order){const tower=towerAtPad(pads[i]);const main=tower?.type==="shard"||tower?.type==="alchemist"||tower?.type==="hero"&&tower.heroSlot===1?"special":"power";if(tower&&tower.tiers[main]===tier&&state.shards>=upgradeCost(tower,main)){buildOrUpgrade(pads[i]);upgradeSelected(main);}}
         for(const tower of towers){const primary=tower.path;const second=tower.type==="hero"?(primary==="power"?"special":"power"):"utility";if(tower.tiers[primary]===5&&tower.tiers[second]<2&&state.shards>=upgradeCost(tower,second)){buildOrUpgrade(tower.pad);upgradeSelected(second);}}
       }
-      if(!state.waveActive)startWave();for(const slot of [0,1])if(activateHeroNova(slot))novaCasts++;update(1/${hz});sawTraps ||= thornPatches.length>0;sawBolt ||= shots.some(s=>s.type==="ballista");ticks++;
+      if(!state.waveActive)startWave();for(const slot of [0,1])if(activateHeroNova(slot))novaCasts++;advanceDefense(1/${hz});sawTraps ||= thornPatches.length>0;sawBolt ||= shots.some(s=>s.type==="ballista");ticks++;
     }
     JSON.stringify({wave:state.wave,vault:state.vault,ticks,novaCasts,sawTraps,sawBolt,defeatedMajors,heroes:towers.filter(t=>t.type==="hero").length});
   `));
   t.diagnostic('Automated earned-shard controller, not human balance approval: '+JSON.stringify(outcome));
-  assert.ok(outcome.defeatedMajors>=(earlyNew?2:3));assert.equal(outcome.sawTraps,true);assert.equal(outcome.sawBolt,true);assert.equal(outcome.wave,51);assert.ok(outcome.vault>0);assert.equal(outcome.heroes,2);assert.ok(outcome.novaCasts>0);assert.equal(g.records.length,1);
+  if(speed===2)assert.ok(outcome.ticks<40000);assert.ok(outcome.defeatedMajors>=(earlyNew?2:3));assert.equal(outcome.sawTraps,true);assert.equal(outcome.sawBolt,true);assert.equal(outcome.wave,51);assert.ok(outcome.vault>0);assert.equal(outcome.heroes,2);assert.ok(outcome.novaCasts>0);assert.equal(g.records.length,1);
 });
 
 test('Letterboxed battlefield taps map to the original world coordinates',()=>{
@@ -560,4 +560,27 @@ test('Checkpoint validation rejects corrupt, impossible and duplicate layouts; b
   const h=checkpointGame(new Map([[store.KEY,'corrupt']]));assert.equal(h.nodes.get('#resumeDefenseButton').hidden,true);
   h.read('localStorage.setItem=()=>{throw new Error("storage blocked")}');h.start();h.act('buildOrUpgrade(pads[0])');
   assert.equal(h.act('state.playing&&towers.length===1'),true);assert.match(h.nodes.get('#checkpointHint').textContent,/unavailable/);
+});
+
+test('Two-times wave speed produces the same combat state as matching normal-speed substeps',()=>{
+  const setup=()=>{const g=towerGame();g.act('state.wave=10;state.shards=10000;selectTower("druid");buildOrUpgrade(pads[0]);selectTower("ballista");buildOrUpgrade(pads[2]);upgradeSelected("power");upgradeSelected("power");upgradeSelected("power");selectTower("hero");buildOrUpgrade(pads[4]);startWave()');g.frame(0);return g;};
+  const normal=setup(),fast=setup();fast.nodes.get('#speedButton').emit('click');
+  for(let n=1;n<=800;n++)normal.frame(n*25);for(let n=1;n<=400;n++)fast.frame(n*25);
+  const snapshot='JSON.stringify({wave:state.wave,hp:state.vault,shards:state.shards,score:state.score,left:state.spawnLeft,timer:state.spawnTimer,nova:state.heroNovaCooldowns,enemies:enemies.map(e=>[e.kind,e.x,e.y,e.hp,e.pathIndex,e.slowTimer,e.acidTimer]),towers:towers.map(t=>[t.cooldown,t.damage,t.aimAngle]),traps:thornPatches.map(p=>[p.x,p.y,p.charges,p.life])})';
+  assert.equal(fast.act(snapshot),normal.act(snapshot));assert.equal(fast.act('combatSpeed'),2);assert.equal(fast.pending(),1);
+});
+
+test('Fast mode leaves build breaks at normal speed, respects pause, and resumes at one-times speed',()=>{
+  const g=towerGame();g.nodes.get('#speedButton').emit('click');g.act('state.heroNovaCooldowns=[10,10];advanceDefense(.025)');
+  assert.equal(g.act('state.heroNovaCooldowns[0]'),9.975);g.act('startWave()');const before=g.act('JSON.stringify([enemies[0].x,state.heroNovaCooldowns,state.spawnTimer])');
+  g.read('window.EmeraldArcade.isPaused=()=>true');g.nodes.get('#speedButton').emit('click');g.act('advanceDefense(.025)');
+  assert.equal(g.act('combatSpeed'),2);assert.equal(g.act('JSON.stringify([enemies[0].x,state.heroNovaCooldowns,state.spawnTimer])'),before);
+  const h=checkpointGame(g.saves);h.nodes.get('#resumeDefenseButton').emit('click');assert.equal(h.act('combatSpeed'),1);assert.equal(h.nodes.get('#speedButton').textContent,'Speed 1×');
+});
+
+test('Fast mode stops at wave-clear and fatal-breach boundaries without duplicate rewards',()=>{
+  const g=towerGame();g.nodes.get('#speedButton').emit('click');g.act('startWave();enemies.length=0;state.spawnLeft=0;state.heroNovaCooldowns=[10,10];advanceDefense(.025)');
+  assert.equal(g.act('state.wave'),2);assert.equal(g.act('state.shards'),247);assert.equal(g.act('state.waveActive'),false);assert.equal(g.act('state.heroNovaCooldowns[0]'),9.975);assert.equal(g.act('readBuildCheckpoint().wave'),2);assert.equal(g.records.length,0);
+  const h=towerGame();h.nodes.get('#speedButton').emit('click');h.act('startWave();enemies.length=0;state.vault=1;enemies.push({...enemyTypes.sovereign,kind:"sovereign",x:relicBase.x,y:relicBase.y,pathIndex:path.length-1,hp:100,maxHp:100,slowTimer:0,spin:0,hitFlash:0});advanceDefense(.025)');
+  assert.equal(h.act('state.vault'),0);assert.equal(h.records.length,1);assert.equal(h.act('readBuildCheckpoint()'),null);assert.equal(h.nodes.get('#speedButton').disabled,true);
 });

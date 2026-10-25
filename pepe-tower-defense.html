@@ -21,7 +21,7 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
-    <link rel="stylesheet" href="pepe-tower-command.css?v=build-checkpoints-20261025">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=wave-speed-20261025">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -69,6 +69,7 @@
             <button type="button" data-command-tab="build" aria-pressed="true" aria-controls="buildView">Build</button>
             <button type="button" data-command-tab="manage" aria-pressed="false" aria-controls="manageView">Tower</button>
             <button type="button" data-command-tab="intel" aria-pressed="false" aria-controls="intelView">Enemies</button>
+            <button type="button" id="speedButton" aria-pressed="false" title="Switch wave speed. Enemies, attacks, traps and cooldowns speed up together; build phases stay at normal speed.">Speed 1×</button>
           </nav>
           <section class="command-view" id="buildView" aria-label="Build defenders">          <button class="tower-button is-selected" type="button" data-tower="pepe" draggable="true">
             <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="">
@@ -137,7 +138,7 @@
 
     <script src="arcade.js?v=13"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepe-tower-checkpoint.js?v=1"></script><script src="pepe-tower-defense.js?v=build-checkpoints-20261025"></script>
+    <script src="pepe-tower-checkpoint.js?v=1"></script><script src="pepe-tower-defense.js?v=wave-speed-20261025"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

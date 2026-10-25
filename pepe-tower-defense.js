@@ -11,6 +11,8 @@
   const overlayText = document.querySelector("#overlayText");
   const soundToggle = document.querySelector("#soundToggle");
   const waveButton = document.querySelector("#waveButton");
+  const speedButton = document.querySelector("#speedButton");
+  let combatSpeed = 1;
   const heroAbility = document.querySelector("#heroAbility");
   const heroNovaButton = document.querySelector("#heroNovaButton");
   const heroNovaHint = document.querySelector("#heroNovaHint");
@@ -414,6 +416,7 @@
     state.shards = 180;
     state.vault = RELIC_MAX_HEALTH;
     state.heroNovaCooldowns = [0,0];
+    combatSpeed = 1;
     relicHitFlash = 0;
     state.spawnLeft = 0;
     state.waveSpawnTotal = 0;
@@ -501,6 +504,9 @@
   }
 
   function updateHud() {
+    speedButton.textContent = `Speed ${combatSpeed}×`;
+    speedButton.setAttribute("aria-pressed", String(combatSpeed === 2));
+    speedButton.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.());
     scoreLabel.textContent = format(state.score);
     shardLabel.textContent = state.shards;
     waveLabel.textContent = Math.min(CAMPAIGN_WAVES, state.wave);
@@ -1236,14 +1242,14 @@
     }
   }
 
-  function update(dt) {
+  function update(dt, refreshHud = true) {
     updateThorns(dt);
     updateEnemies(dt);
-    if (!state.playing) { updateHud(); return; }
+    if (!state.playing) { if (refreshHud) updateHud(); return; }
     updateTowers(dt);
     updateWave(dt);
     updateEffects(dt);
-    updateHud();
+    if (refreshHud) updateHud();
   }
 
   function drawBackground() {
@@ -1875,11 +1881,22 @@
     ctx.restore();
   }
 
+  function advanceDefense(dt) {
+    if (!state.playing || window.EmeraldArcade?.isPaused?.()) return;
+    const steps = dt > 0 && state.waveActive ? combatSpeed : 1;
+    for (let step = 0; step < steps && state.playing; step++) {
+      update(dt, false);
+      // A completed wave always stops at its normal-speed build break.
+      if (!state.waveActive) break;
+    }
+    updateHud();
+  }
+
   function loop(now) {
     // Use the pause-adjusted RAF clock for both the baseline and later frames.
     const dt = last === null ? 0 : Math.max(0, Math.min(0.033, (now - last) / 1000));
     last = now;
-    if (state.playing) update(dt);
+    advanceDefense(dt);
     draw();
     raf = requestAnimationFrame(loop);
   }
@@ -1963,6 +1980,11 @@
   heroNovaButton.addEventListener("click", () => activateHeroNova(0));
   heroNovaButton2.addEventListener("click", () => activateHeroNova(1));
   waveButton.addEventListener("click", startWave);
+  speedButton.addEventListener("click", () => {
+    if (!state.playing || window.EmeraldArcade?.isPaused?.()) return;
+    combatSpeed = combatSpeed === 1 ? 2 : 1;
+    updateHud();
+  });
   startButton.addEventListener("click", resetAndLaunch);
   resumeButton.addEventListener("click", resumeDefense);
   window.addEventListener("pagehide", saveBuildCheckpoint);
