@@ -1,0 +1,56 @@
+[
+  {
+    "key": "ballista-tier3-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 85624,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "ballista-evolved-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 100732,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "ballista-long-watch-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 85442,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "druid-tier3-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 99290,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "druid-evolved-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 109920,
+    "alphaMin": 0,
+    "alphaMax": 255
+  },
+  {
+    "key": "druid-long-watch-v1",
+    "width": 512,
+    "height": 512,
+    "bottomAnchor": 496,
+    "bytes": 112084,
+    "alphaMin": 0,
+    "alphaMax": 255
+  }
+]

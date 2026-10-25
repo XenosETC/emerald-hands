@@ -32,3 +32,7 @@ Built-in imagegen generated hero-base-v1, hero-tier3-v1, hero-evolved-v1 and her
 ## Fifty-wave expansion - 2026-10-24
 
 Six images generated with built-in imagegen: goblin-shieldbearer-v1, emerald-specter-v1, jade-tyrant-v1 and relic-sovereign-v1 are playable enemies/bosses; pepe-ballista-concept-v1 and pepe-druid-concept-v1 are designs only. Original PNGs and transparent optimized 512px WebPs are retained together. Prompts/reference roles and alpha/framing/size receipts: fifty-waves-v1.json and fifty-waves-v1.qa.json. All preserve the existing elevated camera and hand-painted jade/gold visual language; no yellow enemy circles were added.
+
+## Playable Ballista and Thornkeeper - 2026-10-24
+
+The earlier Ballista and Druid concept sprites now serve as playable base forms. Six new images from built-in imagegen cover tier-three, evolved and Long Watch forms for both defenders, preserving the elevated camera, jade/gold plinths and recognizable equipment. Original PNGs and transparent 512px WebPs are retained. Prompt/reference manifest: new-defenders-v1.json. Framing and alpha receipt: new-defenders-v1.qa.json. Optimized forms share bottom anchor 496. Gameplay patches use readable green canvas thorns with remaining charge counts.

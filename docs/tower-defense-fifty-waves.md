@@ -16,7 +16,7 @@ Each costs 400 run shards; maximum two active. Each keeps its own upgrade build,
 
 ## Boundaries
 
-Ballista and Thornkeeper are generated designs in tower-defense-next-defenders.md, not combat additions. Seven playable defender types remain. Balance is provisional; automated earned-shard runs establish a viable strategy, not human difficulty approval.
+Ballista and Thornkeeper are now playable as detailed in tower-defense-next-defenders.md. Nine playable defender types are available. Balance is provisional; automated earned-shard runs establish a viable strategy, not human difficulty approval.
 
 ## Release verification
 

@@ -66,6 +66,8 @@
     archer: loadImage("assets/pepe-tower-defense/pepe-archer-sprite.png"),
     alchemist: loadImage("assets/pepe-tower-defense/alchemist-concept-v1.webp"),
     hero: loadImage("assets/pepe-tower-defense/hero-base-v1.webp"),
+    ballista: loadImage("assets/pepe-tower-defense/pepe-ballista-concept-v1.webp"),
+    druid: loadImage("assets/pepe-tower-defense/pepe-druid-concept-v1.webp"),
   };
   const evolvedTowerSprites = {
     pepe: loadImage("assets/pepe-tower-defense/pepe-blaster-evolved-sprite.png"),
@@ -75,6 +77,8 @@
     archer: loadImage("assets/pepe-tower-defense/pepe-archer-evolved-sprite.png"),
     alchemist: loadImage("assets/pepe-tower-defense/alchemist-evolved-v1.webp"),
     hero: loadImage("assets/pepe-tower-defense/hero-evolved-v1.webp"),
+    ballista: loadImage("assets/pepe-tower-defense/ballista-evolved-v1.webp"),
+    druid: loadImage("assets/pepe-tower-defense/druid-evolved-v1.webp"),
   };
   const tierThreeSprites = Object.fromEntries(Object.keys(towerSprites).map(type => [type, loadImage(`assets/pepe-tower-defense/${type}-tier3-v1.webp`)]));
   const longWatchSprites = Object.fromEntries(Object.keys(towerSprites).map(type => [type, loadImage(`assets/pepe-tower-defense/${type}-long-watch-v1.webp`)]));
@@ -140,6 +144,8 @@
     archer: { name: "Pepe Archer", cost: 105, range: 220, damage: 30, rate: 0.72, color: "#9cff6b", splash: 0, slow: 0 },
     alchemist: { name: "Pepe Alchemist", cost: 135, range: 150, damage: 15, rate: .95, color: "#b6f34d", splash: 0, slow: 0 },
     hero: { name: "Pepe Sunwarden", cost: 400, range: 220, damage: 18, rate: .15, color: "#57ff8b", splash: 0, slow: 0 },
+    ballista: { name: "Pepe Ballista", cost: 185, range: 300, damage: 95, rate: 1.6, color: "#b1ee6a", splash: 0, slow: 0 },
+    druid: { name: "Pepe Thornkeeper", cost: 155, range: 140, damage: 8, rate: 2, color: "#79d454", splash: 0, slow: 0 },
   };
   const CAMPAIGN_WAVES = 50;
   const HERO_LIMIT = 2;
@@ -224,7 +230,7 @@
   }
 
   function updateMasteryLabels() {
-    const roles = { pepe: "beam DPS", shard: "control field", relic: "splash burst", mage: "shard volley", archer: "emerald arrows", alchemist: "armor solvent", hero: "hero · green lasers · up to two" };
+    const roles = { pepe: "beam DPS", shard: "control field", relic: "splash burst", mage: "shard volley", archer: "emerald arrows", alchemist: "armor solvent", hero: "hero · green lasers · up to two", ballista: "armor-piercing bolts", druid: "charged road traps" };
     towerButtons.forEach((button) => {
       const type = button.dataset.tower;
       const actions = mastery[type].placements + mastery[type].upgrades;
@@ -240,6 +246,7 @@
   let soundOn = true;
   let screenShake = 0;
   const enemies = [];
+  const thornPatches = [];
   const towers = [];
   const shots = [];
   const bursts = [];
@@ -292,6 +299,7 @@
     window.EmeraldArcade?.beginSession("towerDefense", "pepe-tower-defense.html");
     cancelAnimationFrame(raf);
     enemies.length = 0;
+    thornPatches.length = 0;
     towers.length = 0;
     inspectedTower = null;
     movingTower = null;
@@ -415,7 +423,7 @@
     }
     towerButtons.forEach(button => {if(button.dataset.tower === "hero") {button.disabled=deployedHeroes.length>=HERO_LIMIT;button.title=deployedHeroes.length>=HERO_LIMIT ? "Two Sunwardens deployed: select a pad to manage one" : "400 shards · up to two active Sunwardens";}});
     const spec = towerTypes[selectedTower];
-    const roles = { pepe: "Direct beam damage", shard: "48% slow for 1.6 seconds", relic: "54-unit splash radius", mage: "32-unit splash and 12% slow", archer: "Long-range direct damage", alchemist: "Weakens armor by 10 points for 2s (bosses: 5); refreshes without stacking", hero: "Rapid green lasers. Up to two heroes. Select a Sunwarden and press H or tap Emerald Nova during a wave for area damage" };
+    const roles = { pepe: "Direct beam damage", shard: "48% slow for 1.6 seconds", relic: "54-unit splash radius", mage: "32-unit splash and 12% slow", archer: "Long-range direct damage", alchemist: "Weakens armor by 10 points for 2s (bosses: 5); refreshes without stacking", ballista: "Bolts ignore 50% of remaining armor after acid; Spearhead tier 3 adds line penetration", druid: "Plants 10-charge thorn patches lasting 8s; max 3. Moving or selling clears owned patches", hero: "Rapid green lasers. Up to two heroes. Select a Sunwarden and press H or tap Emerald Nova during a wave for area damage" };
     const guide = `${spec.name} · Level 1: ${spec.damage} damage, ${spec.range} range, ${(spec.rate / 1.08).toFixed(2)} seconds per attack. ${roles[selectedTower]}. Tier 3 milestone: ${upgradeName({type:selectedTower,level:3})}. Tier 5 evolution: ${upgradeName({type:selectedTower,level:5})}.`;
     if (towerGuide.textContent !== guide) towerGuide.textContent = guide;
     padButtons.forEach(button => {
@@ -488,6 +496,7 @@
         statusLabel.textContent = "Choose an empty destination";
         return;
       }
+      clearTowerPatches(movingTower);
       movingTower.pad = pad;
       movingTower.x = pad.x;
       movingTower.y = pad.y;
@@ -538,6 +547,8 @@
       level: 1,
     });
     inspectedTower = towers[towers.length - 1];
+    if (inspectedTower.type === "druid") Object.assign(inspectedTower,{patchCharges:10,patchLife:8,patchCap:3,patchRadius:18});
+    if (inspectedTower.type === "ballista") inspectedTower.pierceTargets=1;
     if (inspectedTower.type === "alchemist") Object.assign(inspectedTower, { armorBreak: .10, bossArmorBreak: .05, acidDuration: 2 });
     setCommandView("manage");
     recordMastery(selectedTower, "placements");
@@ -557,6 +568,8 @@
     archer: { name: "Rapid Quiver", detail: "14% shorter attack interval per upgrade" },
     alchemist: { name: "Corrosive Catalyst", detail: "+2 armor points (+1 boss) and +0.4s duration per tier" },
     hero: { name: "Emerald Barrage", detail: "14% faster laser interval per tier" },
+    ballista: { name: "Siege Windlass", detail: "14% shorter reload per tier" },
+    druid: { name: "Seedbank", detail: "+3 charges and +2s lifetime per tier; fourth patch at tier 3" },
   };
 
   function canManageTower() {
@@ -576,9 +589,13 @@
   };
   const alchemistTierNames = { power: ["Hot Mixture", "Concentrated Acid", "Shatter Flask", "Crown Retort", "Dragonfire Tonic"], utility: ["Measuring Glass", "Distant Delivery", "Surveyor's Retort", "Farwatch Lab", "Emerald Observatory"] };
   const heroTierNames = { power: ["Sunlit Strike", "Bright Core", "Solar Burst", "Sunforged Fists", "Emerald Ascendant"], utility: ["Far Sight", "Relic Sentinel", "Horizon Warden", "Sky Guardian", "Eternal Vigil"] };
+  const newDefenderPaths = {
+    ballista: { names:{power:"Spearhead",special:"Siege Windlass",utility:"Watchtower"},power:["Heavy Bolt","Hardened Tip","Piercing Lance","Siege Spear","Vault Impaler"],special:["Taut Cable","Quick Crank","Twin Windlass","Royal Loader","Endless Quiver"],utility:["Raised Sight","Spotter Lens","Longshot Array","Horizon Rail","Emerald Overwatch"] },
+    druid: { names:{power:"Briar Thorns",special:"Seedbank",utility:"Wild Reach"},power:["Sharp Thorns","Jade Barbs","Briar Bloom","Ironwood Spikes","Ancient Bramble"],special:["Full Seedpod","Deep Roots","Living Garden","Season's Reserve","Eternal Grove"],utility:["Trailing Vine","Far Sowing","Wild Canopy","Forest Watch","Worldroot Reach"] }
+  };
   function novaRecharge(tower) { return 20 - tower.tiers.utility * 2; }
-  function pathTitle(tower, choice) { if(tower.type === "hero") return { power: "Solar Might", special: "Emerald Barrage", utility: "Sky Guardian" }[choice]; if(tower.type === "alchemist") return { power: "Volatile Brews", special: "Corrosive Catalyst", utility: "Surveyor's Lab" }[choice]; return choice === "power" ? "Firepower" : choice === "utility" ? "Long Watch" : specialPaths[tower.type].name; }
-  function tierName(tower, choice, tier) { if(tower.type === "hero" && choice !== "special") return heroTierNames[choice][tier - 1]; if(tower.type === "alchemist" && choice !== "special") return alchemistTierNames[choice][tier - 1]; return (choice === "power" ? powerTierNames : choice === "utility" ? utilityTierNames : specialTierNames[tower.type])[tier - 1]; }
+  function pathTitle(tower, choice) { if(newDefenderPaths[tower.type]) return newDefenderPaths[tower.type].names[choice]; if(tower.type === "hero") return { power: "Solar Might", special: "Emerald Barrage", utility: "Sky Guardian" }[choice]; if(tower.type === "alchemist") return { power: "Volatile Brews", special: "Corrosive Catalyst", utility: "Surveyor's Lab" }[choice]; return choice === "power" ? "Firepower" : choice === "utility" ? "Long Watch" : specialPaths[tower.type].name; }
+  function tierName(tower, choice, tier) { if(newDefenderPaths[tower.type]) return newDefenderPaths[tower.type][choice][tier-1]; if(tower.type === "hero" && choice !== "special") return heroTierNames[choice][tier - 1]; if(tower.type === "alchemist" && choice !== "special") return alchemistTierNames[choice][tier - 1]; return (choice === "power" ? powerTierNames : choice === "utility" ? utilityTierNames : specialTierNames[tower.type])[tier - 1]; }
 
   // Rebuild from the base spec so purchasing the same crosspath in a different order gives identical stats.
   function rebuildTowerStats(tower) {
@@ -587,7 +604,7 @@
     for (let i = 0; i < tower.tiers.power; i++) { tower.damage *= 1.35; tower.range += 8; }
     for (let i = 0; i < tower.tiers.special; i++) {
       tower.damage *= 1.18; tower.range += 8;
-      if (tower.type === "pepe" || tower.type === "archer" || tower.type === "hero") tower.rate *= .86;
+      if (tower.type === "pepe" || tower.type === "archer" || tower.type === "hero" || tower.type === "ballista") tower.rate *= .86;
       else if (tower.type === "shard") { tower.slow = Math.min(.82, tower.slow + .06); tower.range += 10; }
       else if (tower.type === "relic") { tower.splash += 14; tower.range += 8; }
       else if (tower.type === "mage") { tower.splash += 10; tower.range += 10; }
@@ -600,6 +617,8 @@
     if (primaryTier >= 3) { const level = tower.level; tower.level = 3; applyUpgrade(tower); tower.level = level; }
     if (primaryTier >= 5) { const level = tower.level; tower.level = 5; applyUpgrade(tower); tower.level = level; }
     tower.evolved = primaryTier >= 5;
+    if(tower.type === "ballista") tower.pierceTargets=tower.tiers.power>=3?tower.tiers.power-1:1;
+    if(tower.type === "druid") Object.assign(tower,{patchCharges:10+tower.tiers.special*3,patchLife:8+tower.tiers.special*2,patchCap:3+Math.floor(tower.tiers.special/3),patchRadius:18+tower.tiers.utility*2});
     if (tower.type === "hero") tower.splash = tower.tiers.power >= 3 ? 28 + (tower.tiers.power - 3) * 14 : 0;
     if (tower.type === "alchemist") {
       tower.armorBreak = .10 + tower.tiers.special * .02;
@@ -609,6 +628,11 @@
     }
   }
 
+  function defenderDetails(tower) {
+    if(tower.type === "ballista") return " Bolt: ignores 50% remaining armor; " + tower.pierceTargets + " targets in a line; additional hits deal 70%.";
+    if(tower.type === "druid") return " Patch: " + tower.patchCharges + " charges / " + tower.patchLife + "s / max " + tower.patchCap + "; one hit per enemy per patch. Move/sell clears traps.";
+    return "";
+  }
   function updateTowerPanel() {
     towerPanel.hidden = !inspectedTower;
     manageEmpty.hidden = Boolean(inspectedTower);
@@ -620,8 +644,9 @@
     const visualLabels = { base: "Base defender", tierThree: "Tier 3 reinforced form", evolved: "Tier 5 evolution", longWatch: "Long Watch form" };
     document.querySelector("#towerFormLabel").textContent = tower.type === "alchemist" && towerVisualStage(tower) === "longWatch" ? "Surveyor's Lab form" : visualLabels[towerVisualStage(tower)];
     const acidDetails = tower.type === "alchemist" ? ` Acid: ${Math.round(tower.armorBreak * 100)} armor points (${Math.round(tower.bossArmorBreak * 100)} boss), ${tower.acidDuration.toFixed(1)}s; refreshes, no stacks.` : "";
+    const newDetails = defenderDetails(tower);
     const heroDetails = tower.type === "hero" ? ` Nova: ${(tower.damage * 5).toFixed(0)} damage, ${Math.round(tower.range)} range, ${novaRecharge(tower)}s recharge. Two active heroes maximum.` : "";
-    towerDetails.textContent = `Pad ${pads.indexOf(tower.pad) + 1}: ${tower.damage.toFixed(1)} damage, ${Math.round(tower.range)} range, ${(tower.rate / (1 + tower.level * .08)).toFixed(2)}s attack, ${Math.round(tower.slow * 100)}% slow, ${Math.round(tower.splash)} splash. ${movingTower ? "Choose an empty pad to move, or cancel." : "Crosspath limit: 5 / 2 / 0."}${acidDetails}${heroDetails}`;
+    towerDetails.textContent = `Pad ${pads.indexOf(tower.pad) + 1}: ${tower.damage.toFixed(1)} damage, ${Math.round(tower.range)} range, ${(tower.rate / (1 + tower.level * .08)).toFixed(2)}s attack, ${Math.round(tower.slow * 100)}% slow, ${Math.round(tower.splash)} splash. ${movingTower ? "Choose an empty pad to move, or cancel." : "Crosspath limit: 5 / 2 / 0."}${acidDetails}${heroDetails}${newDetails}`;
     pathButtons.forEach(button => {
       const choice = button.dataset.upgradePath;
       const tier = tower.tiers[choice];
@@ -637,6 +662,7 @@
         const preview = { ...tower, tiers: { ...tower.tiers, [choice]: tier + 1 } }; rebuildTowerStats(preview);
         nextStats += ` Nova: ${(preview.damage * 5).toFixed(0)} damage / ${Math.round(preview.range)} range / ${novaRecharge(preview)}s recharge.`;
       }
+      if(!reason && newDefenderPaths[tower.type]) { const preview={...tower,tiers:{...tower.tiers,[choice]:tier+1}};rebuildTowerStats(preview);nextStats+=defenderDetails(preview); }
       const label = `${pathTitle(tower, choice)} ${tier}/5 - ${reason || `T${tier + 1}: ${tierName(tower, choice, tier + 1)} - ${cost} shards`}.${nextStats}`;
       const text = button.querySelector(".path-text");
       if (text.textContent !== label) text.textContent = label;
@@ -685,6 +711,7 @@
     if (!canManageTower() || movingTower) return false;
     const tower = inspectedTower;
     const refund = Math.floor(tower.invested * .7);
+    clearTowerPatches(tower);
     towers.splice(towers.indexOf(tower), 1);
     state.shards += refund;
     inspectedTower = null;
@@ -695,6 +722,7 @@
   }
 
   function upgradeName(tower) {
+    if(newDefenderPaths[tower.type])return newDefenderPaths[tower.type].power[Math.min(tower.level-1,4)];
     const names = {
       pepe: ["Base Blaster", "Twin Emitters", "Emerald Overclock", "Crown Lens", "Legend Beam"],
       shard: ["Slow Field", "Deep Freeze", "Chain Chill", "Crystal Prison", "Absolute Zero"],
@@ -752,6 +780,7 @@
   function updateEnemies(dt) {
     for (let i = enemies.length - 1; i >= 0; i -= 1) {
       const enemy = enemies[i];
+      if(enemy.hp<=0)continue;
       enemy.acidTimer = Math.max(0, (enemy.acidTimer || 0) - dt);
       if (!enemy.acidTimer) enemy.armorBreak = 0;
       const slowedTime = Math.min(dt, enemy.slowTimer);
@@ -767,10 +796,14 @@
         const dy = target.y - enemy.y;
         const dist = Math.hypot(dx, dy);
         if (dist > travel) {
+          thornContact(enemy,enemy.x,enemy.y,enemy.x+(dx/dist)*travel,enemy.y+(dy/dist)*travel);
+          if(enemy.hp<=0)break;
           enemy.x += (dx / dist) * travel;
           enemy.y += (dy / dist) * travel;
           break;
         }
+        thornContact(enemy,enemy.x,enemy.y,target.x,target.y);
+        if(enemy.hp<=0)break;
         enemy.x = target.x;
         enemy.y = target.y;
         travel -= dist;
@@ -820,8 +853,8 @@
     enemy.acidTimer = Math.max(enemy.acidTimer || 0, tower.acidDuration);
   }
 
-  function damageEnemy(enemy, damage, slow, splash) {
-    const dealt = damage * (1 - effectiveArmor(enemy));
+  function damageEnemy(enemy, damage, slow, splash, armorPierce = 0) {
+    const dealt = damage * (1 - effectiveArmor(enemy) * (1 - armorPierce));
     enemy.hp -= dealt;
     enemy.hitFlash = 1;
     floaters.push({
@@ -891,6 +924,7 @@
       // Carry fractional attack time forward so tier previews remain meaningful across frame rates.
       tower.cooldown = Math.max(-dt, tower.cooldown - dt);
       if (tower.cooldown > 0) continue;
+      if(tower.type === "druid") { plantThorns(tower); continue; }
       const target = targetFor(tower);
       if (!target) { tower.cooldown = 0; continue; }
       tower.cooldown += tower.rate / (1 + tower.level * 0.08);
@@ -901,7 +935,8 @@
         if (tower.splash) for(const other of enemiesNear(target.x, target.y, tower.splash, target)) applyAcid(other, tower);
         bursts.push({ x: target.x, y: target.y, r: 0, max: Math.max(20, tower.splash), color: tower.color, life: .24 });
       }
-      damageEnemy(target, tower.damage, tower.slow, tower.splash);
+      damageEnemy(target, tower.damage, tower.slow, tower.splash,tower.type === "ballista"?.5:0);
+      if(tower.type === "ballista") for(const enemy of ballistaLineTargets(tower,target)) {damageEnemy(enemy,tower.damage*.7,0,0,.5);shots.push({x:target.x,y:target.y,tx:enemy.x,ty:enemy.y,color:tower.color,type:"ballista",life:.25,max:.25});}
       applyMilestoneHit(tower, target);
       fireShot(tower, target);
     }
@@ -909,6 +944,35 @@
     collectDefeatedEnemies();
   }
 
+  function pointOnSegment(px,py,ax,ay,bx,by) {
+    const dx=bx-ax,dy=by-ay,len=dx*dx+dy*dy,t=len?clamp(((px-ax)*dx+(py-ay)*dy)/len,0,1):0;
+    return {x:ax+dx*t,y:ay+dy*t};
+  }
+  function ballistaLineTargets(tower,target) {
+    const dx=target.x-tower.x,dy=target.y-tower.y,length=Math.hypot(dx,dy);if(!length)return [];
+    return enemies.filter(e=>e!==target&&e.hp>0).map(e=>({e,along:((e.x-tower.x)*dx+(e.y-tower.y)*dy)/length,across:Math.abs((e.x-tower.x)*dy-(e.y-tower.y)*dx)/length})).filter(v=>v.along>0&&v.along<=tower.range&&v.across<=16+(v.e.radius||10)*.4).sort((a,b)=>a.along-b.along).slice(0,tower.pierceTargets-1).map(v=>v.e);
+  }
+  function clearTowerPatches(tower) { for(let i=thornPatches.length-1;i>=0;i--)if(thornPatches[i].owner===tower)thornPatches.splice(i,1); }
+  function plantThorns(tower) {
+    if(!state.waveActive||thornPatches.filter(p=>p.owner===tower).length>=tower.patchCap){tower.cooldown=0;return;}
+    let best=null,nearest=Infinity;
+    for(let i=1;i<path.length;i++){const p=pointOnSegment(tower.x,tower.y,path[i-1].x,path[i-1].y,path[i].x,path[i].y),d=distance(tower.x,tower.y,p.x,p.y);if(d<nearest){best={...p,ax:path[i-1].x,ay:path[i-1].y,bx:path[i].x,by:path[i].y};nearest=d;}}
+    if(!best||nearest>tower.range){tower.cooldown=0;return;}
+    const slot=Array.from({length:tower.patchCap},(_,i)=>i).find(i=>!thornPatches.some(p=>p.owner===tower&&p.slot===i));
+    const length=Math.hypot(best.bx-best.ax,best.by-best.ay),offset=[0,-28,28,-56][slot]||0;
+    const point=pointOnSegment(best.x+(best.bx-best.ax)/length*offset,best.y+(best.by-best.ay)/length*offset,best.ax,best.ay,best.bx,best.by);
+    if(distance(tower.x,tower.y,point.x,point.y)<=tower.range)Object.assign(best,point);
+    tower.cooldown+=tower.rate/(1+tower.level*.08);tower.attackPulse=1;
+    thornPatches.push({owner:tower,slot,...best,damage:tower.damage,charges:tower.patchCharges,life:tower.patchLife,radius:tower.patchRadius,hitEnemies:new WeakSet()});
+    shots.push({x:tower.x,y:tower.y,tx:best.x,ty:best.y,color:tower.color,type:"druid",life:.35,max:.35});
+  }
+  function thornContact(enemy,ax,ay,bx,by) {
+    for(const patch of thornPatches){if(enemy.hp<=0)break;if(patch.life<=0||patch.charges<=0||patch.hitEnemies.has(enemy))continue;const near=pointOnSegment(patch.x,patch.y,ax,ay,bx,by);if(distance(near.x,near.y,patch.x,patch.y)>patch.radius+(enemy.radius||10)*.5)continue;patch.hitEnemies.add(enemy);patch.charges--;damageEnemy(enemy,patch.damage,0,0);}
+  }
+  function updateThorns(dt) {for(let i=thornPatches.length-1;i>=0;i--){const p=thornPatches[i];p.life-=dt;if(p.life<=0||p.charges<=0||!towers.includes(p.owner))thornPatches.splice(i,1);}}
+  function drawThorns() {
+    ctx.save();for(const p of thornPatches){if(p.charges<=0)continue;ctx.globalAlpha=clamp(p.life/2,0,1);ctx.fillStyle="#173d18";ctx.beginPath();ctx.ellipse(p.x,p.y,p.radius,p.radius*.5,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#94df61";ctx.lineWidth=2;for(let i=-1;i<=1;i++){const x=p.x+i*10;ctx.beginPath();ctx.moveTo(x-5,p.y+4);ctx.lineTo(x,p.y-10);ctx.lineTo(x+5,p.y+4);ctx.stroke();}ctx.fillStyle="#dbffc4";ctx.font="bold 10px Arial";ctx.textAlign="center";ctx.fillText(String(p.charges),p.x,p.y+14);}ctx.restore();
+  }
   function collectDefeatedEnemies() {
     for (let i = enemies.length - 1; i >= 0; i -= 1) {
       const enemy = enemies[i];
@@ -1044,6 +1108,7 @@
   }
 
   function update(dt) {
+    updateThorns(dt);
     updateEnemies(dt);
     if (!state.playing) { updateHud(); return; }
     updateTowers(dt);
@@ -1268,7 +1333,7 @@
       if (sprite.complete && sprite.naturalWidth) {
         ctx.shadowColor = tower.color;
         ctx.shadowBlur = 18 + pulse * 22;
-        if (tower.type === "hero") ctx.scale(heroFacing(tower), 1);
+        if (tower.type === "hero" || tower.type === "ballista") ctx.scale(heroFacing(tower), 1);
         ctx.drawImage(sprite, -256 * scale, -292 * scale, 512 * scale, 512 * scale);
       } else {
         ctx.fillStyle = tower.color;
@@ -1542,6 +1607,9 @@
         ctx.closePath();
         ctx.fill();
         ctx.restore();
+      } else if(shot.type === "ballista" || shot.type === "druid") {
+        const progress=1-alpha,x=shot.x+(shot.tx-shot.x)*progress,y=shot.y+(shot.ty-shot.y)*progress;
+        ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(shot.ty-shot.y,shot.tx-shot.x));ctx.fillStyle=shot.type==="ballista"?"#bcff8e":"#8fda56";ctx.fillRect(-12,-3,24,6);ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(6,-7);ctx.lineTo(6,7);ctx.closePath();ctx.fill();ctx.restore();
       } else if (shot.type === "hero") {
         ctx.strokeStyle = "#32ff73"; ctx.lineWidth = 6; ctx.shadowColor = "#32ff73"; ctx.shadowBlur = 14;
         ctx.beginPath(); ctx.moveTo(shot.x, shot.y); ctx.lineTo(shot.tx, shot.ty); ctx.stroke();
@@ -1662,6 +1730,7 @@
     }
     drawBackground();
     drawPath();
+    drawThorns();
     drawPortal();
     drawVault();
     drawPads();
@@ -1727,6 +1796,8 @@
     if (event.key === "5") selectTower("archer");
     if (event.key === "6") selectTower("alchemist");
     if (event.key === "7") selectTower("hero");
+    if (event.key === "8") selectTower("ballista");
+    if (event.key === "9") selectTower("druid");
     if (event.key.toLowerCase() === "h") activateHeroNova();
     if (event.key.toLowerCase() === "w") startWave();
     if (event.key === "Enter" && !state.playing) resetGame();

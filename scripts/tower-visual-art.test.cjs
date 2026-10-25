@@ -51,7 +51,7 @@ function game(file) {
     },
     querySelectorAll(selector) {
       if (file !== 'pepe-tower-defense.js') return [];
-      const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special'],['upgradePath','utility']] : selector === '[data-command-tab]' ? ['build','manage','intel'].map(view=>['commandTab',view]) : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer','alchemist','hero'].map(type=>['tower',type]) : [];
+      const entries = selector === '[data-pad]' ? Array.from({length:9},(_,i)=>['pad',String(i)]) : selector === '[data-upgrade-path]' ? [['upgradePath','power'],['upgradePath','special'],['upgradePath','utility']] : selector === '[data-command-tab]' ? ['build','manage','intel'].map(view=>['commandTab',view]) : selector === '.tower-button' ? ['pepe','shard','relic','mage','archer','alchemist','hero','ballista','druid'].map(type=>['tower',type]) : [];
       return entries.map(([key,value])=>{const id=`${key}:${value}`;if(!nodes.has(id)){const item=node();item.dataset[key]=value;nodes.set(id,item);}return nodes.get(id);});
     },
   });
@@ -99,9 +99,9 @@ function towerGame() {
   return g;
 }
 
-test('All six towers select coherent tier-3 and Long Watch visuals from their actual path state',()=>{
-  for(const type of ['pepe','shard','relic','mage','archer','alchemist']) {
-    const g=towerGame();g.act(`selectTower("${type}");buildOrUpgrade(pads[0]);state.shards=10000`);
+test('All eight ordinary towers select coherent tier-3 and Long Watch visuals from their actual path state',()=>{
+  for(const type of ['pepe','shard','relic','mage','archer','alchemist','ballista','druid']) {
+    const g=towerGame();g.act(`state.shards=10000;selectTower("${type}");buildOrUpgrade(pads[0])`);
     assert.equal(g.act('towerVisualStage(towers[0])'),'base');
     g.act('upgradeSelected("power");upgradeSelected("power")');assert.equal(g.act('towerVisualStage(towers[0])'),'base');
     g.act('upgradeSelected("power")');assert.equal(g.act('towerVisualStage(towers[0])'),'tierThree');
@@ -371,4 +371,59 @@ test('Defeating the final boss does not win while its lackeys are still alive',(
   assert.equal(g.act('state.playing'),true);assert.equal(g.act('state.wave'),50);assert.equal(g.records.length,0);
   g.act('enemies[0].hp=0;collectDefeatedEnemies();updateWave(0);updateWave(0)');
   assert.equal(g.act('state.wave'),51);assert.equal(g.records.length,1);assert.equal(g.records[0][1].wave,50);
+});
+
+test('Ballista ignores half remaining armor and pierces only aligned enemies within its tier cap',()=>{
+  const g=towerGame();g.act('state.shards=10000;selectTower("ballista");buildOrUpgrade(pads[0]);enemies.push(...[[330,260],[400,260],[420,320],[450,260]].map(([x,y])=>({x,y,hp:1000,armor:.4,radius:10,pathIndex:1,kind:"shieldbearer",reward:1})));updateTowers(.01)');
+  assert.equal(g.act('enemies[0].hp'),924);assert.equal(g.act('enemies[1].hp'),1000);
+  g.act('upgradeSelected("power");upgradeSelected("power");upgradeSelected("power");towers[0].cooldown=0;updateTowers(.01)');
+  assert.ok(g.act('enemies[1].hp<1000'));assert.equal(g.act('enemies[2].hp'),1000);assert.equal(g.act('enemies[3].hp'),1000);
+  g.act('enemies[0].hp=1000;enemies[0].acidTimer=2;enemies[0].armorBreak=.2;damageEnemy(enemies[0],100,0,0,.5)');assert.equal(g.act('enemies[0].hp'),910);assert.equal(g.act('enemies[0].armor'),.4);
+});
+
+test('Thornkeeper plants bounded patches only during waves, with visible charge feedback',()=>{
+  const g=towerGame();g.act('selectTower("druid");buildOrUpgrade(pads[0]);updateTowers(1)');assert.equal(g.act('thornPatches.length'),0);
+  g.act('state.waveActive=true;for(let i=0;i<12;i++)updateTowers(2);drawThorns()');
+  assert.equal(g.act('thornPatches.length'),3);assert.equal(g.act('thornPatches[0].charges'),10);assert.equal(g.act('thornPatches[0].life'),8);
+  assert.ok(g.drawingCalls.some(c=>c.method==='fillText'&&c.args[0]==='10'));
+  g.act('updateThorns(8)');assert.equal(g.act('thornPatches.length'),0);
+});
+
+test('Fast enemies cannot skip thorn patches, and remaining stationary cannot drain extra charges',()=>{
+  const g=towerGame();g.act('selectTower("druid");buildOrUpgrade(pads[0]);state.waveActive=true;plantThorns(towers[0]);enemies.push({...enemyTypes.specter,x:170,y:170,pathIndex:3,speed:600,hp:100,maxHp:100,slowTimer:0,hitFlash:0,spin:0,kind:"specter"});thornPatches[0].x=300;thornPatches[0].y=170;updateEnemies(.3)');
+  assert.equal(g.act('enemies[0].hp'),92);assert.equal(g.act('thornPatches[0].charges'),9);
+  g.act('thornContact(enemies[0],300,170,300,170);thornContact(enemies[0],300,170,300,170)');assert.equal(g.act('enemies[0].hp'),92);assert.equal(g.act('thornPatches[0].charges'),9);
+});
+
+test('Thorn kills cannot breach and moving, selling or replay clears owned patches',()=>{
+  const g=towerGame();g.act('state.shards=1000;selectTower("druid");buildOrUpgrade(pads[0]);state.waveActive=true;plantThorns(towers[0]);thornPatches[0].x=relicBase.x;thornPatches[0].y=relicBase.y;enemies.push({...enemyTypes.grunt,x:relicBase.x-1,y:relicBase.y,pathIndex:path.length-1,speed:100,hp:1,slowTimer:0,hitFlash:0,spin:0,kind:"grunt"});updateEnemies(.1);collectDefeatedEnemies()');
+  assert.equal(g.act('state.vault'),100);assert.equal(g.act('enemies.length'),0);
+  g.act('state.waveActive=false;beginMove();buildOrUpgrade(pads[1])');assert.equal(g.act('thornPatches.length'),0);
+  g.act('state.waveActive=true;plantThorns(towers[0]);sellSelected()');assert.equal(g.act('thornPatches.length'),0);
+  g.act('buildOrUpgrade(pads[0]);plantThorns(towers[0]);resetGame()');assert.equal(g.act('thornPatches.length'),0);
+});
+
+test('Both new defenders have order-independent 5/2/0 upgrades and complete named previews',()=>{
+  for(const type of ['ballista','druid'])for(const primary of ['power','special','utility'])for(const secondary of ['power','special','utility'].filter(p=>p!==primary)){
+    const build=order=>{const g=towerGame();g.act(`state.shards=10000;selectTower("${type}");buildOrUpgrade(pads[0])`);for(const p of order)g.act(`upgradeSelected("${p}")`);assert.match(g.nodes.get('#towerDetails').textContent,type==='ballista'?/ignores 50%/:/charges/);return g.act('JSON.stringify([towers[0].damage,towers[0].rate,towers[0].range,towers[0].pierceTargets,towers[0].patchCharges,towers[0].patchCap])');};
+    assert.equal(build([...Array(5).fill(primary),...Array(2).fill(secondary)]),build([...Array(2).fill(secondary),...Array(5).fill(primary)]));
+  }
+});
+
+for(const hz of [30]) test('Ballista and Thornkeeper support an earned 50-wave campaign with earned shards at '+hz+' Hz',t=>{
+  const g=towerGame();const outcome=JSON.parse(g.act(`
+    const order=[0,4,2,6,1,5,7,8,3],loadout={0:"pepe",4:"shard",2:"hero",6:"hero",1:"alchemist",5:"ballista",7:"archer",8:"relic",3:"druid"};
+    let ticks=0,novaCasts=0,sawTraps=false,sawBolt=false;
+    while(state.playing&&ticks<200000){
+      for(const i of order){if(towers.filter(t=>t.type==="hero").length<2&&![0,4,2,6].includes(i))continue;if(!towerAtPad(pads[i])&&state.shards>=towerTypes[loadout[i]].cost){selectTower(loadout[i]);buildOrUpgrade(pads[i]);}}
+      if(towers.filter(t=>t.type==="hero").length===2){
+        for(let tier=0;tier<5;tier++)for(const i of order){const tower=towerAtPad(pads[i]);const main=tower?.type==="shard"||tower?.type==="alchemist"||tower?.type==="hero"&&tower.heroSlot===1?"special":"power";if(tower&&tower.tiers[main]===tier&&state.shards>=upgradeCost(tower,main)){buildOrUpgrade(pads[i]);upgradeSelected(main);}}
+        for(const tower of towers){const primary=tower.path;const second=tower.type==="hero"?(primary==="power"?"special":"power"):"utility";if(tower.tiers[primary]===5&&tower.tiers[second]<2&&state.shards>=upgradeCost(tower,second)){buildOrUpgrade(tower.pad);upgradeSelected(second);}}
+      }
+      if(!state.waveActive)startWave();for(const slot of [0,1])if(activateHeroNova(slot))novaCasts++;update(1/${hz});sawTraps ||= thornPatches.length>0;sawBolt ||= shots.some(s=>s.type==="ballista");ticks++;
+    }
+    JSON.stringify({wave:state.wave,vault:state.vault,ticks,novaCasts,sawTraps,sawBolt,heroes:towers.filter(t=>t.type==="hero").length});
+  `));
+  t.diagnostic('Automated earned-shard controller, not human balance approval: '+JSON.stringify(outcome));
+  assert.equal(outcome.sawTraps,true);assert.equal(outcome.sawBolt,true);assert.equal(outcome.wave,51);assert.ok(outcome.vault>0);assert.equal(outcome.heroes,2);assert.ok(outcome.novaCasts>0);assert.equal(g.records.length,1);
 });

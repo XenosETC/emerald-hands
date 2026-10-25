@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-24",
+  "method": "built-in imagegen",
+  "assets": [
+    {
+      "key": "ballista-tier3-v1",
+      "prompt": "Generate ONE transparent upgrade sprite for attached Pepe Ballista defender. Preserve exact friendly Pepe face, mechanical crossbow aimed right, windlass, giant emerald bolt, elevated three-quarter camera, dark jade/gold tower base, polished hand-painted 3D style and proportions. Tier 3: modest reinforced upgrade, thicker gold edges and reinforced crossbow arms and bolt rails. Full subject, weapon/staff and base fully inside square frame with 8% transparent margin. True alpha background, no scenery, floor, text, watermark, yellow circles or ground aura. Strong readable silhouette at120px.",
+      "reference": "pepe-ballista-concept-v1.png"
+    },
+    {
+      "key": "ballista-evolved-v1",
+      "prompt": "Generate ONE transparent upgrade sprite for attached Pepe Ballista defender. Preserve exact friendly Pepe face, mechanical crossbow aimed right, windlass, giant emerald bolt, elevated three-quarter camera, dark jade/gold tower base, polished hand-painted 3D style and proportions. Tier 5 ultimate: ornate gold-edged emerald architecture, regal reinforced siege engine with triple emerald bolt rails and crown crest. Full subject, weapon/staff and base fully inside square frame with 8% transparent margin. True alpha background, no scenery, floor, text, watermark, yellow circles or ground aura. Strong readable silhouette at120px.",
+      "reference": "pepe-ballista-concept-v1.png"
+    },
+    {
+      "key": "ballista-long-watch-v1",
+      "prompt": "Generate ONE transparent upgrade sprite for attached Pepe Ballista defender. Preserve exact friendly Pepe face, mechanical crossbow aimed right, windlass, giant emerald bolt, elevated three-quarter camera, dark jade/gold tower base, polished hand-painted 3D style and proportions. Third-path range specialist: brass telescope sight integrated above crossbow, longer bolt guide and subtle violet optic. Full subject, weapon/staff and base fully inside square frame with 8% transparent margin. True alpha background, no scenery, floor, text, watermark, yellow circles or ground aura. Strong readable silhouette at120px.",
+      "reference": "pepe-ballista-concept-v1.png"
+    },
+    {
+      "key": "druid-tier3-v1",
+      "prompt": "Generate ONE transparent upgrade sprite for attached Pepe Thornkeeper defender. Preserve exact friendly Pepe face, leaf cloak, antler circlet, living wood staff and thorn pods, elevated three-quarter camera, dark jade/gold tower base, polished hand-painted 3D style and proportions. Tier 3: modest reinforced upgrade, thicker gold edges and more healthy bramble growth and seed pods. Full subject, weapon/staff and base fully inside square frame with 8% transparent margin. True alpha background, no scenery, floor, text, watermark, yellow circles or ground aura. Strong readable silhouette at120px.",
+      "reference": "pepe-druid-concept-v1.png"
+    },
+    {
+      "key": "druid-evolved-v1",
+      "prompt": "Generate ONE transparent upgrade sprite for attached Pepe Thornkeeper defender. Preserve exact friendly Pepe face, leaf cloak, antler circlet, living wood staff and thorn pods, elevated three-quarter camera, dark jade/gold tower base, polished hand-painted 3D style and proportions. Tier 5 ultimate: ornate gold-edged emerald architecture, crown-like antler branches, lush strong thorn vines and bright seed pods. Full subject, weapon/staff and base fully inside square frame with 8% transparent margin. True alpha background, no scenery, floor, text, watermark, yellow circles or ground aura. Strong readable silhouette at120px.",
+      "reference": "pepe-druid-concept-v1.png"
+    },
+    {
+      "key": "druid-long-watch-v1",
+      "prompt": "Generate ONE transparent upgrade sprite for attached Pepe Thornkeeper defender. Preserve exact friendly Pepe face, leaf cloak, antler circlet, living wood staff and thorn pods, elevated three-quarter camera, dark jade/gold tower base, polished hand-painted 3D style and proportions. Third-path range specialist: longer branching staff, tiny luminous star buds and spreading vine planters. Full subject, weapon/staff and base fully inside square frame with 8% transparent margin. True alpha background, no scenery, floor, text, watermark, yellow circles or ground aura. Strong readable silhouette at120px.",
+      "reference": "pepe-druid-concept-v1.png"
+    }
+  ]
+}

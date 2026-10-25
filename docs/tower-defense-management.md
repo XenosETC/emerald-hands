@@ -53,3 +53,7 @@ Final Sunwarden release: 297 root tests passed in a clean staged copy. Headless 
 ## Fifty waves and two heroes - October 24, 2026
 
 Current campaign rules are in tower-defense-fifty-waves.md. Major bosses are on 20/35/50, with generated Jade Tyrant/Sovereign art and explicit lackey formations on 35/50. Shieldbearers and slow-resistant specters join the late-wave roster. Two Sunwardens now have independent slot-preserved Nova cooldowns and separate buttons. First-twenty-wave regression controllers remain; full earned-shard 50-wave controllers exercise the expanded roster at 30/60 Hz. Two further tower designs are documented and pictured in the gallery but are not recruitable.
+
+## Ballista and Thornkeeper release - October 24, 2026
+
+The two design concepts are now playable with generated upgrade forms, all three named paths and standard mastery/move/sell/refund rules. Ballista combines remaining-armor penetration with capped forward-line hits; Thornkeeper plants charged, expiring road traps with swept collision and per-enemy hit tracking. Move/sell/replay clean up owned patches. No yellow armor circles were reintroduced. Current details and provisional values are in tower-defense-next-defenders.md.
