@@ -1123,7 +1123,7 @@ test('Tower Defense authored waves introduce goblins safely and telegraph all fo
   assert.ok(g.act('wavePlans.slice(0,6).every(p=>!p.kinds.includes("brute"))'));
   assert.ok(g.act('wavePlans[6].kinds.includes("brute")'));
   assert.equal(g.act('wavePlans.slice(0,20).reduce((n,p)=>n+p.kinds.filter(k=>enemyTypes[k].boss).length,0)'),4);
-  assert.equal(g.act('wavePlans[19].kinds.at(-1)'),'warboss');
+  assert.equal(g.act('wavePlans[19].kinds[wavePlans[19].bossIndex]'),'warboss');
   assert.ok(g.act('wavePlans.every((p,i)=>p.count===p.kinds.length && (!i || p.count>=wavePlans[i-1].count && p.hpScale>=wavePlans[i-1].hpScale && p.interval<=wavePlans[i-1].interval))'));
   assert.match(g.act('waveBrief(wavePlans[19])'),/Goblin warboss/);
   assert.match(g.nodes.get('#wavePreview').textContent,/Wave 1\/50/);

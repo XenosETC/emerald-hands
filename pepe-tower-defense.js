@@ -27,6 +27,11 @@
   const commandViews = { build: document.querySelector("#buildView"), manage: document.querySelector("#manageView"), intel: document.querySelector("#intelView") };
   const commandHint = document.querySelector("#commandHint");
   const nextWaveHint = document.querySelector("#nextWaveHint");
+  const bossHealth = document.querySelector("#bossHealth");
+  const bossHealthLabel = document.querySelector("#bossHealthLabel");
+  const bossHealthBar = document.querySelector("#bossHealthBar");
+  const targetModeButton = document.querySelector("#targetModeButton");
+  const targetModeHint = document.querySelector("#targetModeHint");
   const padHint = document.querySelector("#padHint");
   const padControls = document.querySelector(".pad-controls");
   const manageEmpty = document.querySelector("#manageEmpty");
@@ -169,8 +174,8 @@
     const rush = [6,9,14,18].includes(wave) || wave > 20 && wave % 5 === 1;
     const siege = [8,13,17].includes(wave) || wave > 20 && wave % 5 === 3;
     const majorBoss = wave === 20 ? "warboss" : wave === 35 ? "tyrant" : wave === 50 ? "sovereign" : null;
-    const bossIndex = majorBoss === "warboss" ? count-1 : Math.floor(count*.5);
-    const escort = wave === 35 ? ["shieldbearer","shieldbearer","specter","specter"] : wave === 50 ? ["shieldbearer","shieldbearer","brute","specter","specter","specter"] : [];
+    const bossIndex = Math.floor(count*.5);
+    const escort = wave === 20 ? ["brute","brute","goblin","goblin"] : wave === 35 ? ["shieldbearer","shieldbearer","specter","specter"] : wave === 50 ? ["shieldbearer","shieldbearer","brute","specter","specter","specter"] : [];
     const kinds = Array.from({length:count}, (_,index) => {
       if(majorBoss && index === bossIndex) return majorBoss;
       if(majorBoss && index>bossIndex && index<=bossIndex+escort.length) return escort[index-bossIndex-1];
@@ -186,15 +191,26 @@
     });
     // Preserve the opening campaign; late health pressure now rises steadily against the expanded nine-defender roster.
     const foundation = Math.min(wave,20), late = Math.max(0,foundation-5), endgame = Math.max(0,foundation-12);
-    return {wave,kinds,count,interval:Math.max(.3,.75-wave*.025),hpScale:1+late*.055+late*late*.006+endgame*endgame*.10+extended*.06+extended*extended*.0015,
+    return {wave,kinds,count,majorBoss,bossIndex,escort,interval:Math.max(.3,.75-wave*.025),hpScale:1+late*.055+late*late*.006+endgame*endgame*.10+extended*.06+extended*extended*.0015,
       name:majorBoss ? wave === 50 ? "Relic Sovereign and royal guard" : wave === 35 ? "Jade Tyrant and shield guard" : "Warboss assault" : wave%5===0 ? "Vault breaker" : rush ? wave>=26 ? "Specter rush" : "Raider rush" : siege ? wave>=21 ? "Shield wall" : "Brute siege" : wave<=2 ? "First defenses" : "Mixed assault"};
   }
   const wavePlans = Array.from({ length: CAMPAIGN_WAVES }, (_, i) => buildWavePlan(i + 1));
   function currentWavePlan() { return wavePlans[Math.min(CAMPAIGN_WAVES - 1, Math.max(0, state.wave - 1))]; }
+  function arrivalDelay(plan, nextIndex) {
+    if (!plan.majorBoss) return plan.interval;
+    // Separate the boss entrance from its guard train; no instant stacked spawn burst.
+    if (nextIndex === plan.bossIndex) return 2;
+    if (nextIndex > plan.bossIndex && nextIndex <= plan.bossIndex + plan.escort.length + 1) return 1.1;
+    return plan.interval;
+  }
+  function encounterAdvice(plan) {
+    if (!plan.majorBoss) return "";
+    return ` ${enemyTypes[plan.majorBoss].name} arrives halfway through with ${plan.escort.length} guards, 1.1s apart. Ballista + Alchemist crack armor; Strong targeting focuses the boss. Keep splash, thorns and slows on guards; specters resist slows. No reinforcements beyond this preview.`;
+  }
   function waveBrief(plan) {
     const counts = {};
     for (const kind of plan.kinds) counts[kind] = (counts[kind] || 0) + 1;
-    return `Wave ${plan.wave}/${CAMPAIGN_WAVES}: ${plan.name} - ${Object.entries(counts).map(([kind,count]) => `${count} ${enemyTypes[kind].name}${count === 1 ? "" : "s"}`).join(", ")}. Enemy health x${plan.hpScale.toFixed(2)}; arrivals every ${plan.interval.toFixed(2)}s. Inspect, upgrade or move your towers before sending it.`;
+    return `Wave ${plan.wave}/${CAMPAIGN_WAVES}: ${plan.name} - ${Object.entries(counts).map(([kind,count]) => `${count} ${enemyTypes[kind].name}${count === 1 ? "" : "s"}`).join(", ")}. Enemy health x${plan.hpScale.toFixed(2)}; ordinary arrivals every ${plan.interval.toFixed(2)}s.${encounterAdvice(plan)} Inspect, upgrade or move your towers before sending it.`;
   }
   const mastery = loadMastery();
 
@@ -383,15 +399,16 @@
     const kind = plan.kinds[spawned];
     if (!kind) return;
     const spec = enemyTypes[kind];
-    const hp = Math.round((spec.hp + Math.min(state.wave,20) * spec.growth) * plan.hpScale);
+    const bossHealthScale = kind === "sovereign" ? .75 : kind === "tyrant" ? .9 : 1;
+    const hp = Math.round((spec.hp + Math.min(state.wave,20) * spec.growth) * plan.hpScale * bossHealthScale);
     enemies.push({ ...spec, x: path[0].x, y: path[0].y, pathIndex: 1, hp, maxHp: hp,
       speed: spec.speed + Math.min(15, state.wave) * spec.acceleration,
-      slowTimer: 0, slowStrength: 0, kind, spin: Math.random() * Math.PI * 2, hitFlash: 0 });
+      slowTimer: 0, slowStrength: 0, kind, isEscort: Boolean(plan.majorBoss && spawned > plan.bossIndex && spawned <= plan.bossIndex + plan.escort.length), spin: Math.random() * Math.PI * 2, hitFlash: 0 });
     const boss = spec.boss;
 
     if (boss) {
       statusLabel.textContent = spec.name + " entering";
-      statusMeta.textContent = "focus fire the corrupted vault breaker";
+      statusMeta.textContent = plan.majorBoss ? "Strong targeting: boss · First targeting: guards near the relic" : "focus fire the corrupted vault breaker";
       screenShake = Math.max(screenShake, 10);
     }
   }
@@ -439,7 +456,18 @@
       button.setAttribute("aria-pressed", String(Boolean(tower && tower === inspectedTower)));
     });
     const plan = currentWavePlan();
+    waveButton.hidden = state.waveActive;
     nextWaveHint.textContent = state.wave > CAMPAIGN_WAVES ? `${CAMPAIGN_WAVES}/${CAMPAIGN_WAVES} waves defended` : `Wave ${plan.wave}/${CAMPAIGN_WAVES} - ${plan.name} - ${plan.count} foes`;
+    const boss = enemies.find(enemy => enemy.hp > 0 && enemy.boss);
+    const nextIndex = state.waveSpawnTotal - state.spawnLeft;
+    const waitingGuards = state.waveActive && plan.majorBoss ? Math.max(0, plan.bossIndex + plan.escort.length + 1 - Math.max(nextIndex, plan.bossIndex + 1)) : 0;
+    const guards = waitingGuards + enemies.filter(enemy => enemy.hp > 0 && enemy.isEscort).length;
+    bossHealth.hidden = !boss && !guards && !(plan.majorBoss && !state.waveActive && state.wave <= CAMPAIGN_WAVES);
+    bossHealthBar.hidden = !boss;
+    if (boss) {
+      bossHealthBar.max = boss.maxHp; bossHealthBar.value = Math.max(0, boss.hp);
+      bossHealthLabel.textContent = `${enemyTypes[boss.kind].name}: ${Math.ceil(boss.hp)} / ${boss.maxHp} HP${guards ? ` · ${guards} guards left` : ""}`;
+    } else bossHealthLabel.textContent = state.waveActive ? `${guards} guards remaining · clear every foe` : `Boss ahead · ${plan.escort.length} guards · inspect Enemies to prepare`;
     commandHint.textContent = movingTower ? "Moving: choose an empty numbered pad. Cancel in Tower controls." : state.waveActive ? `${state.spawnLeft + enemies.length} enemies remaining. Moving unlocks after the wave.` : "Build, upgrade or reposition before sending the wave.";
     padHint.textContent = movingTower ? "Move" : "Build pads";
     padControls.setAttribute("data-moving", String(Boolean(movingTower)));
@@ -638,6 +666,11 @@
     manageEmpty.hidden = Boolean(inspectedTower);
     if (!inspectedTower) return;
     const tower = inspectedTower;
+    targetModeButton.disabled = !canManageTower() || Boolean(movingTower) || tower.type === "druid";
+    targetModeButton.textContent = tower.type === "druid" ? "Target: road traps" : `Target: ${tower.targetMode === "strong" ? "Strong" : "First"}`;
+    targetModeButton.setAttribute("aria-pressed", String(tower.targetMode === "strong"));
+    targetModeButton.title = "First: closest to the relic. Strong: highest maximum health in range. Tap to switch.";
+    targetModeHint.textContent = tower.type === "druid" ? "Road traps hit passing foes; they do not pick a target." : "Tap to switch. First: closest to relic. Strong: highest maximum health in range.";
     towerPanelTitle.textContent = `${tower.name} - ${tierCode(tower)}`;
     const portrait = towerVisualSprite(tower).src;
     if (selectedPortrait.src !== portrait) selectedPortrait.src = portrait;
@@ -830,7 +863,9 @@
       if (enemy.hp <= 0) continue;
       if (distance(tower.x, tower.y, enemy.x, enemy.y) > tower.range) continue;
       const enemyProgress = enemy.pathIndex * 1000 - distance(enemy.x, enemy.y, path[enemy.pathIndex]?.x || enemy.x, path[enemy.pathIndex]?.y || enemy.y);
-      if (enemyProgress > progress) {
+      const stronger = tower.targetMode === "strong" && best && (enemy.maxHp || enemy.hp) > (best.maxHp || best.hp);
+      const equalStrength = tower.targetMode !== "strong" || !best || (enemy.maxHp || enemy.hp) === (best.maxHp || best.hp);
+      if (!best || stronger || equalStrength && enemyProgress > progress) {
         best = enemy;
         progress = enemyProgress;
       }
@@ -1050,7 +1085,7 @@
     if (state.spawnLeft > 0 && state.spawnTimer <= 0) {
       spawnEnemy();
       state.spawnLeft -= 1;
-      state.spawnTimer = currentWavePlan().interval;
+      state.spawnTimer = arrivalDelay(currentWavePlan(), state.waveSpawnTotal - state.spawnLeft);
       statusMeta.textContent = `${state.spawnLeft + enemies.length} corrupt units in this wave`;
     }
     if (state.spawnLeft <= 0 && enemies.length === 0) {
@@ -1820,6 +1855,11 @@
   pathButtons.forEach(button => button.addEventListener("click", () => upgradeSelected(button.dataset.upgradePath)));
   moveButton.addEventListener("click", beginMove);
   sellButton.addEventListener("click", sellSelected);
+  targetModeButton.addEventListener("click", () => {
+    if (!canManageTower() || movingTower || inspectedTower.type === "druid") return;
+    inspectedTower.targetMode = inspectedTower.targetMode === "strong" ? "first" : "strong";
+    updateHud();
+  });
   cancelMoveButton.addEventListener("click", () => { if (!window.EmeraldArcade?.isPaused?.()) { movingTower = null; updateHud(); } });
   heroNovaButton.addEventListener("click", () => activateHeroNova(0));
   heroNovaButton2.addEventListener("click", () => activateHeroNova(1));

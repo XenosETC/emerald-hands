@@ -4,7 +4,7 @@ Implemented: 50 waves, two active Sunwardens with independent Novas, two new ord
 
 ## Difficulty and encounters
 
-Waves 1-20 keep their established rosters and health curve. After 20, base health growth uses wave 20 values; the October 24 balance pass adds 0.06 per extra wave plus 0.0015 times extra-wave squared. Density rises from 61 to 88 enemies; speed growth remains capped at wave 15 and spawn interval at 0.30s. This respects the existing tier-five upgrade ceiling.
+Waves 1-19 keep their established rosters; the wave-20 boss now arrives midway with four guards. The health curve through wave 20 stays unchanged. After 20, base health growth uses wave 20 values; the October 24 balance pass adds 0.06 per extra wave plus 0.0015 times extra-wave squared. Density rises from 61 to 88 enemies; speed growth remains capped at wave 15 and spawn interval at 0.30s. This respects the existing tier-five upgrade ceiling.
 
 Shieldbearers start on 21: 40% armor, three relic breach damage, slow movement. Alchemist acid reduces armor normally. Emerald specters start on 26: fast, 60% reduction in slow strength, one breach damage. They still take damage from all current defenders and remain partially slowable.
 
@@ -21,3 +21,5 @@ Ballista and Thornkeeper are now playable as detailed in tower-defense-next-defe
 ## Release verification
 
 Clean staged-copy npm test passed the 364-test main suite and 17-test launch suite (381 total), plus the 18-game smoke check. Full earned-shard controllers completed 50 waves at 30/60 Hz with 87/88 relic health and 128/130 Nova casts. Those are deterministic controller results, not human balance approval. Browser checks in a clearly labeled seeded fixture verified Tyrant/Sovereign portraits with lackeys, both independent Nova buttons, cooldowns and 35/50 and 50/50 wave labels; no console errors were logged. All 36 gallery images loaded. Mobile visual review remains open. Source prompts and six PNG/WebP asset pairs are retained in assets/pepe-tower-defense/fifty-waves-v1.json and its framing receipt.
+
+Boss cadence, live guard counts, targeting modes and current boss health adjustments are documented in tower-defense-boss-counterplay.md.

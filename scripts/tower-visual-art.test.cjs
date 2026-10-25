@@ -415,7 +415,7 @@ for(const earlyNew of [false,true]) test('Ballista and Thornkeeper support an ea
   const g=towerGame();const outcome=JSON.parse(g.act(`
     const order=[0,4,2,6,1,5,7,8,3],loadout={0:"pepe",4:"shard",2:"hero",6:"hero",1:"alchemist",5:"ballista",7:"archer",8:"relic",3:"druid"};
     if(${earlyNew}){loadout[2]="ballista";loadout[6]="druid";loadout[5]="hero";loadout[3]="hero";}
-    let ticks=0,novaCasts=0,sawTraps=false,sawBolt=false;
+    let ticks=0,novaCasts=0,sawTraps=false,sawBolt=false,defeatedMajors=0; const collectBefore=collectDefeatedEnemies;collectDefeatedEnemies=()=>{defeatedMajors+=enemies.filter(e=>e.hp<=0&&["warboss","tyrant","sovereign"].includes(e.kind)).length;collectBefore();};
     while(state.playing&&ticks<200000){
       for(const i of order){if(!${earlyNew}&&towers.filter(t=>t.type==="hero").length<2&&![0,4,2,6].includes(i))continue;if(!towerAtPad(pads[i])&&state.shards>=towerTypes[loadout[i]].cost){selectTower(loadout[i]);buildOrUpgrade(pads[i]);}}
       if(${earlyNew}?towers.length>=4:towers.filter(t=>t.type==="hero").length===2){
@@ -424,10 +424,10 @@ for(const earlyNew of [false,true]) test('Ballista and Thornkeeper support an ea
       }
       if(!state.waveActive)startWave();for(const slot of [0,1])if(activateHeroNova(slot))novaCasts++;update(1/${hz});sawTraps ||= thornPatches.length>0;sawBolt ||= shots.some(s=>s.type==="ballista");ticks++;
     }
-    JSON.stringify({wave:state.wave,vault:state.vault,ticks,novaCasts,sawTraps,sawBolt,heroes:towers.filter(t=>t.type==="hero").length});
+    JSON.stringify({wave:state.wave,vault:state.vault,ticks,novaCasts,sawTraps,sawBolt,defeatedMajors,heroes:towers.filter(t=>t.type==="hero").length});
   `));
   t.diagnostic('Automated earned-shard controller, not human balance approval: '+JSON.stringify(outcome));
-  assert.equal(outcome.sawTraps,true);assert.equal(outcome.sawBolt,true);assert.equal(outcome.wave,51);assert.ok(outcome.vault>0);assert.equal(outcome.heroes,2);assert.ok(outcome.novaCasts>0);assert.equal(g.records.length,1);
+  assert.ok(outcome.defeatedMajors>=(earlyNew?2:3));assert.equal(outcome.sawTraps,true);assert.equal(outcome.sawBolt,true);assert.equal(outcome.wave,51);assert.ok(outcome.vault>0);assert.equal(outcome.heroes,2);assert.ok(outcome.novaCasts>0);assert.equal(g.records.length,1);
 });
 
 test('Letterboxed battlefield taps map to the original world coordinates',()=>{
@@ -438,4 +438,37 @@ test('Letterboxed battlefield taps map to the original world coordinates',()=>{
   const p=JSON.parse(g.act('JSON.stringify(pads[0])')),scale=200/720;
   g.nodes.get('#gameCanvas').emit('click',{clientX:10+(500-1280*scale)/2+p.x*scale,clientY:20+p.y*scale});
   assert.equal(g.act('towers.length'),1);assert.equal(g.act('towers[0].pad===pads[0]'),true);
+});
+
+test('Major bosses have fixed guard rosters and spaced, disclosed entrances',()=>{
+  const g=towerGame();
+  for(const [wave,kind,guards] of [[20,'warboss',['brute','brute','goblin','goblin']],[35,'tyrant',['shieldbearer','shieldbearer','specter','specter']],[50,'sovereign',['shieldbearer','shieldbearer','brute','specter','specter','specter']]]){
+    const p=JSON.parse(g.act(`JSON.stringify(wavePlans[${wave-1}])`));
+    assert.equal(p.majorBoss,kind);assert.equal(p.bossIndex,Math.floor(p.count/2));assert.deepEqual(p.escort,guards);
+    assert.equal(g.act(`arrivalDelay(wavePlans[${wave-1}],${p.bossIndex})`),2);
+    for(let n=1;n<=guards.length;n++)assert.equal(g.act(`arrivalDelay(wavePlans[${wave-1}],${p.bossIndex+n})`),1.1);
+    assert.match(g.act(`waveBrief(wavePlans[${wave-1}])`),/Strong targeting.*No reinforcements/);
+  }
+  assert.equal(g.act('arrivalDelay(wavePlans[0],3)'),g.act('wavePlans[0].interval'));
+});
+
+test('Strong targeting focuses maximum health in range; First protects against advanced enemies',()=>{
+  const g=towerGame();g.act('state.shards=1000;selectTower("ballista");buildOrUpgrade(pads[0]);enemies.push({x:240,y:260,hp:50,maxHp:100,pathIndex:4,kind:"goblin"},{x:250,y:260,hp:10,maxHp:5000,pathIndex:1,kind:"tyrant",boss:true},{x:1200,y:700,hp:99999,maxHp:99999,pathIndex:6,kind:"sovereign",boss:true})');
+  assert.equal(g.act('targetFor(towers[0])===enemies[0]'),true);
+  g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('targetFor(towers[0])===enemies[1]'),true);
+  g.act('beginMove();buildOrUpgrade(pads[1])');assert.equal(g.act('towers[0].targetMode'),'strong');
+  g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[0].targetMode'),'first');
+  g.act('selectTower("druid");buildOrUpgrade(pads[2])');assert.equal(g.nodes.get('#targetModeButton').disabled,true);
+  g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[1].targetMode'),undefined);
+});
+
+test('Boss health and guard counter track the actual fixed wave queue without phantom reinforcements',()=>{
+  const g=towerGame();g.act('state.wave=50;startWave();state.spawnLeft=state.waveSpawnTotal-currentWavePlan().bossIndex;spawnEnemy();state.spawnLeft--;updateHud()');
+  assert.equal(g.nodes.get('#bossHealth').hidden,false);assert.match(g.nodes.get('#bossHealthLabel').textContent,/Relic Sovereign.*6 guards/);
+  const hp=g.act('enemies.find(e=>e.kind==="sovereign").hp');assert.ok(hp>40000&&hp<45000);
+  assert.equal(g.nodes.get('#bossHealthBar').value,hp);
+  g.act('spawnEnemy();state.spawnLeft--;updateHud()');assert.equal(g.act('enemies.filter(e=>e.isEscort).length'),1);
+  assert.match(g.nodes.get('#bossHealthLabel').textContent,/6 guards/);
+  g.act('enemies.find(e=>e.isEscort).hp=0;collectDefeatedEnemies();updateHud()');assert.match(g.nodes.get('#bossHealthLabel').textContent,/5 guards/);
+  g.act('state.spawnLeft=0;enemies.length=0;updateHud()');assert.equal(g.nodes.get('#bossHealth').hidden,true);
 });
