@@ -50,6 +50,7 @@
   }
   const towerPanel = document.querySelector("#towerPanel");
   const towerDetails = document.querySelector("#towerDetails");
+  const towerCombatRecord = document.querySelector("#towerCombatRecord");
   const pathButtons = [...document.querySelectorAll("[data-upgrade-path]")];
   const moveButton = document.querySelector("#moveTowerButton");
   const sellButton = document.querySelector("#sellTowerButton");
@@ -361,7 +362,7 @@
       vault: state.vault, selectedTower, heroNovaCooldowns: state.heroNovaCooldowns,
       towers: towers.map(tower => ({ type: tower.type, pad: pads.indexOf(tower.pad), tiers: tower.tiers,
         heroSlot: tower.heroSlot, cooldown: Math.max(0, tower.cooldown), aimAngle: tower.aimAngle,
-        targetMode: tower.targetMode || "first" })) }, Object.keys(towerTypes));
+        targetMode: tower.targetMode || "first", combatDamage: tower.combatDamage || 0, combatKills: tower.combatKills || 0 })) }, Object.keys(towerTypes));
     if (!data) { checkpointHint.textContent = "This build break could not be saved."; return false; }
     try {
       localStorage.setItem(checkpointStore.KEY, JSON.stringify(data));
@@ -660,6 +661,8 @@
       y: pad.y,
       type: selectedTower,
       targetMode: "first",
+      combatDamage: 0,
+      combatKills: 0,
       heroSlot,
       cooldown: 0,
       attackPulse: 0,
@@ -762,6 +765,8 @@
     manageEmpty.hidden = Boolean(inspectedTower);
     if (!inspectedTower) return;
     const tower = inspectedTower;
+    const recordedDamage = tower.combatDamage || 0, defeats = tower.combatKills || 0;
+    towerCombatRecord.textContent = `Total: ${recordedDamage > 0 && recordedDamage < 1 ? "<1" : format(Math.round(recordedDamage))} damage · ${defeats} ${defeats === 1 ? "defeat" : "defeats"}`;
     targetModeButton.disabled = !canManageTower() || Boolean(movingTower) || tower.type === "druid";
     targetModeButton.textContent = tower.type === "druid" ? "Target: road traps" : `Target: ${tower.targetMode === "strong" ? "Strong" : "First"}`;
     targetModeButton.setAttribute("aria-pressed", String(tower.targetMode === "strong"));
@@ -986,9 +991,19 @@
     enemy.acidTimer = Math.max(enemy.acidTimer || 0, tower.acidDuration);
   }
 
-  function damageEnemy(enemy, damage, slow, splash, armorPierce = 0) {
+  function applyHealthDamage(enemy, damage, owner) {
+    const before = enemy.hp;
+    enemy.hp -= damage;
+    if (!owner) return;
+    const removed = Math.max(0, Math.min(before, damage));
+    if (!Number.isFinite(removed) || !removed) return;
+    owner.combatDamage = (owner.combatDamage || 0) + removed;
+    if (before > 0 && enemy.hp <= 0) owner.combatKills = (owner.combatKills || 0) + 1;
+  }
+
+  function damageEnemy(enemy, damage, slow, splash, armorPierce = 0, owner = null) {
     const dealt = damage * (1 - effectiveArmor(enemy) * (1 - armorPierce));
-    enemy.hp -= dealt;
+    applyHealthDamage(enemy, dealt, owner);
     enemy.hitFlash = 1;
     floaters.push({
       x: enemy.x + (Math.random() - 0.5) * 18,
@@ -1001,7 +1016,7 @@
     if (splash) {
       bursts.push({ x: enemy.x, y: enemy.y, r: 0, max: splash, color: "#d8b45f", life: 0.32 });
       for (const other of enemies) {
-        if (other !== enemy && distance(enemy.x, enemy.y, other.x, other.y) < splash) other.hp -= damage * 0.45 * (1 - effectiveArmor(other));
+        if (other !== enemy && distance(enemy.x, enemy.y, other.x, other.y) < splash) applyHealthDamage(other, damage * 0.45 * (1 - effectiveArmor(other)), owner);
       }
     }
   }
@@ -1068,8 +1083,8 @@
         if (tower.splash) for(const other of enemiesNear(target.x, target.y, tower.splash, target)) applyAcid(other, tower);
         bursts.push({ x: target.x, y: target.y, r: 0, max: Math.max(20, tower.splash), color: tower.color, life: .24 });
       }
-      damageEnemy(target, tower.damage, tower.slow, tower.splash,tower.type === "ballista"?.5:0);
-      if(tower.type === "ballista") for(const enemy of ballistaLineTargets(tower,target)) {damageEnemy(enemy,tower.damage*.7,0,0,.5);shots.push({x:target.x,y:target.y,tx:enemy.x,ty:enemy.y,color:tower.color,type:"ballista",life:.25,max:.25});}
+      damageEnemy(target, tower.damage, tower.slow, tower.splash,tower.type === "ballista"?.5:0,tower);
+      if(tower.type === "ballista") for(const enemy of ballistaLineTargets(tower,target)) {damageEnemy(enemy,tower.damage*.7,0,0,.5,tower);shots.push({x:target.x,y:target.y,tx:enemy.x,ty:enemy.y,color:tower.color,type:"ballista",life:.25,max:.25});}
       applyMilestoneHit(tower, target);
       fireShot(tower, target);
     }
@@ -1100,7 +1115,7 @@
     shots.push({x:tower.x,y:tower.y,tx:best.x,ty:best.y,color:tower.color,type:"druid",life:.35,max:.35});
   }
   function thornContact(enemy,ax,ay,bx,by) {
-    for(const patch of thornPatches){if(enemy.hp<=0)break;if(patch.life<=0||patch.charges<=0||patch.hitEnemies.has(enemy))continue;const near=pointOnSegment(patch.x,patch.y,ax,ay,bx,by);if(distance(near.x,near.y,patch.x,patch.y)>patch.radius+(enemy.radius||10)*.5)continue;patch.hitEnemies.add(enemy);patch.charges--;damageEnemy(enemy,patch.damage,0,0);}
+    for(const patch of thornPatches){if(enemy.hp<=0)break;if(patch.life<=0||patch.charges<=0||patch.hitEnemies.has(enemy))continue;const near=pointOnSegment(patch.x,patch.y,ax,ay,bx,by);if(distance(near.x,near.y,patch.x,patch.y)>patch.radius+(enemy.radius||10)*.5)continue;patch.hitEnemies.add(enemy);patch.charges--;damageEnemy(enemy,patch.damage,0,0,0,patch.owner);}
   }
   function updateThorns(dt) {for(let i=thornPatches.length-1;i>=0;i--){const p=thornPatches[i];p.life-=dt;if(p.life<=0||p.charges<=0||!towers.includes(p.owner))thornPatches.splice(i,1);}}
   function drawThorns() {
@@ -1134,7 +1149,7 @@
     const targets = enemies.filter(enemy => enemy.hp > 0 && distance(hero.x, hero.y, enemy.x, enemy.y) <= hero.range);
     if (!targets.length) { statusLabel.textContent = "Nova ready - no enemies in reach"; return false; }
     state.heroNovaCooldowns[hero.heroSlot] = novaRecharge(hero);
-    for(const enemy of targets) damageEnemy(enemy, hero.damage * 5, 0, 0);
+    for(const enemy of targets) damageEnemy(enemy, hero.damage * 5, 0, 0, 0, hero);
     collectDefeatedEnemies();
     hero.aimAngle = Math.atan2(targets[0].y - hero.y, targets[0].x - hero.x);
     hero.attackPulse = 1; screenShake = Math.max(screenShake, 10);
@@ -1151,7 +1166,7 @@
     if (tower.type === "pepe") {
       const chained = enemiesNear(target.x, target.y, tower.level >= 5 ? 105 : 74, target).slice(0, tower.level >= 5 ? 3 : 1);
       for (const enemy of chained) {
-        damageEnemy(enemy, tower.damage * (tower.level >= 5 ? 0.48 : 0.32), 0, 0);
+        damageEnemy(enemy, tower.damage * (tower.level >= 5 ? 0.48 : 0.32), 0, 0, 0, tower);
         shots.push({ x: target.x, y: target.y, tx: enemy.x, ty: enemy.y, life: 0.12, max: 0.12, color: "#74ffc5", type: "pepe" });
       }
     }
@@ -1163,7 +1178,7 @@
     }
     if (tower.type === "mage" && tower.level >= 3) {
       for (const enemy of enemiesNear(target.x, target.y, tower.level >= 5 ? 92 : 62, target).slice(0, tower.level >= 5 ? 4 : 2)) {
-        damageEnemy(enemy, tower.damage * 0.36, tower.level >= 5 ? 0.18 : 0, 0);
+        damageEnemy(enemy, tower.damage * 0.36, tower.level >= 5 ? 0.18 : 0, 0, 0, tower);
       }
     }
     if (tower.type === "archer" && tower.level >= 3) {
@@ -1171,7 +1186,7 @@
         .sort((a, b) => distance(target.x, target.y, a.x, a.y) - distance(target.x, target.y, b.x, b.y))
         .slice(0, tower.level >= 5 ? 2 : 1);
       for (const enemy of pierce) {
-        damageEnemy(enemy, tower.damage * 0.42, 0, 0);
+        damageEnemy(enemy, tower.damage * 0.42, 0, 0, 0, tower);
         shots.push({ x: target.x, y: target.y, tx: enemy.x, ty: enemy.y, life: 0.16, max: 0.16, color: "#9cff6b", type: "archer" });
       }
     }

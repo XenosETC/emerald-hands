@@ -520,7 +520,7 @@ test('Build checkpoints restore both heroes, tower paths, refunds and targeting 
   const g=towerGame();g.act(`state.shards=100000;state.score=123456;state.wave=35;state.vault=67;
     for(const [i,type]of ['hero','hero','ballista','druid','alchemist','shard','relic','mage','archer'].entries()){
       selectTower(type);buildOrUpgrade(pads[i]);for(let n=0;n<3;n++)upgradeSelected('power');for(let n=0;n<2;n++)upgradeSelected('special');
-    }state.heroNovaCooldowns=[9,16];for(const t of towers){t.cooldown=.37;t.aimAngle=-1;if(t.type!=='druid')t.targetMode='strong';}saveBuildCheckpoint();`);
+    }state.heroNovaCooldowns=[9,16];for(const t of towers){t.cooldown=.37;t.aimAngle=-1;t.combatDamage=123.5+10*pads.indexOf(t.pad);t.combatKills=pads.indexOf(t.pad);if(t.type!=='druid')t.targetMode='strong';}saveBuildCheckpoint();`);
   const before=g.act('JSON.stringify(readBuildCheckpoint())'),stats=g.act('JSON.stringify(towers.map(t=>[t.damage,t.range,t.rate,t.invested,t.heroSlot,t.targetMode]))');
   const mastery=g.saves.get('pepe-tower-defense-mastery-v1');const h=checkpointGame(g.saves);
   assert.equal(h.nodes.get('#resumeDefenseButton').hidden,false);assert.match(h.nodes.get('#resumeDefenseButton').textContent,/35/);
@@ -552,11 +552,11 @@ test('Build-break moves, sales and wave-clear rewards persist once, while comple
 test('Checkpoint validation rejects corrupt, impossible and duplicate layouts; blocked saving does not stop play',()=>{
   const store=require('../pepe-tower-checkpoint.js'),types=['pepe','hero','ballista','druid'];
   const base={version:1,wave:2,score:100,shards:180,vault:90,selectedTower:'pepe',heroNovaCooldowns:[0,0],towers:[{type:'pepe',pad:0,heroSlot:null,tiers:{power:0,special:0,utility:0},targetMode:'first',cooldown:0,aimAngle:0}]};
-  for(const mutate of [v=>v.wave=51,v=>v.vault=0,v=>v.shards=-1,v=>v.heroNovaCooldowns=[21,0],v=>v.towers.push({...v.towers[0]}),v=>v.towers[0].tiers={power:5,special:3,utility:0},v=>v.towers[0].tiers={power:1,special:1,utility:1},v=>v.towers[0].type='unknown',v=>v.towers[0].pad=9,v=>v.towers[0].heroSlot=0,v=>{v.towers=[0,1].map(pad=>({...v.towers[0],pad,type:'hero',heroSlot:0}));}]){
+  for(const mutate of [v=>v.wave=51,v=>v.vault=0,v=>v.shards=-1,v=>v.heroNovaCooldowns=[21,0],v=>v.towers.push({...v.towers[0]}),v=>v.towers[0].tiers={power:5,special:3,utility:0},v=>v.towers[0].tiers={power:1,special:1,utility:1},v=>v.towers[0].type='unknown',v=>v.towers[0].combatDamage=-1,v=>v.towers[0].combatKills=1.5,v=>v.towers[0].pad=9,v=>v.towers[0].heroSlot=0,v=>{v.towers=[0,1].map(pad=>({...v.towers[0],pad,type:'hero',heroSlot:0}));}]){
     const v=JSON.parse(JSON.stringify(base));mutate(v);assert.equal(store.decode(JSON.stringify(v),types),null);
   }
   for(const raw of ['{','null','[]','x'.repeat(17000)])assert.equal(store.decode(raw,types),null);
-  const valid=store.decode(JSON.stringify(base),types);assert.ok(valid);assert.notEqual(valid.towers[0].tiers,base.towers[0].tiers);
+  const valid=store.decode(JSON.stringify(base),types);assert.ok(valid);assert.equal(valid.towers[0].combatDamage,0);assert.equal(valid.towers[0].combatKills,0);assert.notEqual(valid.towers[0].tiers,base.towers[0].tiers);
   const h=checkpointGame(new Map([[store.KEY,'corrupt']]));assert.equal(h.nodes.get('#resumeDefenseButton').hidden,true);
   h.read('localStorage.setItem=()=>{throw new Error("storage blocked")}');h.start();h.act('buildOrUpgrade(pads[0])');
   assert.equal(h.act('state.playing&&towers.length===1'),true);assert.match(h.nodes.get('#checkpointHint').textContent,/unavailable/);
@@ -566,7 +566,7 @@ test('Two-times wave speed produces the same combat state as matching normal-spe
   const setup=()=>{const g=towerGame();g.act('state.wave=10;state.shards=10000;selectTower("druid");buildOrUpgrade(pads[0]);selectTower("ballista");buildOrUpgrade(pads[2]);upgradeSelected("power");upgradeSelected("power");upgradeSelected("power");selectTower("hero");buildOrUpgrade(pads[4]);startWave()');g.frame(0);return g;};
   const normal=setup(),fast=setup();fast.nodes.get('#speedButton').emit('click');
   for(let n=1;n<=800;n++)normal.frame(n*25);for(let n=1;n<=400;n++)fast.frame(n*25);
-  const snapshot='JSON.stringify({wave:state.wave,hp:state.vault,shards:state.shards,score:state.score,left:state.spawnLeft,timer:state.spawnTimer,nova:state.heroNovaCooldowns,enemies:enemies.map(e=>[e.kind,e.x,e.y,e.hp,e.pathIndex,e.slowTimer,e.acidTimer]),towers:towers.map(t=>[t.cooldown,t.damage,t.aimAngle]),traps:thornPatches.map(p=>[p.x,p.y,p.charges,p.life])})';
+  const snapshot='JSON.stringify({wave:state.wave,hp:state.vault,shards:state.shards,score:state.score,left:state.spawnLeft,timer:state.spawnTimer,nova:state.heroNovaCooldowns,enemies:enemies.map(e=>[e.kind,e.x,e.y,e.hp,e.pathIndex,e.slowTimer,e.acidTimer]),towers:towers.map(t=>[t.cooldown,t.damage,t.aimAngle,t.combatDamage,t.combatKills]),traps:thornPatches.map(p=>[p.x,p.y,p.charges,p.life])})';
   assert.equal(fast.act(snapshot),normal.act(snapshot));assert.equal(fast.act('combatSpeed'),2);assert.equal(fast.pending(),1);
 });
 
@@ -583,4 +583,43 @@ test('Fast mode stops at wave-clear and fatal-breach boundaries without duplicat
   assert.equal(g.act('state.wave'),2);assert.equal(g.act('state.shards'),247);assert.equal(g.act('state.waveActive'),false);assert.equal(g.act('state.heroNovaCooldowns[0]'),9.975);assert.equal(g.act('readBuildCheckpoint().wave'),2);assert.equal(g.records.length,0);
   const h=towerGame();h.nodes.get('#speedButton').emit('click');h.act('startWave();enemies.length=0;state.vault=1;enemies.push({...enemyTypes.sovereign,kind:"sovereign",x:relicBase.x,y:relicBase.y,pathIndex:path.length-1,hp:100,maxHp:100,slowTimer:0,spin:0,hitFlash:0});advanceDefense(.025)');
   assert.equal(h.act('state.vault'),0);assert.equal(h.records.length,1);assert.equal(h.act('readBuildCheckpoint()'),null);assert.equal(h.nodes.get('#speedButton').disabled,true);
+});
+
+test('Combat records count post-armor health removed and credit a lethal hit only once',()=>{
+  const g=towerGame();g.act('state.shards=10000;selectTower("ballista");buildOrUpgrade(pads[0]);selectTower("hero");buildOrUpgrade(pads[8]);enemies.push({...enemyTypes.shieldbearer,kind:"shieldbearer",x:330,y:260,hp:100,maxHp:100,pathIndex:1,slowTimer:0,hitFlash:0});damageEnemy(enemies[0],100,0,0,.5,towers[0])');
+  assert.equal(g.act('towers[0].combatDamage'),80);assert.equal(g.act('towers[0].combatKills'),0);
+  g.act('damageEnemy(enemies[0],100,0,0,.5,towers[0]);damageEnemy(enemies[0],100,0,0,0,towers[1]);collectDefeatedEnemies();collectDefeatedEnemies();updateHud()');
+  assert.equal(g.act('towers[0].combatDamage'),100);assert.equal(g.act('towers[0].combatKills'),1);assert.equal(g.act('towers[1].combatDamage'),0);assert.equal(g.act('towers[1].combatKills'),0);
+  assert.equal(g.act('state.shards'),9453);assert.equal(g.act('enemies.length'),0);
+  g.act('towers[0].combatDamage=248.99999999999997;buildOrUpgrade(pads[0])');assert.equal(g.nodes.get('#towerCombatRecord').textContent,'Total: 249 damage · 1 defeat');
+});
+
+test('Splash records include nearby health removed without counting overkill, dead foes or out-of-range foes',()=>{
+  const g=towerGame();g.act('state.shards=1000;selectTower("relic");buildOrUpgrade(pads[0]);enemies.push(...[[230,15,.2],[240,10,.4],[245,0,0],[500,30,0]].map(([x,hp,armor])=>({x,y:260,hp,maxHp:100,armor,radius:10,pathIndex:1,kind:"grunt",reward:1})));damageEnemy(enemies[0],100,0,50,0,towers[0])');
+  assert.equal(g.act('towers[0].combatDamage'),25);assert.equal(g.act('towers[0].combatKills'),2);assert.equal(g.act('enemies[3].hp'),30);
+});
+
+test('Real line shots, chain hits, volleys and piercing arrows all report their actual damage',()=>{
+  for(const type of ['ballista','pepe','mage','archer']){
+    const g=towerGame();g.act(`state.shards=10000;selectTower("${type}");buildOrUpgrade(pads[0]);for(let i=0;i<3;i++)upgradeSelected('power');enemies.push(...[330,350].map(x=>({...enemyTypes.grunt,kind:'grunt',x,y:260,hp:1000,maxHp:1000,pathIndex:1,slowTimer:0,hitFlash:0})));updateTowers(.01)`);
+    const actual=g.act('2000-enemies.reduce((sum,e)=>sum+e.hp,0)');assert.ok(actual>g.act('towers[0].damage'));
+    assert.ok(Math.abs(g.act('towers[0].combatDamage')-actual)<1e-8);assert.equal(g.act('towers[0].combatKills'),0);
+  }
+});
+
+test('Thorn records belong to their planter and survive moves, upgrades and checkpoint restoration',()=>{
+  const g=towerGame();g.act('state.shards=1000;selectTower("druid");buildOrUpgrade(pads[0]);state.waveActive=true;plantThorns(towers[0]);const p=thornPatches[0];enemies.push({...enemyTypes.grunt,kind:"grunt",x:p.x,y:p.y,hp:7,maxHp:7});thornContact(enemies[0],p.x,p.y,p.x,p.y);thornContact(enemies[0],p.x,p.y,p.x,p.y);collectDefeatedEnemies();state.waveActive=false;upgradeSelected("power");beginMove();buildOrUpgrade(pads[1])');
+  assert.equal(g.act('towers[0].combatDamage'),7);assert.equal(g.act('towers[0].combatKills'),1);
+  g.act('startWave();plantThorns(towers[0]);const fresh=thornPatches[0];enemies.push({...enemyTypes.grunt,kind:"grunt",x:fresh.x,y:fresh.y,hp:3,maxHp:3});thornContact(enemies.at(-1),fresh.x,fresh.y,fresh.x,fresh.y);collectDefeatedEnemies()');
+  assert.equal(g.act('towers[0].combatDamage'),10);assert.equal(g.act('towers[0].combatKills'),2);
+  const h=checkpointGame(g.saves);h.nodes.get('#resumeDefenseButton').emit('click');h.act('buildOrUpgrade(pads[1])');
+  assert.equal(h.act('towers[0].combatDamage'),7);assert.equal(h.act('towers[0].combatKills'),1);assert.equal(h.nodes.get('#towerCombatRecord').textContent,'Total: 7 damage · 1 defeat');
+  h.act('resetGame()');assert.equal(h.act('towers.length'),0);
+});
+
+test('Each Sunwarden owns its Nova record; support effects are not falsely counted as damage',()=>{
+  const g=towerGame();g.act('state.shards=10000;selectTower("hero");buildOrUpgrade(pads[0]);buildOrUpgrade(pads[8]);selectTower("alchemist");buildOrUpgrade(pads[4]);state.waveActive=true;enemies.push(...[0,1].map((i)=>({...enemyTypes.grunt,kind:"grunt",x:towers[i].x+10,y:towers[i].y,hp:10+i*2,maxHp:10+i*2})));applyAcid(enemies[0],towers[2]);applySlow(enemies[0],.5,2);activateHeroNova(0)');
+  assert.equal(g.act('towers[0].combatDamage'),10);assert.equal(g.act('towers[0].combatKills'),1);assert.equal(g.act('towers[1].combatDamage'),0);
+  assert.equal(g.act('towers[2].combatDamage'),0);assert.equal(g.act('towers[2].combatKills'),0);
+  g.act('activateHeroNova(1)');assert.equal(g.act('towers[1].combatDamage'),12);assert.equal(g.act('towers[1].combatKills'),1);assert.equal(g.act('JSON.stringify(state.heroNovaCooldowns)'),'[20,20]');
 });

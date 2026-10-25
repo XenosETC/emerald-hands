@@ -23,13 +23,16 @@
           paths.filter(key => tower.tiers[key] > 2).length > 1 ||
           !["first", "strong"].includes(tower.targetMode) || !number(tower.cooldown, 0, 60) ||
           !number(tower.aimAngle, -Math.PI, Math.PI)) return null;
+      const combatDamage = tower.combatDamage === undefined ? 0 : tower.combatDamage;
+      const combatKills = tower.combatKills === undefined ? 0 : tower.combatKills;
+      if (!number(combatDamage, 0, Number.MAX_SAFE_INTEGER) || !integer(combatKills, 0, Number.MAX_SAFE_INTEGER)) return null;
       if (tower.type === "hero") {
         if (!integer(tower.heroSlot, 0, 1) || slots.has(tower.heroSlot)) return null;
         slots.add(tower.heroSlot);
       } else if (tower.heroSlot !== null) return null;
       pads.add(tower.pad);
       towers.push({ type: tower.type, pad: tower.pad, tiers: Object.fromEntries(paths.map(key => [key, tower.tiers[key]])),
-        heroSlot: tower.heroSlot, targetMode: tower.targetMode, cooldown: tower.cooldown, aimAngle: tower.aimAngle });
+        heroSlot: tower.heroSlot, targetMode: tower.targetMode, cooldown: tower.cooldown, aimAngle: tower.aimAngle, combatDamage, combatKills });
     }
     return { version: 1, wave: value.wave, score: value.score, shards: value.shards, vault: value.vault,
       selectedTower: value.selectedTower, heroNovaCooldowns: [...value.heroNovaCooldowns], towers };

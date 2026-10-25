@@ -195,3 +195,4 @@ body[data-game="tower"] .wave-button[hidden] { display:none; }
 body[data-game="tower"] #resumeDefenseButton[hidden] { display:none; }
 body[data-game="tower"] #checkpointHint { color:#a8d8bd; font-size:.61rem; line-height:1.3; }
 body[data-game="tower"] .command-tabs { grid-template-columns:repeat(4,minmax(0,1fr)); }
+body[data-game="tower"] #towerCombatRecord { display:block; color:#a9efcc; font-size:.65rem; line-height:1.4; margin-top:4px; }
