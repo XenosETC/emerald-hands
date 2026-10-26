@@ -78,7 +78,7 @@
   const MASTERY_KEY = "pepe-tower-defense-mastery-v1";
   const pepe = new Image();
   pepe.src = "assets/pepecoin-run/pepecoin-classic.png";
-  const courtyard = loadImage("assets/pepe-tower-defense/emerald-vault-courtyard-v1.png");
+  const courtyard = loadImage("assets/pepe-tower-defense/emerald-vault-courtyard-v2.png");
   courtyard.addEventListener("load", () => { if (!state.playing) draw(); });
   const relicBaseSprite = loadImage("assets/pepe-tower-defense/relic-base-v1.webp");
   relicBaseSprite.addEventListener("load", () => { if (!state.playing) draw(); });
