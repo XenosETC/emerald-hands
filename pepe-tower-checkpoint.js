@@ -21,7 +21,7 @@
           !tower.tiers || !paths.every(key => integer(tower.tiers[key], 0, 5)) ||
           paths.filter(key => tower.tiers[key] > 0).length > 2 ||
           paths.filter(key => tower.tiers[key] > 2).length > 1 ||
-          !["first", "strong"].includes(tower.targetMode) || !number(tower.cooldown, 0, 60) ||
+          !["first", "strong", "last", "close"].includes(tower.targetMode) || !number(tower.cooldown, 0, 60) ||
           !number(tower.aimAngle, -Math.PI, Math.PI)) return null;
       const combatDamage = tower.combatDamage === undefined ? 0 : tower.combatDamage;
       const combatKills = tower.combatKills === undefined ? 0 : tower.combatKills;

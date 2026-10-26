@@ -44,6 +44,9 @@
   const bossHealthBar = document.querySelector("#bossHealthBar");
   const targetModeButton = document.querySelector("#targetModeButton");
   const targetModeHint = document.querySelector("#targetModeHint");
+  const targetModes = ["first", "strong", "last", "close"];
+  const targetLabels = { first: "First", strong: "Strong", last: "Last", close: "Close" };
+  const targetHints = { first: "Furthest along the road in range.", strong: "Highest maximum health in range; road progress breaks ties.", last: "Least advanced along the road in range.", close: "Nearest to this tower; road progress breaks ties." };
   const padHint = document.querySelector("#padHint");
   const padControls = document.querySelector(".pad-controls");
   const manageEmpty = document.querySelector("#manageEmpty");
@@ -818,10 +821,11 @@
     const recordedDamage = tower.combatDamage || 0, defeats = tower.combatKills || 0;
     towerCombatRecord.textContent = `Total: ${recordedDamage > 0 && recordedDamage < 1 ? "<1" : format(Math.round(recordedDamage))} damage · ${defeats} ${defeats === 1 ? "defeat" : "defeats"}`;
     targetModeButton.disabled = !canManageTower() || Boolean(movingTower) || tower.type === "druid";
-    targetModeButton.textContent = tower.type === "druid" ? "Target: road traps" : `Target: ${tower.targetMode === "strong" ? "Strong" : "First"}`;
-    targetModeButton.setAttribute("aria-pressed", String(tower.targetMode === "strong"));
-    targetModeButton.title = "First: closest to the relic. Strong: highest maximum health in range. Tap to switch.";
-    targetModeHint.textContent = tower.type === "druid" ? "Road traps hit passing foes; they do not pick a target." : "Tap to switch. First: closest to relic. Strong: highest maximum health in range.";
+    const mode = tower.targetMode || "first";
+    const nextMode = targetModes[(targetModes.indexOf(mode) + 1) % targetModes.length];
+    targetModeButton.textContent = tower.type === "druid" ? "Target: road traps" : `Target: ${targetLabels[mode]}`;
+    targetModeButton.title = "Cycle First → Strong → Last → Close.";
+    targetModeHint.textContent = tower.type === "druid" ? "Road traps hit passing foes; they do not pick a target." : `${targetHints[mode]} Tap for ${targetLabels[nextMode]}.`;
     towerPanelTitle.textContent = `${tower.name} - ${tierCode(tower)}`;
     const portrait = towerVisualSprite(tower).src;
     if (selectedPortrait.src !== portrait) selectedPortrait.src = portrait;
@@ -1013,16 +1017,18 @@
 
   function targetFor(tower) {
     let best = null;
-    let progress = -1;
+    let progress = -Infinity;
+    let priority = -Infinity;
     for (const enemy of enemies) {
       if (enemy.hp <= 0) continue;
-      if (distance(tower.x, tower.y, enemy.x, enemy.y) > tower.range) continue;
+      const range = distance(tower.x, tower.y, enemy.x, enemy.y);
+      if (range > tower.range) continue;
       const enemyProgress = enemy.pathIndex * 1000 - distance(enemy.x, enemy.y, path[enemy.pathIndex]?.x || enemy.x, path[enemy.pathIndex]?.y || enemy.y);
-      const stronger = tower.targetMode === "strong" && best && (enemy.maxHp || enemy.hp) > (best.maxHp || best.hp);
-      const equalStrength = tower.targetMode !== "strong" || !best || (enemy.maxHp || enemy.hp) === (best.maxHp || best.hp);
-      if (!best || stronger || equalStrength && enemyProgress > progress) {
+      const candidate = tower.targetMode === "strong" ? (enemy.maxHp || enemy.hp) : tower.targetMode === "last" ? -enemyProgress : tower.targetMode === "close" ? -range : enemyProgress;
+      if (!best || candidate > priority || candidate === priority && enemyProgress > progress) {
         best = enemy;
         progress = enemyProgress;
+        priority = candidate;
       }
     }
     return best;
@@ -2041,7 +2047,7 @@
   sellButton.addEventListener("click", sellSelected);
   targetModeButton.addEventListener("click", () => {
     if (!canManageTower() || movingTower || inspectedTower.type === "druid") return;
-    inspectedTower.targetMode = inspectedTower.targetMode === "strong" ? "first" : "strong";
+    inspectedTower.targetMode = targetModes[(targetModes.indexOf(inspectedTower.targetMode || "first") + 1) % targetModes.length];
     saveBuildCheckpoint();
     updateHud();
   });

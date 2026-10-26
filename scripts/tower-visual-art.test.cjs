@@ -458,9 +458,45 @@ test('Strong targeting focuses maximum health in range; First protects against a
   assert.equal(g.act('targetFor(towers[0])===enemies[0]'),true);
   g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('targetFor(towers[0])===enemies[1]'),true);
   g.act('beginMove();buildOrUpgrade(pads[1])');assert.equal(g.act('towers[0].targetMode'),'strong');
-  g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[0].targetMode'),'first');
+  for(let i=0;i<3;i++)g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[0].targetMode'),'first');
   g.act('selectTower("druid");buildOrUpgrade(pads[2])');assert.equal(g.nodes.get('#targetModeButton').disabled,true);
   g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[1].targetMode'),'first');
+});
+
+test('Last and Close targeting use road progress and tower distance with stable ties and range filtering',()=>{
+  const g=towerGame();g.act(`buildOrUpgrade(pads[0]);const t=towers[0];t.range=300;enemies.push(
+    {x:t.x+80,y:t.y,hp:20,maxHp:100,pathIndex:5},
+    {x:t.x+100,y:t.y,hp:20,maxHp:100,pathIndex:1},
+    {x:t.x+20,y:t.y,hp:20,maxHp:100,pathIndex:3},
+    {x:t.x+20,y:t.y,hp:0,maxHp:9999,pathIndex:0},
+    {x:t.x+301,y:t.y,hp:20,maxHp:9999,pathIndex:0})`);
+  g.act('towers[0].targetMode="last"');assert.equal(g.act('targetFor(towers[0])===enemies[1]'),true);
+  g.act('towers[0].targetMode="close"');assert.equal(g.act('targetFor(towers[0])===enemies[2]'),true);
+  g.act('enemies[1].x=towers[0].x+20');assert.equal(g.act('targetFor(towers[0])===enemies[2]'),true);
+  g.act('enemies[1].pathIndex=3');assert.equal(g.act('targetFor(towers[0])===enemies[1]'),true);
+  g.act('enemies[0].hp=0;enemies[1].hp=0;enemies[2].hp=0');assert.equal(g.act('targetFor(towers[0])'),null);
+});
+
+test('Target modes cycle with contextual hints, preserve combat cooldowns and respect pause and move guards',()=>{
+  const g=towerGame();g.act('buildOrUpgrade(pads[0]);startWave();towers[0].cooldown=.5');
+  for(const [mode,next] of [['strong','Last'],['last','Close'],['close','First'],['first','Strong']]) {
+    g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[0].targetMode'),mode);
+    assert.match(g.nodes.get('#targetModeHint').textContent,new RegExp('Tap for '+next));
+    assert.equal(g.act('towers[0].cooldown'),.5);
+  }
+  g.read('window.EmeraldArcade.isPaused=()=>true');g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[0].targetMode'),'first');
+  g.read('window.EmeraldArcade.isPaused=()=>false');g.act('state.waveActive=false;beginMove()');g.nodes.get('#targetModeButton').emit('click');assert.equal(g.act('towers[0].targetMode'),'first');
+});
+
+test('Last and Close targeting survive upgrades, moving and checkpoint resume; unknown modes are rejected',()=>{
+  for(const mode of ['last','close']) {
+    const g=towerGame();g.act(`state.shards=1000;buildOrUpgrade(pads[0]);towers[0].targetMode="${mode}";upgradeSelected("utility");beginMove();buildOrUpgrade(pads[1]);saveBuildCheckpoint()`);
+    const h=checkpointGame(g.saves);h.nodes.get('#resumeDefenseButton').emit('click');
+    assert.equal(h.act('towers[0].targetMode'),mode);assert.equal(h.act('towers[0].pad===pads[1]'),true);
+    assert.equal(h.act('towers[0].tiers.utility'),1);
+    const store=require('../pepe-tower-checkpoint.js');const saved=JSON.parse(g.saves.get(store.KEY));saved.towers[0].targetMode='random';
+    assert.equal(store.decode(JSON.stringify(saved),['pepe']),null);
+  }
 });
 
 test('Boss health and guard counter track the actual fixed wave queue without phantom reinforcements',()=>{
