@@ -36,6 +36,10 @@
   const waveReportSummary = document.querySelector("#waveReportSummary");
   const waveReportLeaks = document.querySelector("#waveReportLeaks");
   const waveReportAdvice = document.querySelector("#waveReportAdvice");
+  const waveScouting = document.querySelector("#waveScouting");
+  const scoutingTitle = document.querySelector("#scoutingTitle");
+  const scoutingRoster = document.querySelector("#scoutingRoster");
+  let scoutingWave = 0;
   const commandViews = { build: document.querySelector("#buildView"), manage: document.querySelector("#manageView"), intel: document.querySelector("#intelView") };
   const commandHint = document.querySelector("#commandHint");
   const nextWaveHint = document.querySelector("#nextWaveHint");
@@ -251,6 +255,28 @@
     const counts = {};
     for (const kind of plan.kinds) counts[kind] = (counts[kind] || 0) + 1;
     return `Wave ${plan.wave}/${CAMPAIGN_WAVES}: ${plan.name} - ${Object.entries(counts).map(([kind,count]) => `${count} ${enemyTypes[kind].name}${count === 1 ? "" : "s"}`).join(", ")}. Enemy health x${plan.hpScale.toFixed(2)}; ordinary arrivals at least ${plan.interval.toFixed(2)}s apart, with extra room for slow foes and a short gap every six.${encounterAdvice(plan)} Inspect, upgrade or move your towers before sending it.`;
+  }
+  // Scouting and spawning share the same starting stats; combat debuffs remain local to each enemy.
+  function enemyStartingStats(kind, plan) {
+    const spec = enemyTypes[kind];
+    const bossHealthScale = kind === "sovereign" ? .75 : kind === "tyrant" ? .9 : 1;
+    const hp = Math.round((spec.hp + Math.min(plan.wave, 20) * spec.growth) * plan.hpScale * bossHealthScale);
+    return { ...spec, hp, maxHp: hp, speed: spec.speed + Math.min(15, plan.wave) * spec.acceleration };
+  }
+  function scoutingRows(plan) {
+    const counts = {};
+    for (const kind of plan.kinds) counts[kind] = (counts[kind] || 0) + 1;
+    return Object.entries(counts).map(([kind, count]) => ({ kind, count, ...enemyStartingStats(kind, plan) }))
+      .sort((a, b) => Number(Boolean(b.boss)) - Number(Boolean(a.boss)));
+  }
+  function updateScouting() {
+    waveScouting.hidden = state.wave > CAMPAIGN_WAVES;
+    if (waveScouting.hidden || scoutingWave === state.wave) return;
+    const plan = currentWavePlan();
+    scoutingWave = state.wave;
+    scoutingTitle.textContent = `Wave ${plan.wave} roster · ${plan.count} foes`;
+    // All names, image paths and stats below come from the authored game catalog, never save input.
+    scoutingRoster.innerHTML = scoutingRows(plan).map(row => `<li><img src="${enemySprites[row.kind].src}" alt="" width="48" height="48"><div><strong>${row.name} ×${row.count}</strong><span>${row.hp.toLocaleString()} HP · ${Math.round(row.armor * 100)}% armor</span><span>${Math.round((row.slowResistance || 0) * 100)}% slow resistance · breach: ${row.breachDamage} HP</span></div></li>`).join("");
   }
   const mastery = loadMastery();
 
@@ -542,11 +568,8 @@
     const spawned = state.waveSpawnTotal - state.spawnLeft;
     const kind = plan.kinds[spawned];
     if (!kind) return;
-    const spec = enemyTypes[kind];
-    const bossHealthScale = kind === "sovereign" ? .75 : kind === "tyrant" ? .9 : 1;
-    const hp = Math.round((spec.hp + Math.min(state.wave,20) * spec.growth) * plan.hpScale * bossHealthScale);
-    enemies.push({ ...spec, x: path[0].x, y: path[0].y, pathIndex: 1, hp, maxHp: hp,
-      speed: spec.speed + Math.min(15, state.wave) * spec.acceleration,
+    const spec = enemyStartingStats(kind, plan);
+    enemies.push({ ...spec, x: path[0].x, y: path[0].y, pathIndex: 1,
       slowTimer: 0, slowStrength: 0, kind, isEscort: Boolean(plan.majorBoss && spawned > plan.bossIndex && spawned <= plan.bossIndex + plan.escort.length), spin: Math.random() * Math.PI * 2, hitFlash: 0 });
     const boss = spec.boss;
 
@@ -568,6 +591,7 @@
     campaignProgress.max = CAMPAIGN_WAVES;
     const brief = state.wave > CAMPAIGN_WAVES ? `Campaign complete - all ${CAMPAIGN_WAVES} waves defended.` : waveBrief(currentWavePlan());
     if (wavePreview.textContent !== brief) wavePreview.textContent = brief;
+    updateScouting();
     campaignProgress.value = cleared;
     campaignLabel.textContent = `${cleared} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} relic health`;
     campaignProgress.setAttribute("aria-valuetext", campaignLabel.textContent);

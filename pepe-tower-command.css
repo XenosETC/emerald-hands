@@ -179,7 +179,6 @@ body[data-game="tower"] .playfield > canvas { object-fit:contain; }
 }
 
 body[data-game="tower"] #targetModeButton { grid-column:1 / -1; min-height:44px; border-color:#8ddfbc; }
-body[data-game="tower"] #targetModeButton[aria-pressed="true"] { background:#31533e; color:#efffbb; }
 body[data-game="tower"] #bossHealth { display:grid; gap:3px; }
 body[data-game="tower"] #bossHealth[hidden], body[data-game="tower"] #bossHealthBar[hidden] { display:none; }
 body[data-game="tower"] #bossHealthLabel { font-size:.68rem; color:#e8cba2; line-height:1.35; }
@@ -203,3 +202,14 @@ body[data-game="tower"] .wave-report p { font-size:.74rem; line-height:1.5; marg
 body[data-game="tower"] .wave-report[data-damaged="true"] { border-color:#cb9d64; }
 body[data-game="tower"] #waveReportSummary { color:#f1d99f; font-weight:700; }
 body[data-game="tower"] .command-tabs [data-has-report="true"]::after { content:""; display:inline-block; width:5px; height:5px; border-radius:50%; background:#8bffba; vertical-align:middle; margin-left:3px; }
+body[data-game="tower"] .wave-scouting { margin-bottom:12px; }
+body[data-game="tower"] .wave-scouting[hidden] { display:none; }
+body[data-game="tower"] .wave-scouting h2 { margin:0 0 5px; color:#d8efb3; font-size:.95rem; }
+body[data-game="tower"] .wave-scouting > p { margin:0 0 8px; color:#b8d7c6; font-size:.7rem; line-height:1.45; }
+body[data-game="tower"] #scoutingRoster { display:grid; gap:6px; list-style:none; margin:0; padding:0; }
+body[data-game="tower"] #scoutingRoster li { display:flex; gap:8px; align-items:center; padding:8px; border:1px solid #5eab8055; border-radius:9px; background:#0b281de6; }
+body[data-game="tower"] #scoutingRoster img { flex:0 0 48px; object-fit:contain; }
+body[data-game="tower"] #scoutingRoster div { min-width:0; }
+body[data-game="tower"] #scoutingRoster strong, body[data-game="tower"] #scoutingRoster span { display:block; font-size:.7rem; line-height:1.5; overflow-wrap:anywhere; }
+body[data-game="tower"] #scoutingRoster strong { color:#e6efc6; font-size:.77rem; }
+body[data-game="tower"] #scoutingRoster span { color:#c1dbc9; }

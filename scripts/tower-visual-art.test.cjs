@@ -100,6 +100,48 @@ function towerGame() {
   return g;
 }
 
+test('Every scouting roster matches every actual spawn across all fifty waves',()=>{
+  const g=towerGame();
+  g.act(`for (const plan of wavePlans) {
+    state.wave=plan.wave;state.waveSpawnTotal=plan.count;state.spawnLeft=plan.count;enemies.length=0;
+    for(let i=0;i<plan.count;i++){spawnEnemy();state.spawnLeft--;}
+    const rows=scoutingRows(plan);
+    if(rows.reduce((sum,row)=>sum+row.count,0)!==plan.count)throw new Error('roster count');
+    for(const row of rows){
+      const spawned=enemies.filter(e=>e.kind===row.kind);
+      if(spawned.length!==row.count)throw new Error('kind count');
+      for(const e of spawned)for(const field of ['hp','maxHp','armor','slowResistance','breachDamage','speed'])
+        if(e[field]!==row[field])throw new Error('scout mismatch '+plan.wave+' '+row.kind+' '+field);
+      const spec=enemyTypes[row.kind],scale=row.kind==='sovereign'?.75:row.kind==='tyrant'?.9:1;
+      if(row.hp!==Math.round((spec.hp+Math.min(plan.wave,20)*spec.growth)*plan.hpScale*scale))throw new Error('health changed');
+      if(row.speed!==spec.speed+Math.min(15,plan.wave)*spec.acceleration)throw new Error('speed changed');
+    }
+  }`);
+});
+
+test('Scouting shows starting stats despite damage and debuffs, updates at build breaks and hides after victory',()=>{
+  const g=towerGame();g.act('state.wave=35;updateHud()');
+  assert.equal(g.nodes.get('#scoutingTitle').textContent,'Wave 35 roster · 74 foes');
+  const roster=g.nodes.get('#scoutingRoster').innerHTML;
+  assert.match(roster,/Jade Tyrant ×1/);assert.match(roster,/25% armor/);assert.match(roster,/25% slow resistance · breach: 6 HP/);
+  assert.equal(g.act('scoutingRows(currentWavePlan())[0].kind'),'tyrant');
+  assert.match(roster,/40% armor/);assert.match(roster,/60% slow resistance/);
+  g.act('startWave();enemies[0].hp=1;enemies[0].armor=0;updateHud()');assert.equal(g.nodes.get('#scoutingRoster').innerHTML,roster);
+  g.act('state.wave=36;state.waveActive=false;updateHud()');assert.match(g.nodes.get('#scoutingTitle').textContent,/Wave 36 roster/);
+  assert.doesNotMatch(g.nodes.get('#scoutingRoster').innerHTML,/Jade Tyrant/);
+  g.act('state.wave=51;updateHud()');assert.equal(g.nodes.get('#waveScouting').hidden,true);
+  g.act('state.playing=false');g.start();assert.equal(g.nodes.get('#waveScouting').hidden,false);assert.match(g.nodes.get('#scoutingTitle').textContent,/Wave 1 roster/);
+});
+
+test('Scouting is derived from the resumed wave, without adding saved combat or progression state',()=>{
+  const g=towerGame();g.act('state.wave=50;saveBuildCheckpoint()');
+  const h=checkpointGame(g.saves);h.nodes.get('#resumeDefenseButton').emit('click');
+  assert.match(h.nodes.get('#scoutingTitle').textContent,/Wave 50 roster · 88 foes/);
+  assert.match(h.nodes.get('#scoutingRoster').innerHTML,/Relic Sovereign ×1/);
+  assert.match(h.nodes.get('#scoutingRoster').innerHTML,/30% armor/);
+  assert.match(h.nodes.get('#scoutingRoster').innerHTML,/40% slow resistance · breach: 10 HP/);
+});
+
 test('All eight ordinary towers select coherent tier-3 and Long Watch visuals from their actual path state',()=>{
   for(const type of ['pepe','shard','relic','mage','archer','alchemist','ballista','druid']) {
     const g=towerGame();g.act(`state.shards=10000;selectTower("${type}");buildOrUpgrade(pads[0])`);
