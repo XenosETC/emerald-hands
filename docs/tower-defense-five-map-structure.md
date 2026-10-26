@@ -1,5 +1,7 @@
 # Pepe Tower Defense: five-map structure
 
+Scope update: the user subsequently requested Emerald Celestial Hall as Map 05, bringing the roster to six including Classic. The modular map/save/routing structure below still applies. Celestial uses a single route and can join the single-route integration pass; it is a generated asset rather than a playable map today. Classic also has a new fully painted road/foundation/relic candidate, documented in assets/pepe-tower-defense/CELESTIAL_AND_CLASSIC_ART.md; it requires geometry and renderer alignment before activation.
+
 Status: implementation direction and assumptions, not a claim of completed multi-map support. User selected Classic plus Delta, Quarry, Grove and Harbor. Current executable changes only refresh Classic's background. The four new map illustrations are selected art references awaiting geometry, integration and validation.
 
 ## Player structure

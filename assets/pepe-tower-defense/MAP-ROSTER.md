@@ -21,6 +21,16 @@ Generation briefs and inspection notes: map-concepts-v3/README.md.
 
 ## Classic - Emerald Courtyard
 
-The original map remains the fifth battleground, with stable identity `courtyard`. Its background is refreshed to emerald-vault-courtyard-v2.png while the original path, nine pads, relic placement, simulation and saves remain unchanged. No renumbering of Delta is needed.
+The original map has stable identity `courtyard`. Its current runtime background is emerald-vault-courtyard-v2.png while the original path, nine pads, relic placement, simulation and saves remain unchanged. The selected next art direction is emerald-vault-courtyard-v3-baked.png, including road, nine empty foundations and relic in the image. Align geometry and remove duplicate live base drawings before switching to that asset. No renumbering of Delta is needed.
+
+## Map 05 - Emerald Celestial Hall
+
+Requested by the user as one additional map. The roster now contains six battlegrounds: Classic plus Maps 01-05.
+
+- Selected art: emerald-celestial-hall-v1.png.
+- Identity: a jade/gold celestial palace with central emerald orrery, ivory processional road and upper-right relic.
+- Corrected route: left entry, upper sweep, descent just right of the orrery, lower-right U-turn, ascent to relic. The disconnected lower-edge road in the initial generation was rejected and removed by imagegen.
+- Status: generated map asset, runtime geometry and validation pending. Seven visible empty foundations in the corrected image; do not assume nine or invent hidden pads.
+- Prompt/inspection notes: CELESTIAL_AND_CLASSIC_ART.md.
 
 Game structure and proposed implementation order: ../../docs/tower-defense-five-map-structure.md.
