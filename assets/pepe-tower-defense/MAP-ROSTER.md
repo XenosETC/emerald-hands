@@ -27,10 +27,10 @@ The original map has stable identity `courtyard`. Its current runtime background
 
 Requested by the user as one additional map. The roster now contains six battlegrounds: Classic plus Maps 01-05.
 
-- Selected art: emerald-celestial-hall-v1.png.
-- Identity: a jade/gold celestial palace with central emerald orrery, ivory processional road and upper-right relic.
+- Selected art: emerald-celestial-hall-v2.png. The prior v1 is preserved as an earlier revision.
+- Identity: a jade/gold celestial palace with a compact crescent-and-comet centerpiece, ivory processional road and upper-right relic.
 - Corrected route: left entry, upper sweep, descent just right of the orrery, lower-right U-turn, ascent to relic. The disconnected lower-edge road in the initial generation was rejected and removed by imagegen.
-- Status: generated map asset, runtime geometry and validation pending. Seven visible empty foundations in the corrected image; do not assume nine or invent hidden pads.
+- Status: generated map asset, runtime geometry and validation pending. The v2 image has nine visible empty build foundations, reorganized beside the route. The oversized central orb/platform was removed; the small centerpiece is decorative and the upper-right shrine remains the objective.
 - Prompt/inspection notes: CELESTIAL_AND_CLASSIC_ART.md.
 
 Game structure and proposed implementation order: ../../docs/tower-defense-five-map-structure.md.

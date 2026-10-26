@@ -4,15 +4,21 @@ Created/edited with built-in imagegen, as requested. Originals preserved in C:/U
 
 ## Emerald Celestial Hall
 
-Selected file: emerald-celestial-hall-v1.png. Selected generated output: exec-2526a557-bb27-42dd-8a55-751a3fbdcfd6.png.
+Selected file: emerald-celestial-hall-v2.png. Selected generated output: exec-1808e1c1-981c-49ee-a924-ce88369670de.png. Earlier road-corrected v1 (exec-2526a557-bb27-42dd-8a55-751a3fbdcfd6.png) is preserved.
 
-Identity: jade/gold celestial palace suspended above a turquoise astral void, frog guardians, hanging lanterns, a low central emerald orrery, ivory/gold processional road and upper-right emerald relic. The road, foundations and relic are painted into the environment. Delta was supplied as camera/art-quality reference only; relic-base-v1.webp was a design reference.
+Identity: jade/gold celestial palace suspended above a turquoise astral void, frog guardians, hanging lanterns, a small crescent-and-comet centerpiece, ivory/gold processional road and upper-right emerald relic. The road, foundations and relic are painted into the environment. Delta was supplied as camera/art-quality reference only; relic-base-v1.webp was a design reference.
 
 Initial generation exec-7e3cbe2c-0ad2-4301-b6d3-d85cfff4df9d.png contained disconnected lower road portions. The user explicitly requested a road fix. That image is rejected as a final deliverable.
 
 Final edit brief: keep architecture, orrery, palette, camera and upper-right relic. One continuous road from left at roughly 53% height, up the left, across upper floor, down just right of orrery around x66%, U-turn right at lower-right, then up the rightmost lane around x83% to relic. Connect both right-side vertical lanes with constant-width ivory/gold road. Remove the old lower-left curling road and its bottom-border entrance completely, replacing with jade floor/gold inlays. No branches, road gaps, dead ends or lower-border road. Move only a directly obstructing lower pad if needed. Preserve other scenery; no labels/UI.
 
-Visual inspection: the selected road is traceable from left entrance across upper floor, down and around the lower-right bend, then up to the relic. There are seven visible empty foundations after the correction. Nine were originally requested, but the observed image is authoritative; design a seven-pad candidate or request a further art edit before deciding otherwise. No geometry collision, route-time, balance or mobile runtime approval is claimed.
+Earlier v1 inspection found seven empty foundations after the road correction. The user asked to organize the pads and replace the oversized middle display with a smaller feature. V2 supersedes that seven-pad design.
+
+V2 edit brief: remove the huge central green globe, orbital cage, broad platform and surrounding low wall; restore open jade floor and add a tiny pale-jade comet fragment in a delicate gold crescent on a low pedestal, about one pad in footprint. Keep the upper-right objective shrine. Request nine uniform low empty foundations near normalized centers (26%,40%), (30%,19%), (46%,18%), (69%,19%), (59%,45%), (74%,38%), (75%,56%), (65%,78%), (77%,79%), with road/border clearance. Preserve the continuous road, architecture and palette. The first v2 output (exec-fdf3ef99-89ec-4665-a0ba-790d38dd29b7.png) retained an extra old lower-left pad, making ten; it was rejected. A second imagegen edit removed only that stray pad at roughly (34%,63%), replacing it with matching floor/inlays and preserving the other nine.
+
+Final visual inspection: nine empty foundations are visible: three above the upper road, one inside the left rise, one left of the center-right descent, two between the final vertical road sections, and two below the U-turn. The small central ornament is not a build pad or gameplay destination. The road is traceable from the left entrance across upper floor, down around the lower-right U, then up to the objective. No geometry collision, route-time, balance or mobile runtime approval is claimed. This is an art revision, not a live-game update.
+
+For later authoring, approximate observed pad centers in the displayed 1672x941 reference are (455,400), (502,204), (835,203), (1158,204), (1006,420), (1230,355), (1255,535), (1075,720), (1265,754). These are hand-estimated visual guides, not authoritative engine coordinates or measured sprite-clearance proof. Reconcile against the actual image dimensions and world transform before runtime integration.
 
 ## Emerald Vault Courtyard v3 - complete painted map
 
