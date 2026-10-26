@@ -979,3 +979,40 @@ test('Arrival forecast scales ETA with speed, keeps boss guards together, and re
   g.read('window.EmeraldArcade.isPaused=()=>true');g.act('updateHud()');assert.match(g.nodes.get('#arrivalHint').textContent,/Paused/);
   g.act('state.playing=false;updateHud()');assert.equal(g.nodes.get('#arrivalPanel').hidden,true);
 });
+
+test('Relic approach reads road distance across all maps and lanes without mutating combat',()=>{
+  for(const map of [...require('../pepe-tower-maps.js').maps,require('../pepe-tower-maps.js').legacy]){
+    const g=checkpointGame();g.act(`applyMap(mapCatalog.get('${map.id}',${map.version}));resetGame();startWave();enemies.length=0`);
+    g.act(`activeMap.routes.forEach((route,routeId)=>{const end=route.at(-1);enemies.push({kind:'shieldbearer',hp:100,breachDamage:3,routeId,pathIndex:route.length-1,x:end.x,y:end.y});
+      enemies.push({kind:'grunt',hp:0,breachDamage:1,routeId,pathIndex:route.length-1,x:end.x,y:end.y});
+      enemies.push({kind:'sovereign',hp:100,breachDamage:10,routeId,pathIndex:1,x:end.x,y:end.y});});`);
+    const before=g.act('JSON.stringify([state,enemies,towers])'),saved=JSON.stringify([...g.saves]);
+    assert.equal(g.act('relicApproach().count'),map.routes.length);
+    assert.equal(g.act('relicApproach().damage'),map.routes.length*3);
+    assert.equal(g.act('relicApproach().lanes.every(n=>n===1)'),true);
+    g.act('updateHud()');assert.equal(g.nodes.get('#relicStatus').dataset.threat,'near');
+    assert.equal(g.act('JSON.stringify([state,enemies,towers])'),before);assert.equal(JSON.stringify([...g.saves]),saved);assert.equal(g.records.length,0);
+    g.act('state.vault=3;updateHud()');assert.equal(g.nodes.get('#relicStatus').dataset.threat,'critical');
+    assert.match(g.nodes.get('#relicThreatSummary').textContent,/if all breach/);
+    if(map.routes.length>1)assert.match(g.nodes.get('#relicThreatSummary').textContent,/Upper: 1, lower: 1/);
+  }
+});
+
+test('Relic approach boundary, defeat, pause, wave completion and map reset stay coherent',()=>{
+  const g=towerGame();g.act(`startWave();enemies.length=0;const end=path.at(-1);enemies.push({kind:'boss',hp:100,pathIndex:path.length-1,x:end.x-180,y:end.y});`);
+  assert.equal(g.act('relicApproach().count'),1);assert.equal(g.act('relicApproach().damage'),4);
+  g.act('enemies[0].x-=.01');assert.equal(g.act('relicApproach().count'),0);
+  g.act('enemies[0].x+=.01;updateHud()');assert.equal(g.nodes.get('#vaultCaption').textContent,'HP \u00b7 1 near');
+  g.read('window.EmeraldArcade.isPaused=()=>true');const before=g.act('JSON.stringify([state,enemies])');g.act('advanceDefense(.025);updateHud()');assert.equal(g.act('JSON.stringify([state,enemies])'),before);assert.equal(g.nodes.get('#relicStatus').dataset.threat,'near');
+  g.act('enemies[0].hp=0;updateHud()');assert.equal(g.nodes.get('#relicStatus').dataset.threat,'clear');assert.equal(g.nodes.get('#vaultCaption').textContent,'relic HP');assert.equal(g.nodes.get('#relicThreatSummary').hidden,true);
+  g.act('enemies[0].hp=100;state.waveActive=false;updateHud()');assert.equal(g.act('relicApproach().count'),0);
+  g.act('state.waveActive=true;state.playing=false;updateHud()');assert.equal(g.act('relicApproach().count'),0);
+  g.read('window.EmeraldArcade.isPaused=()=>false');g.act('resetGame();updateHud()');assert.equal(g.nodes.get('#relicStatus').dataset.threat,'clear');
+});
+
+test('Relic approach uses the exact breach damage deducted by actual movement',()=>{
+  for(const kind of ['grunt','elite','boss','warboss','shieldbearer','tyrant','sovereign']){
+    const g=towerGame();g.act(`startWave();enemies.length=0;const end=path.at(-1);enemies.push({...enemyTypes['${kind}'],kind:'${kind}',hp:100,pathIndex:path.length-1,x:end.x-1,y:end.y,slowTimer:0,acidTimer:0,spin:0});`);
+    const damage=g.act('relicApproach().damage');g.act('updateEnemies(1);updateHud()');assert.equal(g.act('state.vault'),100-damage,kind);assert.equal(g.act('relicApproach().count'),0);
+  }
+});

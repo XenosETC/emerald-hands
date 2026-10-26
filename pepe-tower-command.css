@@ -268,3 +268,13 @@ body[data-game="tower"] .pad-controls[data-pad-count="8"] > div { grid-template-
   body[data-game="tower"] .overlay { align-content:start; }
   body[data-game="tower"] .overlay #overlayText, body[data-game="tower"] .overlay #mapRecord { display:none; }
 }
+
+/* Text counts accompany color; no flashing or new overlay blocks the road. */
+body[data-game="tower"] #relicStatus[data-threat="near"] { border-color:#dab67a; background:#332915; }
+body[data-game="tower"] #relicStatus[data-threat="critical"] { border-color:#ff8590; background:#431d28; }
+body[data-game="tower"] #relicStatus[data-threat="near"] span { color:#ffe2a7; }
+body[data-game="tower"] #relicStatus[data-threat="critical"] span { color:#ffc1c7; }
+body[data-game="tower"] #arrivalPanel #relicThreatSummary { padding:6px; border-left:3px solid #dab67a; color:#ffe2a7; }
+body[data-game="tower"] #arrivalPanel #relicThreatSummary[data-threat="critical"] { border-color:#ff8590; color:#ffc1c7; }
+body[data-game="tower"] #relicThreatSummary[hidden] { display:none; }
+body[data-game="tower"] #vaultCaption { letter-spacing:0; text-transform:none; white-space:nowrap; }

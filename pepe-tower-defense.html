@@ -20,7 +20,7 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
-    <link rel="stylesheet" href="pepe-tower-command.css?v=arrivals-1">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=relic-approach-1">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -41,7 +41,7 @@
             <div><span id="scoreLabel">0</span><small>score</small></div>
             <div><span id="shardLabel">180</span><small>shards</small></div>
             <div><span id="waveLabel">1</span><small>wave</small></div>
-            <div><span id="vaultLabel">100</span><small>relic HP</small></div>
+            <div id="relicStatus" data-threat="clear"><span id="vaultLabel">100</span><small id="vaultCaption">relic HP</small></div>
             <div><span id="bestLabel">0</span><small>best</small></div>
           </section>
 
@@ -118,7 +118,7 @@
 
         <p class="tower-panel__hint">Defense shards are this run's build currency. Move to any empty pad between waves; level, path and attack cooldown stay with the tower. Selling refunds 70% of its total investment. One path can reach tier 5, another tier 2; the third locks. Sell and rebuild to reset paths. Combat records count health removed after armor, including splash, traps and abilities. Slow and armor-weakening support are not scored.</p>
       </section></section>
-          <section class="command-view" id="intelView" aria-label="Wave and enemy intelligence" hidden><section id="arrivalPanel" aria-labelledby="arrivalTitle" hidden><h2 id="arrivalTitle">Opening arrivals</h2><p id="arrivalSummary"></p><progress id="arrivalProgress" aria-label="Wave resolved" value="0" max="1"></progress><ol id="arrivalQueue" aria-label="Next scheduled arrivals"></ol><p id="arrivalHint"></p></section><section class="wave-report" id="waveReport" aria-label="Last wave report" hidden><h2 id="waveReportTitle">Last wave</h2><p id="waveReportSummary"></p><p id="waveReportLeaks"></p><p id="waveReportAdvice"></p></section><section class="wave-scouting" id="waveScouting" aria-labelledby="scoutingTitle"><h2 id="scoutingTitle">Wave roster</h2><p>Full scheduled roster and starting stats for this wave. Armor reduces damage; slow resistance reduces slow strength. Combat damage and acid can change live values.</p><ul id="scoutingRoster"></ul></section><section class="wave-brief" aria-labelledby="waveBriefTitle"><h2 id="waveBriefTitle">Wave intelligence</h2><p id="wavePreview"></p>
+          <section class="command-view" id="intelView" aria-label="Wave and enemy intelligence" hidden><section id="arrivalPanel" aria-labelledby="arrivalTitle" hidden><h2 id="arrivalTitle">Opening arrivals</h2><p id="arrivalSummary"></p><p id="relicThreatSummary" hidden></p><progress id="arrivalProgress" aria-label="Wave resolved" value="0" max="1"></progress><ol id="arrivalQueue" aria-label="Next scheduled arrivals"></ol><p id="arrivalHint"></p></section><section class="wave-report" id="waveReport" aria-label="Last wave report" hidden><h2 id="waveReportTitle">Last wave</h2><p id="waveReportSummary"></p><p id="waveReportLeaks"></p><p id="waveReportAdvice"></p></section><section class="wave-scouting" id="waveScouting" aria-labelledby="scoutingTitle"><h2 id="scoutingTitle">Wave roster</h2><p>Full scheduled roster and starting stats for this wave. Armor reduces damage; slow resistance reduces slow strength. Combat damage and acid can change live values.</p><ul id="scoutingRoster"></ul></section><section class="wave-brief" aria-labelledby="waveBriefTitle"><h2 id="waveBriefTitle">Wave intelligence</h2><p id="wavePreview"></p>
         <div class="goblin-guide"><article><img src="assets/pepe-tower-defense/jade-tyrant-v1.webp" width="64" height="64" alt="Jade Tyrant boss"><div><h3>Jade Tyrant - wave 35</h3><p>25% armor, 25% slow resistance; breach: 6. Two shieldbearers and two specters follow at 1.1s intervals. Ballista and acid counter his armor.</p></div></article><article><img src="assets/pepe-tower-defense/relic-sovereign-v1.webp" width="64" height="64" alt="Relic Sovereign final boss"><div><h3>Relic Sovereign - wave 50</h3><p>Final boss: 30% armor, 40% slow resistance; breach: 10. Two shieldbearers, one brute and three specters follow at 1.1s intervals. Use Strong for boss damage and First for leaks. Clear the whole wave to win.</p></div></article><article><img src="assets/pepe-tower-defense/goblin-shieldbearer-v1.webp" width="64" height="64" alt="Armored goblin shieldbearer"><div><h3>Shieldbearer - wave 21+</h3><p>40% armor; breach: 3 relic health. Alchemist acid and concentrated fire break the shield wall.</p></div></article><article><img src="assets/pepe-tower-defense/emerald-specter-v1.webp" width="64" height="64" alt="Violet and emerald specter"><div><h3>Emerald specter - wave 26+</h3><p>Fast; reduces the strength of slows by 60%. Rapid lasers and long-range damage stop it. Breach: 1 relic health.</p></div></article><article><img src="assets/pepe-tower-defense/goblin-raider-v1.webp" width="64" height="64" alt="Dagger-wielding goblin raider"><div><h3>Goblin raider - wave 3+</h3><p>Fast, low health. Rapid-fire towers and slowing fields stop a rush. Breach: 1 relic health.</p></div></article>
         <article><img src="assets/pepe-tower-defense/goblin-brute-v1.webp" width="64" height="64" alt="Armored goblin brute with hammer and shield"><div><h3>Goblin brute - wave 7+</h3><p>20% damage resistance, slower movement. Slow and focus fire. Breach: 2. The wave 20 warboss resists 25% and deals 5 breach damage; two brutes and two raiders follow at 1.1s intervals.</p></div></article></div>
         <p class="tower-panel__hint">50 waves. Bosses every 5 waves; major bosses on 20, 35 and 50, with fixed guard formations on all three major waves. Shieldbearers from wave 21; slow-resistant specters from wave 26. Health and formation density rise gradually; enemy speed growth caps at wave 15. Each cleared wave gives a build break.</p>
@@ -137,7 +137,7 @@
 
     <script src="arcade.js?v=13"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepe-tower-maps.js?v=placement-1"></script><script src="pepe-tower-checkpoint.js?v=maps-1"></script><script src="pepe-tower-defense.js?v=arrivals-20261026"></script>
+    <script src="pepe-tower-maps.js?v=placement-1"></script><script src="pepe-tower-checkpoint.js?v=maps-1"></script><script src="pepe-tower-defense.js?v=relic-approach-20261026"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

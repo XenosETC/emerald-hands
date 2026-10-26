@@ -40,6 +40,9 @@
   const shardLabel = document.querySelector("#shardLabel");
   const waveLabel = document.querySelector("#waveLabel");
   const vaultLabel = document.querySelector("#vaultLabel");
+  const relicStatus = document.querySelector("#relicStatus");
+  const vaultCaption = document.querySelector("#vaultCaption");
+  const relicThreatSummary = document.querySelector("#relicThreatSummary");
   const bestLabel = document.querySelector("#bestLabel");
   const statusLabel = document.querySelector("#statusLabel");
   const statusMeta = document.querySelector("#statusMeta");
@@ -267,6 +270,37 @@
   function encounterAdvice(plan) {
     if (!plan.majorBoss) return "";
     return ` ${enemyTypes[plan.majorBoss].name} arrives halfway through with ${plan.escort.length} guards, 1.1s apart. Ballista + Alchemist crack armor; Strong targeting focuses the boss. Keep splash, thorns and slows on guards; specters resist slows. No reinforcements beyond this preview.`;
+  }
+  function enemyBreachDamage(enemy) {
+    return enemy.breachDamage ?? ((enemy.boss || enemy.kind === "boss") ? 4 : enemy.kind === "elite" ? 2 : 1);
+  }
+  // Read the remaining road, not straight-line proximity across a switchback.
+  // This warning does not predict whether defenders will stop an approaching foe.
+  function relicApproach() {
+    const result = { count: 0, damage: 0, lanes: activeMap.routes.map(() => 0) };
+    if (!state.playing || !state.waveActive) return result;
+    for (const enemy of enemies) {
+      const lane = enemy.routeId || 0;
+      const route = activeMap.routes[lane] || path;
+      if (enemy.hp <= 0 || !Number.isInteger(enemy.pathIndex) || enemy.pathIndex < 0 || !Number.isFinite(enemy.x) || !Number.isFinite(enemy.y) || mapCatalog.remaining(enemy, route) > 180) continue;
+      result.count++;
+      result.damage += enemyBreachDamage(enemy);
+      result.lanes[lane]++;
+    }
+    return result;
+  }
+  function updateRelicApproach() {
+    const threat = relicApproach();
+    const danger = threat.count > 0 && threat.damage >= state.vault;
+    const lanes = activeMap.routes.length > 1 ? ` Upper: ${threat.lanes[0]}, lower: ${threat.lanes[1]}.` : "";
+    const detail = threat.count ? `${danger ? "Relic in danger" : "Relic approach"}: ${threat.count} ${threat.count === 1 ? "enemy" : "enemies"} nearby. ${threat.damage} HP damage if all breach.${lanes} Defenders can still stop them.` : "No enemies in the final approach to the relic.";
+    relicStatus.dataset.threat = danger ? "critical" : threat.count ? "near" : "clear";
+    relicStatus.title = detail;
+    relicStatus.setAttribute("aria-label", `${state.vault} relic HP. ${detail}`);
+    vaultCaption.textContent = threat.count ? `HP · ${threat.count} near` : "relic HP";
+    relicThreatSummary.hidden = !threat.count;
+    relicThreatSummary.textContent = detail;
+    relicThreatSummary.dataset.threat = relicStatus.dataset.threat;
   }
   function arrivalForecast(plan = currentWavePlan()) {
     const active=state.waveActive;
@@ -709,6 +743,7 @@
     campaignLabel.textContent = `${cleared} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} relic health`;
     campaignProgress.setAttribute("aria-valuetext", campaignLabel.textContent);
     vaultLabel.textContent = state.vault;
+    updateRelicApproach();
     bestLabel.textContent = format(state.best);
     const deployedHeroes = towers.filter(tower => tower.type === "hero");
     heroAbility.hidden = !deployedHeroes.length;
@@ -1185,7 +1220,7 @@
         enemy.pathIndex += 1;
         if (enemy.pathIndex >= path.length) {
           enemies.splice(i, 1);
-          const damage = enemy.breachDamage ?? ((enemy.boss || enemy.kind === "boss") ? 4 : enemy.kind === "elite" ? 2 : 1);
+          const damage = enemyBreachDamage(enemy);
           const before = state.vault;
           state.vault = Math.max(0, state.vault - damage);
           if (waveMetrics) { waveMetrics.leaks[enemy.kind] = (waveMetrics.leaks[enemy.kind] || 0) + 1; waveMetrics.hpLost += before - state.vault; }
