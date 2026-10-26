@@ -8,16 +8,19 @@
   const integer = (n, min, max) => Number.isSafeInteger(n) && n >= min && n <= max;
   const number = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
 
-  function normalize(value, types, enemyKinds = []) {
-    if (!value || value.version !== 1 || !integer(value.wave, 1, 50) ||
+  function normalize(value, types, enemyKinds = [], map = null) {
+    const modern = value?.version === 2;
+    const padCount = modern ? map?.pads?.length : 9;
+    if (modern && (!map || !Number.isSafeInteger(padCount) || padCount < 1 || value.mapId !== map.id || value.layoutVersion !== map.version)) return null;
+    if (!value || !(modern || value.version === 1) || !integer(value.wave, 1, 50) ||
         !integer(value.score, 0, Number.MAX_SAFE_INTEGER) || !integer(value.shards, 0, Number.MAX_SAFE_INTEGER) ||
         !integer(value.vault, 1, 100) || !types.includes(value.selectedTower) ||
         !Array.isArray(value.heroNovaCooldowns) || value.heroNovaCooldowns.length !== 2 ||
         !value.heroNovaCooldowns.every(n => number(n, 0, 20)) ||
-        !Array.isArray(value.towers) || value.towers.length > 9) return null;
+        !Array.isArray(value.towers) || value.towers.length > padCount) return null;
     const pads = new Set(), slots = new Set(), towers = [];
     for (const tower of value.towers) {
-      if (!tower || !types.includes(tower.type) || !integer(tower.pad, 0, 8) || pads.has(tower.pad) ||
+      if (!tower || !types.includes(tower.type) || !integer(tower.pad, 0, padCount - 1) || pads.has(tower.pad) ||
           !tower.tiers || !paths.every(key => integer(tower.tiers[key], 0, 5)) ||
           paths.filter(key => tower.tiers[key] > 0).length > 2 ||
           paths.filter(key => tower.tiers[key] > 2).length > 1 ||
@@ -44,11 +47,11 @@
           report.defeated + entries.reduce((sum,[,count]) => sum+count, 0) > 88) return null;
       lastWaveReport = { wave: report.wave, cleared: report.cleared, defeated: report.defeated, hpLost: report.hpLost, leaks: Object.fromEntries(entries) };
     }
-    return { version: 1, wave: value.wave, score: value.score, shards: value.shards, vault: value.vault,
+    return { version: modern ? 2 : 1, ...(modern ? {mapId:map.id,layoutVersion:map.version} : {}), wave: value.wave, score: value.score, shards: value.shards, vault: value.vault,
       selectedTower: value.selectedTower, heroNovaCooldowns: [...value.heroNovaCooldowns], towers, lastWaveReport };
   }
-  function decode(raw, types, enemyKinds = []) {
-    try { return typeof raw === "string" && raw.length <= 16000 ? normalize(JSON.parse(raw), types, enemyKinds) : null; }
+  function decode(raw, types, enemyKinds = [], map = null) {
+    try { return typeof raw === "string" && raw.length <= 16000 ? normalize(JSON.parse(raw), types, enemyKinds,map) : null; }
     catch { return null; }
   }
   return { KEY, normalize, decode };

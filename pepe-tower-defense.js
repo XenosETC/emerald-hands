@@ -6,6 +6,13 @@
   const resumeButton = document.querySelector("#resumeDefenseButton");
   const checkpointHint = document.querySelector("#checkpointHint");
   const checkpointStore = window.EmeraldTowerCheckpoint;
+  const mapCatalog = window.EmeraldTowerMaps;
+  const mapSelect = document.querySelector("#mapSelect");
+  const mapDescription = document.querySelector("#mapDescription");
+  const mapRecord = document.querySelector("#mapRecord");
+  const mapLabel = document.querySelector("#mapLabel");
+  const mapMenuButton = document.querySelector("#mapMenuButton");
+  const routePreviewToggle = document.querySelector("#routePreviewToggle");
   let resumeCheckpoint = null;
   const overlayTitle = document.querySelector("#overlayTitle");
   const overlayText = document.querySelector("#overlayText");
@@ -78,8 +85,7 @@
   const MASTERY_KEY = "pepe-tower-defense-mastery-v1";
   const pepe = new Image();
   pepe.src = "assets/pepecoin-run/pepecoin-classic.png";
-  const courtyard = loadImage("assets/pepe-tower-defense/emerald-vault-courtyard-v2.png");
-  courtyard.addEventListener("load", () => { if (!state.playing) draw(); });
+  let courtyard;
   const relicBaseSprite = loadImage("assets/pepe-tower-defense/relic-base-v1.webp");
   relicBaseSprite.addEventListener("load", () => { if (!state.playing) draw(); });
   const flame = new Image();
@@ -140,28 +146,23 @@
   };
 
   const RELIC_MAX_HEALTH = 100;
-  const relicBase = { x: 1185, y: 404 };
+  let rememberedMap;
+  try { rememberedMap = localStorage.getItem("pepe-tower-defense-selected-map"); } catch { /* default map */ }
+  let activeMap = mapCatalog.get(rememberedMap) || mapCatalog.maps[0];
+  let relicBase = activeMap.relic;
+  let path = activeMap.routes[0];
+  let pads = activeMap.pads;
   let relicHitFlash = 0;
-
-  const path = [
-    { x: 34, y: 345 },
-    { x: 170, y: 345 },
-    { x: 170, y: 170 },
-    { x: 440, y: 170 },
-    { x: 440, y: 468 },
-    { x: 755, y: 468 },
-    { x: 755, y: 238 },
-    { x: 1035, y: 238 },
-    { x: 1035, y: 404 },
-    relicBase,
-  ];
-
-  const pads = [
-    { x: 230, y: 260 }, { x: 310, y: 430 }, { x: 515, y: 285 },
-    { x: 585, y: 552 }, { x: 720, y: 366 }, { x: 850, y: 155 },
-    { x: 910, y: 334 }, { x: 1085, y: 314 }, { x: 1120, y: 500 },
-  ];
-
+  function applyMap(map) {
+    activeMap = map; relicBase = map.relic; path = map.routes[0]; pads = map.pads;
+    courtyard = loadImage(map.art);
+    courtyard.addEventListener("load", () => { if (!state.playing) draw(); });
+    mapSelect.value = map.id;
+    mapLabel.textContent = map.name;
+    padControls.setAttribute("data-pad-count",String(pads.length));
+    try { localStorage.setItem("pepe-tower-defense-selected-map",map.id); } catch { /* session selection */ }
+  }
+  applyMap(activeMap);
   const towerTypes = {
     pepe: { name: "Pepe Blaster", cost: 75, range: 150, damage: 22, rate: 0.45, color: "#39ff9a", splash: 0, slow: 0 },
     shard: { name: "Shard Slow", cost: 95, range: 135, damage: 12, rate: 0.65, color: "#74c7ff", splash: 0, slow: 0.48 },
@@ -254,13 +255,14 @@
   function waveBrief(plan) {
     const counts = {};
     for (const kind of plan.kinds) counts[kind] = (counts[kind] || 0) + 1;
-    return `Wave ${plan.wave}/${CAMPAIGN_WAVES}: ${plan.name} - ${Object.entries(counts).map(([kind,count]) => `${count} ${enemyTypes[kind].name}${count === 1 ? "" : "s"}`).join(", ")}. Enemy health x${plan.hpScale.toFixed(2)}; ordinary arrivals at least ${plan.interval.toFixed(2)}s apart, with extra room for slow foes and a short gap every six.${encounterAdvice(plan)} Inspect, upgrade or move your towers before sending it.`;
+    const lanes = activeMap.routes.length > 1 ? ` Ordinary arrivals alternate upper/lower lanes.${plan.majorBoss ? ` The major boss and its guards use the ${mapCatalog.routeFor(activeMap,plan,plan.bossIndex)===0?"upper":"lower"} lane.` : " Minor bosses follow the alternating arrival order."}` : "";
+    return `Wave ${plan.wave}/${CAMPAIGN_WAVES}: ${plan.name} - ${Object.entries(counts).map(([kind,count]) => `${count} ${enemyTypes[kind].name}${count === 1 ? "" : "s"}`).join(", ")}. Enemy health x${(plan.hpScale * (activeMap.healthScale || 1)).toFixed(2)}; ordinary arrivals at least ${plan.interval.toFixed(2)}s apart, with extra room for slow foes and a short gap every six.${encounterAdvice(plan)}${lanes} Inspect, upgrade or move your towers before sending it.`;
   }
   // Scouting and spawning share the same starting stats; combat debuffs remain local to each enemy.
   function enemyStartingStats(kind, plan) {
     const spec = enemyTypes[kind];
     const bossHealthScale = kind === "sovereign" ? .75 : kind === "tyrant" ? .9 : 1;
-    const hp = Math.round((spec.hp + Math.min(plan.wave, 20) * spec.growth) * plan.hpScale * bossHealthScale);
+    const hp = Math.round((spec.hp + Math.min(plan.wave, 20) * spec.growth) * plan.hpScale * bossHealthScale * (activeMap.healthScale || 1));
     return { ...spec, hp, maxHp: hp, speed: spec.speed + Math.min(15, plan.wave) * spec.acceleration };
   }
   function scoutingRows(plan) {
@@ -380,6 +382,42 @@
     return "Fresh Defender";
   }
 
+  function readMapRecord() {
+    try {
+      const value = JSON.parse(localStorage.getItem(`pepe-tower-defense-record-${activeMap.id}`));
+      return {score:Number.isSafeInteger(value?.score)&&value.score>=0?value.score:activeMap.id==="courtyard"?readBest():0,
+        wave:Number.isSafeInteger(value?.wave)?clamp(value.wave,0,50):0,
+        cleared:value?.cleared===true,health:Number.isFinite(value?.health)?clamp(value.health,0,100):0};
+    } catch { return {score:0,wave:0,cleared:false,health:0}; }
+  }
+  function refreshMapMenu() {
+    resumeCheckpoint = readBuildCheckpoint();
+    resumeButton.hidden = !resumeCheckpoint;
+    resumeButton.textContent = resumeCheckpoint ? `Resume wave ${resumeCheckpoint.wave}` : "Resume Defense";
+    startButton.textContent = resumeCheckpoint ? "Start New Defense" : "Start Defense";
+    overlayTitle.textContent = activeMap.name;
+    overlayText.textContent = resumeCheckpoint ? `Saved build: wave ${resumeCheckpoint.wave}, ${resumeCheckpoint.vault} relic HP. Resume it, or start a new defense on this map.` : "Protect the relic through 50 waves. Each battleground keeps its own saved build. Tower mastery is shared.";
+    mapDescription.textContent = `${activeMap.routes.length} ${activeMap.routes.length===1?"route":"routes"} · ${pads.length} build pads · ${activeMap.description}`;
+    const record=readMapRecord();
+    state.best=activeMap===mapCatalog.legacy?readBest():record.score;
+    mapRecord.textContent = `${record.cleared?"Cleared":"Best wave: "+record.wave+" / 50"} · ${format(record.score)} best score${record.cleared?" · "+record.health+" relic HP best clear":""}`;
+  }
+  function chooseBattleground(id) {
+    const map=mapCatalog.get(id);
+    if(!map || state.playing || window.EmeraldArcade?.isPaused?.())return false;
+    applyMap(map); state.wave=1;state.score=0;state.shards=180;state.vault=RELIC_MAX_HEALTH;
+    state.best=readMapRecord().score;scoutingWave=0;lastWaveReport=null;waveMetrics=null;reportUnread=false;
+    renderWaveReport();refreshMapMenu();updateHud();draw();return true;
+  }
+  function openMapMenu() {
+    if(window.EmeraldArcade?.isPaused?.())return;
+    saveBuildCheckpoint();cancelAnimationFrame(raf);state.playing=false;state.waveActive=false;
+    for(const items of [enemies,towers,thornPatches,shots,bursts,floaters,motes])items.length=0;
+    inspectedTower=null;movingTower=null;pointer.active=false;state.heroNovaCooldowns=[0,0];combatSpeed=1;
+    overlay.classList.remove("is-hidden");
+    chooseBattleground(activeMap.id);canvas.focus();
+  }
+
   function waveAdvice(report) {
     const leaks = report.leaks;
     if (Object.keys(leaks).some(kind => enemyTypes[kind]?.boss)) return "A boss reached the relic. Try Strong targeting on Ballista or Sunwarden with Alchemist support; leave other defenders on First for guards.";
@@ -415,7 +453,17 @@
 
   function readBuildCheckpoint() {
     if (!checkpointStore) return null;
-    try { return checkpointStore.decode(localStorage.getItem(checkpointStore.KEY), Object.keys(towerTypes), Object.keys(enemyTypes)); }
+    try {
+      const raw = localStorage.getItem(mapCatalog.key(activeMap));
+      if (raw !== null) {
+        const saved = checkpointStore.decode(raw, Object.keys(towerTypes), Object.keys(enemyTypes), activeMap);
+        return saved && (saved.version === 2 || activeMap === mapCatalog.legacy) ? saved : null;
+      }
+      // Legacy builds stay on their old geometry. A modern key (including a null tombstone) takes precedence.
+      if (activeMap.id === "courtyard" && activeMap !== mapCatalog.legacy)
+        return checkpointStore.decode(localStorage.getItem(checkpointStore.KEY), Object.keys(towerTypes), Object.keys(enemyTypes));
+      return null;
+    }
     catch { return null; }
   }
 
@@ -423,21 +471,21 @@
     resumeCheckpoint = null;
     resumeButton.hidden = true;
     if (!checkpointStore) return;
-    try { localStorage.removeItem(checkpointStore.KEY); }
-    catch { try { localStorage.setItem(checkpointStore.KEY, "null"); } catch { /* blocked storage */ } }
+    try { localStorage.setItem(mapCatalog.key(activeMap), "null"); }
+    catch { /* blocked storage does not stop the session */ }
   }
 
   function saveBuildCheckpoint() {
     if (!state.playing || state.waveActive || movingTower) return false;
     if (!checkpointStore) { checkpointHint.textContent = "Build-break saving is unavailable."; return false; }
-    const data = checkpointStore.normalize({ version: 1, wave: state.wave, score: state.score, shards: state.shards,
+    const data = checkpointStore.normalize({ version: activeMap === mapCatalog.legacy ? 1 : 2, mapId:activeMap.id, layoutVersion:activeMap.version, wave: state.wave, score: state.score, shards: state.shards,
       vault: state.vault, selectedTower, heroNovaCooldowns: state.heroNovaCooldowns, lastWaveReport,
       towers: towers.map(tower => ({ type: tower.type, pad: pads.indexOf(tower.pad), tiers: tower.tiers,
         heroSlot: tower.heroSlot, cooldown: Math.max(0, tower.cooldown), aimAngle: tower.aimAngle,
-        targetMode: tower.targetMode || "first", combatDamage: tower.combatDamage || 0, combatKills: tower.combatKills || 0 })) }, Object.keys(towerTypes), Object.keys(enemyTypes));
+        targetMode: tower.targetMode || "first", combatDamage: tower.combatDamage || 0, combatKills: tower.combatKills || 0 })) }, Object.keys(towerTypes), Object.keys(enemyTypes), activeMap);
     if (!data) { checkpointHint.textContent = "This build break could not be saved."; return false; }
     try {
-      localStorage.setItem(checkpointStore.KEY, JSON.stringify(data));
+      localStorage.setItem(mapCatalog.key(activeMap), JSON.stringify(data));
       resumeCheckpoint = data;
       checkpointHint.textContent = `Saved: wave ${state.wave} build phase. Refresh returns here.`;
       return true;
@@ -448,6 +496,7 @@
     if (state.playing || window.EmeraldArcade?.isPaused?.()) return false;
     const saved = readBuildCheckpoint();
     if (!saved) { resumeButton.hidden = true; return false; }
+    if (saved.version === 1) applyMap(mapCatalog.legacy);
     // Rebuild derived stats and refunds from current specs; never trust serialized combat values.
     const restored = saved.towers.map(item => {
       const spec = towerTypes[item.type], pad = pads[item.pad];
@@ -524,10 +573,16 @@
     state.waveActive = false;
     const score = Math.floor(state.score);
     const completedWave = Math.max(0, state.wave - 1);
+    const previous = readMapRecord();
+    try { localStorage.setItem(`pepe-tower-defense-record-${activeMap.id}`, JSON.stringify({
+      score:Math.max(previous.score,score), wave:Math.max(previous.wave,completedWave),
+      cleared:previous.cleared || completedWave >= CAMPAIGN_WAVES,
+      health:completedWave >= CAMPAIGN_WAVES ? Math.max(previous.health,state.vault) : previous.health
+    })); } catch { /* map records are optional */ }
     const rank = rankForRun(completedWave, score);
     if (score > state.best) {
       state.best = score;
-      try { localStorage.setItem(STORAGE_KEY, String(score)); } catch { /* session best is retained */ }
+      try { if(activeMap.id==="courtyard")localStorage.setItem(STORAGE_KEY, String(score)); } catch { /* session best is retained */ }
     }
     window.EmeraldArcade?.recordAndNotify("towerDefense", {
       played: true,
@@ -569,7 +624,8 @@
     const kind = plan.kinds[spawned];
     if (!kind) return;
     const spec = enemyStartingStats(kind, plan);
-    enemies.push({ ...spec, x: path[0].x, y: path[0].y, pathIndex: 1,
+    const routeId = mapCatalog.routeFor(activeMap,plan,spawned), route = activeMap.routes[routeId];
+    enemies.push({ ...spec, x: route[0].x, y: route[0].y, pathIndex: 1, routeId,
       slowTimer: 0, slowStrength: 0, kind, isEscort: Boolean(plan.majorBoss && spawned > plan.bossIndex && spawned <= plan.bossIndex + plan.escort.length), spin: Math.random() * Math.PI * 2, hitFlash: 0 });
     const boss = spec.boss;
 
@@ -581,6 +637,8 @@
   }
 
   function updateHud() {
+    mapSelect.disabled = state.playing || Boolean(window.EmeraldArcade?.isPaused?.());
+    mapMenuButton.disabled = Boolean(window.EmeraldArcade?.isPaused?.());
     speedButton.textContent = `Speed ${combatSpeed}×`;
     speedButton.setAttribute("aria-pressed", String(combatSpeed === 2));
     speedButton.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.());
@@ -616,6 +674,8 @@
     if (towerGuide.textContent !== guide) towerGuide.textContent = guide;
     padButtons.forEach(button => {
       const pad = pads[Number(button.dataset.pad)];
+      button.hidden = !pad;
+      if(!pad){button.disabled=true;return;}
       const tower = towerAtPad(pad);
       const cost = towerTypes[selectedTower].cost;
       const label = `Pad ${Number(button.dataset.pad) + 1} - ${tower ? `${tower.name} ${tierCode(tower)}` : movingTower ? "Move here" : `Build - ${cost}`}`;
@@ -684,11 +744,11 @@
 
 
   function portalHit(point) {
-    return point.x < 120 && distance(point.x, point.y, path[0].x, path[0].y) < 70;
+    return distance(point.x, point.y, path[0].x, path[0].y) < 55;
   }
 
   function buildOrUpgrade(pad) {
-    if (!state.playing || window.EmeraldArcade?.isPaused?.()) return;
+    if (!state.playing || !pads.includes(pad) || window.EmeraldArcade?.isPaused?.()) return;
     const existing = towerAtPad(pad);
     if (movingTower) {
       if (existing) {
@@ -994,6 +1054,7 @@
   function updateEnemies(dt) {
     for (let i = enemies.length - 1; i >= 0; i -= 1) {
       const enemy = enemies[i];
+      const path = activeMap.routes[enemy.routeId || 0] || activeMap.routes[0];
       if(enemy.hp<=0)continue;
       enemy.acidTimer = Math.max(0, (enemy.acidTimer || 0) - dt);
       if (!enemy.acidTimer) enemy.armorBreak = 0;
@@ -1047,7 +1108,7 @@
       if (enemy.hp <= 0) continue;
       const range = distance(tower.x, tower.y, enemy.x, enemy.y);
       if (range > tower.range) continue;
-      const enemyProgress = enemy.pathIndex * 1000 - distance(enemy.x, enemy.y, path[enemy.pathIndex]?.x || enemy.x, path[enemy.pathIndex]?.y || enemy.y);
+      const enemyProgress = activeMap === mapCatalog.legacy ? enemy.pathIndex * 1000 - distance(enemy.x, enemy.y, path[enemy.pathIndex]?.x || enemy.x, path[enemy.pathIndex]?.y || enemy.y) : -mapCatalog.remaining(enemy,activeMap.routes[enemy.routeId || 0] || path);
       const candidate = tower.targetMode === "strong" ? (enemy.maxHp || enemy.hp) : tower.targetMode === "last" ? -enemyProgress : tower.targetMode === "close" ? -range : enemyProgress;
       if (!best || candidate > priority || candidate === priority && enemyProgress > progress) {
         best = enemy;
@@ -1186,7 +1247,7 @@
   function plantThorns(tower) {
     if(!state.waveActive||thornPatches.filter(p=>p.owner===tower).length>=tower.patchCap){tower.cooldown=0;return;}
     let best=null,nearest=Infinity;
-    for(let i=1;i<path.length;i++){const p=pointOnSegment(tower.x,tower.y,path[i-1].x,path[i-1].y,path[i].x,path[i].y),d=distance(tower.x,tower.y,p.x,p.y);if(d<nearest){best={...p,ax:path[i-1].x,ay:path[i-1].y,bx:path[i].x,by:path[i].y};nearest=d;}}
+    for(const path of activeMap.routes)for(let i=1;i<path.length;i++){const p=pointOnSegment(tower.x,tower.y,path[i-1].x,path[i-1].y,path[i].x,path[i].y),d=distance(tower.x,tower.y,p.x,p.y);if(d<nearest){best={...p,ax:path[i-1].x,ay:path[i-1].y,bx:path[i].x,by:path[i].y};nearest=d;}}
     if(!best||nearest>tower.range){tower.cooldown=0;return;}
     const slot=Array.from({length:tower.patchCap},(_,i)=>i).find(i=>!thornPatches.some(p=>p.owner===tower&&p.slot===i));
     const length=Math.hypot(best.bx-best.ax,best.by-best.ay),offset=[0,-28,28,-56][slot]||0;
@@ -1431,13 +1492,19 @@
   }
 
   function drawPath() {
+    if (activeMap.baked && courtyard.complete && courtyard.naturalWidth) {
+      if (!routePreviewToggle.checked) return;
+      ctx.save();ctx.strokeStyle="#80ffcc";ctx.lineWidth=3;ctx.setLineDash([9,7]);ctx.beginPath();
+      for(const route of activeMap.routes)route.forEach((point,i)=>i?ctx.lineTo(point.x,point.y):ctx.moveTo(point.x,point.y));
+      ctx.stroke();ctx.restore();return;
+    }
     ctx.save();
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.strokeStyle = "rgba(216, 180, 95, 0.32)";
     ctx.lineWidth = 58;
     ctx.beginPath();
-    path.forEach((point, index) => (index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)));
+    for(const route of activeMap.routes)route.forEach((point, index) => (index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y)));
     ctx.stroke();
     ctx.strokeStyle = "rgba(57, 255, 154, 0.46)";
     ctx.lineWidth = 25;
@@ -1493,7 +1560,7 @@
       ctx.strokeStyle = occupied && occupied === inspectedTower ? "#ffffff" : movingTower && !occupied ? "#74c7ff" : occupied ? "rgba(216, 180, 95, 0.8)" : hovered ? "rgba(116, 255, 197, 0.9)" : "rgba(116, 255, 197, 0.42)";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(0, 0, hovered ? 36 : 31, 0, Math.PI * 2);
+      ctx.arc(0, 0, hovered ? 32 : 27, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
       if (!occupied) {
@@ -1921,6 +1988,12 @@
     const color = relicHitFlash > 0 ? "#ff9a82" : ratio <= .25 ? "#ff826f" : "#61ffbd";
     ctx.save();
     ctx.translate(relicBase.x, relicBase.y);
+    const baked = activeMap.baked && courtyard.complete && courtyard.naturalWidth;
+    if (baked && (relicHitFlash > 0 || ratio <= .25)) {
+      ctx.strokeStyle=color;ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(0,0,52,36,0,0,Math.PI*2);ctx.stroke();
+      if(!state.vault){ctx.fillStyle="rgba(2,8,6,.75)";ctx.beginPath();ctx.ellipse(0,-20,60,75,0,0,Math.PI*2);ctx.fill();}
+    }
+    if (!baked) {
     if (relicBaseSprite.complete && relicBaseSprite.naturalWidth) {
       ctx.shadowColor = relicHitFlash > 0 ? "#ff7055" : "#39ff9a";
       ctx.shadowBlur = relicHitFlash * 28;
@@ -1947,10 +2020,12 @@
     ctx.shadowBlur = 0; ctx.strokeStyle = "#d0ffe4"; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(0, -45); ctx.lineTo(0, 24); ctx.moveTo(-24, -9); ctx.lineTo(24, -9); ctx.stroke();
     }
+    }
     if (ratio < .5) {
       ctx.strokeStyle = "#163328"; ctx.lineWidth = 3; ctx.beginPath();
       ctx.moveTo(5, -28); ctx.lineTo(-6, -12); ctx.lineTo(7, 0); ctx.lineTo(-3, 13); ctx.stroke();
     }
+    ctx.translate(clamp(relicBase.x,76,W-76)-relicBase.x,0);
     ctx.fillStyle = "rgba(3, 12, 9, .94)"; ctx.fillRect(-72, -92, 144, 39);
     ctx.textAlign = "center"; ctx.fillStyle = "#f1df9c"; ctx.font = "bold 12px Inter, sans-serif";
     ctx.fillText("RELIC BASE", 0, -77);
@@ -2085,6 +2160,9 @@
     updateHud();
   });
   startButton.addEventListener("click", resetAndLaunch);
+  mapSelect.addEventListener("change", () => chooseBattleground(mapSelect.value));
+  mapMenuButton.addEventListener("click", openMapMenu);
+  routePreviewToggle.addEventListener("change", draw);
   resumeButton.addEventListener("click", resumeDefense);
   window.addEventListener("pagehide", saveBuildCheckpoint);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveBuildCheckpoint(); });
@@ -2095,14 +2173,10 @@
   });
 
   updateMasteryLabels();
-  resumeCheckpoint = readBuildCheckpoint();
-  resumeButton.hidden = !resumeCheckpoint;
+  mapSelect.innerHTML = mapCatalog.maps.map(map=>`<option value="${map.id}">${map.name}</option>`).join("");
+  mapSelect.value=activeMap.id;
+  refreshMapMenu();
   checkpointHint.textContent = checkpointStore ? "Build phases save on this device." : "Build-break saving is unavailable.";
-  if (resumeCheckpoint) {
-    resumeButton.textContent = `Resume wave ${resumeCheckpoint.wave}`;
-    startButton.textContent = "Start New Defense";
-    overlayText.textContent = `Your wave ${resumeCheckpoint.wave} build phase is saved with ${resumeCheckpoint.vault} relic health. Resume it, or start a new defense to replace this save. Refreshing during a wave returns to its saved build phase.`;
-  }
   updateHud();
   draw();
 })();

@@ -6,7 +6,6 @@
     <meta name="description" content="Pepe Tower Defense - defend the emerald vault from corrupt shard creeps.">
     <meta name="theme-color" content="#020806">
     <title>Pepe Tower Defense</title>
-    <link rel="preload" href="assets/pepe-tower-defense/emerald-vault-courtyard-v2.png" as="image">
     <link rel="preload" href="assets/pepecoin-run/pepecoin-classic.png" as="image">
     <link rel="preload" href="assets/pepe-relic-rumble/origin-flame.png" as="image">
     <link rel="preload" href="assets/pepe-tower-defense/pepe-blaster-sprite.png" as="image">
@@ -21,7 +20,7 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
-    <link rel="stylesheet" href="pepe-tower-command.css?v=wave-scouting-20261025">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=maps-1">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -31,7 +30,7 @@
           <span>Pepe Legends</span>
           <strong>Pepe Tower Defense</strong>
         </div>
-        <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true">Sound: on</button>
+        <button type="button" class="sound-toggle" id="mapMenuButton" title="Return to map selection. An active wave returns to its saved build phase.">Maps</button><button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true">Sound: on</button>
       </header>
 
       <section class="stage-wrap" aria-label="Pepe Tower Defense game stage">
@@ -53,7 +52,7 @@
           </div>
 
           <section class="overlay" id="gameOverlay">
-            <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="Pepe Blaster tower">
+            <label class="map-picker" for="mapSelect">Battleground<select id="mapSelect" aria-describedby="mapDescription mapRecord"></select></label><p id="mapDescription"></p><p id="mapRecord"></p><label class="route-toggle"><input id="routePreviewToggle" type="checkbox"> Show route guide</label>
             <p class="eyebrow">Blockchain tower defense</p>
             <h1 id="overlayTitle">Defend the Emerald Vault.</h1>
             <p id="overlayText">Protect the 100-health relic base at the end of the path. Place Pepe defenders on vault pads, stop corrupt shard creeps, and survive all 50 waves. Start Defense opens the build phase; send wave one when your towers are ready.</p>
@@ -64,7 +63,7 @@
         </div>
 
         <aside class="tower-dock command-bay" aria-label="Defense command bay">
-          <header class="tower-dock__header"><span>Emerald Command</span><strong>Defender Bay</strong><section class="campaign-controls" aria-label="Campaign progress"><p id="campaignLabel">0 / 50 waves cleared</p><progress id="campaignProgress" value="0" max="50" aria-label="Waves cleared"></progress></section></header>
+          <header class="tower-dock__header"><span>Emerald Command</span><strong id="mapLabel">Emerald Courtyard</strong><section class="campaign-controls" aria-label="Campaign progress"><p id="campaignLabel">0 / 50 waves cleared</p><progress id="campaignProgress" value="0" max="50" aria-label="Waves cleared"></progress></section></header>
           <nav class="command-tabs" aria-label="Defense controls">
             <button type="button" data-command-tab="build" aria-pressed="true" aria-controls="buildView">Build</button>
             <button type="button" data-command-tab="manage" aria-pressed="false" aria-controls="manageView">Tower</button>
@@ -138,7 +137,7 @@
 
     <script src="arcade.js?v=13"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepe-tower-checkpoint.js?v=4"></script><script src="pepe-tower-defense.js?v=courtyard-v2-20261025"></script>
+    <script src="pepe-tower-maps.js?v=1"></script><script src="pepe-tower-checkpoint.js?v=maps-1"></script><script src="pepe-tower-defense.js?v=map-integration-20261025"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

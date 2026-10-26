@@ -80,7 +80,13 @@ function game(file) {
   if (file === 'pepe-tower-defense.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__towerRead = expression => eval(expression); })();');
   if (file === 'pepe-wars.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__warsRead = expression => eval(expression); })();');
   if (file === 'pepes-paradox.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__paradoxRead = expression => eval(expression); })();');
+  if(file==='pepe-tower-defense.js') {
+    read(fs.readFileSync(path.join(__dirname,'..','pepe-tower-maps.js'),'utf8'));
+    read(fs.readFileSync(path.join(__dirname,'..','pepe-tower-checkpoint.js'),'utf8'));
+  }
   read(source);
+  // These established clock/combat fixtures preserve the legacy saved-run geometry.
+  if(file==='pepe-tower-defense.js')read('window.__towerRead("applyMap(mapCatalog.legacy);refreshMapMenu();updateHud();draw()")');
   return {
     read, nodes, sessions, records, timers, drawingCalls,
     start: () => nodes.get('#startButton').emit('click'),

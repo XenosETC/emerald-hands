@@ -1,5 +1,7 @@
 # Emerald Celestial Hall and rebuilt Classic - 2026-10-25
 
+Runtime integration update: the selected Hall v2 and baked Classic v3 are now playable in the six-map game. The notes below document the earlier art-only generation phase. Current geometry, rendering, persistence and testing are documented in ../../docs/tower-defense-map-integration.md.
+
 Created/edited with built-in imagegen, as requested. Originals preserved in C:/Users/Phantom Assassin/.codex/generated_images/01a112bd-f311-78e3-95fb-5a36bcd7647d/. These selected workspace assets are map-art deliverables. This change does not alter the live background, pathing, tower placement or save data. The live game retains courtyard v2 until baked-art integration is validated.
 
 ## Emerald Celestial Hall

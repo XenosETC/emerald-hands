@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 // Run each shipped game, its actual start button and scheduled frames. The two
 // clocks model shared pause: wall time advances while delivered RAF time does not.
-function game(file, savedValues) {
+function game(file, savedValues, legacyFixtures=true) {
   let wallTime = 0;
   let nextFrame = 0;
   const frames = new Map();
@@ -77,8 +77,14 @@ function game(file, savedValues) {
   if (file === 'pepe-tower-defense.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__towerRead = expression => eval(expression); })();');
   if (file === 'pepe-wars.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__warsRead = expression => eval(expression); })();');
   if (file === 'pepes-paradox.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__paradoxRead = expression => eval(expression); })();');
-  if (file === "pepe-tower-defense.js") read(fs.readFileSync(path.join(__dirname, "..", "pepe-tower-checkpoint.js"), "utf8"));
+  if (file === "pepe-tower-defense.js") {
+    read(fs.readFileSync(path.join(__dirname, "..", "pepe-tower-maps.js"), "utf8"));
+    read(fs.readFileSync(path.join(__dirname, "..", "pepe-tower-checkpoint.js"), "utf8"));
+  }
   read(source);
+  // Established combat fixtures intentionally retain the original saved-run geometry.
+  // Multi-map tests below explicitly choose each production map before starting.
+  if(file === 'pepe-tower-defense.js' && legacyFixtures)read('window.__towerRead("applyMap(mapCatalog.legacy);refreshMapMenu();updateHud();draw()")');
   return {
     read, nodes, sessions, records, timers, drawingCalls, saves,
     start: () => nodes.get('#startButton').emit('click'),
@@ -99,6 +105,162 @@ function towerGame() {
   g.act=expression=>g.read(`window.__towerRead(${JSON.stringify(expression)})`);
   return g;
 }
+
+test('Map integration: six authored boards have bounded pads, connected relic endpoints and valid spawn routes',()=>{
+  const catalog=require('../pepe-tower-maps.js');
+  assert.equal(catalog.maps.length,6);assert.equal(new Set(catalog.maps.map(m=>m.id)).size,6);
+  for(const map of catalog.maps){
+    assert.equal(map.pads.length,map.id==='tideglass-harbor'?8:9);
+    assert.ok(fs.existsSync(path.join(__dirname,'..',map.art)));
+    for(const p of [...map.pads,...map.routes.flat()])assert.ok(p.x>=0&&p.x<=1280&&p.y>=0&&p.y<=720);
+    for(const route of map.routes){assert.equal(route.at(-1),map.relic);for(let i=1;i<route.length;i++)assert.ok(Math.hypot(route[i].x-route[i-1].x,route[i].y-route[i-1].y)>0);}
+  }
+  assert.equal(catalog.get('unknown'),undefined);assert.equal(catalog.get('courtyard',1),catalog.legacy);
+});
+
+test('Map integration: every board starts, builds, upgrades, moves, sells, clears and resumes its own checkpoint',()=>{
+  for(const map of require('../pepe-tower-maps.js').maps){
+    const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();
+    assert.equal(g.act('state.shards'),180);assert.equal(g.act('state.vault'),100);
+    g.act('buildOrUpgrade(pads[0]);upgradeSelected("utility");beginMove();buildOrUpgrade(pads[1])');
+    assert.equal(g.act('towers[0].pad===pads[1]'),true);assert.equal(g.act('towers[0].tiers.utility'),1);
+    g.act('startWave();enemies.length=0;state.spawnLeft=0;updateWave(0)');
+    assert.equal(g.act('state.wave'),2);assert.equal(g.act('readBuildCheckpoint().mapId'),map.id);
+    const h=checkpointGame(g.saves);h.act(`chooseBattleground('${map.id}')`);h.nodes.get('#resumeDefenseButton').emit('click');
+    assert.equal(h.act('state.wave'),2);assert.equal(h.act('towers.length'),1);assert.equal(h.act('towers[0].pad===pads[1]'),true);
+    h.act('buildOrUpgrade(pads[1]);sellSelected()');assert.equal(h.act('towers.length'),0);
+    assert.equal(h.nodes.get('pad:8').hidden,map.id==='tideglass-harbor');assert.equal(h.records.length,0);
+  }
+});
+
+test('Map integration: returning to Maps preserves the build break and isolates currency, records and tower mastery',()=>{
+  const g=checkpointGame();g.act('chooseBattleground("floodgate-delta")');g.start();g.act('buildOrUpgrade(pads[0]);startWave();state.shards=999;openMapMenu()');
+  assert.equal(g.act('state.playing'),false);assert.equal(g.act('enemies.length+towers.length+thornPatches.length'),0);
+  assert.equal(g.act('readBuildCheckpoint().shards'),105);
+  g.act('chooseBattleground("sunscar-quarry")');assert.equal(g.act('readBuildCheckpoint()'),null);g.start();assert.equal(g.act('state.shards'),180);
+  g.act('state.score=100;state.wave=6;endGame("test");openMapMenu();chooseBattleground("floodgate-delta")');
+  assert.equal(g.act('readMapRecord().score'),0);g.nodes.get('#resumeDefenseButton').emit('click');
+  assert.equal(g.act('towers.length'),1);assert.equal(g.act('state.shards'),105);assert.equal(g.records.length,1);
+});
+
+test('Map integration: legacy builds retain geometry and modern tombstones prevent old-save resurrection',()=>{
+  const g=towerGame();g.act('buildOrUpgrade(pads[0]);saveBuildCheckpoint()');
+  const raw=g.saves.get('pepe-tower-defense-build-checkpoint-v1');
+  const h=checkpointGame(g.saves);h.act('chooseBattleground("courtyard")');h.nodes.get('#resumeDefenseButton').emit('click');
+  assert.equal(h.act('activeMap===mapCatalog.legacy'),true);assert.equal(h.act('towers[0].x'),230);
+  h.act('openMapMenu()');h.start();assert.equal(h.act('activeMap.version'),2);h.act('endGame("finish");openMapMenu()');
+  assert.equal(h.act('readBuildCheckpoint()'),null);assert.equal(h.saves.get('pepe-tower-defense-build-checkpoint-v1'),raw);
+});
+
+test('Map integration: modern saves reject wrong maps, versions and nonexistent Harbor pads',()=>{
+  const catalog=require('../pepe-tower-maps.js'),store=require('../pepe-tower-checkpoint.js');
+  const g=checkpointGame();g.act('chooseBattleground("tideglass-harbor")');g.start();g.act('buildOrUpgrade(pads[0])');
+  const saved=JSON.parse(g.saves.get(catalog.key(catalog.get('tideglass-harbor'))));
+  assert.ok(store.normalize(saved,['pepe'],[],catalog.get('tideglass-harbor')));
+  assert.equal(store.normalize(saved,['pepe'],[],catalog.get('floodgate-delta')),null);
+  for(const mutate of [s=>s.layoutVersion++,s=>s.mapId='unknown',s=>s.towers[0].pad=8]){const s=structuredClone(saved);mutate(s);assert.equal(store.normalize(s,['pepe'],[],catalog.get('tideglass-harbor')),null);}
+});
+
+test('Map integration: production boot remembers the selected map and resumes without visiting Classic first',()=>{
+  const g=checkpointGame(undefined,false);assert.equal(g.act('activeMap.id'),'courtyard');
+  g.act('chooseBattleground("emerald-celestial-hall")');g.start();g.act('buildOrUpgrade(pads[0]);state.wave=7;saveBuildCheckpoint()');
+  const h=checkpointGame(g.saves,false);assert.equal(h.act('activeMap.id'),'emerald-celestial-hall');
+  assert.match(h.nodes.get('#resumeDefenseButton').textContent,/Resume wave 7/);h.nodes.get('#resumeDefenseButton').emit('click');
+  assert.equal(h.act('state.wave'),7);assert.equal(h.act('towers.length'),1);
+});
+
+test('Map integration: scouting uses each map health profile and Grove discloses the actual boss lane',()=>{
+  for(const map of require('../pepe-tower-maps.js').maps){
+    const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();
+    g.act(`for(const wave of [1,35,50]){state.wave=wave;state.waveSpawnTotal=currentWavePlan().count;state.spawnLeft=state.waveSpawnTotal;enemies.length=0;for(let i=0;i<state.waveSpawnTotal;i++){spawnEnemy();state.spawnLeft--;}for(const row of scoutingRows(currentWavePlan()))if(enemies.filter(e=>e.kind===row.kind).some(e=>e.hp!==row.hp))throw Error('scouting mismatch');}`);
+    if(map.id==='twinroot-grove'){
+      assert.match(g.act('waveBrief(wavePlans[34])'),/guards use the lower lane/);
+      assert.match(g.act('waveBrief(wavePlans[49])'),/guards use the upper lane/);
+    }
+  }
+});
+
+for(const [id,order] of [
+  ['courtyard',[0,4,2,6,1,5,7,8,3]],
+  ['floodgate-delta',[0,1,3,5,4,2,7,8,6]],
+  ['sunscar-quarry',[2,3,4,5,0,1,6,7,8]],
+  ['twinroot-grove',[0,8,1,4,2,5,3,6,7]],
+  ['tideglass-harbor',[0,1,2,4,3,5,6,7]],
+  ['emerald-celestial-hall',[1,2,3,4,5,0,6,7,8]]
+]) test('Map campaign: earned-fund 50-wave defense on '+id,t=>{
+  const g=checkpointGame();g.act(`chooseBattleground('${id}')`);g.start();
+  const result=JSON.parse(g.act(`
+    const buildOrder=${JSON.stringify(order)}, types=${JSON.stringify(order.length===8?['pepe','shard','hero','hero','alchemist','ballista','relic','druid']:['pepe','shard','hero','hero','alchemist','ballista','archer','relic','druid'])};
+    let ticks=0,majorKills=0;const previousCollect=collectDefeatedEnemies;
+    collectDefeatedEnemies=()=>{majorKills+=enemies.filter(e=>e.hp<=0&&['warboss','tyrant','sovereign'].includes(e.kind)).length;previousCollect();};
+    while(state.playing&&ticks<160000){
+      for(let n=0;n<buildOrder.length;n++){
+        if(towers.filter(t=>t.type==='hero').length<2&&n>3)continue;
+        if(!towerAtPad(pads[buildOrder[n]])&&state.shards>=towerTypes[types[n]].cost){selectTower(types[n]);buildOrUpgrade(pads[buildOrder[n]]);}
+      }
+      if(towers.filter(t=>t.type==='hero').length===2){
+        for(let tier=0;tier<5;tier++)for(const i of buildOrder){const tower=towerAtPad(pads[i]);const main=tower?.type==='shard'||tower?.type==='alchemist'||tower?.type==='hero'&&tower.heroSlot===1?'special':'power';
+          if(tower&&tower.tiers[main]===tier&&state.shards>=upgradeCost(tower,main)){buildOrUpgrade(pads[i]);upgradeSelected(main);}}
+        for(const tower of towers){const primary=tower.path,second=tower.type==='hero'?(primary==='power'?'special':'power'):'utility';if(tower.tiers[primary]===5&&tower.tiers[second]<2&&state.shards>=upgradeCost(tower,second)){buildOrUpgrade(tower.pad);upgradeSelected(second);}}
+      }
+      if(!state.waveActive)startWave();for(const slot of [0,1])activateHeroNova(slot);
+      update(1/30,false);ticks++;
+    }
+    JSON.stringify({map:activeMap.id,wave:state.wave,vault:state.vault,majorKills,ticks,towers:towers.length});
+  `));
+  t.diagnostic('Map controller evidence, not human balance approval: '+JSON.stringify(result));
+  assert.equal(result.wave,51);assert.ok(result.vault>0);assert.ok(result.majorKills>=2);
+});
+
+test('Map integration: both Grove roads reach the relic once and majors keep guards on their own lane',()=>{
+  const g=checkpointGame();g.act('chooseBattleground("twinroot-grove")');g.start();
+  for(const wave of [20,35,50]){
+    g.act(`state.wave=${wave};state.waveSpawnTotal=currentWavePlan().count;enemies.length=0;for(let i=0;i<state.waveSpawnTotal;i++){state.spawnLeft=state.waveSpawnTotal-i;spawnEnemy();}`);
+    const routes=JSON.parse(g.act('JSON.stringify(enemies.filter(e=>e.boss||e.isEscort).map(e=>e.routeId))'));
+    assert.ok(routes.every(id=>id===routes[0]));assert.equal(routes[0],wave===35?1:0);
+  }
+  g.act('enemies.length=0;state.wave=1;state.waveSpawnTotal=12;state.spawnLeft=12;spawnEnemy();state.spawnLeft--;spawnEnemy();updateEnemies(1000);updateEnemies(1000)');
+  assert.equal(g.act('enemies.length'),0);assert.equal(g.act('state.vault'),98);
+});
+
+test('Map integration: First and Last compare remaining distance across lanes, and Thornkeeper covers the lower lane',()=>{
+  const g=checkpointGame();g.act('chooseBattleground("twinroot-grove")');g.start();
+  g.act(`buildOrUpgrade(pads[0]);towers[0].range=2000;const a=activeMap.routes[0],b=activeMap.routes[1];enemies.push(
+    {x:a[3].x,y:a[3].y,pathIndex:4,routeId:0,hp:100,maxHp:100},
+    {x:b.at(-2).x,y:b.at(-2).y,pathIndex:b.length-1,routeId:1,hp:100,maxHp:100});`);
+  assert.equal(g.act('targetFor(towers[0])===enemies[1]'),true);g.act('towers[0].targetMode="last"');assert.equal(g.act('targetFor(towers[0])===enemies[0]'),true);
+  g.act('state.shards=1000;selectTower("druid");buildOrUpgrade(pads[4]);state.waveActive=true;plantThorns(towers[1])');
+  assert.equal(g.act('thornPatches.length'),1);assert.ok(g.act('thornPatches[0].y>400'));
+});
+
+test('Map integration: baked boards do not double-draw their relic, and route preview is optional',()=>{
+  const g=checkpointGame();g.act('chooseBattleground("emerald-celestial-hall");courtyard.complete=true;courtyard.naturalWidth=1672;relicBaseSprite.complete=true;relicBaseSprite.naturalWidth=512');
+  const before=g.drawingCalls.length;g.act('drawVault();drawPath()');
+  assert.equal(g.drawingCalls.slice(before).some(c=>c.method==='drawImage'),false);
+  assert.ok(g.drawingCalls.slice(before).some(c=>c.method==='fillText'&&c.args[0]==='100 / 100 HP'));
+  g.nodes.get('#routePreviewToggle').checked=true;const n=g.drawingCalls.length;g.act('drawPath()');assert.ok(g.drawingCalls.slice(n).some(c=>c.method==='lineTo'));
+});
+
+test('Map integration: every board preserves combat state across equivalent 1x and 2x steps',()=>{
+  for(const map of require('../pepe-tower-maps.js').maps){
+    const setup=()=>{const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();g.act('state.shards=10000;state.wave=35;selectTower("druid");buildOrUpgrade(pads[0]);selectTower("hero");buildOrUpgrade(pads[2]);selectTower("ballista");buildOrUpgrade(pads[4]);startWave()');return g;};
+    const a=setup(),b=setup();b.nodes.get('#speedButton').emit('click');
+    a.act('for(let i=0;i<800;i++)advanceDefense(.025)');b.act('for(let i=0;i<400;i++)advanceDefense(.025)');
+    const snapshot='JSON.stringify({wave:state.wave,health:state.vault,score:state.score,shards:state.shards,left:state.spawnLeft,timer:state.spawnTimer,nova:state.heroNovaCooldowns,metrics:waveMetrics,enemies:enemies.map(e=>[e.kind,e.routeId,e.pathIndex,e.x,e.y,e.hp]),towers:towers.map(t=>[t.cooldown,t.combatDamage,t.combatKills]),traps:thornPatches.map(p=>[p.x,p.y,p.charges,p.life])})';
+    assert.equal(a.act(snapshot),b.act(snapshot),map.id);
+    b.read('window.EmeraldArcade.isPaused=()=>true');const paused=b.act(snapshot);b.act('advanceDefense(.025);openMapMenu()');assert.equal(b.act(snapshot),paused);
+  }
+});
+
+test('Map integration: letterboxed canvas taps build on the visible pad on every board',()=>{
+  for(const map of require('../pepe-tower-maps.js').maps){
+    const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();
+    g.nodes.get('#gameCanvas').getBoundingClientRect=()=>({left:10,top:20,width:500,height:200});
+    const p=JSON.parse(g.act('JSON.stringify(pads[0])')),scale=200/720;
+    g.nodes.get('#gameCanvas').emit('click',{clientX:10+(500-1280*scale)/2+p.x*scale,clientY:20+p.y*scale});
+    assert.equal(g.act('towers.length'),1,map.id);assert.equal(g.act('towers[0].pad===pads[0]'),true);
+  }
+});
 
 test('Every scouting roster matches every actual spawn across all fifty waves',()=>{
   const g=towerGame();
@@ -588,8 +750,8 @@ test('Compact ordinary art leaves boss size, collision radii and armored damage 
   assert.equal(g.act('enemies[0].radius'),23);assert.equal(g.act('enemies[1].radius'),42);assert.equal(g.act('enemies[0].hp'),84);
 });
 
-function checkpointGame(savedValues) {
-  const g=game('pepe-tower-defense.js',savedValues);
+function checkpointGame(savedValues, legacyFixtures=true) {
+  const g=game('pepe-tower-defense.js',savedValues,legacyFixtures);
   g.act=expression=>g.read(`window.__towerRead(${JSON.stringify(expression)})`);
   return g;
 }

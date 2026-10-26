@@ -213,3 +213,29 @@ body[data-game="tower"] #scoutingRoster div { min-width:0; }
 body[data-game="tower"] #scoutingRoster strong, body[data-game="tower"] #scoutingRoster span { display:block; font-size:.7rem; line-height:1.5; overflow-wrap:anywhere; }
 body[data-game="tower"] #scoutingRoster strong { color:#e6efc6; font-size:.77rem; }
 body[data-game="tower"] #scoutingRoster span { color:#c1dbc9; }
+body[data-game="tower"] .map-picker { display:grid; gap:5px; width:min(420px,100%); color:#d4e9bf; font-size:.75rem; font-weight:700; }
+body[data-game="tower"] #mapSelect { width:100%; min-height:44px; border:1px solid #a5cf8d; border-radius:8px; padding:7px 10px; color:#e5ffe3; background:#103a2b; font:inherit; }
+body[data-game="tower"] .route-toggle { display:flex; align-items:center; gap:8px; color:#c6e5cd; font-size:.75rem; min-height:28px; }
+body[data-game="tower"] #mapDescription { font-size:.75rem; line-height:1.4; }
+body[data-game="tower"] #mapRecord { color:#e8d297; font-size:.72rem; }
+body[data-game="tower"] .overlay { overflow-y:auto; align-content:center; }
+body[data-game="tower"] [data-pad][hidden] { display:none; }
+body[data-game="tower"] #mapLabel { font-size:.85rem; }
+body[data-game="tower"] .arcade-topbar { grid-template-columns:auto minmax(0,1fr) auto auto; }
+body[data-game="tower"] .arcade-topbar .brand strong { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+body[data-game="tower"] #mapMenuButton { grid-column:3; grid-row:1; }
+body[data-game="tower"] #soundToggle { grid-column:4; grid-row:1; }
+body[data-game="tower"] .pad-controls[data-pad-count="8"] > div { grid-template-columns:repeat(8,minmax(0,1fr)); }
+@media(max-width:760px) and (orientation:portrait) {
+  body[data-game="tower"] .pad-controls[data-pad-count="8"] > div { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  body[data-game="tower"] .overlay { padding:10px; gap:5px; align-content:start; }
+  body[data-game="tower"] .overlay h1 { font-size:1.1rem; margin:0; }
+  body[data-game="tower"] .overlay #mapDescription { font-size:.67rem; margin:0; }
+  body[data-game="tower"] .overlay #mapRecord { margin:0; }
+  body[data-game="tower"] #overlayText { display:none; }
+  body[data-game="tower"] .overlay .eyebrow { display:none; }
+}
+@media(orientation:landscape) and (max-height:540px) {
+  body[data-game="tower"] .overlay { align-content:start; }
+  body[data-game="tower"] .overlay #overlayText, body[data-game="tower"] .overlay #mapRecord { display:none; }
+}

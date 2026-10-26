@@ -6,22 +6,22 @@ User selected on 2026-10-25. Preserve this map's identity while exploring furthe
 
 - Selected concept: map-concepts-v2/floodgate-delta-v1.png
 - Structure: three marsh defense islands, two causeways, nine visible tower foundations, one serpentine route to the relic.
-- Status: selected visual design; runtime integration and balance validation pending.
+- Status: integrated in the six-map game, with authored route, nine interactive pads and independent checkpoint. See ../../docs/tower-defense-map-integration.md for balance/verification evidence.
 - Design provenance: map-concepts-v2/README.md.
 
-User selection update: all four maps below are selected for game development. Their numbering preserves Delta as Map 01. Selection does not imply the current game has a map picker or these new maps are playable yet.
+All four expansion maps below are now integrated in the map selector. Their numbering preserves Delta as Map 01. Physical-device performance and human balance feedback remain open.
 
 ## Maps 02-04 - selected for development
 
 - Map 02, Sunscar Quarry: map-concepts-v3/sunscar-quarry-v1.png. Three-pass switchbacks on a quarry floor; nine visible empty foundations.
-- Map 03, Twinroot Grove: map-concepts-v3/twinroot-grove-v1.png. Intentional split-and-rejoin forest route; nine visible foundations. Requires multi-route simulation support; proposed branch allocation is documented in ../../docs/tower-defense-five-map-structure.md.
-- Map 04, Tideglass Harbor: map-concepts-v3/tideglass-harbor-v1.png. U-shaped fortified quay, relic at lower-left; eight visible foundations. Keep eight pads for the initial authoring pass rather than invent an invisible ninth. Right-side sprite clearance needs checking before implementation.
+- Map 03, Twinroot Grove: map-concepts-v3/twinroot-grove-v1.png. Integrated split-and-rejoin route with nine pads; ordinary arrivals alternate lanes and major boss/escort groups stay together.
+- Map 04, Tideglass Harbor: map-concepts-v3/tideglass-harbor-v1.png. Integrated U-shaped fortified quay, lower-left relic and eight interactive foundations. The controls reflect eight pads rather than inventing a ninth.
 
 Generation briefs and inspection notes: map-concepts-v3/README.md.
 
 ## Classic - Emerald Courtyard
 
-The original map has stable identity `courtyard`. Its current runtime background is emerald-vault-courtyard-v2.png while the original path, nine pads, relic placement, simulation and saves remain unchanged. The selected next art direction is emerald-vault-courtyard-v3-baked.png, including road, nine empty foundations and relic in the image. Align geometry and remove duplicate live base drawings before switching to that asset. No renumbering of Delta is needed.
+The original map has stable identity `courtyard`. New selections use emerald-vault-courtyard-v3-baked.png with an aligned road, nine pads and live HP feedback on the painted relic. Legacy v1 saves resume the original road/pads on emerald-vault-courtyard-v2.png, labeled Legacy build, without shifting saved towers. No renumbering of Delta is needed.
 
 ## Map 05 - Emerald Celestial Hall
 
@@ -30,7 +30,7 @@ Requested by the user as one additional map. The roster now contains six battleg
 - Selected art: emerald-celestial-hall-v2.png. The prior v1 is preserved as an earlier revision.
 - Identity: a jade/gold celestial palace with a compact crescent-and-comet centerpiece, ivory processional road and upper-right relic.
 - Corrected route: left entry, upper sweep, descent just right of the orrery, lower-right U-turn, ascent to relic. The disconnected lower-edge road in the initial generation was rejected and removed by imagegen.
-- Status: generated map asset, runtime geometry and validation pending. The v2 image has nine visible empty build foundations, reorganized beside the route. The oversized central orb/platform was removed; the small centerpiece is decorative and the upper-right shrine remains the objective.
+- Status: integrated with nine interactive build foundations and a route to the upper-right relic. The oversized central orb/platform was removed; the small centerpiece is decorative and the upper-right shrine remains the objective. The baked relic has live health/hit feedback without a duplicate full sprite.
 - Prompt/inspection notes: CELESTIAL_AND_CLASSIC_ART.md.
 
 Game structure and proposed implementation order: ../../docs/tower-defense-five-map-structure.md.
