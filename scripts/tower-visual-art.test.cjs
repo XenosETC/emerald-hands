@@ -945,3 +945,37 @@ test('Recap validation rejects unknown foes and impossible counts; coaching rema
   for(const mutate of [v=>v.leaks={unknown:1},v=>v.leaks={grunt:-1},v=>v.hpLost=101,v=>v.defeated=88,v=>v.cleared='yes',v=>v.wave=51]){const copy=JSON.parse(JSON.stringify(base));mutate(copy.lastWaveReport);assert.equal(store.decode(JSON.stringify(copy),types,kinds),null);}
   assert.match(g.act('waveAdvice({cleared:true,leaks:{}})'),/Clean defense/);assert.match(g.act('waveAdvice({cleared:true,leaks:{specter:1}})'),/Specters resist slows/);assert.match(g.act('waveAdvice({cleared:true,leaks:{runner:1}})'),/Fast foes/);
 });
+
+test('Arrival forecast follows every authored queue and lane without changing combat or saves',()=>{
+  for(const map of require('../pepe-tower-maps.js').maps){
+    const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();
+    const before=g.act('JSON.stringify([state,enemies,towers])');const saves=JSON.stringify([...g.saves]);
+    assert.equal(g.act(`wavePlans.every(plan=>{state.wave=plan.wave;state.waveActive=false;const opening=arrivalForecast();if(opening.rows[0].eta!==0||opening.queued!==plan.count)return false;
+      state.waveActive=true;state.waveSpawnTotal=plan.count;
+      for(let i=0;i<plan.count;i++){state.spawnLeft=plan.count-i;state.spawnTimer=.37;const f=arrivalForecast();const row=f.rows[0];if(row.index!==i||row.kind!==plan.kinds[i]||row.routeId!==mapCatalog.routeFor(activeMap,plan,i)||row.eta!==.37)return false;
+        if(f.rows.length>1&&Math.abs(f.rows[1].eta-(.37+arrivalDelay(plan,i+1)))>1e-9)return false;
+      }return true;})`),true,map.id);
+    g.act(`Object.assign(state,JSON.parse(${JSON.stringify(before)})[0]);arrivalForecast();updateArrivalForecast()`);
+    assert.equal(g.act('JSON.stringify([state,enemies,towers])'),before);
+    assert.equal(JSON.stringify([...g.saves]),saves);assert.equal(g.records.length,0);
+  }
+});
+
+test('Arrival forecast scales ETA with speed, keeps boss guards together, and reports resolved arrivals',()=>{
+  const g=checkpointGame();g.act('chooseBattleground("twinroot-grove")');g.start();
+  for(const [wave,lane] of [[20,0],[35,1],[50,0]]){
+    g.act(`state.wave=${wave};state.waveActive=false;combatSpeed=1`);
+    const eta=g.act('arrivalForecast().boss.eta');assert.ok(eta>0);
+    g.act('combatSpeed=2');assert.equal(g.act('arrivalForecast().boss.eta'),eta/2);
+    g.act('startWave();state.spawnLeft=state.waveSpawnTotal-currentWavePlan().bossIndex;state.spawnTimer=2;setCommandView("intel");updateHud()');
+    assert.equal(g.act('arrivalForecast().boss.eta'),1);assert.equal(g.act('arrivalForecast().boss.routeId'),lane);
+    assert.equal(g.act('arrivalForecast().rows.slice(1).every(row=>row.guard&&row.routeId===arrivalForecast().boss.routeId)'),true);
+    assert.match(g.nodes.get('#bossHealthLabel').textContent,/in ~1.0s/);
+    g.act('state.waveActive=false');
+  }
+  g.act('state.spawnLeft=0;state.waveActive=true;enemies.length=0;updateHud()');
+  assert.equal(g.act('arrivalForecast().boss'),null);assert.match(g.nodes.get('#arrivalQueue').innerHTML,/All arrivals have entered/);
+  assert.equal(g.nodes.get('#arrivalProgress').value,g.act('currentWavePlan().count'));
+  g.read('window.EmeraldArcade.isPaused=()=>true');g.act('updateHud()');assert.match(g.nodes.get('#arrivalHint').textContent,/Paused/);
+  g.act('state.playing=false;updateHud()');assert.equal(g.nodes.get('#arrivalPanel').hidden,true);
+});

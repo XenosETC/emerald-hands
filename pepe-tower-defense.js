@@ -56,6 +56,13 @@
   const scoutingTitle = document.querySelector("#scoutingTitle");
   const scoutingRoster = document.querySelector("#scoutingRoster");
   let scoutingWave = 0;
+  const arrivalPanel = document.querySelector("#arrivalPanel");
+  const arrivalTitle = document.querySelector("#arrivalTitle");
+  const arrivalSummary = document.querySelector("#arrivalSummary");
+  const arrivalProgress = document.querySelector("#arrivalProgress");
+  const arrivalQueue = document.querySelector("#arrivalQueue");
+  const arrivalHint = document.querySelector("#arrivalHint");
+  let arrivalQueueKey = null;
   const commandViews = { build: document.querySelector("#buildView"), manage: document.querySelector("#manageView"), intel: document.querySelector("#intelView") };
   const commandHint = document.querySelector("#commandHint");
   const nextWaveHint = document.querySelector("#nextWaveHint");
@@ -76,7 +83,7 @@
     if (!commandViews[view]) return;
     for (const [key,node] of Object.entries(commandViews)) node.hidden = key !== view;
     commandTabs.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.commandTab === view)));
-    if (view === "intel") { reportUnread = false; renderWaveReport(); }
+    if (view === "intel") { reportUnread = false; renderWaveReport(); updateArrivalForecast(); }
   }
   const towerPanel = document.querySelector("#towerPanel");
   const towerDetails = document.querySelector("#towerDetails");
@@ -260,6 +267,41 @@
   function encounterAdvice(plan) {
     if (!plan.majorBoss) return "";
     return ` ${enemyTypes[plan.majorBoss].name} arrives halfway through with ${plan.escort.length} guards, 1.1s apart. Ballista + Alchemist crack armor; Strong targeting focuses the boss. Keep splash, thorns and slows on guards; specters resist slows. No reinforcements beyond this preview.`;
+  }
+  function arrivalForecast(plan = currentWavePlan()) {
+    const active=state.waveActive;
+    const from=active?clamp(state.waveSpawnTotal-state.spawnLeft,0,plan.count):0;
+    const end=active?Math.min(plan.count,from+Math.max(0,state.spawnLeft)):plan.count;
+    const speed=combatSpeed;
+    let wait=active?Math.max(0,state.spawnTimer):0;
+    const rows=[];let boss=null;
+    for(let index=from;index<end;index++) {
+      const kind=plan.kinds[index],spec=enemyTypes[kind];
+      const row={index,kind,eta:wait/speed,routeId:mapCatalog.routeFor(activeMap,plan,index),
+        boss:Boolean(spec.boss),guard:Boolean(plan.majorBoss&&index>plan.bossIndex&&index<=plan.bossIndex+plan.escort.length)};
+      if(rows.length<4)rows.push(row);
+      if(!boss&&row.boss)boss=row;
+      wait+=arrivalDelay(plan,index+1);
+    }
+    return {rows,boss,queued:end-from};
+  }
+  function arrivalTime(seconds) { return `~${(Math.ceil(Math.max(0,seconds)*10)/10).toFixed(1)}s`; }
+  function arrivalLane(row) { return activeMap.routes.length>1?(row.routeId===0?"Upper":"Lower"):""; }
+  function updateArrivalForecast() {
+    const forecast=arrivalForecast();
+    arrivalPanel.hidden=!state.playing||state.wave>CAMPAIGN_WAVES;
+    if(arrivalPanel.hidden||commandViews.intel.hidden)return forecast;
+    const plan=currentWavePlan(),active=state.waveActive,paused=Boolean(window.EmeraldArcade?.isPaused?.());
+    const alive=active?enemies.filter(enemy=>enemy.hp>0).length:0;
+    const resolved=active?clamp(plan.count-forecast.queued-alive,0,plan.count):0;
+    arrivalTitle.textContent=active?`Wave ${state.wave} · Next arrivals`:"Opening arrivals";
+    arrivalSummary.textContent=active?`${resolved}/${plan.count} resolved · ${alive} on road · ${forecast.queued} queued`:`${plan.count} scheduled · first four shown`;
+    arrivalProgress.max=plan.count;arrivalProgress.value=resolved;
+    arrivalProgress.setAttribute("aria-valuetext",arrivalSummary.textContent);
+    arrivalHint.textContent=paused?"Paused · countdowns are held.":active?`Approximate entry times at ${combatSpeed}× speed. Resolved includes defeats and breaches.`:`Approximate times at ${combatSpeed}× speed, starting when you send the wave.`;
+    const markup=forecast.rows.map(row=>`<li data-boss="${row.boss}" data-guard="${row.guard}"><img src="${enemySprites[row.kind].src}" width="30" height="30" alt=""><div><strong>${enemyTypes[row.kind].name}</strong><span>${!active&&row.index===0?"At launch":arrivalTime(row.eta)}${arrivalLane(row)?" · "+arrivalLane(row):""}${row.boss?" · Boss":row.guard?" · Guard":""}</span></div></li>`).join("");
+    if(markup!==arrivalQueueKey){arrivalQueueKey=markup;arrivalQueue.innerHTML=markup||"<li class=\"arrival-empty\">All arrivals have entered. Clear the road.</li>";}
+    return forecast;
   }
   function waveBrief(plan) {
     const counts = {};
@@ -703,15 +745,18 @@
     waveButton.hidden = state.waveActive || Boolean(plannedPad);
     nextWaveHint.textContent = state.wave > CAMPAIGN_WAVES ? `${CAMPAIGN_WAVES}/${CAMPAIGN_WAVES} waves defended` : `Wave ${plan.wave}/${CAMPAIGN_WAVES} - ${plan.name} - ${plan.count} foes`;
     const boss = enemies.find(enemy => enemy.hp > 0 && enemy.boss);
+    const forecast = updateArrivalForecast();
+    const queuedBoss = state.waveActive ? forecast.boss : null;
     const nextIndex = state.waveSpawnTotal - state.spawnLeft;
     const waitingGuards = state.waveActive && plan.majorBoss ? Math.max(0, plan.bossIndex + plan.escort.length + 1 - Math.max(nextIndex, plan.bossIndex + 1)) : 0;
     const guards = waitingGuards + enemies.filter(enemy => enemy.hp > 0 && enemy.isEscort).length;
-    bossHealth.hidden = !boss && !guards && !(plan.majorBoss && !state.waveActive && state.wave <= CAMPAIGN_WAVES);
+    bossHealth.hidden = !boss && !guards && !queuedBoss && !(plan.majorBoss && !state.waveActive && state.wave <= CAMPAIGN_WAVES);
     bossHealthBar.hidden = !boss;
     if (boss) {
       bossHealthBar.max = boss.maxHp; bossHealthBar.value = Math.max(0, boss.hp);
       bossHealthLabel.textContent = `${enemyTypes[boss.kind].name}: ${Math.ceil(boss.hp)} / ${boss.maxHp} HP${guards ? ` · ${guards} guards left` : ""}`;
-    } else bossHealthLabel.textContent = state.waveActive ? `${guards} guards remaining · clear every foe` : `Boss ahead · ${plan.escort.length} guards · inspect Enemies to prepare`;
+    } else if(queuedBoss) bossHealthLabel.textContent = `${window.EmeraldArcade?.isPaused?.()?"Paused · ":""}${enemyTypes[queuedBoss.kind].name} in ${arrivalTime(queuedBoss.eta)}${arrivalLane(queuedBoss)?" · "+arrivalLane(queuedBoss)+" lane":""}${guards?" · "+guards+" guards":""}`;
+    else bossHealthLabel.textContent = state.waveActive ? `${guards} guards remaining · clear every foe` : `Boss ahead · ${plan.escort.length} guards · inspect Enemies to prepare`;
     commandHint.textContent = movingTower ? "Moving: choose an empty numbered pad. Cancel in Tower controls." : state.waveActive ? `${state.spawnLeft + enemies.length} enemies remaining. Moving unlocks after the wave.` : "Build, upgrade or reposition before sending the wave.";
     padHint.textContent = movingTower ? "Move" : "Build pads";
     padControls.setAttribute("data-moving", String(Boolean(movingTower)));
