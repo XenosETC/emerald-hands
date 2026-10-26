@@ -106,6 +106,62 @@ function towerGame() {
   return g;
 }
 
+test('Placement planning: circle coverage clips segments exactly without counting tangencies or zero-length points',()=>{
+  const {coverage}=require('../pepe-tower-maps.js');
+  const map={routes:[[{x:-100,y:0},{x:100,y:0}],[{x:-100,y:50},{x:100,y:50}]]};
+  assert.equal(coverage(map,{x:0,y:0},50)[0].covered,100);
+  assert.equal(coverage(map,{x:0,y:0},50)[0].percent,50);
+  assert.equal(coverage(map,{x:0,y:0},50)[1].covered,0);
+  assert.equal(coverage(map,{x:0,y:0},500)[0].percent,100);
+  assert.equal(coverage(map,{x:200,y:0},50)[0].covered,0);
+  assert.equal(coverage({routes:[[{x:0,y:0},{x:0,y:0},{x:100,y:0}]]},{x:0,y:0},25)[0].covered,25);
+  for(const range of [0,-1,NaN,Infinity])assert.equal(coverage(map,{x:0,y:0},range)[0].covered,0);
+  const grove=require('../pepe-tower-maps.js').get('twinroot-grove'),before=JSON.stringify(grove);
+  for(const point of grove.pads){const a=coverage(grove,point,150),b=coverage(grove,point,300);for(let i=0;i<2;i++){assert.ok(a[i].percent>=0&&a[i].percent<=100);assert.ok(b[i].covered>=a[i].covered);}}
+  assert.equal(JSON.stringify(grove),before);
+});
+
+test('Placement planning: every map previews freely and confirms one real purchase without changing default quick-build',()=>{
+  for(const map of require('../pepe-tower-maps.js').maps){
+    const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();
+    const saved=g.act('JSON.stringify(readBuildCheckpoint())');
+    g.nodes.get('#planPlacementButton').emit('click');g.act('buildOrUpgrade(pads[0])');
+    assert.equal(g.act('state.shards'),180);assert.equal(g.act('towers.length'),0);assert.equal(g.act('JSON.stringify(readBuildCheckpoint())'),saved);
+    assert.equal(g.nodes.get('#placementPanel').hidden,false);assert.match(g.nodes.get('#placementCoverage').textContent,map.routes.length>1?/Upper:.*Lower:/:/Road:/);
+    g.nodes.get('#confirmPlacementButton').emit('click');g.nodes.get('#confirmPlacementButton').emit('click');
+    assert.equal(g.act('state.shards'),105);assert.equal(g.act('towers.length'),1);assert.equal(g.nodes.get('#placementPanel').hidden,true);
+    g.nodes.get('#planPlacementButton').emit('click');g.act('buildOrUpgrade(pads[1])');assert.equal(g.act('towers.length'),2);assert.equal(g.act('state.shards'),30);
+  }
+});
+
+test('Placement planning: unaffordable and hero-limit previews cannot spend even when confirmation is called directly',()=>{
+  const g=towerGame();g.nodes.get('#planPlacementButton').emit('click');g.act('selectTower("hero");buildOrUpgrade(pads[0])');
+  assert.equal(g.nodes.get('pad:0').disabled,false);assert.equal(g.nodes.get('#confirmPlacementButton').disabled,true);assert.match(g.nodes.get('#placementHint').textContent,/220 more shards/);
+  assert.equal(g.act('confirmPlacement()'),false);assert.equal(g.act('state.shards'),180);
+  g.act('state.shards=1000;updateHud();confirmPlacement();buildOrUpgrade(pads[1]);confirmPlacement();buildOrUpgrade(pads[2])');
+  assert.match(g.nodes.get('#placementHint').textContent,/Two Sunwardens/);assert.equal(g.act('confirmPlacement()'),false);assert.equal(g.act('towers.length'),2);assert.equal(g.act('state.shards'),200);
+});
+
+test('Placement planning: cancel, pause, moving, new waves and map changes do not leave stale confirmations',()=>{
+  const g=towerGame();g.nodes.get('#planPlacementButton').emit('click');g.act('buildOrUpgrade(pads[0])');
+  g.read('window.EmeraldArcade.isPaused=()=>true');g.nodes.get('#confirmPlacementButton').emit('click');assert.equal(g.act('towers.length'),0);
+  g.read('window.EmeraldArcade.isPaused=()=>false');g.nodes.get('#cancelPlacementButton').emit('click');assert.equal(g.act('plannedPad'),null);assert.equal(g.act('state.shards'),180);
+  g.act('buildOrUpgrade(pads[0]);confirmPlacement();beginMove();buildOrUpgrade(pads[1])');assert.equal(g.act('towers[0].pad===pads[1]'),true);assert.equal(g.act('state.shards'),105);
+  g.act('buildOrUpgrade(pads[2]);startWave()');assert.equal(g.act('plannedPad'),null);assert.equal(g.act('confirmPlacement()'),false);
+  g.act('buildOrUpgrade(pads[2]);openMapMenu();chooseBattleground("floodgate-delta")');assert.equal(g.act('plannedPad'),null);assert.equal(g.act('planningPlacement'),false);
+});
+
+test('Placement planning: switching defenders updates the ghost and coverage, while upgrades update owned tower coverage',()=>{
+  const g=towerGame();g.nodes.get('#planPlacementButton').emit('click');g.act('buildOrUpgrade(pads[0]);selectTower("ballista")');
+  assert.equal(g.act('plannedPad===pads[0]'),true);assert.match(g.nodes.get('#placementTitle').textContent,/Ballista/);
+  assert.equal(g.nodes.get('#placementCoverage').textContent,g.act('coverageText(pads[0],300)'));
+  g.act('state.shards=1000;confirmPlacement()');const before=g.nodes.get('#towerCoverage').textContent;
+  g.act('upgradeSelected("utility");upgradeSelected("utility");upgradeSelected("utility")');
+  assert.notEqual(g.nodes.get('#towerCoverage').textContent,before);
+  g.act('selectTower("druid");buildOrUpgrade(pads[2])');assert.match(g.nodes.get('#placementHint').textContent,/nearest road/);
+  const n=g.drawingCalls.length;g.act('drawPlacementPreview()');assert.ok(g.drawingCalls.slice(n).some(c=>c.method==='arc'&&c.args[2]===140));
+});
+
 test('Map integration: six authored boards have bounded pads, connected relic endpoints and valid spawn routes',()=>{
   const catalog=require('../pepe-tower-maps.js');
   assert.equal(catalog.maps.length,6);assert.equal(new Set(catalog.maps.map(m=>m.id)).size,6);

@@ -221,6 +221,20 @@ body[data-game="tower"] #mapRecord { color:#e8d297; font-size:.72rem; }
 body[data-game="tower"] .overlay { overflow-y:auto; align-content:center; }
 body[data-game="tower"] [data-pad][hidden] { display:none; }
 body[data-game="tower"] #mapLabel { font-size:.85rem; }
+body[data-game="tower"] .placement-tools { grid-column:1 / -1; display:grid; gap:4px; margin-bottom:6px; }
+body[data-game="tower"] .placement-tools[hidden] { display:none; }
+body[data-game="tower"] #planPlacementButton { min-height:44px; border:1px solid #70a58c; border-radius:8px; background:#12362a; color:#d6f5d9; font:inherit; font-size:.75rem; }
+body[data-game="tower"] #planPlacementButton[aria-pressed="true"] { background:#345e42; border-color:#b2dc91; }
+body[data-game="tower"] #planPlacementHelp, body[data-game="tower"] #towerCoverage { color:#afdac1; font-size:.65rem; line-height:1.4; }
+body[data-game="tower"] #towerCoverage { display:block; margin:5px 0 9px; }
+body[data-game="tower"] #placementPanel { display:grid; gap:4px; border:1px solid #8ac9a1; background:#103a2cf5; border-radius:9px; padding:8px; }
+body[data-game="tower"] #placementPanel[hidden] { display:none; }
+body[data-game="tower"] #placementPanel strong { color:#dfedb3; font-size:.75rem; }
+body[data-game="tower"] #placementPanel span { color:#c6ffe3; font-size:.7rem; }
+body[data-game="tower"] #placementPanel small { color:#bed5c5; font-size:.6rem; line-height:1.35; }
+body[data-game="tower"] #placementPanel > div { display:grid; grid-template-columns:1.2fr 1fr; gap:5px; }
+body[data-game="tower"] #placementPanel button { min-height:44px; border:1px solid #86c7a7; border-radius:7px; background:#24523b; color:#e7ffe6; font:inherit; font-size:.7rem; padding:4px; }
+body[data-game="tower"] #placementPanel button:disabled { opacity:.45; }
 body[data-game="tower"] .arcade-topbar { grid-template-columns:auto minmax(0,1fr) auto auto; }
 body[data-game="tower"] .arcade-topbar .brand strong { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
 body[data-game="tower"] #mapMenuButton { grid-column:3; grid-row:1; }

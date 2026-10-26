@@ -13,6 +13,15 @@
   const mapLabel = document.querySelector("#mapLabel");
   const mapMenuButton = document.querySelector("#mapMenuButton");
   const routePreviewToggle = document.querySelector("#routePreviewToggle");
+  const planPlacementButton = document.querySelector("#planPlacementButton");
+  const placementTools = document.querySelector("#placementTools");
+  const placementPanel = document.querySelector("#placementPanel");
+  const placementTitle = document.querySelector("#placementTitle");
+  const placementCoverage = document.querySelector("#placementCoverage");
+  const placementHint = document.querySelector("#placementHint");
+  const confirmPlacementButton = document.querySelector("#confirmPlacementButton");
+  const cancelPlacementButton = document.querySelector("#cancelPlacementButton");
+  const towerCoverage = document.querySelector("#towerCoverage");
   let resumeCheckpoint = null;
   const overlayTitle = document.querySelector("#overlayTitle");
   const overlayText = document.querySelector("#overlayText");
@@ -327,6 +336,8 @@
   let selectedTower = "pepe";
   let inspectedTower = null;
   let movingTower = null;
+  let planningPlacement = false;
+  let plannedPad = null;
   let waveMetrics = null;
   let lastWaveReport = null;
   let reportUnread = false;
@@ -413,7 +424,7 @@
     if(window.EmeraldArcade?.isPaused?.())return;
     saveBuildCheckpoint();cancelAnimationFrame(raf);state.playing=false;state.waveActive=false;
     for(const items of [enemies,towers,thornPatches,shots,bursts,floaters,motes])items.length=0;
-    inspectedTower=null;movingTower=null;pointer.active=false;state.heroNovaCooldowns=[0,0];combatSpeed=1;
+    inspectedTower=null;movingTower=null;plannedPad=null;planningPlacement=false;pointer.active=false;state.heroNovaCooldowns=[0,0];combatSpeed=1;
     overlay.classList.remove("is-hidden");
     chooseBattleground(activeMap.id);canvas.focus();
   }
@@ -529,6 +540,7 @@
     towers.length = 0;
     inspectedTower = null;
     movingTower = null;
+    planningPlacement = false; plannedPad = null;
     waveMetrics = null; lastWaveReport = null; reportUnread = false;
     renderWaveReport();
     shots.length = 0;
@@ -604,6 +616,7 @@
     if (!state.playing) resetGame();
     if (state.waveActive) return;
     movingTower = null;
+    plannedPad = null;
     saveBuildCheckpoint();
     state.waveActive = true;
     waveMetrics = { wave: state.wave, defeated: 0, leaks: {}, hpLost: 0 };
@@ -678,16 +691,16 @@
       if(!pad){button.disabled=true;return;}
       const tower = towerAtPad(pad);
       const cost = towerTypes[selectedTower].cost;
-      const label = `Pad ${Number(button.dataset.pad) + 1} - ${tower ? `${tower.name} ${tierCode(tower)}` : movingTower ? "Move here" : `Build - ${cost}`}`;
+      const label = `Pad ${Number(button.dataset.pad) + 1} - ${tower ? `${tower.name} ${tierCode(tower)}` : movingTower ? "Move here" : `${planningPlacement?"Preview":"Build"} - ${cost}`}`;
       const number = String(Number(button.dataset.pad) + 1);
       if (button.textContent !== number) button.textContent = number;
       button.title = label;
-      button.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.()) || (movingTower ? Boolean(tower) : !tower && (state.shards < cost || selectedTower === "hero" && deployedHeroes.length >= HERO_LIMIT));
+      button.disabled = !state.playing || Boolean(window.EmeraldArcade?.isPaused?.()) || (movingTower ? Boolean(tower) : !tower && !planningPlacement && (state.shards < cost || selectedTower === "hero" && deployedHeroes.length >= HERO_LIMIT));
       button.setAttribute("aria-label", label);
-      button.setAttribute("aria-pressed", String(Boolean(tower && tower === inspectedTower)));
+      button.setAttribute("aria-pressed", String(Boolean(tower && tower === inspectedTower) || plannedPad===pad));
     });
     const plan = currentWavePlan();
-    waveButton.hidden = state.waveActive;
+    waveButton.hidden = state.waveActive || Boolean(plannedPad);
     nextWaveHint.textContent = state.wave > CAMPAIGN_WAVES ? `${CAMPAIGN_WAVES}/${CAMPAIGN_WAVES} waves defended` : `Wave ${plan.wave}/${CAMPAIGN_WAVES} - ${plan.name} - ${plan.count} foes`;
     const boss = enemies.find(enemy => enemy.hp > 0 && enemy.boss);
     const nextIndex = state.waveSpawnTotal - state.spawnLeft;
@@ -703,6 +716,7 @@
     padHint.textContent = movingTower ? "Move" : "Build pads";
     padControls.setAttribute("data-moving", String(Boolean(movingTower)));
     updateTowerPanel();
+    updatePlacementPanel();
     waveButton.disabled = !state.playing || state.waveActive || Boolean(window.EmeraldArcade?.isPaused?.());
   }
 
@@ -715,7 +729,7 @@
     towerButtons.forEach((button) => { button.classList.toggle("is-selected", button.dataset.tower === type); button.setAttribute("aria-pressed", String(button.dataset.tower === type)); });
     const tower = towerTypes[type];
     statusLabel.textContent = tower.name;
-    statusMeta.textContent = `${tower.cost} shards - click an empty pad to place`;
+    statusMeta.textContent = `${tower.cost} shards - ${planningPlacement?"select an empty pad to preview":"click an empty pad to place"}`;
     updateHud();
   }
 
@@ -747,7 +761,37 @@
     return distance(point.x, point.y, path[0].x, path[0].y) < 55;
   }
 
-  function buildOrUpgrade(pad) {
+  function coverageText(point, range) {
+    return mapCatalog.coverage(activeMap,point,range).map((lane,i)=>{
+      const percent=lane.percent>0&&lane.percent<1?"<1":String(Math.round(lane.percent));
+      return `${activeMap.routes.length>1?(i===0?"Upper":"Lower"):"Road"}: ${percent}% in range`;
+    }).join(" · ");
+  }
+  function updatePlacementPanel() {
+    const paused=Boolean(window.EmeraldArcade?.isPaused?.());
+    planPlacementButton.disabled=!state.playing||paused||Boolean(movingTower);
+    planPlacementButton.textContent=`Plan placement: ${planningPlacement?"on":"off"}`;
+    planPlacementButton.setAttribute("aria-pressed",String(planningPlacement));
+    if(plannedPad&&(!pads.includes(plannedPad)||towerAtPad(plannedPad)))plannedPad=null;
+    placementPanel.hidden=!state.playing||!planningPlacement||!plannedPad;
+    placementTools.hidden=!placementPanel.hidden;
+    if(placementPanel.hidden)return;
+    const spec=towerTypes[selectedTower],heroLimit=selectedTower==="hero"&&towers.filter(t=>t.type==="hero").length>=HERO_LIMIT;
+    placementTitle.textContent=`${spec.name} · Pad ${pads.indexOf(plannedPad)+1}`;
+    placementCoverage.textContent=coverageText(plannedPad,spec.range);
+    placementHint.textContent=(heroLimit?"Two Sunwardens already deployed.":state.shards<spec.cost?`Need ${spec.cost-state.shards} more shards. Preview is free.`:selectedTower==="druid"?"Planting reach only; traps go on the nearest road.":"Road length in range, not a damage estimate.")+(state.waveActive?" Combat keeps running.":"");
+    confirmPlacementButton.textContent=`Build here · ${spec.cost} shards`;
+    confirmPlacementButton.disabled=paused||Boolean(movingTower)||heroLimit||state.shards<spec.cost;
+    cancelPlacementButton.disabled=paused;
+  }
+  function confirmPlacement() {
+    if(!state.playing||window.EmeraldArcade?.isPaused?.()||movingTower||!planningPlacement||!plannedPad||towerAtPad(plannedPad))return false;
+    const pad=plannedPad;
+    buildOrUpgrade(pad,true);
+    return Boolean(towerAtPad(pad));
+  }
+
+  function buildOrUpgrade(pad, confirmed = false) {
     if (!state.playing || !pads.includes(pad) || window.EmeraldArcade?.isPaused?.()) return;
     const existing = towerAtPad(pad);
     if (movingTower) {
@@ -767,12 +811,20 @@
       return;
     }
     if (existing) {
+      plannedPad = null;
       inspectedTower = existing;
       setCommandView("manage");
       statusLabel.textContent = `${existing.name} selected`;
       statusMeta.textContent = "Use Tower controls to choose upgrades, move or sell";
       updateHud();
       return;
+    }
+
+    if (planningPlacement && !confirmed) {
+      plannedPad = pad; inspectedTower = null; setCommandView("build");
+      statusLabel.textContent = "Placement preview - no shards spent";
+      statusMeta.textContent = "Check range and road coverage, then confirm the build.";
+      updateHud();return;
     }
 
     const type = towerTypes[selectedTower];
@@ -788,6 +840,7 @@
     }
     const heroSlot = selectedTower === "hero" ? [0,1].find(slot => !towers.some(tower => tower.type === "hero" && tower.heroSlot === slot)) : null;
     state.shards -= type.cost;
+    plannedPad = null;
     towers.push({
       ...type,
       invested: type.cost,
@@ -902,6 +955,7 @@
     manageEmpty.hidden = Boolean(inspectedTower);
     if (!inspectedTower) return;
     const tower = inspectedTower;
+    towerCoverage.textContent=coverageText(tower,tower.range)+(tower.type==="druid"?" · planting reach; nearest road gets traps":" · road length, not damage");
     const recordedDamage = tower.combatDamage || 0, defeats = tower.combatKills || 0;
     towerCombatRecord.textContent = `Total: ${recordedDamage > 0 && recordedDamage < 1 ? "<1" : format(Math.round(recordedDamage))} damage · ${defeats} ${defeats === 1 ? "defeat" : "defeats"}`;
     targetModeButton.disabled = !canManageTower() || Boolean(movingTower) || tower.type === "druid";
@@ -975,6 +1029,7 @@
   function beginMove() {
     if (!canManageTower() || state.waveActive || movingTower) return false;
     movingTower = inspectedTower;
+    plannedPad = null;
     statusLabel.textContent = "Choose an empty pad to move your tower";
     updateHud();
     return true;
@@ -1553,7 +1608,7 @@
   function drawPads() {
     for (const pad of pads) {
       const occupied = towerAtPad(pad);
-      const hovered = distance(pointer.x, pointer.y, pad.x, pad.y) < 34 && pointer.active;
+      const hovered = plannedPad===pad || distance(pointer.x, pointer.y, pad.x, pad.y) < 34 && pointer.active;
       ctx.save();
       ctx.translate(pad.x, pad.y);
       ctx.fillStyle = occupied ? "rgba(57, 255, 154, 0.18)" : hovered ? "rgba(116, 255, 197, 0.16)" : "rgba(116, 255, 197, 0.08)";
@@ -1566,7 +1621,7 @@
       if (!occupied) {
         ctx.fillStyle = "#dfffee"; ctx.font = "900 18px Arial"; ctx.textAlign = "center"; ctx.fillText(String(pads.indexOf(pad) + 1), 0, 6);
       }
-      if (!occupied && hovered) {
+      if (!occupied && hovered && plannedPad!==pad) {
         const type = towerTypes[selectedTower];
         ctx.globalAlpha = 0.28;
         ctx.strokeStyle = type.color;
@@ -1606,6 +1661,18 @@
     ctx.fillText(isMax ? `${tower.name} maxed` : upgradeName({ ...tower, level: tower.level + 1 }), 0, -4);
     ctx.fillStyle = isMax ? "#ffd86b" : state.shards >= cost ? "#74ffc5" : "#ff9cab";
     ctx.fillText("Select to manage tower", 0, 13);
+    ctx.restore();
+  }
+
+  function drawPlacementPreview() {
+    if(!state.playing||!planningPlacement||!plannedPad||towerAtPad(plannedPad))return;
+    const spec=towerTypes[selectedTower],affordable=state.shards>=spec.cost&&!(selectedTower==="hero"&&towers.filter(t=>t.type==="hero").length>=HERO_LIMIT);
+    ctx.save();ctx.translate(plannedPad.x,plannedPad.y);
+    ctx.fillStyle=affordable?"rgba(57,255,154,.09)":"rgba(255,100,100,.09)";
+    ctx.strokeStyle=affordable?"#8bffd0":"#ff9b91";ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(0,0,spec.range,0,Math.PI*2);ctx.fill();ctx.stroke();
+    const sprite=towerSprites[selectedTower],scale=towerRenderScale({type:selectedTower,level:1,attackPulse:0});
+    if(sprite.complete&&sprite.naturalWidth){ctx.globalAlpha=.45;ctx.drawImage(sprite,-256*scale,-292*scale,512*scale,512*scale);}
     ctx.restore();
   }
 
@@ -2047,6 +2114,7 @@
     drawPortal();
     drawVault();
     drawPads();
+    drawPlacementPreview();
     drawTowers();
     drawEnemies();
     drawEffects();
@@ -2113,7 +2181,7 @@
 
   window.addEventListener("keydown", (event) => {
     if (window.EmeraldArcade?.isPaused?.() || event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.target?.closest?.("button, a, input, select, textarea, [contenteditable]")) return;
-    if (event.key === "Escape") { movingTower = null; updateHud(); }
+    if (event.key === "Escape") { movingTower = null; plannedPad = null; updateHud(); }
     if (event.key === "1") selectTower("pepe");
     if (event.key === "2") selectTower("shard");
     if (event.key === "3") selectTower("relic");
@@ -2163,6 +2231,12 @@
   mapSelect.addEventListener("change", () => chooseBattleground(mapSelect.value));
   mapMenuButton.addEventListener("click", openMapMenu);
   routePreviewToggle.addEventListener("change", draw);
+  planPlacementButton.addEventListener("click",()=>{
+    if(!state.playing||window.EmeraldArcade?.isPaused?.()||movingTower)return;
+    planningPlacement=!planningPlacement;plannedPad=null;updateHud();
+  });
+  confirmPlacementButton.addEventListener("click",confirmPlacement);
+  cancelPlacementButton.addEventListener("click",()=>{if(!window.EmeraldArcade?.isPaused?.()){plannedPad=null;updateHud();}});
   resumeButton.addEventListener("click", resumeDefense);
   window.addEventListener("pagehide", saveBuildCheckpoint);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveBuildCheckpoint(); });

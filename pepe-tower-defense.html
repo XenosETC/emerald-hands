@@ -20,7 +20,7 @@
     <link rel="preload" href="assets/pepe-tower-defense/pepe-archer-evolved-sprite.png" as="image">
     <link rel="stylesheet" href="pepe-tower-defense.css?v=crosspaths-20261023">
     <link rel="stylesheet" href="game-polish.css?v=1">
-    <link rel="stylesheet" href="pepe-tower-command.css?v=maps-1">
+    <link rel="stylesheet" href="pepe-tower-command.css?v=placement-1">
   </head>
   <body class="arcade-game" data-game="tower">
     <main class="game-shell">
@@ -70,7 +70,7 @@
             <button type="button" data-command-tab="intel" aria-pressed="false" aria-controls="intelView">Enemies</button>
             <button type="button" id="speedButton" aria-pressed="false" title="Switch wave speed. Enemies, attacks, traps and cooldowns speed up together; build phases stay at normal speed.">Speed 1×</button>
           </nav>
-          <section class="command-view" id="buildView" aria-label="Build defenders">          <button class="tower-button is-selected" type="button" data-tower="pepe" draggable="true">
+          <section class="command-view" id="buildView" aria-label="Build defenders"><div class="placement-tools" id="placementTools"><button id="planPlacementButton" type="button" aria-pressed="false" aria-describedby="planPlacementHelp">Plan placement: off</button><small id="planPlacementHelp">Turn on to preview an empty pad before spending.</small></div>          <button class="tower-button is-selected" type="button" data-tower="pepe" draggable="true">
             <img src="assets/pepe-tower-defense/pepe-blaster-sprite.png" alt="">
             <span>
               <strong>Pepe Blaster</strong>
@@ -112,7 +112,7 @@
 <p class="tower-dock__hint">Choose a defender, then tap a glowing pad or its number on the battlefield.</p></section>
           <section class="command-view" id="manageView" aria-label="Manage selected defender" hidden><p id="manageEmpty">Tap a placed tower or its pad number to inspect, upgrade, move or sell it.</p><section class="tower-panel" id="towerPanel" aria-labelledby="towerPanelTitle" hidden>
         <header class="selected-heading"><img id="selectedPortrait" src="assets/pepe-tower-defense/pepe-blaster-sprite.png" width="56" height="56" alt=""><div><h2 id="towerPanelTitle">Selected defender</h2><small id="towerFormLabel">Base defender</small><small id="towerCombatRecord" title="Actual health removed after armor, capped at remaining health; display is rounded. Slow and armor-weakening support are not counted as damage.">Total: 0 damage · 0 defeats</small></div></header>
-        <p id="towerDetails"></p>
+        <p id="towerDetails"></p><small id="towerCoverage"></small>
         <div class="tower-actions"><button type="button" id="targetModeButton" aria-describedby="targetModeHint">Target: First</button><small id="targetModeHint"></small><button type="button" id="moveTowerButton">Move tower - free</button><button type="button" id="cancelMoveButton" hidden>Cancel move</button><button type="button" id="sellTowerButton">Sell tower</button></div>
         <div class="tower-paths" aria-label="Upgrade paths"><button type="button" data-upgrade-path="power"><span class="path-text"></span><span class="path-pips" aria-hidden="true"><i data-tier="1"></i><i data-tier="2"></i><i data-tier="3"></i><i data-tier="4"></i><i data-tier="5"></i></span></button><button type="button" data-upgrade-path="special"><span class="path-text"></span><span class="path-pips" aria-hidden="true"><i data-tier="1"></i><i data-tier="2"></i><i data-tier="3"></i><i data-tier="4"></i><i data-tier="5"></i></span></button><button type="button" data-upgrade-path="utility"><span class="path-text"></span><span class="path-pips" aria-hidden="true"><i data-tier="1"></i><i data-tier="2"></i><i data-tier="3"></i><i data-tier="4"></i><i data-tier="5"></i></span></button></div>
 
@@ -124,10 +124,10 @@
         <p class="tower-panel__hint">50 waves. Bosses every 5 waves; major bosses on 20, 35 and 50, with fixed guard formations on all three major waves. Shieldbearers from wave 21; slow-resistant specters from wave 26. Health and formation density rise gradually; enemy speed growth caps at wave 15. Each cleared wave gives a build break.</p>
       </section><details class="in-game-manual"><summary>How to play</summary>    <div class="game-guide" aria-label="How to play">
       <div><span class="game-guide__label">Build & defend</span><p><strong>Protect the vault.</strong> Place defenders on glowing pads, then send the next wave.</p></div>
-      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Select a defender and tap a pad, or drag a tower onto it. Select a placed tower to choose its upgrade path, move it between waves, or sell for a 70% refund. Upgrade up to two paths: one to tier 5 and a secondary to tier 2. The third path locks. Keys 1-9 select defenders. Sunwarden is limited to two active heroes; press H or tap Emerald Nova during a wave.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Select a defender and tap a pad, or drag a tower onto it. Optional Plan placement previews range and road coverage before you confirm Build here. Select a placed tower to choose its upgrade path, move it between waves, or sell for a 70% refund. Upgrade up to two paths: one to tier 5 and a secondary to tier 2. The third path locks. Keys 1-9 select defenders. Sunwarden is limited to two active heroes; press H or tap Emerald Nova during a wave.</p></div>
       <div><span class="game-guide__label">Plan the next wave</span><p>Mix damage and slowing towers. The highlighted card is your selected defender; each purchase uses in-game shards.</p></div>
     </div></details></section>
-          <footer class="command-footer"><small id="checkpointHint"></small><section id="heroAbility" aria-label="Hero ability" hidden><button id="heroNovaButton" type="button">Emerald Nova · ready (H)</button><small id="heroNovaHint"></small><button id="heroNovaButton2" type="button" hidden>Nova 2 · ready (H)</button><small id="heroNovaHint2" hidden></small></section><section id="bossHealth" aria-label="Boss encounter" hidden><small id="bossHealthLabel"></small><progress id="bossHealthBar" aria-label="Boss health" max="1" value="1"></progress></section><small id="nextWaveHint">Wave 1/50 - First defenses</small><button class="wave-button" id="waveButton" type="button">Start Wave</button><p id="commandHint">Choose a defender to begin.</p></footer>
+          <footer class="command-footer"><section id="placementPanel" aria-label="Placement preview" hidden><strong id="placementTitle"></strong><span id="placementCoverage"></span><small id="placementHint"></small><div><button id="confirmPlacementButton" type="button">Build here</button><button id="cancelPlacementButton" type="button">Cancel preview</button></div></section><small id="checkpointHint"></small><section id="heroAbility" aria-label="Hero ability" hidden><button id="heroNovaButton" type="button">Emerald Nova · ready (H)</button><small id="heroNovaHint"></small><button id="heroNovaButton2" type="button" hidden>Nova 2 · ready (H)</button><small id="heroNovaHint2" hidden></small></section><section id="bossHealth" aria-label="Boss encounter" hidden><small id="bossHealthLabel"></small><progress id="bossHealthBar" aria-label="Boss health" max="1" value="1"></progress></section><small id="nextWaveHint">Wave 1/50 - First defenses</small><button class="wave-button" id="waveButton" type="button">Start Wave</button><p id="commandHint">Choose a defender to begin.</p></footer>
         </aside>
       </section>
 
@@ -137,7 +137,7 @@
 
     <script src="arcade.js?v=13"></script>
     <script src="arcade-pet.js?v=15"></script>
-    <script src="pepe-tower-maps.js?v=1"></script><script src="pepe-tower-checkpoint.js?v=maps-1"></script><script src="pepe-tower-defense.js?v=map-integration-20261025"></script>
+    <script src="pepe-tower-maps.js?v=placement-1"></script><script src="pepe-tower-checkpoint.js?v=maps-1"></script><script src="pepe-tower-defense.js?v=placement-20261026"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

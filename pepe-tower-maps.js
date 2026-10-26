@@ -55,5 +55,21 @@
     return index%map.routes.length;
   }
   function key(map){return map.id==="courtyard"&&map.version===1?"pepe-tower-defense-build-checkpoint-v1":`pepe-tower-defense-map-${map.id}-v${map.version}`;}
-  return {maps,legacy,get,remaining,routeFor,key};
+  // Exact centerline length inside a circular range, clipped independently per lane.
+  function coverage(map,point,radius){
+    return map.routes.map(route=>{
+      let covered=0,total=0;
+      for(let i=1;i<route.length;i++){
+        const a=route[i-1],b=route[i],dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy);
+        total+=length;if(!length||!Number.isFinite(radius)||radius<=0)continue;
+        const px=a.x-point.x,py=a.y-point.y,projection=-(px*dx+py*dy)/(length*length);
+        const perpendicular=Math.max(0,px*px+py*py-projection*projection*length*length);
+        if(perpendicular>=radius*radius)continue;
+        const half=Math.sqrt((radius*radius-perpendicular)/(length*length));
+        covered+=Math.max(0,Math.min(1,projection+half)-Math.max(0,projection-half))*length;
+      }
+      return {covered,total,percent:total?Math.min(100,covered/total*100):0};
+    });
+  }
+  return {maps,legacy,get,remaining,routeFor,key,coverage};
 });
