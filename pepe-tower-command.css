@@ -196,3 +196,10 @@ body[data-game="tower"] #resumeDefenseButton[hidden] { display:none; }
 body[data-game="tower"] #checkpointHint { color:#a8d8bd; font-size:.61rem; line-height:1.3; }
 body[data-game="tower"] .command-tabs { grid-template-columns:repeat(4,minmax(0,1fr)); }
 body[data-game="tower"] #towerCombatRecord { display:block; color:#a9efcc; font-size:.65rem; line-height:1.4; margin-top:4px; }
+body[data-game="tower"] .wave-report { padding:10px; margin-bottom:10px; border:1px solid #5eab80; border-radius:10px; background:#0b281de6; }
+body[data-game="tower"] .wave-report[hidden] { display:none; }
+body[data-game="tower"] .wave-report h2 { font-size:.95rem; margin:0 0 7px; color:#c6f5d9; }
+body[data-game="tower"] .wave-report p { font-size:.74rem; line-height:1.5; margin:6px 0; color:#d6eadb; }
+body[data-game="tower"] .wave-report[data-damaged="true"] { border-color:#cb9d64; }
+body[data-game="tower"] #waveReportSummary { color:#f1d99f; font-weight:700; }
+body[data-game="tower"] .command-tabs [data-has-report="true"]::after { content:""; display:inline-block; width:5px; height:5px; border-radius:50%; background:#8bffba; vertical-align:middle; margin-left:3px; }

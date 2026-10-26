@@ -8,7 +8,7 @@
   const integer = (n, min, max) => Number.isSafeInteger(n) && n >= min && n <= max;
   const number = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
 
-  function normalize(value, types) {
+  function normalize(value, types, enemyKinds = []) {
     if (!value || value.version !== 1 || !integer(value.wave, 1, 50) ||
         !integer(value.score, 0, Number.MAX_SAFE_INTEGER) || !integer(value.shards, 0, Number.MAX_SAFE_INTEGER) ||
         !integer(value.vault, 1, 100) || !types.includes(value.selectedTower) ||
@@ -34,11 +34,21 @@
       towers.push({ type: tower.type, pad: tower.pad, tiers: Object.fromEntries(paths.map(key => [key, tower.tiers[key]])),
         heroSlot: tower.heroSlot, targetMode: tower.targetMode, cooldown: tower.cooldown, aimAngle: tower.aimAngle, combatDamage, combatKills });
     }
+    let lastWaveReport = null;
+    if (value.lastWaveReport !== undefined && value.lastWaveReport !== null) {
+      const report = value.lastWaveReport;
+      if (!integer(report.wave, 1, 50) || typeof report.cleared !== "boolean" || !integer(report.defeated, 0, 88) ||
+          !integer(report.hpLost, 0, 100) || !report.leaks || Array.isArray(report.leaks) || typeof report.leaks !== "object") return null;
+      const entries = Object.entries(report.leaks);
+      if (!entries.every(([kind,count]) => enemyKinds.includes(kind) && integer(count, 1, 88)) ||
+          report.defeated + entries.reduce((sum,[,count]) => sum+count, 0) > 88) return null;
+      lastWaveReport = { wave: report.wave, cleared: report.cleared, defeated: report.defeated, hpLost: report.hpLost, leaks: Object.fromEntries(entries) };
+    }
     return { version: 1, wave: value.wave, score: value.score, shards: value.shards, vault: value.vault,
-      selectedTower: value.selectedTower, heroNovaCooldowns: [...value.heroNovaCooldowns], towers };
+      selectedTower: value.selectedTower, heroNovaCooldowns: [...value.heroNovaCooldowns], towers, lastWaveReport };
   }
-  function decode(raw, types) {
-    try { return typeof raw === "string" && raw.length <= 16000 ? normalize(JSON.parse(raw), types) : null; }
+  function decode(raw, types, enemyKinds = []) {
+    try { return typeof raw === "string" && raw.length <= 16000 ? normalize(JSON.parse(raw), types, enemyKinds) : null; }
     catch { return null; }
   }
   return { KEY, normalize, decode };

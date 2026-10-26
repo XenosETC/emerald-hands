@@ -566,7 +566,7 @@ test('Two-times wave speed produces the same combat state as matching normal-spe
   const setup=()=>{const g=towerGame();g.act('state.wave=10;state.shards=10000;selectTower("druid");buildOrUpgrade(pads[0]);selectTower("ballista");buildOrUpgrade(pads[2]);upgradeSelected("power");upgradeSelected("power");upgradeSelected("power");selectTower("hero");buildOrUpgrade(pads[4]);startWave()');g.frame(0);return g;};
   const normal=setup(),fast=setup();fast.nodes.get('#speedButton').emit('click');
   for(let n=1;n<=800;n++)normal.frame(n*25);for(let n=1;n<=400;n++)fast.frame(n*25);
-  const snapshot='JSON.stringify({wave:state.wave,hp:state.vault,shards:state.shards,score:state.score,left:state.spawnLeft,timer:state.spawnTimer,nova:state.heroNovaCooldowns,enemies:enemies.map(e=>[e.kind,e.x,e.y,e.hp,e.pathIndex,e.slowTimer,e.acidTimer]),towers:towers.map(t=>[t.cooldown,t.damage,t.aimAngle,t.combatDamage,t.combatKills]),traps:thornPatches.map(p=>[p.x,p.y,p.charges,p.life])})';
+  const snapshot='JSON.stringify({wave:state.wave,hp:state.vault,shards:state.shards,score:state.score,left:state.spawnLeft,timer:state.spawnTimer,nova:state.heroNovaCooldowns,report:lastWaveReport,metrics:waveMetrics,enemies:enemies.map(e=>[e.kind,e.x,e.y,e.hp,e.pathIndex,e.slowTimer,e.acidTimer]),towers:towers.map(t=>[t.cooldown,t.damage,t.aimAngle,t.combatDamage,t.combatKills]),traps:thornPatches.map(p=>[p.x,p.y,p.charges,p.life])})';
   assert.equal(fast.act(snapshot),normal.act(snapshot));assert.equal(fast.act('combatSpeed'),2);assert.equal(fast.pending(),1);
 });
 
@@ -622,4 +622,30 @@ test('Each Sunwarden owns its Nova record; support effects are not falsely count
   assert.equal(g.act('towers[0].combatDamage'),10);assert.equal(g.act('towers[0].combatKills'),1);assert.equal(g.act('towers[1].combatDamage'),0);
   assert.equal(g.act('towers[2].combatDamage'),0);assert.equal(g.act('towers[2].combatKills'),0);
   g.act('activateHeroNova(1)');assert.equal(g.act('towers[1].combatDamage'),12);assert.equal(g.act('towers[1].combatKills'),1);assert.equal(g.act('JSON.stringify(state.heroNovaCooldowns)'),'[20,20]');
+});
+
+test('Wave recap counts defeats and breach types once, preserving existing rewards',()=>{
+  const g=towerGame();g.act('startWave();enemies.length=0;state.spawnLeft=0;enemies.push({...enemyTypes.grunt,kind:"grunt",x:200,y:200,hp:0,maxHp:70},{...enemyTypes.shieldbearer,kind:"shieldbearer",x:relicBase.x,y:relicBase.y,pathIndex:path.length-1,hp:100,maxHp:100,speed:60,slowTimer:0,hitFlash:0,spin:0});collectDefeatedEnemies();collectDefeatedEnemies();updateEnemies(.025);updateWave(0);updateWave(0)');
+  const report=JSON.parse(g.act('JSON.stringify(lastWaveReport)'));assert.deepEqual(report,{wave:1,cleared:true,defeated:1,leaks:{shieldbearer:1},hpLost:3});
+  assert.equal(g.act('state.shards'),260);assert.equal(g.act('state.score'),894);assert.equal(g.act('state.wave'),2);assert.equal(g.act('reportUnread'),true);assert.match(g.nodes.get('#waveReportAdvice').textContent,/Alchemist.*Ballista/);
+  g.nodes.get('commandTab:intel').emit('click');assert.equal(g.act('reportUnread'),false);
+});
+
+test('Fatal wave recap clamps actual relic health lost and includes uncollected defeated foes',()=>{
+  const g=towerGame();g.act('startWave();state.vault=2;enemies.length=0;enemies.push({...enemyTypes.grunt,kind:"grunt",hp:0,maxHp:70,x:200,y:200},{...enemyTypes.sovereign,kind:"sovereign",x:relicBase.x,y:relicBase.y,pathIndex:path.length-1,hp:100,maxHp:100,slowTimer:0,hitFlash:0,spin:0});updateEnemies(.025);endGame("duplicate")');
+  assert.equal(g.act('lastWaveReport.cleared'),false);assert.equal(g.act('lastWaveReport.hpLost'),2);assert.equal(g.act('lastWaveReport.defeated'),1);assert.equal(g.act('lastWaveReport.leaks.sovereign'),1);assert.match(g.nodes.get('#waveReportAdvice').textContent,/Strong targeting/);assert.equal(g.records.length,1);assert.equal(g.act('readBuildCheckpoint()'),null);
+});
+
+test('Wave recap persists through checkpoint resume while interrupted attempts preserve the previous recap',()=>{
+  const g=towerGame();g.act('startWave();enemies.length=0;state.spawnLeft=0;updateWave(0)');const expected=g.act('JSON.stringify(lastWaveReport)');
+  g.act('startWave();enemies.length=0;enemies.push({...enemyTypes.specter,kind:"specter",x:relicBase.x,y:relicBase.y,pathIndex:path.length-1,hp:100,maxHp:100,slowTimer:0,hitFlash:0,spin:0});updateEnemies(.025)');
+  const h=checkpointGame(g.saves);h.nodes.get('#resumeDefenseButton').emit('click');assert.deepEqual(JSON.parse(h.act('JSON.stringify(lastWaveReport)')),JSON.parse(expected));assert.equal(h.act('state.wave'),2);assert.equal(h.act('state.vault'),100);assert.equal(h.act('waveMetrics'),null);assert.equal(h.nodes.get('#waveReport').hidden,false);
+  h.act('resetGame()');assert.equal(h.act('lastWaveReport'),null);assert.equal(h.nodes.get('#waveReport').hidden,true);
+});
+
+test('Recap validation rejects unknown foes and impossible counts; coaching remains tied to observed leaks',()=>{
+  const g=towerGame(),base=JSON.parse(g.act('JSON.stringify(readBuildCheckpoint())')),store=require('../pepe-tower-checkpoint.js'),types=['pepe','hero','ballista','druid'],kinds=['grunt','specter','shieldbearer','sovereign'];
+  base.lastWaveReport={wave:1,cleared:true,defeated:2,leaks:{grunt:1},hpLost:1};assert.ok(store.decode(JSON.stringify(base),types,kinds));
+  for(const mutate of [v=>v.leaks={unknown:1},v=>v.leaks={grunt:-1},v=>v.hpLost=101,v=>v.defeated=88,v=>v.cleared='yes',v=>v.wave=51]){const copy=JSON.parse(JSON.stringify(base));mutate(copy.lastWaveReport);assert.equal(store.decode(JSON.stringify(copy),types,kinds),null);}
+  assert.match(g.act('waveAdvice({cleared:true,leaks:{}})'),/Clean defense/);assert.match(g.act('waveAdvice({cleared:true,leaks:{specter:1}})'),/Specters resist slows/);assert.match(g.act('waveAdvice({cleared:true,leaks:{runner:1}})'),/Fast foes/);
 });

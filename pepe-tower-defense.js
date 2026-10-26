@@ -30,6 +30,12 @@
   const campaignProgress = document.querySelector("#campaignProgress");
   const campaignLabel = document.querySelector("#campaignLabel");
   const commandTabs = [...document.querySelectorAll("[data-command-tab]")];
+  const intelTab = commandTabs.find(button => button.dataset.commandTab === "intel");
+  const waveReportPanel = document.querySelector("#waveReport");
+  const waveReportTitle = document.querySelector("#waveReportTitle");
+  const waveReportSummary = document.querySelector("#waveReportSummary");
+  const waveReportLeaks = document.querySelector("#waveReportLeaks");
+  const waveReportAdvice = document.querySelector("#waveReportAdvice");
   const commandViews = { build: document.querySelector("#buildView"), manage: document.querySelector("#manageView"), intel: document.querySelector("#intelView") };
   const commandHint = document.querySelector("#commandHint");
   const nextWaveHint = document.querySelector("#nextWaveHint");
@@ -47,6 +53,7 @@
     if (!commandViews[view]) return;
     for (const [key,node] of Object.entries(commandViews)) node.hidden = key !== view;
     commandTabs.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.commandTab === view)));
+    if (view === "intel") { reportUnread = false; renderWaveReport(); }
   }
   const towerPanel = document.querySelector("#towerPanel");
   const towerDetails = document.querySelector("#towerDetails");
@@ -289,6 +296,9 @@
   let selectedTower = "pepe";
   let inspectedTower = null;
   let movingTower = null;
+  let waveMetrics = null;
+  let lastWaveReport = null;
+  let reportUnread = false;
   let soundOn = true;
   let screenShake = 0;
   const enemies = [];
@@ -341,9 +351,42 @@
     return "Fresh Defender";
   }
 
+  function waveAdvice(report) {
+    const leaks = report.leaks;
+    if (Object.keys(leaks).some(kind => enemyTypes[kind]?.boss)) return "A boss reached the relic. Try Strong targeting on Ballista or Sunwarden with Alchemist support; leave other defenders on First for guards.";
+    if (leaks.specter) return "Specters resist slows. Use rapid lasers, long-range damage or thorn patches, and cover the last stretch of the path.";
+    if (leaks.shieldbearer || leaks.brute) return "Armor broke through. Pair Alchemist acid with Ballista or concentrated damage, while splash and slows handle nearby guards.";
+    if (leaks.runner || leaks.goblin) return "Fast foes slipped through. Mix rapid fire, slowing fields and thorn patches; check coverage near the relic.";
+    if (Object.keys(leaks).length) return "Check gaps in your path coverage. Mix rapid damage with splash and control, and use the last pads to catch survivors.";
+    return report.cleared ? "Clean defense. Inspect the next wave before committing your upgrades." : "This attempt ended before the wave cleared. Review the roster and your path coverage.";
+  }
+
+  function renderWaveReport() {
+    waveReportPanel.hidden = !lastWaveReport;
+    intelTab?.setAttribute("data-has-report", String(Boolean(lastWaveReport && reportUnread)));
+    intelTab?.setAttribute("aria-description", lastWaveReport && reportUnread ? `New wave ${lastWaveReport.wave} recap available` : "Wave preview and enemy intelligence");
+    if (!lastWaveReport) return;
+    const report = lastWaveReport, leaked = Object.values(report.leaks).reduce((a,b) => a+b, 0);
+    waveReportTitle.textContent = `Wave ${report.wave} ${report.cleared ? "cleared" : "stopped"}`;
+    waveReportSummary.textContent = `${report.defeated} defeated · ${leaked} breached · ${report.hpLost} relic HP lost`;
+    const types = Object.entries(report.leaks).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0]));
+    waveReportLeaks.textContent = types.length ? "Reached the relic: " + types.map(([kind,count]) => `${enemyTypes[kind]?.name || kind} ×${count}`).join(", ") : "No enemies reached the relic.";
+    waveReportAdvice.textContent = waveAdvice(report);
+    waveReportPanel.setAttribute("data-damaged", String(report.hpLost > 0));
+  }
+
+  function finishWaveReport(cleared) {
+    if (!waveMetrics) return;
+    lastWaveReport = { wave: waveMetrics.wave, cleared, defeated: waveMetrics.defeated + enemies.filter(enemy => enemy.hp <= 0).length,
+      leaks: { ...waveMetrics.leaks }, hpLost: waveMetrics.hpLost };
+    waveMetrics = null;
+    reportUnread = Boolean(commandViews.intel.hidden);
+    renderWaveReport();
+  }
+
   function readBuildCheckpoint() {
     if (!checkpointStore) return null;
-    try { return checkpointStore.decode(localStorage.getItem(checkpointStore.KEY), Object.keys(towerTypes)); }
+    try { return checkpointStore.decode(localStorage.getItem(checkpointStore.KEY), Object.keys(towerTypes), Object.keys(enemyTypes)); }
     catch { return null; }
   }
 
@@ -359,10 +402,10 @@
     if (!state.playing || state.waveActive || movingTower) return false;
     if (!checkpointStore) { checkpointHint.textContent = "Build-break saving is unavailable."; return false; }
     const data = checkpointStore.normalize({ version: 1, wave: state.wave, score: state.score, shards: state.shards,
-      vault: state.vault, selectedTower, heroNovaCooldowns: state.heroNovaCooldowns,
+      vault: state.vault, selectedTower, heroNovaCooldowns: state.heroNovaCooldowns, lastWaveReport,
       towers: towers.map(tower => ({ type: tower.type, pad: pads.indexOf(tower.pad), tiers: tower.tiers,
         heroSlot: tower.heroSlot, cooldown: Math.max(0, tower.cooldown), aimAngle: tower.aimAngle,
-        targetMode: tower.targetMode || "first", combatDamage: tower.combatDamage || 0, combatKills: tower.combatKills || 0 })) }, Object.keys(towerTypes));
+        targetMode: tower.targetMode || "first", combatDamage: tower.combatDamage || 0, combatKills: tower.combatKills || 0 })) }, Object.keys(towerTypes), Object.keys(enemyTypes));
     if (!data) { checkpointHint.textContent = "This build break could not be saved."; return false; }
     try {
       localStorage.setItem(checkpointStore.KEY, JSON.stringify(data));
@@ -390,6 +433,9 @@
     Object.assign(state, { wave: saved.wave, score: saved.score, shards: saved.shards, vault: saved.vault,
       heroNovaCooldowns: [...saved.heroNovaCooldowns] });
     towers.push(...restored);
+    lastWaveReport = saved.lastWaveReport;
+    reportUnread = Boolean(lastWaveReport);
+    renderWaveReport();
     selectTower(saved.selectedTower);
     statusLabel.textContent = `Wave ${state.wave} build phase restored`;
     statusMeta.textContent = "Inspect your defense, then send the wave when ready.";
@@ -405,6 +451,8 @@
     towers.length = 0;
     inspectedTower = null;
     movingTower = null;
+    waveMetrics = null; lastWaveReport = null; reportUnread = false;
+    renderWaveReport();
     shots.length = 0;
     bursts.length = 0;
     floaters.length = 0;
@@ -440,6 +488,7 @@
 
   function endGame(title) {
     if (!state.playing) return;
+    if (state.waveActive && waveMetrics) finishWaveReport(false);
     clearBuildCheckpoint();
     checkpointHint.textContent = "Defense finished. Start a new run to save a fresh build phase.";
     state.playing = false;
@@ -473,6 +522,7 @@
     movingTower = null;
     saveBuildCheckpoint();
     state.waveActive = true;
+    waveMetrics = { wave: state.wave, defeated: 0, leaks: {}, hpLost: 0 };
     state.waveSpawnTotal = currentWavePlan().count;
     state.spawnLeft = state.waveSpawnTotal;
     spawnEnemy();
@@ -947,7 +997,9 @@
         if (enemy.pathIndex >= path.length) {
           enemies.splice(i, 1);
           const damage = enemy.breachDamage ?? ((enemy.boss || enemy.kind === "boss") ? 4 : enemy.kind === "elite" ? 2 : 1);
+          const before = state.vault;
           state.vault = Math.max(0, state.vault - damage);
+          if (waveMetrics) { waveMetrics.leaks[enemy.kind] = (waveMetrics.leaks[enemy.kind] || 0) + 1; waveMetrics.hpLost += before - state.vault; }
           relicHitFlash = 1;
           screenShake = Math.max(screenShake, (enemy.boss || enemy.kind === "boss") ? 16 : 8);
           statusLabel.textContent = "Relic base hit";
@@ -1126,6 +1178,7 @@
       const enemy = enemies[i];
       if (enemy.hp > 0) continue;
       enemies.splice(i, 1);
+      if (state.waveActive && waveMetrics) waveMetrics.defeated++;
       state.score += 120 + enemy.reward * 12 + state.wave * 18;
       state.shards += enemy.reward;
       screenShake = Math.max(screenShake, (enemy.boss || enemy.kind === "boss") ? 18 : enemy.kind === "elite" ? 8 : 3);
@@ -1203,12 +1256,13 @@
       statusMeta.textContent = `${state.spawnLeft + enemies.length} corrupt units in this wave`;
     }
     if (state.spawnLeft <= 0 && enemies.length === 0) {
+      finishWaveReport(true);
       state.waveActive = false;
       state.score += 500 + state.wave * 100;
       state.shards += 55 + state.wave * 12;
       state.wave += 1;
       statusLabel.textContent = "Wave cleared";
-      statusMeta.textContent = "build upgrades before starting the next wave";
+      statusMeta.textContent = `Relic HP lost: ${lastWaveReport?.hpLost || 0} · review Enemies, then build for the next wave`;
       waveButton.textContent = "Start Next Wave";
       if (state.wave > CAMPAIGN_WAVES) endGame("Vault defended");
       else saveBuildCheckpoint();
