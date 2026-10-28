@@ -4,11 +4,20 @@
 })(typeof window!=="undefined"?window:globalThis,function(){
   "use strict";
   const base="assets/pepe-tower-defense/";
+  const tactics={
+    courtyard:"Cover alternating bends with overlapping fire. Keep a finishing defender near the relic; save Nova for a dense pack or a major boss in range.",
+    "floodgate-delta":"Use the central island to cover both causeways. Slow the early pack and keep rapid First fire at the final crossing while Ballista and acid focus bosses.",
+    "sunscar-quarry":"Build between the switchbacks to cover several passes. Major bosses have 25% extra health here: prepare damage upgrades before waves 20, 35 and 50.",
+    "twinroot-grove":"Share damage and control across both lanes. Warboss and Sovereign enter upper; Tyrant enters lower. The final two pads can catch either front.",
+    "tideglass-harbor":"Eight pads make roles matter. Put Ballista and Alchemist on Strong for bosses; keep Sunwardens on First for guards and leaks. Reserve coverage for the lower-left relic.",
+    "emerald-celestial-hall":"Overlap fire through the winding hall and keep a finishing defender at the upper-right relic. The central comet is scenery; protect the small relic at the road's end."
+  };
   function define(id,name,art,roads,spots,goal,description,version=1,width=1672){
     const point=([x,y])=>({x:x/width*1280,y:y/941*720});
     const relic=point(goal), routes=roads.map(road=>[...road.map(point),relic]);
     return {id,name,version,art:base+art,baked:true,routes,pads:spots.map(point),relic,description,
-      healthScale:id==="twinroot-grove"?.75:id==="tideglass-harbor"?.85:1};
+      healthScale:id==="twinroot-grove"?.75:id==="tideglass-harbor"?.85:1,
+      majorBossHealthScale:id==="sunscar-quarry"?1.25:1,tactics:tactics[id]};
   }
   const maps=[
     define("courtyard","Classic · Emerald Courtyard","emerald-vault-courtyard-v3-baked.png",

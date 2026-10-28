@@ -278,3 +278,8 @@ body[data-game="tower"] #arrivalPanel #relicThreatSummary { padding:6px; border-
 body[data-game="tower"] #arrivalPanel #relicThreatSummary[data-threat="critical"] { border-color:#ff8590; color:#ffc1c7; }
 body[data-game="tower"] #relicThreatSummary[hidden] { display:none; }
 body[data-game="tower"] #vaultCaption { letter-spacing:0; text-transform:none; white-space:nowrap; }
+
+body[data-game="tower"] .map-plan { grid-column:1 / -1; padding:8px; margin-bottom:7px; border:1px solid #74a58a; border-radius:8px; background:#102b20; color:#d9ebd7; font-size:.75rem; }
+body[data-game="tower"] .map-plan summary { cursor:pointer; min-height:28px; align-content:center; font-weight:bold; }
+body[data-game="tower"] .map-plan p { margin:6px 0 0; line-height:1.5; font-size:.7rem; }
+@media(max-width:760px) { body[data-game="tower"] .map-plan summary { min-height:44px; } }

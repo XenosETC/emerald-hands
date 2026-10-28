@@ -236,36 +236,13 @@ test('Map integration: scouting uses each map health profile and Grove discloses
   }
 });
 
-for(const [id,order] of [
-  ['courtyard',[0,4,2,6,1,5,7,8,3]],
-  ['floodgate-delta',[0,1,3,5,4,2,7,8,6]],
-  ['sunscar-quarry',[2,3,4,5,0,1,6,7,8]],
-  ['twinroot-grove',[0,8,1,4,2,5,3,6,7]],
-  ['tideglass-harbor',[0,1,2,4,3,5,6,7]],
-  ['emerald-celestial-hall',[1,2,3,4,5,0,6,7,8]]
-]) test('Map campaign: earned-fund 50-wave defense on '+id,t=>{
-  const g=checkpointGame();g.act(`chooseBattleground('${id}')`);g.start();
-  const result=JSON.parse(g.act(`
-    const buildOrder=${JSON.stringify(order)}, types=${JSON.stringify(order.length===8?['pepe','shard','hero','hero','alchemist','ballista','relic','druid']:['pepe','shard','hero','hero','alchemist','ballista','archer','relic','druid'])};
-    let ticks=0,majorKills=0;const previousCollect=collectDefeatedEnemies;
-    collectDefeatedEnemies=()=>{majorKills+=enemies.filter(e=>e.hp<=0&&['warboss','tyrant','sovereign'].includes(e.kind)).length;previousCollect();};
-    while(state.playing&&ticks<160000){
-      for(let n=0;n<buildOrder.length;n++){
-        if(towers.filter(t=>t.type==='hero').length<2&&n>3)continue;
-        if(!towerAtPad(pads[buildOrder[n]])&&state.shards>=towerTypes[types[n]].cost){selectTower(types[n]);buildOrUpgrade(pads[buildOrder[n]]);}
-      }
-      if(towers.filter(t=>t.type==='hero').length===2){
-        for(let tier=0;tier<5;tier++)for(const i of buildOrder){const tower=towerAtPad(pads[i]);const main=tower?.type==='shard'||tower?.type==='alchemist'||tower?.type==='hero'&&tower.heroSlot===1?'special':'power';
-          if(tower&&tower.tiers[main]===tier&&state.shards>=upgradeCost(tower,main)){buildOrUpgrade(pads[i]);upgradeSelected(main);}}
-        for(const tower of towers){const primary=tower.path,second=tower.type==='hero'?(primary==='power'?'special':'power'):'utility';if(tower.tiers[primary]===5&&tower.tiers[second]<2&&state.shards>=upgradeCost(tower,second)){buildOrUpgrade(tower.pad);upgradeSelected(second);}}
-      }
-      if(!state.waveActive)startWave();for(const slot of [0,1])activateHeroNova(slot);
-      update(1/30,false);ticks++;
-    }
-    JSON.stringify({map:activeMap.id,wave:state.wave,vault:state.vault,majorKills,ticks,towers:towers.length});
-  `));
-  t.diagnostic('Map controller evidence, not human balance approval: '+JSON.stringify(result));
-  assert.equal(result.wave,51);assert.ok(result.vault>0);assert.ok(result.majorKills>=2);
+for(const map of require('../pepe-tower-maps.js').maps) test('Map campaign: earned-fund 50-wave defense on '+map.id,t=>{
+  const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();
+  const {runTowerBalance}=require('./tower-balance-sim.cjs');
+  const result=JSON.parse(g.act(`(${runTowerBalance.toString()})({strong:"support",nova:true})`));
+  t.diagnostic('Build-break purchases, earned funds, automatic Nova; not human balance approval: '+JSON.stringify({...result,waves:undefined}));
+  assert.equal(result.wave,51);assert.ok(result.hp>0);assert.ok(result.minFunds>=0);
+  assert.equal(result.bosses.length,3);assert.ok(result.bosses.every(b=>b.result==='defeated'));
 });
 
 test('Map integration: both Grove roads reach the relic once and majors keep guards on their own lane',()=>{
@@ -708,7 +685,7 @@ test('Major bosses have fixed guard rosters and spaced, disclosed entrances',()=
     assert.equal(p.majorBoss,kind);assert.equal(p.bossIndex,Math.floor(p.count/2));assert.deepEqual(p.escort,guards);
     assert.equal(g.act(`arrivalDelay(wavePlans[${wave-1}],${p.bossIndex})`),2);
     for(let n=1;n<=guards.length;n++)assert.equal(g.act(`arrivalDelay(wavePlans[${wave-1}],${p.bossIndex+n})`),1.1);
-    assert.match(g.act(`waveBrief(wavePlans[${wave-1}])`),/Strong targeting.*No reinforcements/);
+    assert.match(g.act(`waveBrief(wavePlans[${wave-1}])`),/Ballista.*Alchemist on Strong.*First for guards and leaks.*No reinforcements/);
   }
   assert.equal(g.act('arrivalDelay(wavePlans[0],3)'),g.act('wavePlans[0].interval'));
 });
@@ -1015,4 +992,41 @@ test('Relic approach uses the exact breach damage deducted by actual movement',(
     const g=towerGame();g.act(`startWave();enemies.length=0;const end=path.at(-1);enemies.push({...enemyTypes['${kind}'],kind:'${kind}',hp:100,pathIndex:path.length-1,x:end.x-1,y:end.y,slowTimer:0,acidTimer:0,spin:0});`);
     const damage=g.act('relicApproach().damage');g.act('updateEnemies(1);updateHud()');assert.equal(g.act('state.vault'),100-damage,kind);assert.equal(g.act('relicApproach().count'),0);
   }
+});
+
+if(process.env.TOWER_BALANCE_AUDIT) for(const map of require('../pepe-tower-maps.js').maps){
+  for(const policy of JSON.parse(process.env.TOWER_BALANCE_POLICIES || '[{"strong":false,"nova":true},{"strong":true,"nova":true},{"strong":true,"nova":false}]')){
+    test('Balance audit: '+map.id+' '+JSON.stringify(policy),t=>{
+      const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();
+      const {runTowerBalance}=require('./tower-balance-sim.cjs');
+      const result=JSON.parse(g.act(`(${runTowerBalance.toString()})(${JSON.stringify(policy)})`));
+      const folder=path.join(__dirname,'../releases/tower-balance-20261028-'+(process.env.TOWER_BALANCE_LABEL || 'baseline'));fs.mkdirSync(folder,{recursive:true});
+      fs.writeFileSync(path.join(folder,`${map.id}-${policy.strong?'strong':'first'}-${policy.nova?'nova':'no-nova'}.json`),JSON.stringify(result,null,2));
+      t.diagnostic(JSON.stringify({...result,waves:undefined}));assert.ok(result.minFunds>=0);
+    });
+  }
+}
+
+test('Map boss balance affects only Quarry majors and preserves counterplay, guards and rewards',()=>{
+  const g=checkpointGame();g.start();
+  const base=JSON.parse(g.act(`JSON.stringify([20,35,50].map(wave=>{state.wave=wave;applyMap(mapCatalog.get('courtyard'));const p=currentWavePlan();return {wave,boss:enemyStartingStats(p.majorBoss,p),guard:enemyStartingStats(p.escort[0],p),minor:enemyStartingStats('boss',p),count:p.count,kinds:p.kinds,gaps:p.kinds.map((_,i)=>arrivalDelay(p,i))};}))`));
+  g.act('applyMap(mapCatalog.get("sunscar-quarry"))');
+  for(const prior of base){
+    const after=JSON.parse(g.act(`state.wave=${prior.wave};JSON.stringify({boss:enemyStartingStats(currentWavePlan().majorBoss,currentWavePlan()),guard:enemyStartingStats(currentWavePlan().escort[0],currentWavePlan()),minor:enemyStartingStats('boss',currentWavePlan()),count:currentWavePlan().count,kinds:currentWavePlan().kinds,gaps:currentWavePlan().kinds.map((_,i)=>arrivalDelay(currentWavePlan(),i))})`));
+    assert.ok(Math.abs(after.boss.hp-prior.boss.hp*1.25)<=1);
+    for(const key of ['armor','slowResistance','speed','breachDamage','reward'])assert.equal(after.boss[key],prior.boss[key]);
+    assert.deepEqual(after.guard,prior.guard);assert.deepEqual(after.minor,prior.minor);assert.equal(after.count,prior.count);assert.deepEqual(after.kinds,prior.kinds);assert.deepEqual(after.gaps,prior.gaps);
+    assert.match(g.act('waveBrief(currentWavePlan())'),/25% extra health/);
+  }
+  g.act('applyMap(mapCatalog.legacy);state.wave=50');assert.deepEqual(JSON.parse(g.act('JSON.stringify(enemyStartingStats("sovereign",currentWavePlan()))')),base[2].boss);
+});
+
+test('Every map exposes its planning advice through selection and checkpoint resume',()=>{
+  const g=checkpointGame();
+  for(const map of require('../pepe-tower-maps.js').maps){
+    g.act(`chooseBattleground('${map.id}')`);g.start();assert.equal(g.nodes.get('#mapPlanText').textContent,map.tactics);
+    g.act('buildOrUpgrade(pads[0]);openMapMenu()');g.nodes.get('#resumeDefenseButton').emit('click');assert.equal(g.nodes.get('#mapPlanText').textContent,map.tactics);
+    g.act('openMapMenu()');
+  }
+  g.act('applyMap(mapCatalog.legacy);updateHud()');assert.match(g.nodes.get('#mapPlanText').textContent,/alternating bends/);
 });

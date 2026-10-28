@@ -40,6 +40,7 @@
   const shardLabel = document.querySelector("#shardLabel");
   const waveLabel = document.querySelector("#waveLabel");
   const vaultLabel = document.querySelector("#vaultLabel");
+  const mapPlanText = document.querySelector("#mapPlanText");
   const relicStatus = document.querySelector("#relicStatus");
   const vaultCaption = document.querySelector("#vaultCaption");
   const relicThreatSummary = document.querySelector("#relicThreatSummary");
@@ -269,7 +270,7 @@
   }
   function encounterAdvice(plan) {
     if (!plan.majorBoss) return "";
-    return ` ${enemyTypes[plan.majorBoss].name} arrives halfway through with ${plan.escort.length} guards, 1.1s apart. Ballista + Alchemist crack armor; Strong targeting focuses the boss. Keep splash, thorns and slows on guards; specters resist slows. No reinforcements beyond this preview.`;
+    return ` ${enemyTypes[plan.majorBoss].name} arrives halfway through with ${plan.escort.length} guards, 1.1s apart. Ballista + Alchemist on Strong crack boss armor; keep Sunwardens and other rapid fire on First for guards and leaks. Support them with splash, thorns and slows; specters resist slows.${activeMap.majorBossHealthScale>1?` This battleground gives the major boss ${Math.round((activeMap.majorBossHealthScale-1)*100)}% extra health; starting HP is listed in the roster.`:""} No reinforcements beyond this preview.`;
   }
   function enemyBreachDamage(enemy) {
     return enemy.breachDamage ?? ((enemy.boss || enemy.kind === "boss") ? 4 : enemy.kind === "elite" ? 2 : 1);
@@ -347,7 +348,8 @@
   function enemyStartingStats(kind, plan) {
     const spec = enemyTypes[kind];
     const bossHealthScale = kind === "sovereign" ? .75 : kind === "tyrant" ? .9 : 1;
-    const hp = Math.round((spec.hp + Math.min(plan.wave, 20) * spec.growth) * plan.hpScale * bossHealthScale * (activeMap.healthScale || 1));
+    const mapBossScale = plan.majorBoss === kind ? activeMap.majorBossHealthScale || 1 : 1;
+    const hp = Math.round((spec.hp + Math.min(plan.wave, 20) * spec.growth) * plan.hpScale * bossHealthScale * (activeMap.healthScale || 1) * mapBossScale);
     return { ...spec, hp, maxHp: hp, speed: spec.speed + Math.min(15, plan.wave) * spec.acceleration };
   }
   function scoutingRows(plan) {
@@ -743,6 +745,7 @@
     campaignLabel.textContent = `${cleared} / ${CAMPAIGN_WAVES} waves cleared · ${state.vault} relic health`;
     campaignProgress.setAttribute("aria-valuetext", campaignLabel.textContent);
     vaultLabel.textContent = state.vault;
+    mapPlanText.textContent = activeMap.tactics || "Cover the alternating bends and keep a finishing defender near the relic. Ballista and acid can focus bosses while rapid First fire catches guards.";
     updateRelicApproach();
     bestLabel.textContent = format(state.best);
     const deployedHeroes = towers.filter(tower => tower.type === "hero");
