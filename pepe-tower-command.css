@@ -283,3 +283,10 @@ body[data-game="tower"] .map-plan { grid-column:1 / -1; padding:8px; margin-bott
 body[data-game="tower"] .map-plan summary { cursor:pointer; min-height:28px; align-content:center; font-weight:bold; }
 body[data-game="tower"] .map-plan p { margin:6px 0 0; line-height:1.5; font-size:.7rem; }
 @media(max-width:760px) { body[data-game="tower"] .map-plan summary { min-height:44px; } }
+
+/* Stable, text-led feedback: no flashing, popups or extra combat rows. */
+body[data-game="tower"] #heroAbility button[data-available="true"] { background:#216341; border-color:#a8f9be; }
+body[data-game="tower"] #heroAbility button[data-available="true"][data-boss-reach="true"] { border-color:#e7cf82; box-shadow:inset 0 0 0 1px #e7cf8244; }
+body[data-game="tower"] #heroAbility button:disabled { opacity:.75; }
+body[data-game="tower"] #bossHealth[data-phase="defeated"] #bossHealthLabel { color:#b8efc4; }
+body[data-game="tower"] #bossHealth[data-phase="breached"] #bossHealthLabel { color:#ffb6be; }

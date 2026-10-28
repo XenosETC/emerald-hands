@@ -755,9 +755,13 @@
       button.hidden = hint.hidden = !hero;
       if(!hero) continue;
       const cooldown = state.heroNovaCooldowns[slot];
-      button.disabled = !state.playing || !state.waveActive || cooldown > 0 || Boolean(movingTower) || Boolean(window.EmeraldArcade?.isPaused?.());
+      const targets = novaTargets(hero);
+      button.disabled = !state.playing || !state.waveActive || cooldown > 0 || !targets.length || Boolean(movingTower) || Boolean(window.EmeraldArcade?.isPaused?.());
       const name = deployedHeroes.length > 1 ? "Nova " + (slot + 1) : "Emerald Nova";
-      button.textContent = cooldown > 0 ? name + " · " + Math.ceil(cooldown) + "s" : name + " · ready (H)";
+      button.textContent = cooldown > 0 ? name + " · " + Math.ceil(cooldown) + "s" : !state.waveActive ? name + " · next wave" : targets.length ? name + " · " + targets.length + " in reach" : name + " · no foes";
+      button.dataset.available = String(!button.disabled);
+      button.dataset.bossReach = String(targets.some(enemy => enemy.boss));
+      button.title = `${name}, pad ${pads.indexOf(hero.pad)+1}. ${targets.length} living foes in reach${targets.some(enemy=>enemy.boss)?", including a boss":""}. Nova hits all foes in this hero's range; cooldown starts only on a hit.`;
       hint.textContent = "Pad " + (pads.indexOf(hero.pad)+1) + " · " + (hero.damage*5).toFixed(0) + " damage / " + Math.round(hero.range) + " range · " + novaRecharge(hero) + "s recharge" + (state.waveActive ? "" : " · during waves");
     }
     towerButtons.forEach(button => {if(button.dataset.tower === "hero") {button.disabled=deployedHeroes.length>=HERO_LIMIT;button.title=deployedHeroes.length>=HERO_LIMIT ? "Two Sunwardens deployed: select a pad to manage one" : "400 shards · up to two active Sunwardens";}});
@@ -788,12 +792,17 @@
     const nextIndex = state.waveSpawnTotal - state.spawnLeft;
     const waitingGuards = state.waveActive && plan.majorBoss ? Math.max(0, plan.bossIndex + plan.escort.length + 1 - Math.max(nextIndex, plan.bossIndex + 1)) : 0;
     const guards = waitingGuards + enemies.filter(enemy => enemy.hp > 0 && enemy.isEscort).length;
-    bossHealth.hidden = !boss && !guards && !queuedBoss && !(plan.majorBoss && !state.waveActive && state.wave <= CAMPAIGN_WAVES);
+    const remainingFoes = state.spawnLeft + enemies.filter(enemy => enemy.hp > 0).length;
+    const majorResolved = state.playing && state.waveActive && plan.majorBoss && nextIndex > plan.bossIndex && !boss && !queuedBoss && remainingFoes > 0;
+    const bossOutcome = majorResolved ? (waveMetrics?.leaks[plan.majorBoss] ? "breached" : "defeated") : null;
+    bossHealth.dataset.phase = boss ? "active" : queuedBoss ? "incoming" : bossOutcome || "build";
+    bossHealth.hidden = !boss && !guards && !queuedBoss && !bossOutcome && !(plan.majorBoss && !state.waveActive && state.wave <= CAMPAIGN_WAVES);
     bossHealthBar.hidden = !boss;
     if (boss) {
       bossHealthBar.max = boss.maxHp; bossHealthBar.value = Math.max(0, boss.hp);
       bossHealthLabel.textContent = `${enemyTypes[boss.kind].name}: ${Math.ceil(boss.hp)} / ${boss.maxHp} HP${guards ? ` · ${guards} guards left` : ""}`;
     } else if(queuedBoss) bossHealthLabel.textContent = `${window.EmeraldArcade?.isPaused?.()?"Paused · ":""}${enemyTypes[queuedBoss.kind].name} in ${arrivalTime(queuedBoss.eta)}${arrivalLane(queuedBoss)?" · "+arrivalLane(queuedBoss)+" lane":""}${guards?" · "+guards+" guards":""}`;
+    else if(bossOutcome) bossHealthLabel.textContent = `${enemyTypes[plan.majorBoss].name} ${bossOutcome} · ${guards} guards left · ${remainingFoes} foes remain`;
     else bossHealthLabel.textContent = state.waveActive ? `${guards} guards remaining · clear every foe` : `Boss ahead · ${plan.escort.length} guards · inspect Enemies to prepare`;
     commandHint.textContent = movingTower ? "Moving: choose an empty numbered pad. Cancel in Tower controls." : state.waveActive ? `${state.spawnLeft + enemies.length} enemies remaining. Moving unlocks after the wave.` : "Build, upgrade or reposition before sending the wave.";
     padHint.textContent = movingTower ? "Move" : "Build pads";
@@ -1424,11 +1433,14 @@
     }
   }
 
+  function novaTargets(hero) {
+    return enemies.filter(enemy => enemy.hp > 0 && distance(hero.x, hero.y, enemy.x, enemy.y) <= hero.range);
+  }
   function activateHeroNova(slot = null) {
     const heroes = towers.filter(tower => tower.type === "hero");
-    const hero = slot === null ? (inspectedTower?.type === "hero" ? inspectedTower : heroes.find(tower => state.heroNovaCooldowns[tower.heroSlot] <= 0) || heroes[0]) : heroes.find(tower => tower.heroSlot === slot);
+    const hero = slot === null ? (inspectedTower?.type === "hero" ? inspectedTower : heroes.find(tower => state.heroNovaCooldowns[tower.heroSlot] <= 0 && novaTargets(tower).length) || heroes[0]) : heroes.find(tower => tower.heroSlot === slot);
     if (!hero || !state.playing || !state.waveActive || movingTower || state.heroNovaCooldowns[hero.heroSlot] > 0 || window.EmeraldArcade?.isPaused?.()) return false;
-    const targets = enemies.filter(enemy => enemy.hp > 0 && distance(hero.x, hero.y, enemy.x, enemy.y) <= hero.range);
+    const targets = novaTargets(hero);
     if (!targets.length) { statusLabel.textContent = "Nova ready - no enemies in reach"; return false; }
     state.heroNovaCooldowns[hero.heroSlot] = novaRecharge(hero);
     for(const enemy of targets) damageEnemy(enemy, hero.damage * 5, 0, 0, 0, hero);

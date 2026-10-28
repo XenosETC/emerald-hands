@@ -1030,3 +1030,32 @@ test('Every map exposes its planning advice through selection and checkpoint res
   }
   g.act('applyMap(mapCatalog.legacy);updateHud()');assert.match(g.nodes.get('#mapPlanText').textContent,/alternating bends/);
 });
+
+test('Boss polish: both Nova buttons reflect actual reach on every battleground and H picks a usable unselected hero',()=>{
+  for(const map of require('../pepe-tower-maps.js').maps){
+    const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();
+    g.act(`state.shards=1000;selectTower('hero');buildOrUpgrade(pads[0]);buildOrUpgrade(pads.at(-1));startWave();enemies.length=0;enemies.push({kind:'boss',boss:true,hp:100000,maxHp:100000,armor:0,x:towers[1].x,y:towers[1].y,pathIndex:1,reward:120});inspectedTower=null;updateHud()`);
+    assert.equal(g.nodes.get('#heroNovaButton').disabled,true,map.id);assert.match(g.nodes.get('#heroNovaButton').textContent,/no foes/);
+    assert.equal(g.nodes.get('#heroNovaButton2').disabled,false,map.id);assert.match(g.nodes.get('#heroNovaButton2').textContent,/1 in reach/);assert.equal(g.nodes.get('#heroNovaButton2').dataset.bossReach,'true');
+    assert.equal(g.act('activateHeroNova()'),true);assert.equal(g.act('state.heroNovaCooldowns[0]'),0);assert.ok(g.act('state.heroNovaCooldowns[1]')>0);
+    g.act('state.heroNovaCooldowns[1]=0;inspectedTower=towers[0]');assert.equal(g.act('activateHeroNova()'),false,'Selected hero retains explicit H behavior');assert.equal(g.act('state.heroNovaCooldowns[1]'),0);
+  }
+});
+
+test('Boss polish: Nova reach includes the boundary, ignores defeated foes and cannot spend while paused',()=>{
+  const g=towerGame();g.act(`state.shards=1000;selectTower('hero');buildOrUpgrade(pads[0]);startWave();enemies.length=0;const h=towers[0];enemies.push({kind:'grunt',hp:10000,x:h.x+h.range,y:h.y},{kind:'grunt',hp:10000,x:h.x+h.range+.001,y:h.y},{kind:'boss',boss:true,hp:10000,x:h.x,y:h.y},{kind:'boss',boss:true,hp:0,x:h.x,y:h.y});updateHud()`);
+  assert.equal(g.act('novaTargets(towers[0]).length'),2);assert.match(g.nodes.get('#heroNovaButton').textContent,/2 in reach/);assert.match(g.nodes.get('#heroNovaButton').title,/including a boss/);
+  g.read('window.EmeraldArcade.isPaused=()=>true');g.act('updateHud()');assert.equal(g.nodes.get('#heroNovaButton').disabled,true);assert.equal(g.nodes.get('#heroNovaButton').dataset.available,'false');
+  const before=g.act('JSON.stringify([state,enemies])');g.nodes.get('#heroNovaButton').emit('click');assert.equal(g.act('JSON.stringify([state,enemies])'),before);
+});
+
+test('Boss polish: all maps distinguish major defeat from breach until the remaining queue clears',()=>{
+  for(const map of require('../pepe-tower-maps.js').maps)for(const wave of [20,35,50]){
+    const setup=()=>{const g=checkpointGame();g.act(`chooseBattleground('${map.id}')`);g.start();g.act(`state.wave=${wave};startWave();enemies.length=0;state.spawnLeft=state.waveSpawnTotal-currentWavePlan().bossIndex;spawnEnemy();state.spawnLeft--;updateHud()`);return g;};
+    const killed=setup();assert.equal(killed.nodes.get('#bossHealth').dataset.phase,'active');
+    killed.act('enemies[0].hp=0;collectDefeatedEnemies();updateHud()');assert.equal(killed.nodes.get('#bossHealth').dataset.phase,'defeated');assert.match(killed.nodes.get('#bossHealthLabel').textContent,/defeated.*guards left.*foes remain/);assert.equal(killed.nodes.get('#bossHealthBar').hidden,true);assert.equal(killed.act('state.wave'),wave);assert.equal(killed.act('state.waveActive'),true);
+    const breached=setup();const damage=breached.act('enemies[0].breachDamage');breached.act(`const e=enemies[0],r=activeMap.routes[e.routeId||0],end=r.at(-1);Object.assign(e,{pathIndex:r.length-1,x:end.x-1,y:end.y});updateEnemies(1);updateHud()`);
+    assert.equal(breached.nodes.get('#bossHealth').dataset.phase,'breached');assert.match(breached.nodes.get('#bossHealthLabel').textContent,/breached.*guards left.*foes remain/);assert.equal(breached.act('state.vault'),100-damage);assert.equal(breached.act('state.wave'),wave);
+    breached.act('state.spawnLeft=0;enemies.length=0;updateWave(.01);updateHud()');assert.equal(breached.act('state.wave'),wave+1);
+  }
+});
