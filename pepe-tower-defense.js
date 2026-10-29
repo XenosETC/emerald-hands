@@ -1316,7 +1316,9 @@
   }
 
   function towerRenderScale(tower) {
-    return ((tower.evolved ? .255 : .22) + tower.level * .012 + tower.attackPulse * .025 + (tower.upgradePulse || 0) * .025 + (tower.evolvePulse || 0) * .05) * (tower.type === "hero" ? 1.12 : 1);
+    // Every 512px form uses the same compact frame. Upgrades and firing must
+    // never inflate the silhouette onto neighboring roads or build pads.
+    return .20;
   }
   function heroFacing(tower) { return Math.cos(tower.aimAngle) < 0 ? -1 : 1; }
   function heroMuzzle(tower) {
@@ -1776,7 +1778,6 @@
       const sprite = loadedTowerSprite(tower);
       const pulse = tower.attackPulse;
       const upgradePulse = tower.upgradePulse || 0;
-      const evolvePulse = tower.evolvePulse || 0;
       const recoilX = Math.cos(tower.aimAngle) * -8 * pulse;
       const recoilY = Math.sin(tower.aimAngle) * -8 * pulse;
       ctx.save();
@@ -1795,7 +1796,7 @@
       const scale = towerRenderScale(tower);
       if (sprite.complete && sprite.naturalWidth) {
         ctx.shadowColor = tower.color;
-        ctx.shadowBlur = 18 + pulse * 22;
+        ctx.shadowBlur = 8 + pulse * 4;
         if (tower.type === "hero" || tower.type === "ballista") ctx.scale(heroFacing(tower), 1);
         ctx.drawImage(sprite, -256 * scale, -292 * scale, 512 * scale, 512 * scale);
       } else {
@@ -1809,8 +1810,11 @@
       ctx.restore();
 
       // Let the generated silhouette carry tier-3 and Long Watch identity without extra orbiting clutter.
-      if (towerVisualStage(tower) === "base") drawUpgradeDetails(tower, pulse, upgradePulse);
-      else if (towerVisualStage(tower) === "evolved") drawEvolvedCrown(tower, evolvePulse);
+      if (towerVisualStage(tower) === "base") {
+        ctx.save();ctx.scale(.65,.65);
+        drawUpgradeDetails(tower, pulse, upgradePulse);
+        ctx.restore();
+      }
 
       if (pulse > 0) {
         ctx.save();
@@ -1834,31 +1838,6 @@
       ctx.fillText(tierCode(tower), 0, 44);
       ctx.restore();
     }
-  }
-
-  function drawEvolvedCrown(tower, evolvePulse) {
-    ctx.save();
-    ctx.globalAlpha = 0.72 + evolvePulse * 0.28;
-    ctx.shadowColor = "#ffd86b";
-    ctx.shadowBlur = 18 + evolvePulse * 34;
-    const count = 5;
-    for (let i = 0; i < count; i += 1) {
-      const a = performance.now() * 0.0015 + (Math.PI * 2 * i) / count;
-      ctx.save();
-      ctx.translate(Math.cos(a) * 58, Math.sin(a) * 34 - 8);
-      ctx.rotate(a + Math.PI / 4);
-      ctx.fillStyle = i % 2 ? tower.color : "#ffd86b";
-      drawTinyDiamond(0, 0, 10, 16);
-      ctx.restore();
-    }
-    if (evolvePulse > 0) {
-      ctx.globalAlpha = evolvePulse * 0.45;
-      ctx.fillStyle = tower.color;
-      ctx.beginPath();
-      ctx.arc(0, -8, 80 + evolvePulse * 24, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
   }
 
   function drawUpgradeDetails(tower, pulse, upgradePulse) {

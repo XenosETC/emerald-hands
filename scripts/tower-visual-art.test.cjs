@@ -1059,3 +1059,16 @@ test('Boss polish: all maps distinguish major defeat from breach until the remai
     breached.act('state.spawnLeft=0;enemies.length=0;updateWave(.01);updateHud()');assert.equal(breached.act('state.wave'),wave+1);
   }
 });
+
+test('Tower footprint stays compact through every form and pulse, including Delta pad 2 Sunwarden',()=>{
+  const g=checkpointGame();g.act('chooseBattleground("floodgate-delta")');g.start();
+  g.act('state.shards=10000;selectTower("hero");buildOrUpgrade(pads[1])');
+  const size=g.act('towerRenderScale(towers[0])');assert.equal(size,.2);
+  assert.equal(g.act(`Object.keys(towerTypes).every(type=>[1,2,3,4,5].every(level=>[false,true].every(evolved=>towerRenderScale({type,level,evolved,attackPulse:1,upgradePulse:1,evolvePulse:1})===.2)))`),true);
+  g.act('for(let i=0;i<5;i++)upgradeSelected("power");towers[0].attackPulse=1;towers[0].upgradePulse=1;towers[0].evolvePulse=1;const compactArt=loadedTowerSprite(towers[0]);compactArt.complete=true;compactArt.naturalWidth=512');
+  assert.equal(g.act('towerRenderScale(towers[0])'),size);assert.equal(g.act('towerVisualStage(towers[0])'),'evolved');assert.ok(g.act('towers[0].damage')>18);
+  g.drawingCalls.length=0;g.act('drawTowers()');
+  const art=g.drawingCalls.find(c=>c.method==='drawImage'&&c.args[0]===g.act('loadedTowerSprite(towers[0])'));
+  assert.ok(art);assert.equal(art.args[3],102.4);assert.equal(art.args[4],102.4);
+  assert.equal(g.act('heroMuzzle(towers[0]).x'),g.act('towers[0].x+heroFacing(towers[0])*(413-256)*.2-Math.cos(towers[0].aimAngle)*8*towers[0].attackPulse'));
+});
