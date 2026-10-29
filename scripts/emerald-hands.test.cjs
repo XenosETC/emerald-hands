@@ -62,7 +62,7 @@ test('new player can earn, buy the first upgrade, save, and reload the actual ga
   h.run('buy("click")');
   assert.equal(h.snapshot().levels.click,1);
   assert.equal(h.snapshot().shards,0);
-  assert.equal(h.run('perClick()'),2);
+  assert.ok(Math.abs(h.run('perClick()') - 2.244) < 1e-10);
   const reloaded = game({save:h.saves.get(codec.key)});
   assert.equal(reloaded.snapshot().levels.click,1);
   assert.match(reloaded.nodes.get('#journeyTitle').textContent,/passive/);
@@ -132,8 +132,8 @@ test('first prestige review gives one OG, archives the run, and cannot double re
   assert.equal(h.snapshot().history.length,1);
   assert.equal(h.snapshot().history[0].totalEarned,400000);
   assert.equal(h.snapshot().shards,0);
-  assert.equal(h.run('perClick()'),1.12);
-  assert.equal(h.nodes.get('#perClick').textContent,'1.12');
+  assert.ok(Math.abs(h.run('perClick()') - 1.2096) < 1e-10);
+  assert.equal(h.nodes.get('#perClick').textContent,'1.21');
 });
 test('later prestige keeps the established vault bonus and top rank unlocks endless play', () => {
   const h=game({save:saved({shards:100,totalEarned:1600000,ogPoints:56,lifetimePrestiges:20,levels:{vault:6}})});
@@ -323,7 +323,28 @@ test('instant event message matches its artwork across a rank up and clears on e
   assert.equal(h.nodes.get('#eventArtLabel').hidden,true);
 });
 
-test('the unchanged economy can reach Sovereign through purchases and repeated cycles', t => {
+test('tap rewards track steady production without multiplying temporary passive events', () => {
+  const h = game({save:saved({levels:{click:5,infra:8,business:3,media:1,research:2,vault:1}})});
+  const baseline = h.run('perClick()');
+  assert.ok(Math.abs(baseline - h.run('(upgrades.click.getValue(5) + .7) * vaultMultiplier() + perSecond() * .03')) < 1e-9);
+  h.run('flushTimer=20; flushBoost=2; choiceTimer=20; choiceBoost=1.5');
+  assert.equal(h.run('perClick()'), baseline);
+  h.run('rageTimer=20; corruptionTimer=20');
+  assert.ok(Math.abs(h.run('perClick()') - baseline * 1.6) < 1e-9);
+});
+
+test('tap legacy survives restart and reload and keeps growing after completion', () => {
+  const h = game({save:saved({ogPoints:60,lifetimePrestiges:20})});
+  const atCompletion = h.run('perClick()');
+  h.run('Object.assign(state, saveCodec.restart(state))');
+  assert.equal(h.run('perClick()'), atCompletion);
+  assert.equal(game({save:h.snapshot()}).run('perClick()'), atCompletion);
+  h.run('state.totalEarned=400000; sealCycle(); closePrestigeModal()');
+  assert.ok(h.run('perClick()') > atCompletion);
+  assert.equal(h.snapshot().levels.click, 0);
+});
+
+test('the tuned economy can reach Sovereign through purchases and repeated cycles', t => {
   const h=game();
   // A deterministic play policy: four taps per active second, buy the best
   // affordable production increase per shard, seal as soon as eligible.

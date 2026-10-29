@@ -6,7 +6,7 @@ const upgrades = {
   click: {
     baseCost: 15,
     growth: 1.62,
-    getValue: (level) => 1 + level,
+    getValue: (level) => (1 + level * 1.2) * (1 + level * 0.02),
   },
   infra: {
     baseCost: 65,
@@ -229,12 +229,21 @@ function perClick() {
   return (
     (upgrades.click.getValue(state.levels.click) + state.levels.media * 0.7) *
     vaultMultiplier() *
-    rageMultiplier() *
-    corruptionMultiplier()
-  );
+    tapLegacyMultiplier() + steadyProduction() * 0.03
+  ) * rageMultiplier() * corruptionMultiplier();
+}
+
+function tapLegacyMultiplier(points = state.ogPoints) {
+  // A gentle permanent tap benefit, including cycles beyond Sovereign.
+  return 1 + Math.sqrt(points) * 0.08;
 }
 
 function perSecond() {
+  return steadyProduction() * rageMultiplier() * corruptionMultiplier() *
+    flushMultiplier() * choiceMultiplier();
+}
+
+function steadyProduction() {
   const infra = upgrades.infra.getValue(state.levels.infra);
   const business = upgrades.business.getValue(state.levels.business);
   const media = upgrades.media.getValue(state.levels.media);
@@ -249,11 +258,7 @@ function perSecond() {
   return (
     (infra + business + media + acquisition + market) *
     synergy *
-    vaultMultiplier() *
-    rageMultiplier() *
-    corruptionMultiplier() *
-    flushMultiplier() *
-    choiceMultiplier()
+    vaultMultiplier()
   );
 }
 
@@ -449,7 +454,7 @@ function renderJourney() {
   const action = document.querySelector('#journeyAction');
   action.hidden = !objective.target;
   action.textContent = objective.target === 'prestigeButton' ? 'View cycle goal' : 'Go to upgrade';
-  document.querySelector('#careerProgress').textContent = `${format(state.ogPoints)} / 60 OG points · +${Math.round(state.ogPoints * 12)}% permanent production`;
+  document.querySelector('#careerProgress').textContent = `${format(state.ogPoints)} / 60 OG points · +${Math.round(state.ogPoints * 12)}% permanent production · +${Math.round((tapLegacyMultiplier() - 1) * 100)}% tap legacy`;
   document.querySelector('#careerMeter').value = Math.min(60, state.ogPoints);
   document.querySelector('#cycleProgress').textContent = `${format(state.totalEarned)} / 400K shards earned this cycle`;
   els.saveStatus.textContent = saveMessage;
@@ -744,7 +749,7 @@ function showPrestigeModal(summary) {
   renderPrestigeLadder(summary.oldPoints, summary.newPoints);
   els.prestigeMessage.textContent =
     `The Emerald Sage seals ${format(summary.totalEarned)} shards and ${format(summary.empireValue)} empire value from your ${summary.runRank} run. ` +
-    `Your next cycle begins with ${format(summary.newPoints)} OG Points.`;
+    `Your next cycle begins with ${format(summary.newPoints)} OG Points and +${Math.round((tapLegacyMultiplier(summary.newPoints) - 1) * 100)}% tap legacy on top of your permanent production boost.`;
   const completed = summary.newPoints >= 60;
   document.querySelector('#prestigeModalTitle').textContent = completed ? 'Emerald Sovereign — Journey Complete' : 'The Vault Recognizes You';
   document.querySelector('#prestigeContinue').textContent = completed ? 'Continue in endless play' : 'Begin Next Cycle';
@@ -832,14 +837,46 @@ function recordArcadeProgress(played = false, notify = false) {
   });
 }
 
+const tapPops = [];
+let tapLane = 0;
+let crystalRecoil;
 function pop(amount, x, y) {
+  // Three reward lanes keep fast tapping readable and bound transient DOM work.
+  while (tapPops.length >= 6) tapPops.shift().remove();
   const node = document.createElement("div");
   node.className = "float-pop";
   node.textContent = `+${format(amount)}`;
-  node.style.left = `${x}px`;
+  node.style.left = `${x + [-28, 0, 28][tapLane++ % 3]}px`;
   node.style.top = `${y}px`;
   document.body.append(node);
-  node.addEventListener("animationend", () => node.remove(), { once: true });
+  tapPops.push(node);
+  const cleanup = () => {
+    node.remove();
+    const index = tapPops.indexOf(node);
+    if (index >= 0) tapPops.splice(index, 1);
+  };
+  node.addEventListener("animationend", cleanup, { once: true });
+  setTimeout(cleanup, 900);
+}
+
+function animateShardTap() {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  const crystal = els.shardButton.querySelector?.('img');
+  if (!crystal?.animate) return;
+  crystalRecoil?.cancel();
+  crystalRecoil = crystal.animate([
+    { transform: 'translateY(0) scale(1)' },
+    { transform: 'translateY(3px) scale(.95)', offset: .18 },
+    { transform: 'translateY(-2px) scale(1.025)', offset: .5 },
+    { transform: 'translateY(0) scale(1)' },
+  ], { duration: 280, easing: 'cubic-bezier(.2,.7,.3,1)' });
+  const ring = document.createElement('span');
+  ring.className = 'shard-impact';
+  ring.setAttribute('aria-hidden', 'true');
+  // At most one ring, even when clicking faster than its animation.
+  els.shardButton.querySelector('.shard-impact')?.remove();
+  els.shardButton.append(ring);
+  setTimeout(() => ring.remove(), 420);
 }
 
 function chime(frequency, duration) {
@@ -888,8 +925,8 @@ els.shardButton.addEventListener("click", (event) => {
   const amount = perClick();
   earn(amount);
   const bounds = els.shardButton.getBoundingClientRect();
-  pop(amount, event.detail === 0 ? bounds.left + bounds.width / 2 : event.clientX,
-    event.detail === 0 ? bounds.top + bounds.height / 2 : event.clientY);
+  pop(amount, bounds.left + bounds.width / 2, bounds.top + bounds.height * .24);
+  animateShardTap();
   chime(520 + Math.random() * 80, 0.05);
   render();
 });

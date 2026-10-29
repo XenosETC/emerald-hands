@@ -1,5 +1,13 @@
 # Emerald Hands finishing candidate — October 10, 2026
 
+## Tap balance update — October 28, 2026
+
+This update supersedes the unchanged tap-economy notes below. Sharper Hands now gives `(1 + 1.2 × level) × (1 + 0.02 × level)` base tap power: level 1 is 2.244 rather than 2, and level 5 is 7.7 rather than 6. Prices remain unchanged. Each tap additionally earns 3% of one second of steady production, excluding temporary passive event boosts. Rage and corruption affect the combined tap reward once.
+
+OG points add a tap-only legacy multiplier of `1 + 0.08 × sqrt(OG)` to direct tap power, alongside the existing 12% per OG production boost. First prestige starts at 1.2096 per tap rather than 1.12. The legacy bonus persists through restart/reload and continues growing beyond Sovereign in endless cycles. No save migration or additional reset reward is required; starting over does not grant free OG.
+
+Verification: tap-specific regression tests cover production sharing, temporary-event isolation, restart/reload and further prestige after completion. The existing deterministic four-taps-per-second purchase policy reaches first prestige in 845 simulated seconds and Sovereign in 7,495 (previous fixture: 1,040 and 10,029). This is automated progression evidence; human balance remains to be judged in play.
+
 Emerald Hands is the oldest tracked arcade game and the first title in the [finishing queue](ARCADE_FINISHING.md). This pass completes its visible progression and save-management flow around the existing idle economy.
 
 ## Playable loop
