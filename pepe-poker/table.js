@@ -159,6 +159,7 @@ function reactionImage(reaction, className, alt) {
 function seat(player, index) {
   if (!player) return element("div", "seat open", "Open seat");
   const node = element("div", "seat");
+  node.classList.toggle("your-seat", index === state.index);
   node.classList.toggle("winner", state.payouts?.some(payout => payout.seat === index) ?? false);
   node.classList.toggle("active", index === state.turn);
   node.classList.toggle("folded", player.folded && state.turn !== -1 && player.cards.length > 0);
@@ -366,7 +367,17 @@ function render() {
   if (pot >= 100) pile.append(chip("ivory"));
   pile.append(chip());
   $("pot").replaceChildren(pile, (awarded ? "Awarded " : "Pot ") + format.format(pot));
-  $("street").textContent = state?.result || state?.street || "Play-chip table";
+  const streets = $("streets");
+  const round = ["Preflop", "Flop", "Turn", "River"].indexOf(state?.street);
+  streets.hidden = !state?.hand;
+  const reached = round === -1 ? Math.max(0, (state?.board.length ?? 0) - 2) : round;
+  for (const [index, item] of Array.from(streets.children).entries()) {
+    item.classList.toggle("played", index < reached || (round === -1 && index === reached));
+    if (index === round) item.setAttribute("aria-current", "step");
+    else item.removeAttribute("aria-current");
+  }
+  $("street").hidden = !state?.result;
+  if ($("street").textContent !== (state?.result ?? "")) $("street").textContent = state?.result ?? "";
   $("history").replaceChildren(...(state?.history.length ? [...state.history].reverse() : ["Hands will appear here."])
     .map(line => element("li", "", line)));
   if (!seated) {
@@ -378,9 +389,8 @@ function render() {
   $("deal").hidden = !(betweenHands && ready && state.index === 0);
   $("rebuy").hidden = !(betweenHands && state.players[state.index].stack === 0);
   const allowed = state.options;
-  $("fold").hidden = !allowed;
-  $("call").hidden = !allowed;
-  $("raise").hidden = $("raise-label").hidden = $("raise-presets").hidden = !allowed?.canRaise;
+  $("betting").hidden = !allowed;
+  $("raise").hidden = $("raise-controls").hidden = !allowed?.canRaise;
   const player = state.players[state.index];
   $("presence").hidden = Boolean(state.practice);
   $("presence").textContent = player.sittingOut ? "Return to play" : betweenHands ? "Sit out" : "Sit out next hand";
@@ -398,7 +408,12 @@ function render() {
 
 function updateRaiseLabel() {
   const allowed = state?.options;
-  $("raise").textContent = allowed?.canRaise && Number($("amount").value) === allowed.max ? "Go all-in" : "Raise";
+  const amount = $("amount");
+  const openingBet = state?.street !== "Preflop" && state?.players.every(player => player.bet === 0);
+  const verb = openingBet ? "Bet" : "Raise to";
+  $("raise-verb").textContent = verb;
+  $("raise").textContent = !allowed?.canRaise || !amount.validity.valid ? (openingBet ? "Bet" : "Raise") :
+    Number(amount.value) === allowed.max ? "Go all-in" : verb + " " + format.format(Number(amount.value));
 }
 
 function updateClock() {
@@ -406,14 +421,16 @@ function updateClock() {
   const seconds = Math.max(0, Math.ceil((state.deadline - Date.now()) / 1000));
   updateTurnCue(Boolean(state.options && seconds > 0));
   const clock = $("turn-clock");
-  clock.hidden = state.turn === -1 || Boolean(state.players[state.turn]?.bot);
+  $("turn-time").hidden = state.turn === -1 || Boolean(state.players[state.turn]?.bot);
   clock.max = state.turnSeconds ?? TURN_SECONDS;
   clock.value = seconds;
-  clock.classList.toggle("urgent", seconds <= 10);
+  $("turn-time").classList.toggle("urgent", seconds <= 10);
+  $("turn-seconds").textContent = seconds + "s";
   $("time-bank").hidden = !state.canExtend || seconds <= 0;
-  $("waiting").textContent = state.options ? "Your turn · " + seconds + "s" :
+  $("actions").classList.toggle("your-turn", Boolean(state.options));
+  $("waiting").textContent = state.options ? "Your turn" :
     state.turn !== -1 ? state.players[state.turn].bot ? state.players[state.turn].name + " is thinking…" :
-      state.players[state.turn].name + " to act · " + seconds + "s" :
+      state.players[state.turn].name + " to act" :
     state.practice ? state.players[state.index].stack === 0 ? "Rebuy to keep practicing" : "" :
     state.players.filter(player => player.stack > 0 && !player.sittingOut).length < 2 ? "Waiting for two active players with chips" :
     state.index === 0 ? "" : "Waiting for host to deal";
@@ -565,7 +582,6 @@ for (const preset of ["min", "half", "pot", "max"]) {
       ? potRaiseTo(state.pot, committed, allowed, preset === "half" ? .5 : 1)
       : allowed[preset];
     updateRaiseLabel();
-    $("amount").focus();
   };
 }
 for (const id of ["deal", "rebuy"]) $(id).onclick = () => submit("/" + room + "/" + id, {});

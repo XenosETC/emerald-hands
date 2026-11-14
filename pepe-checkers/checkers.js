@@ -3,8 +3,10 @@ import { botMove, legalMoves, newGame, play } from "./engine.mjs?v=difficulty-1"
 const $ = id => document.getElementById(id);
 const pieces = { 1: "Emerald", "-1": "Crimson" };
 const portraits = { 1: "../pepe-poker/avatars/emerald.webp", "-1": "../pepe-poker/avatars/fallen.webp" };
+const board = $("board");
 let game = newGame();
 let selected = null;
+let focusIndex = null;
 let botTimer;
 let lastMove;
 let moveNumber = 0;
@@ -15,13 +17,53 @@ const cells = Array.from({ length: 64 }, (_, index) => {
   const square = document.createElement("button");
   square.type = "button";
   square.className = (Math.floor(index / 8) + index % 8) % 2 ? "dark" : "light";
+  if (square.className === "light") {
+    square.disabled = true;
+    square.setAttribute("aria-hidden", "true");
+  }
+  square.tabIndex = -1;
   square.onclick = () => selectSquare(index);
   return square;
 });
-$("board").append(...cells);
+board.append(...cells);
 
 function botTurn() {
   return $("mode").value === "bot" && game.turn === -1 && !game.winner;
+}
+
+function playerName(side) {
+  return side === -1 && $("mode").value === "bot" ? "Kekbot" : pieces[side];
+}
+
+function renderStatus(moves, waiting) {
+  const capture = moves.length > 0 && moves[0].capture !== null;
+  const continuing = game.chain !== null;
+  const activePlayer = playerName(game.turn);
+  let title = activePlayer + " to move";
+  let guide = "Select a highlighted piece to see its moves.";
+  let state = "turn";
+  if (game.winner) {
+    title = playerName(game.winner) + " wins";
+    guide = "Start a rematch or review the move log.";
+    state = "result";
+  } else if (waiting) {
+    title = "Kekbot is thinking…";
+    guide = "Your turn resumes after its move.";
+    state = "thinking";
+  } else if (continuing) {
+    title = "Jump again";
+    guide = "Continue with " + coordinate(game.chain).toUpperCase() + " by choosing a capture ring.";
+    state = "capture";
+  } else if (capture) {
+    title = activePlayer + " must capture";
+    guide = selected === null ? "Select a highlighted piece to jump." : "Choose a capture ring to jump.";
+    state = "capture";
+  } else if (selected !== null) {
+    guide = "Choose a marked destination for " + coordinate(selected).toUpperCase() + ".";
+  }
+  $("status").dataset.state = state;
+  if ($("turn-title").textContent !== title) $("turn-title").textContent = title;
+  if ($("turn-guide").textContent !== guide) $("turn-guide").textContent = guide;
 }
 
 function render() {
@@ -29,34 +71,36 @@ function render() {
   $("undo").disabled = !undoHistory.length;
   $("restart").textContent = game.winner ? "Rematch" : "Restart game";
   $("reset-series").hidden = !wins[1] && !wins[-1];
+  const waiting = botTurn();
   const moves = legalMoves(game);
-  const current = pieces[game.turn];
-  const winner = game.winner === -1 && $("mode").value === "bot" ? "Kekbot" : pieces[game.winner];
-  $("status").textContent = game.winner ? winner + " wins!" :
-    botTurn() ? "Kekbot is thinking…" : game.chain !== null ? current + " must jump again" :
-      moves[0]?.capture !== null ? current + " to move · Jump required" : current + " to move";
-  $("crimson-name").textContent = $("mode").value === "bot" ? "Kekbot" : "Crimson";
+  renderStatus(moves, waiting);
+  $("crimson-name").textContent = playerName(-1);
   for (const side of [1, -1]) {
     const team = pieces[side].toLowerCase();
     const remaining = game.board.filter(piece => Math.sign(piece) === side);
     const kings = remaining.filter(piece => Math.abs(piece) === 2).length;
     $(team + "-team").classList.toggle("active", !game.winner && game.turn === side);
-    $(team + "-count").textContent = remaining.length + " pieces" + (kings ? " · " + kings + (kings === 1 ? " king" : " kings") : "");
+    $(team + "-count").textContent = remaining.length + (remaining.length === 1 ? " piece" : " pieces") +
+      (kings ? " · " + kings + (kings === 1 ? " king" : " kings") : "");
     $(team + "-wins").textContent = wins[side] + (wins[side] === 1 ? " win" : " wins");
   }
+  if (!board.contains(document.activeElement)) focusIndex = selected ?? (!waiting ? moves[0]?.from : null) ?? lastMove?.to ?? 1;
   cells.forEach((square, index) => {
+    if (square.disabled) return;
     const piece = game.board[index];
     const king = Math.abs(piece) === 2;
-    const destination = moves.some(move => move.from === selected && move.to === index);
-    const selectable = moves.some(move => move.from === index);
-    square.setAttribute("aria-label", coordinate(index) + (piece ? " " + pieces[Math.sign(piece)] + (king ? " king" : " piece") : "") +
-      (destination ? ", legal destination" : ""));
+    const destination = !waiting && moves.find(move => move.from === selected && move.to === index);
+    const selectable = !waiting && moves.some(move => move.from === index);
+    const capture = destination && destination.capture !== null;
+    square.tabIndex = index === focusIndex ? 0 : -1;
+    square.setAttribute("aria-label", coordinate(index) + (piece ? " " + playerName(Math.sign(piece)) + (king ? " king" : " piece") : ", empty") +
+      (destination ? capture ? ", capture destination" : ", legal destination" : selectable ? ", can move" : ""));
     square.setAttribute("aria-pressed", String(index === selected));
-    square.disabled = Boolean(game.winner) || botTurn() || (!destination && !selectable);
-    square.classList.toggle("target", destination);
-    square.classList.toggle("capture-target", destination && moves.some(move => move.from === selected && move.to === index && move.capture !== null));
+    square.setAttribute("aria-disabled", String(!destination && !selectable));
+    square.classList.toggle("target", Boolean(destination));
+    square.classList.toggle("capture-target", Boolean(capture));
     square.classList.toggle("last-move", lastMove?.from === index || lastMove?.to === index);
-    square.classList.toggle("selectable", selectable && !botTurn());
+    square.classList.toggle("selectable", selectable);
     square.replaceChildren();
     if (piece) {
       const token = document.createElement("span");
@@ -85,7 +129,7 @@ function makeMove(move) {
     const entry = document.createElement("li");
     entry.value = ++moveNumber;
     const team = document.createElement("strong");
-    team.textContent = previous.turn === -1 && $("mode").value === "bot" ? "Kekbot" : pieces[previous.turn];
+    team.textContent = playerName(previous.turn);
     const moveText = document.createElement("span");
     moveText.textContent = notation;
     entry.append(team, moveText);
@@ -104,13 +148,40 @@ function selectSquare(index) {
     selected = game.chain;
     render();
     scheduleBot();
-    const nextCell = selected === null ? cells.find(cell => !cell.disabled) : cells[selected];
-    nextCell?.focus();
+    if (board.contains(document.activeElement)) cells[move.to].focus();
   } else if (moves.some(move => move.from === index)) {
-    selected = index;
+    selected = selected === index && game.chain === null ? null : index;
     render();
   }
 }
+
+board.addEventListener("focusin", event => {
+  const index = cells.indexOf(event.target);
+  if (index < 0 || index === focusIndex) return;
+  cells[focusIndex]?.setAttribute("tabindex", "-1");
+  focusIndex = index;
+  cells[index].tabIndex = 0;
+});
+
+board.addEventListener("keydown", event => {
+  const index = cells.indexOf(event.target);
+  if (index < 0) return;
+  if (event.key === "Escape" && selected !== null && game.chain === null) {
+    selected = null;
+    render();
+    event.preventDefault();
+    return;
+  }
+  const row = Math.floor(index / 8);
+  const column = index % 8;
+  const offset = { ArrowLeft: -2, ArrowRight: 2, ArrowUp: -8, ArrowDown: 8 }[event.key];
+  if (offset === undefined) return;
+  event.preventDefault();
+  const next = Math.abs(offset) === 8
+    ? (row + offset / 8) * 8 + (column ^ 1)
+    : column + offset >= 0 && column + offset < 8 ? index + offset : -1;
+  if (next >= 0 && next < cells.length) cells[next].focus();
+});
 
 function scheduleBot() {
   if (!botTurn()) return;
@@ -146,7 +217,7 @@ $("undo").onclick = () => {
   while (log.children.length > moveNumber) log.lastElementChild.remove();
   $("moves-empty").hidden = moveNumber > 0;
   render();
-  if ($("undo").disabled) cells.find(cell => !cell.disabled)?.focus();
+  if ($("undo").disabled) cells[legalMoves(game)[0]?.from]?.focus();
 };
 $("restart").onclick = restart;
 function resetSeries() {

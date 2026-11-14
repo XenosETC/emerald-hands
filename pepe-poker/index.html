@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101611">
   <title>Pepe Poker · Emerald Arcade</title>
-  <link rel="stylesheet" href="table.css?v=share-1">
+  <link rel="stylesheet" href="table.css?v=table-layout-1">
 </head>
 <body>
   <header>
@@ -16,16 +16,25 @@
   </header>
   <main>
     <section class="room" aria-label="Poker table">
+      <div class="table-meta">
+        <p class="variant">No-limit Hold’em <span aria-hidden="true">·</span> Play chips</p>
+        <p id="room-status">Private table · 0 of 6 seats taken</p>
+      </div>
       <div class="table">
         <div id="seats" aria-label="Seats"></div>
         <div class="felt">
-          <p class="variant">NO-LIMIT HOLD'EM <span>·</span> <span id="stakes">10 / 20</span></p>
+          <ol id="streets" class="street-track" aria-label="Betting rounds" hidden>
+            <li>Preflop</li>
+            <li>Flop</li>
+            <li>Turn</li>
+            <li>River</li>
+          </ol>
           <div id="board" class="cards" aria-label="Community cards"></div>
           <div id="pot" class="pot"></div>
-          <p id="street" aria-live="polite">Play-chip table</p>
+          <p class="blinds">Blinds <span id="stakes">10 / 20</span></p>
+          <p id="street" aria-live="polite" hidden></p>
         </div>
       </div>
-      <p id="room-status">Private table · 0 of 6 seats taken</p>
       <form id="join" class="controls">
         <label for="name">Screen name</label>
         <input id="name" maxlength="20" required placeholder="Your table name" autocomplete="nickname">
@@ -45,28 +54,41 @@
         <button type="submit" id="practice">Practice vs. Kekbot</button>
         <button type="button" id="new-table" hidden>Start a new table</button>
       </form>
-      <div id="actions" class="controls" hidden>
-        <button id="deal" class="primary" hidden>Deal hand</button>
-        <label id="auto-deal-label" hidden><input id="auto-deal" type="checkbox"> Auto-deal practice hands</label>
-        <span id="auto-deal-countdown" hidden></span>
-        <button id="rebuy" hidden>Rebuy · 2,000</button>
-        <button id="presence" type="button" hidden>Sit out</button>
-        <div id="turn-indicator">
+      <section id="actions" class="controls" aria-label="Table controls" hidden>
+        <div id="turn-indicator" class="turn-indicator">
           <span id="waiting"></span>
-          <progress id="turn-clock" aria-label="Time remaining this turn" hidden></progress>
+          <div id="turn-time" hidden>
+            <progress id="turn-clock" aria-label="Time remaining this turn"></progress>
+            <span id="turn-seconds" aria-hidden="true"></span>
+          </div>
+          <button id="time-bank" type="button" hidden></button>
         </div>
-        <button id="time-bank" type="button" hidden></button>
-        <button id="fold" hidden>Fold</button>
-        <button id="call" class="primary" hidden>Check</button>
-        <label id="raise-label" hidden>Raise to <input id="amount" type="number" inputmode="numeric" step="1" required></label>
-        <div id="raise-presets" role="group" aria-label="Raise amount shortcuts" hidden>
-          <button type="button" id="raise-min" aria-label="Set minimum raise">Min</button>
-          <button type="button" id="raise-half" aria-label="Set half-pot raise">½ pot</button>
-          <button type="button" id="raise-pot" aria-label="Set pot-sized raise">Pot</button>
-          <button type="button" id="raise-max" aria-label="Set all-in amount">Max</button>
+        <div id="betting" hidden>
+          <div id="raise-controls" hidden>
+            <label id="raise-label" for="amount"><span id="raise-verb">Raise to</span>
+              <input id="amount" type="number" inputmode="numeric" step="1" required>
+            </label>
+            <div id="raise-presets" role="group" aria-label="Bet amount shortcuts">
+              <button type="button" id="raise-min" aria-label="Set minimum amount">Min</button>
+              <button type="button" id="raise-half" aria-label="Set half-pot amount">½ pot</button>
+              <button type="button" id="raise-pot" aria-label="Set pot-sized amount">Pot</button>
+              <button type="button" id="raise-max" aria-label="Set all-in amount">Max</button>
+            </div>
+          </div>
+          <div class="decision-buttons">
+            <button id="fold">Fold</button>
+            <button id="call" class="primary">Check</button>
+            <button id="raise" hidden>Raise</button>
+          </div>
         </div>
-        <button id="raise" hidden>Raise</button>
-      </div>
+        <div id="table-commands">
+          <button id="deal" class="primary" hidden>Deal hand</button>
+          <button id="rebuy" hidden>Rebuy · 2,000</button>
+          <button id="presence" type="button" hidden>Sit out</button>
+          <label id="auto-deal-label" hidden><input id="auto-deal" type="checkbox"> Auto-deal practice hands</label>
+          <span id="auto-deal-countdown" hidden></span>
+        </div>
+      </section>
       <details id="reaction-tray" class="reaction-tray" hidden>
         <summary>Pepe reactions</summary>
         <div id="reaction-options" role="group" aria-label="Send a Pepe reaction"></div>
@@ -140,6 +162,6 @@
       <button>Done</button>
     </form>
   </dialog>
-  <script type="module" src="table.js?v=share-1"></script>
+  <script type="module" src="table.js?v=table-layout-1"></script>
 </body>
 </html>
