@@ -29,6 +29,10 @@ let sendingChat = false;
 let recapOptionsKey = "";
 let replayStep = null;
 let autoDealAt = null;
+let dealtBoard = [];
+let dealerSnapshot;
+let dealerAnimation;
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const pageTitle = document.title;
 const soundKey = "pepe-poker:turn-sound";
 let turnSound = false;
@@ -148,6 +152,47 @@ function card(value) {
   }
   node.append(image);
   return node;
+}
+
+function renderDealer() {
+  const board = state?.board ?? [];
+  const boardElement = $("board");
+  const hand = state?.hand ?? 0;
+  const roomId = state?.id;
+  const settled = Boolean(state?.result);
+  const sameRoom = Boolean(roomId && dealerSnapshot?.roomId === roomId);
+  const sameHand = sameRoom && dealerSnapshot.hand === hand;
+  const newHand = sameRoom && dealerSnapshot.hand < hand;
+  const revealFrom = sameHand ? dealtBoard.length : 0;
+  const revealed = (sameHand || newHand) && revealFrom < board.length;
+  const awarded = (sameHand && settled && !dealerSnapshot.settled) || (newHand && settled);
+
+  for (let index = 0; index < 5; index++) {
+    const current = boardElement.children[index];
+    if (!current || newHand || board[index] !== dealtBoard[index]) {
+      const tile = card(board[index]);
+      if (revealed && index >= revealFrom && index < board.length) {
+        tile.classList.add("new-board-card");
+        tile.style.setProperty("--reveal-delay", (index - revealFrom) * 35 + "ms");
+      }
+      if (current) current.replaceWith(tile);
+      else boardElement.append(tile);
+    }
+  }
+  dealtBoard = board;
+
+  const label = settled ? "House dealer · Pot awarded" : hand ? "House dealer · " + state.street : "House dealer";
+  if ($("dealer-status").textContent !== label) $("dealer-status").textContent = label;
+  if (!sameRoom || newHand || revealed || awarded) dealerAnimation?.cancel();
+  if (!reducedMotion.matches && (newHand || revealed || awarded)) {
+    const offset = awarded ? 0 : newHand ? 4 : 2;
+    dealerAnimation = $("house-dealer").animate([
+      { transform: "translateY(0)", filter: "brightness(1)" },
+      { transform: `translateY(${offset}px)`, filter: awarded ? "brightness(1.45)" : "brightness(1.2)", offset: .38 },
+      { transform: "translateY(0)", filter: "brightness(1)" }
+    ], { duration: awarded ? 420 : 300, easing: "ease-out" });
+  }
+  dealerSnapshot = { roomId, hand, settled };
 }
 
 function reactionImage(reaction, className, alt) {
@@ -362,7 +407,7 @@ function render() {
     const index = state?.practice ? (offset === 3 ? 1 : offset === 0 ? 0 : -1) : (first + offset) % 6;
     return seat(state?.players[index], index);
   }));
-  $("board").replaceChildren(...Array.from({ length: 5 }, (_, i) => card(state?.board[i])));
+  renderDealer();
   const awarded = state?.payouts?.reduce((total, payout) => total + payout.amount, 0) || 0;
   const pot = awarded || state?.pot || 0;
   const pile = element("span", "chip-pile");
@@ -754,6 +799,9 @@ document.addEventListener("pointerdown", enableAudio);
 document.addEventListener("keydown", enableAudio);
 document.addEventListener("visibilitychange", updateClock);
 document.addEventListener("visibilitychange", resetAutoDeal);
+reducedMotion.addEventListener("change", event => {
+  if (event.matches) dealerAnimation?.cancel();
+});
 $("auto-deal").addEventListener("change", resetAutoDeal);
 $("raise-sizing").open = matchMedia("(min-width: 651px)").matches;
 buildAvatarPicker();

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101611">
   <title>Pepe Poker · Emerald Arcade</title>
-  <link rel="stylesheet" href="table.css?v=dealer-room-1">
+  <link rel="stylesheet" href="table.css?v=dealer-cues-1">
 </head>
 <body>
   <header>
@@ -25,11 +25,11 @@
       <div class="table">
         <div id="seats" aria-label="Seats"></div>
         <div class="felt">
-          <div class="house-dealer">
+          <div class="house-dealer" id="house-dealer">
             <span class="house-dealer-portrait"><img src="cards/chip-stamp.webp" alt="" width="56" height="56"></span>
             <div>
               <strong>Main Pepe</strong>
-              <span>House dealer</span>
+              <span id="dealer-status">House dealer</span>
             </div>
           </div>
           <ol id="streets" class="street-track" aria-label="Betting rounds" hidden>
@@ -179,6 +179,6 @@
       <button>Done</button>
     </form>
   </dialog>
-  <script type="module" src="table.js?v=dealer-room-1"></script>
+  <script type="module" src="table.js?v=dealer-cues-1"></script>
 </body>
 </html>

@@ -14,7 +14,7 @@ let botTimer;
 let lastMove;
 let moveNumber = 0;
 const undoHistory = [];
-const positions = [{ game, lastMove }];
+const positions = [{ game, lastMove, turn: 0, jumps: 0 }];
 let reviewIndex = null;
 const wins = { 1: 0, "-1": 0 };
 const coordinate = index => "abcdefgh"[index % 8] + (8 - Math.floor(index / 8));
@@ -40,7 +40,13 @@ function playerName(side) {
   return side === -1 && $("mode").value === "bot" ? "Kekbot" : pieces[side];
 }
 
-function renderStatus(moves, waiting) {
+function reviewLabel(position) {
+  if (position.turn === 0) return "Starting position";
+  const turn = "Turn " + position.turn;
+  return position.jumps > 1 || position.game.chain !== null ? turn + " · Jump " + position.jumps : turn;
+}
+
+function renderStatus(moves, waiting, position) {
   const capture = moves.length > 0 && moves[0].capture !== null;
   const continuing = game.chain !== null;
   const activePlayer = playerName(game.turn);
@@ -48,8 +54,8 @@ function renderStatus(moves, waiting) {
   let guide = "Select a highlighted piece to see its moves.";
   let state = "turn";
   if (reviewIndex !== null) {
-    title = reviewIndex === 0 ? "Starting position" : "Reviewing turn " + reviewIndex;
-    guide = "Browse the move log or return to the game.";
+    title = reviewLabel(position);
+    guide = position.game.chain === null ? "Reviewing the match." : "Reviewing a jump in progress.";
     state = "review";
   } else if (game.winner) {
     title = playerName(game.winner) + " wins";
@@ -89,10 +95,16 @@ function render() {
   $("review-prev").setAttribute("aria-disabled", String(!reviewing || reviewIndex === 0));
   $("review-next").setAttribute("aria-disabled", String(!reviewing || reviewIndex === positions.length - 1));
   $("review-position").textContent = reviewing ? reviewIndex + " of " + (positions.length - 1) : "";
+  if (reviewing) {
+    const scrubber = $("review-scrubber");
+    scrubber.max = positions.length - 1;
+    scrubber.value = reviewIndex;
+    scrubber.setAttribute("aria-valuetext", reviewLabel(position) + ", position " + $("review-position").textContent);
+  }
   for (const id of ["mode", "difficulty", "restart", "reset-series"]) $(id).disabled = reviewing;
   Array.from($("move-log").children).forEach((entry, index) => {
     const link = entry.firstElementChild;
-    if (reviewIndex === index + 1) link.setAttribute("aria-current", "step");
+    if (reviewing && position.turn === index + 1) link.setAttribute("aria-current", "step");
     else link.removeAttribute("aria-current");
   });
   $("difficulty-setting").hidden = $("mode").value !== "bot";
@@ -112,7 +124,7 @@ function render() {
     $("last-play").textContent = playerName(shownMove.side) + action + from + " → " + to +
       (shownMove.crowned ? " · Crowned" : "");
   }
-  renderStatus(moves, waiting);
+  renderStatus(moves, waiting, position);
   $("crimson-name").textContent = playerName(-1);
   for (const side of [1, -1]) {
     const team = pieces[side].toLowerCase();
@@ -158,7 +170,9 @@ function render() {
 
 function makeMove(move) {
   const previous = game;
-  if (previous.chain === null && !botTurn()) undoHistory.push({ game, lastMove, moveNumber });
+  if (previous.chain === null && !botTurn()) {
+    undoHistory.push({ game, lastMove, moveNumber, positionCount: positions.length });
+  }
   game = play(game, move.from, move.to);
   if (game.winner) wins[game.winner]++;
   const crowned = Math.abs(game.board[move.to]) > Math.abs(previous.board[move.from]);
@@ -179,12 +193,13 @@ function makeMove(move) {
     const review = document.createElement("button");
     review.type = "button";
     const turn = moveNumber;
-    review.onclick = () => showPosition(turn, true);
+    review.onclick = () => showPosition(positions.findLastIndex(position => position.turn === turn), true);
     review.append(team, moveText);
     entry.append(review);
     list.append(entry);
   }
-  positions[moveNumber] = { game, lastMove };
+  const jumps = move.capture === null ? 0 : previous.chain === null ? 1 : positions.at(-1).jumps + 1;
+  positions.push({ game, lastMove, turn: moveNumber, jumps });
   $("moves-empty").hidden = true;
   list.scrollTop = list.scrollHeight;
 }
@@ -255,7 +270,7 @@ function restart() {
   hint = null;
   lastMove = undefined;
   moveNumber = 0;
-  positions.splice(0, positions.length, { game, lastMove });
+  positions.splice(0, positions.length, { game, lastMove, turn: 0, jumps: 0 });
   reviewIndex = null;
   $("move-log").replaceChildren();
   $("moves-empty").hidden = false;
@@ -268,7 +283,7 @@ $("undo").onclick = () => {
   clearTimeout(botTimer);
   if (game.winner) wins[game.winner]--;
   ({ game, lastMove, moveNumber } = snapshot);
-  positions.length = moveNumber + 1;
+  positions.length = snapshot.positionCount;
   selected = null;
   hint = null;
   const log = $("move-log");
@@ -289,12 +304,19 @@ function showPosition(index, focusControls = false) {
 $("review").onclick = () => showPosition(positions.length - 1, true);
 $("review-prev").onclick = () => showPosition(reviewIndex - 1);
 $("review-next").onclick = () => showPosition(reviewIndex + 1);
-$("review-live").onclick = () => {
+$("review-scrubber").oninput = event => showPosition(event.target.valueAsNumber);
+function returnToGame() {
   reviewIndex = null;
   render();
   cells[focusIndex]?.focus();
   scheduleBot();
-};
+}
+$("review-live").onclick = returnToGame;
+$("review-controls").addEventListener("keydown", event => {
+  if (event.key !== "Escape") return;
+  event.preventDefault();
+  returnToGame();
+});
 $("hint").onclick = () => {
   if (botTurn() || game.winner) return;
   hint = botMove(game, "expert") ?? null;

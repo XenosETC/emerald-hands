@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111d17">
   <title>Pepe Checkers · Emerald Arcade</title>
-  <link rel="stylesheet" href="checkers.css?v=board-4">
+  <link rel="stylesheet" href="checkers.css?v=board-5">
 </head>
 <body>
   <header>
@@ -44,7 +44,10 @@
       </div>
       <div id="review-controls" class="review-controls" role="group" aria-label="Review positions" hidden>
         <button id="review-prev" type="button" aria-label="Previous position">←</button>
-        <span id="review-position"></span>
+        <div class="review-timeline">
+          <input id="review-scrubber" type="range" min="0" max="0" value="0" aria-label="Review position">
+          <span id="review-position"></span>
+        </div>
         <button id="review-next" type="button" aria-label="Next position">→</button>
         <button id="review-live" type="button">Return to game</button>
       </div>
@@ -83,6 +86,6 @@
   </main>
   <script src="../arcade-library.js?v=library-2-checkers"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
-  <script type="module" src="checkers.js?v=board-4"></script>
+  <script type="module" src="checkers.js?v=board-5"></script>
 </body>
 </html>
