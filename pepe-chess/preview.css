@@ -202,6 +202,57 @@ p {
   background: #d7bd811c;
 }
 
+.move-table button {
+  display: block;
+  min-width: 44px;
+  min-height: 44px;
+  padding: .25rem .45rem;
+  border: 1px solid transparent;
+  border-radius: .3rem;
+  color: #f6e8cc;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.move-table td:has(button) {
+  padding-block: 0;
+}
+
+.move-table button:hover,
+.move-table button[aria-current="step"] {
+  border-color: #b29866;
+  background: #463d26;
+}
+
+#review-help {
+  margin: 0 0 .5rem;
+  color: #c7ccb8;
+  font-size: .79rem;
+}
+
+.review-controls {
+  margin-top: .65rem;
+  padding: .65rem;
+  border: 1px solid #d7bd814d;
+  border-radius: .55rem;
+  background: #1c2a20;
+}
+
+#review-status {
+  margin: 0 0 .4rem;
+  color: #f6e8cc;
+  font-size: .8rem;
+  font-weight: 650;
+}
+
+.review-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
 .match-controls {
   display: flex;
   flex-wrap: wrap;
@@ -216,6 +267,7 @@ p {
 }
 
 .match-controls button,
+.review-buttons button,
 .promotion-options button {
   min-height: 44px;
   padding: .55rem .8rem;
@@ -227,13 +279,15 @@ p {
   cursor: pointer;
 }
 
-.match-controls button:disabled {
+.match-controls button:disabled,
+.review-buttons button[aria-disabled="true"] {
   color: #b0b8a5;
   border-color: #ffffff36;
   cursor: default;
 }
 
 .match-controls button:enabled:hover,
+.review-buttons button[aria-disabled="false"]:hover,
 .promotion-options button:hover {
   background: #3a513f;
 }
@@ -247,6 +301,10 @@ p {
   padding: 0;
   background: transparent;
   cursor: pointer;
+}
+
+.board button[aria-disabled="true"] {
+  cursor: default;
 }
 
 .board button.last-move {

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const { Chess } = window.PepeChessRules;
+  const { Chess, DEFAULT_POSITION } = window.PepeChessRules;
   const saveKey = "emerald-pepe-chess-match-v1";
   const game = new Chess();
   const board = document.querySelector(".board");
@@ -12,6 +12,14 @@
   const emptyHistory = document.querySelector("#empty-history");
   const exportButton = document.querySelector("#export");
   const saveNote = document.querySelector("#save-note");
+  const reviewControls = document.querySelector("#review-controls");
+  const reviewStatus = document.querySelector("#review-status");
+  const reviewHelp = document.querySelector("#review-help");
+  const reviewStart = document.querySelector("#review-start");
+  const reviewPrev = document.querySelector("#review-prev");
+  const reviewNext = document.querySelector("#review-next");
+  const reviewLive = document.querySelector("#review-live");
+  const resetButton = document.querySelector("#reset");
   const seats = { w: document.querySelector("#white-seat"), b: document.querySelector("#black-seat") };
   const captures = { w: document.querySelector("#white-captures"), b: document.querySelector("#black-captures") };
   const roles = { k: "king", q: "queen", r: "rook", b: "bishop", n: "knight", p: "pawn" };
@@ -34,6 +42,7 @@
   let finished = false;
   let history = [];
   let result = "*";
+  let reviewPly = null;
 
   function pieceSource(color, type) {
     return `assets/pieces-v1/${sides[color].toLowerCase()}-${roles[type]}.png`;
@@ -69,18 +78,32 @@
 
   function renderMatchRecord() {
     const rows = [];
-    const capturedPieces = { w: [], b: [] };
     for (const [index, move] of history.entries()) {
       const number = Math.floor(index / 2);
       if (index % 2 === 0) {
         const row = document.createElement("tr");
         row.insertCell().textContent = String(number + 1);
-        row.insertCell().textContent = move.san;
+        row.insertCell();
         row.insertCell().textContent = "—";
         rows.push(row);
-      } else {
-        rows[number].cells[2].textContent = move.san;
       }
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.ply = index + 1;
+      button.textContent = move.san;
+      button.setAttribute("aria-label", `Review move ${number + 1}, ${sides[move.color]} ${move.san}`);
+      rows[number].cells[move.color === "w" ? 1 : 2].replaceChildren(button);
+    }
+    moveList.replaceChildren(...rows);
+    const empty = history.length === 0;
+    moveScroll.hidden = exportButton.disabled = reviewControls.hidden = reviewHelp.hidden = empty;
+    emptyHistory.hidden = !empty;
+    moveScroll.scrollTop = moveScroll.scrollHeight;
+  }
+
+  function renderCaptures(ply) {
+    const capturedPieces = { w: [], b: [] };
+    for (const move of history.slice(0, ply)) {
       if (move.captured) {
         const opponent = move.color === "w" ? "b" : "w";
         const image = document.createElement("img");
@@ -92,13 +115,34 @@
     }
     captures.w.replaceChildren(...capturedPieces.w);
     captures.b.replaceChildren(...capturedPieces.b);
-    moveList.replaceChildren(...rows);
-    moveScroll.hidden = exportButton.disabled = history.length === 0;
-    emptyHistory.hidden = history.length > 0;
-    moveScroll.scrollTop = moveScroll.scrollHeight;
+  }
+
+  function showPosition(ply) {
+    if (pendingPromotion || (ply !== null && (ply === reviewPly || ply < 0 || ply > history.length))) return;
+    reviewPly = ply;
+    selected = null;
+    const reviewing = ply !== null;
+    const move = reviewing ? history[ply - 1] : null;
+    reviewStatus.textContent = move
+      ? `Review · Move ${Math.ceil(ply / 2)} · ${sides[move.color]} ${move.san}`
+      : reviewing ? "Review · Starting position" : "Live position";
+    reviewStart.setAttribute("aria-disabled", String(ply === 0));
+    reviewPrev.setAttribute("aria-disabled", String(ply === 0));
+    reviewNext.setAttribute("aria-disabled", String(!reviewing || ply === history.length));
+    reviewLive.setAttribute("aria-disabled", String(!reviewing));
+    resetButton.disabled = reviewing;
+    for (const button of moveList.querySelectorAll("[data-ply]")) {
+      if (Number(button.dataset.ply) === (ply ?? history.length)) button.setAttribute("aria-current", "step");
+      else button.removeAttribute("aria-current");
+    }
+    renderCaptures(ply ?? history.length);
+    render();
   }
 
   function render() {
+    const reviewing = reviewPly !== null;
+    const lastMove = reviewing ? history[reviewPly - 1] : history.at(-1);
+    const position = reviewing ? new Chess(lastMove?.after ?? DEFAULT_POSITION) : game;
     const moves = selected ? game.moves({ square: selected, verbose: true }) : [];
     const targets = new Map(moves.map(move => [move.to, move]));
     const turn = sides[game.turn()];
@@ -115,22 +159,23 @@
       : game.isDrawByFiftyMoves() ? "Draw by the fifty-move rule."
       : draw ? "Draw."
       : `${turn} to move.${check ? " Check." : ""}`;
-    const lastMove = history.at(-1);
+    const positionCheck = reviewing ? position.isCheck() : check;
     for (const [color, seat] of Object.entries(seats)) {
-      seat.classList.toggle("is-active", !finished && game.turn() === color);
+      seat.classList.toggle("is-active", !reviewing && !finished && game.turn() === color);
     }
 
     for (const button of squares) {
       const square = button.dataset.square;
-      const piece = game.get(square);
+      const piece = position.get(square);
       const move = targets.get(square);
       const label = piece ? `${sides[piece.color]} ${roles[piece.type]}` : "empty";
       button.setAttribute("aria-label", `${square}, ${label}${move ? ", legal destination" : ""}`);
       button.setAttribute("aria-pressed", String(square === selected));
+      button.setAttribute("aria-disabled", String(reviewing));
       button.classList.toggle("legal", Boolean(move));
       button.classList.toggle("capture", Boolean(move?.captured));
       button.classList.toggle("last-move", lastMove?.from === square || lastMove?.to === square);
-      button.classList.toggle("in-check", check && piece?.type === "k" && piece.color === game.turn());
+      button.classList.toggle("in-check", positionCheck && piece?.type === "k" && piece.color === position.turn());
       if (piece) {
         const image = button.firstElementChild || document.createElement("img");
         const src = pieceSource(piece.color, piece.type);
@@ -148,12 +193,12 @@
     selected = null;
     saveMatch();
     renderMatchRecord();
-    render();
+    showPosition(null);
   }
 
   board.addEventListener("click", event => {
     const button = event.target.closest("[data-square]");
-    if (!button || finished || pendingPromotion) return;
+    if (!button || finished || pendingPromotion || reviewPly !== null) return;
     const square = button.dataset.square;
     const moves = selected ? game.moves({ square: selected, verbose: true }).filter(move => move.to === square) : [];
     if (moves[0]?.promotion) {
@@ -195,13 +240,33 @@
     squares[nextRow * 8 + nextColumn].focus();
   });
 
-  document.querySelector("#reset").addEventListener("click", () => {
+  moveList.addEventListener("click", event => {
+    const button = event.target.closest("[data-ply]");
+    if (!button) return;
+    showPosition(Number(button.dataset.ply));
+    if (matchMedia("(max-width: 700px)").matches) {
+      reviewLive.focus({ preventScroll: true });
+      board.scrollIntoView({ block: "start" });
+    }
+  });
+  reviewStart.addEventListener("click", () => showPosition(0));
+  reviewPrev.addEventListener("click", () => showPosition((reviewPly ?? history.length) - 1));
+  reviewNext.addEventListener("click", () => {
+    if (reviewPly !== null) showPosition(reviewPly + 1);
+  });
+  reviewLive.addEventListener("click", () => {
+    if (reviewPly !== null) showPosition(null);
+  });
+
+  resetButton.addEventListener("click", () => {
+    if (reviewPly !== null) return;
+    if (history.length && !window.confirm("Reset this board and clear the saved match?")) return;
     selected = null;
     game.reset();
     history = [];
     saveMatch();
     renderMatchRecord();
-    render();
+    showPosition(null);
   });
 
   exportButton.addEventListener("click", () => {
@@ -219,5 +284,5 @@
 
   restoreMatch();
   renderMatchRecord();
-  render();
+  showPosition(null);
 })();

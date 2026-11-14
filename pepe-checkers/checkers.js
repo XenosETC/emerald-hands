@@ -7,6 +7,7 @@ const board = $("board");
 const settingsKey = "pepe-checkers:settings";
 let game = newGame();
 let selected = null;
+let routePreview = null;
 let hint = null;
 let flipped = false;
 let focusIndex = null;
@@ -90,23 +91,83 @@ function renderStatus(moves, waiting, position) {
   if ($("turn-guide").textContent !== guide) $("turn-guide").textContent = guide;
 }
 
+const routeList = $("capture-routes");
+
+function routeLabel(path) {
+  return [path[0].from, ...path.map(move => move.to)]
+    .map(index => coordinate(index).toUpperCase()).join(" × ");
+}
+
+function paintRoutePreview() {
+  board.querySelectorAll(".route-marker").forEach(marker => marker.remove());
+  for (const button of routeList.querySelectorAll("button")) {
+    button.setAttribute("aria-pressed", String(button.dataset.route === routePreview?.label));
+  }
+  if (!routePreview) {
+    $("route-preview-status").textContent = "";
+    return;
+  }
+  const { path, label } = routePreview;
+  const stepsBySquare = new Map([[path[0].from, ["Start"]]]);
+  path.forEach(({ to }, index) => {
+    const steps = stepsBySquare.get(to) ?? [];
+    stepsBySquare.set(to, [...steps, String(index + 1)]);
+  });
+  for (const [square, steps] of stepsBySquare) {
+    const marker = document.createElement("span");
+    marker.className = "route-marker";
+    marker.setAttribute("aria-hidden", "true");
+    marker.textContent = steps.join(" · ");
+    cells[square].append(marker);
+  }
+  const message = "Previewing " + label + ". The board position is unchanged.";
+  if ($("route-preview-status").textContent !== message) $("route-preview-status").textContent = message;
+}
+
+function clearRoutePreview(event) {
+  if (event.key !== "Escape" || !routePreview) return false;
+  routePreview = null;
+  paintRoutePreview();
+  event.preventDefault();
+  return true;
+}
+
+routeList.addEventListener("keydown", clearRoutePreview);
+
 function renderCaptureRoutes(moves, waiting) {
   const panel = $("capture-panel");
   const forced = !waiting && moves[0]?.capture != null;
   panel.hidden = !forced;
-  if (!forced) return;
+  if (!forced) {
+    routePreview = null;
+    routeList.replaceChildren();
+    return;
+  }
 
   const routes = captureRoutes(game).filter(route => selected === null || route.path[0].from === selected);
   $("capture-description").textContent = game.chain !== null
     ? "Finish the turn with the same piece."
-    : "Any legal route is allowed. A longer route is optional.";
-  $("capture-routes").replaceChildren(...routes.map(({ path, crowns }) => {
+    : "Choose any listed route. Once you start, finish the jumps with that piece.";
+  if (routePreview && (routePreview.game !== game || !routes.some(({ path }) => routeLabel(path) === routePreview.label))) {
+    routePreview = null;
+  }
+  routeList.replaceChildren(...routes.map(({ path, crowns }) => {
     const route = document.createElement("li");
+    const button = document.createElement("button");
+    button.type = "button";
+    const label = routeLabel(path);
+    button.dataset.route = label;
+    button.setAttribute("aria-controls", "board");
+    button.addEventListener("click", () => {
+      routePreview = routePreview?.label === label ? null : { path, label, game };
+      paintRoutePreview();
+    });
     const notation = document.createElement("strong");
-    notation.textContent = [path[0].from, ...path.map(move => move.to)].map(index => coordinate(index).toUpperCase()).join(" × ");
+    notation.textContent = label;
     const detail = document.createElement("span");
     detail.textContent = path.length + (path.length === 1 ? " jump" : " jumps") + (crowns ? " · crowns" : "");
-    route.append(notation, detail);
+    button.append(notation, detail);
+    route.append(button);
     return route;
   }));
 }
@@ -203,6 +264,7 @@ function render() {
       square.append(token);
     }
   });
+  paintRoutePreview();
 }
 
 function makeMove(move) {
@@ -268,7 +330,7 @@ board.addEventListener("focusin", event => {
 
 board.addEventListener("keydown", event => {
   const index = cells.indexOf(event.target);
-  if (index < 0) return;
+  if (index < 0 || clearRoutePreview(event)) return;
   if (event.key === "Escape" && reviewIndex === null && selected !== null && game.chain === null) {
     selected = null;
     hint = null;

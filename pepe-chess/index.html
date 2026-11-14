@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pepe Chess | Emerald Arcade</title>
-  <link rel="stylesheet" href="preview.css?v=play-2">
+  <link rel="stylesheet" href="preview.css?v=play-3">
 </head>
 <body>
   <main>
@@ -109,12 +109,22 @@
           <strong>White</strong>
           <div id="white-captures" class="captures" aria-label="Captured by White"></div>
         </div>
+        <div id="review-controls" class="review-controls" role="group" aria-label="Move review controls" hidden>
+          <p id="review-status" role="status">Live position</p>
+          <div class="review-buttons">
+            <button id="review-start" type="button">Start</button>
+            <button id="review-prev" type="button" aria-label="Previous position">←</button>
+            <button id="review-next" type="button" aria-label="Next position">→</button>
+            <button id="review-live" type="button" aria-disabled="true">Return to live</button>
+          </div>
+        </div>
       </section>
       <aside class="match-panel" aria-label="Match record">
         <p id="match-status" role="status">White to move.</p>
         <section class="move-section" aria-labelledby="move-heading">
           <h2 id="move-heading">Moves</h2>
           <p id="empty-history">Moves appear here as you play.</p>
+          <p id="review-help" hidden>Select a move to review the board after it.</p>
           <div class="move-scroll" id="move-scroll" role="region" aria-labelledby="move-heading" tabindex="0" hidden>
             <table class="move-table">
               <thead><tr><th scope="col">#</th><th scope="col">White</th><th scope="col">Black</th></tr></thead>
@@ -143,7 +153,7 @@
     </dialog>
   </main>
   <script src="vendor/chess-1.4.0.js"></script>
-  <script src="game.js?v=2"></script>
+  <script src="game.js?v=4"></script>
   <script src="../arcade-library.js?v=library-2-chess"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
 </body>

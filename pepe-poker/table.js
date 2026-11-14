@@ -19,11 +19,15 @@ let token;
 try {
   token = room && sessionStorage.getItem("pepe-poker:" + room);
 } catch { /* The table remains playable when browser storage is blocked. */ }
+if (!token && room) {
+  try { token = localStorage.getItem("pepe-poker:seat:" + room); } catch { /* Optional reconnect storage. */ }
+}
 let state;
 let busy = false;
+let submission = 0;
 let polling = false;
 let missingRoom = false;
-let pollError = "";
+let recovering = false;
 let reacting = false;
 let sendingChat = false;
 let recapOptionsKey = "";
@@ -466,8 +470,8 @@ function render() {
   $("invite").hidden = !room || missingRoom || Boolean(state?.practice);
   $("exit-practice").hidden = !state?.practice;
   $("new-table").hidden = !missingRoom;
-  $("enter").disabled = missingRoom;
-  $("enter").textContent = room ? "Join table" : "Create table";
+  $("enter").disabled = missingRoom || recovering || Boolean(room && !state);
+  $("enter").textContent = room ? (!state && !missingRoom ? "Connecting…" : "Join table") : "Create table";
   $("preset-label").hidden = Boolean(room);
   $("practice").hidden = Boolean(room);
   const preview = room ? undefined : TABLE_PRESETS.find(table => table.id === $("preset").value);
@@ -476,6 +480,7 @@ function render() {
   $("rebuy").textContent = "Rebuy · " + format.format(table.startingStack);
   const seatsTaken = state?.practice ? "Heads-up practice" : `${state?.players.length ?? 0} of 6 seats taken`;
   $("room-status").textContent = missingRoom ? "Table unavailable" :
+    room && !state ? "Checking table" :
     state?.hand ? `Hand #${state.hand} · ${seatsTaken}` :
       state?.practice ? seatsTaken : `Private table · ${seatsTaken}`;
   const first = seated ? state.index : 0;
@@ -602,7 +607,7 @@ async function request(path, input) {
       signal: AbortSignal.timeout(8000)
     });
   } catch {
-    throw new Error("Couldn’t reach the table. Check your connection and try again.");
+    throw Object.assign(new Error("Couldn’t reach the table. Check your connection and try again."), { connectionFailed: true });
   }
   if (!response.headers.get("content-type")?.includes("application/json")) {
     throw new Error("This table needs the Pepe Poker server. Start the arcade with npm run dev.");
@@ -619,7 +624,7 @@ function resetAutoDeal() {
 
 async function updateAutoDeal() {
   if (!state?.practice || !$("auto-deal").checked || $("deal").hidden ||
-      document.hidden || replayStep !== null || busy || pollError) {
+      document.hidden || replayStep !== null || busy || recovering) {
     resetAutoDeal();
     return;
   }
@@ -635,28 +640,58 @@ async function updateAutoDeal() {
   if (!await submit("/" + room + "/deal", {})) $("auto-deal").checked = false;
 }
 
+function showConnection(message, warning = false) {
+  const status = $("table-connection");
+  if (status.textContent !== message) status.textContent = message;
+  status.dataset.tone = warning ? "warning" : "normal";
+}
+
+function startRecovery(message) {
+  recovering = true;
+  $("actions").inert = true;
+  $("enter").disabled = true;
+  showConnection(message, true);
+}
+
+function connectionLostMessage() {
+  return state?.index >= 0
+    ? "Connection lost. Reconnecting automatically. The hand clock keeps running."
+    : "Could not reach the table. Retrying automatically.";
+}
+
 async function poll() {
   updateClock();
   if (!room || busy || polling || missingRoom) return;
   polling = true;
+  const checkedRoom = room;
+  const beforeSubmission = submission;
   try {
-    const { state: update } = await request("/" + room);
-    if (!busy && (!state || update.revision >= state.revision)) {
-      if (pollError && $("notice").textContent === pollError) $("notice").textContent = "";
-      pollError = "";
-      if (JSON.stringify(update) !== JSON.stringify(state)) {
+    const { state: update } = await request("/" + checkedRoom);
+    if (!busy && checkedRoom === room && beforeSubmission === submission && (!state || update.revision >= state.revision)) {
+      if (!state && token && update.index >= 0) showConnection("Seat restored.");
+      else if (recovering) showConnection(update.index >= 0 ? "Connection restored." : "Connected. Join when you’re ready.");
+      else if (!state) showConnection("");
+
+      const needsRender = recovering || JSON.stringify(update) !== JSON.stringify(state);
+      recovering = false;
+      $("actions").inert = false;
+      if (needsRender) {
         state = update;
         render();
       }
     }
   } catch (error) {
-    if (!busy) {
-      pollError = error.message;
-      if ($("notice").textContent !== pollError) $("notice").textContent = pollError;
+    if (!busy && checkedRoom === room && beforeSubmission === submission) {
       if (error.status === 404 || error.status === 403) {
         missingRoom = true;
+        recovering = false;
+        $("actions").inert = false;
+        try { localStorage.removeItem("pepe-poker:seat:" + room); } catch { /* Optional reconnect storage. */ }
         state = undefined;
+        showConnection(error.message, true);
         render();
+      } else {
+        startRecovery(error.connectionFailed ? connectionLostMessage() : error.message + " Retrying automatically.");
       }
     }
   } finally {
@@ -666,7 +701,8 @@ async function poll() {
 }
 
 async function submit(path, input) {
-  if (busy) return;
+  if (busy || recovering) return;
+  submission += 1;
   busy = true;
   resetAutoDeal();
   for (const button of document.querySelectorAll(".controls button")) button.disabled = true;
@@ -674,11 +710,15 @@ async function submit(path, input) {
     const result = await request(path, input);
     state = result.state;
     if (result.token) {
+      showConnection("");
       room = state.id;
       token = result.token;
       try {
         sessionStorage.setItem("pepe-poker:" + room, token);
       } catch { /* The in-memory token still keeps this seat active. */ }
+      if (!state.practice) {
+        try { localStorage.setItem("pepe-poker:seat:" + room, token); } catch { /* Reload still uses session storage. */ }
+      }
       try {
         const player = state.players[state.index];
         localStorage.setItem(profileKey, JSON.stringify({ name: player.name, avatarId: input.avatarId }));
@@ -691,18 +731,23 @@ async function submit(path, input) {
     render();
     return true;
   } catch (error) {
-    $("notice").textContent = error.message;
+    if (room && error.connectionFailed) {
+      startRecovery(connectionLostMessage());
+      $("notice").textContent = "Check the table state before trying that action again.";
+    } else {
+      $("notice").textContent = error.message;
+    }
     return false;
   } finally {
     busy = false;
     for (const button of document.querySelectorAll(".controls button")) button.disabled = false;
-    $("enter").disabled = missingRoom;
+    $("enter").disabled = missingRoom || recovering || Boolean(room && !state);
   }
 }
 
 $("join").addEventListener("submit", event => {
   event.preventDefault();
-  if (missingRoom) return;
+  if (missingRoom || (room && !state)) return;
   const selected = $("avatar-options").querySelector("input:checked");
   const input = {
     name: $("name").value,
@@ -717,7 +762,9 @@ $("join").addEventListener("submit", event => {
 $("new-table").onclick = () => {
   room = token = null;
   missingRoom = false;
-  pollError = "";
+  recovering = false;
+  showConnection("");
+  $("actions").inert = false;
   const url = new URL(location.href);
   url.searchParams.delete("room");
   history.replaceState(null, "", url);
@@ -758,7 +805,7 @@ $("invite").onclick = () => {
   url.searchParams.set("room", room);
   $("invite-link").value = url.href;
   $("invite-status").textContent = ["127.0.0.1", "localhost", "[::1]"].includes(url.hostname)
-    ? "This local link works on this device." : "";
+    ? "Open in another browser or a private window on this device to take a second seat." : "Share this link to invite another player. This browser remembers your seat.";
   $("invite-dialog").showModal();
   $("invite-link").select();
 };
@@ -895,6 +942,7 @@ reducedMotion.addEventListener("change", event => {
 $("auto-deal").addEventListener("change", resetAutoDeal);
 $("raise-sizing").open = matchMedia("(min-width: 651px)").matches;
 buildAvatarPicker();
+if (room) showConnection(token ? "Restoring your seat…" : "Connecting to the table…");
 render();
 void poll();
 setInterval(poll, 1000);

@@ -654,6 +654,18 @@ main {
   margin-inline-start: auto;
   overflow-wrap: anywhere;
 }
+#table-connection {
+  margin: 0 0 8px;
+  padding: 8px 11px;
+  border: 1px solid #557064;
+  border-radius: 7px;
+  background: #172c22;
+  color: #def5df;
+  font-size: .82rem;
+  line-height: 1.4;
+}
+#table-connection:empty { margin: 0; padding: 0; border: 0; }
+#table-connection[data-tone="warning"] { color: #ffe2b3; border-color: #89663b; background: #34291b; }
 #preset-label { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
 button, input, select {
   min-height: 42px;

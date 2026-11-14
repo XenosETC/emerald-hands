@@ -386,13 +386,39 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
   overflow: auto;
   list-style: none;
 }
-#capture-routes li {
+#capture-routes button {
   display: grid;
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+  cursor: pointer;
   gap: 4px;
   padding: 7px 8px;
+  border: 1px solid transparent;
   border-left: 2px solid #c49b61;
   border-radius: 0 5px 5px 0;
   background: #151b16;
 }
 #capture-routes strong { color: var(--gold); font-size: .76rem; overflow-wrap: anywhere; }
 #capture-routes span, #moves-help { color: var(--muted); font-size: .72rem; }
+
+#capture-routes button:hover,
+#capture-routes button[aria-pressed="true"] {
+  border-color: #96e4ee;
+  background: #18343a;
+}
+
+#route-preview-status:empty { margin: 0; }
+
+.route-marker {
+  position: absolute;
+  top: 4%;
+  right: 4%;
+  z-index: 1;
+  padding: 2px 3px;
+  border-radius: 4px;
+  color: #10272c;
+  background: #a6edf0;
+  font: 800 clamp(.5rem, 2vw, .76rem)/1 system-ui, sans-serif;
+  pointer-events: none;
+}

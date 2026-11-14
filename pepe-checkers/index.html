@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111d17">
   <title>Pepe Checkers · Emerald Arcade</title>
-  <link rel="stylesheet" href="checkers.css?v=board-8">
+  <link rel="stylesheet" href="checkers.css?v=board-10">
 </head>
 <body>
   <header>
@@ -50,7 +50,9 @@
       <section class="capture-panel" id="capture-panel" aria-labelledby="capture-title" hidden>
         <h2 id="capture-title">Capture routes</h2>
         <p id="capture-description"></p>
+        <p>Choose a route below to preview the landing squares.</p>
         <ul id="capture-routes"></ul>
+        <p id="route-preview-status" role="status"></p>
       </section>
       <div id="review-controls" class="review-controls" role="group" aria-label="Review positions" hidden>
         <button id="review-prev" type="button" aria-label="Previous position">←</button>
@@ -105,6 +107,6 @@
   </main>
   <script src="../arcade-library.js?v=library-2-checkers"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
-  <script type="module" src="checkers.js?v=board-8"></script>
+  <script type="module" src="checkers.js?v=board-10"></script>
 </body>
 </html>
