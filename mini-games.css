@@ -28,7 +28,7 @@ h1, h2, p { margin-top: 0; }
 .hub-brand { display: inline-flex; gap: 12px; align-items: center; text-decoration: none; font-size: 1.06rem; letter-spacing: .12em; font-weight: 850; }
 .brand-mark { display: grid; place-items: center; width: 40px; height: 44px; color: var(--emerald); font-size: 2.8rem; line-height: 1; }
 .brand-subtitle { display: block; margin-top: 3px; color: #98a69b; font-size: .51rem; font-weight: 650; letter-spacing: .18em; }
-.hub-nav nav { display: flex; gap: 32px; margin-left: auto; }
+.hub-nav > nav { display: flex; gap: 32px; margin-left: auto; }
 .hub-nav nav a { padding: 12px 0; color: var(--muted); font-size: .84rem; text-decoration: none; }
 .hub-nav nav a:hover, .hub-nav nav a.is-current { color: var(--text); }
 .hub-mode { display: inline-flex; align-items: center; gap: 8px; padding-left: 30px; color: var(--muted); font-size: .74rem; }
@@ -443,7 +443,9 @@ h1 em { font-weight: 600; color: #d2efa7; font-style: normal; }
   .hub-brand { gap: 7px; font-size: .88rem; }
   .brand-mark { width: 29px; font-size: 2.2rem; }
   .brand-subtitle { font-size: .43rem; }
-  .hub-nav nav { gap: 14px; }
+  .hub-nav { flex-wrap: wrap; padding-block: 12px; }
+  .hub-nav > nav { order: 1; width: 100%; margin-left: 0; gap: 14px; }
+  .hub-menu { margin-left: auto; }
   .hub-nav nav a { font-size: .65rem; }
   .hub-nav nav a.is-current { display: none; }
   h1 { margin-bottom: 18px; font-size: clamp(2.3rem, 9vw, 3.1rem); }

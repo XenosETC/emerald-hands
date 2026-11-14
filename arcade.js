@@ -738,6 +738,17 @@
         font-family: Inter, system-ui, sans-serif;
         touch-action: none;
       }
+      .hub-menu .arcade-runtime-dock {
+        position: static;
+        width: auto;
+        padding: 0;
+        border: 0;
+        background: none;
+        box-shadow: none;
+        backdrop-filter: none;
+        touch-action: auto;
+      }
+      .hub-menu .arcade-runtime-dock button { flex: none; }
       .arcade-runtime-dock.is-dragging { cursor: grabbing; user-select: none; }
       .arcade-runtime-dock.is-collapsed { gap: 0; padding: 4px; }
       .arcade-runtime-dock.is-collapsed > :not([data-arcade-command="collapse"]) { display: none; }
@@ -819,10 +830,11 @@
     if (document.querySelector(".arcade-runtime-dock")) return;
     ensureRuntimeStyles();
     document.body.classList.toggle("arcade-runtime-game", isGamePage);
+    const hubMenu = !isGamePage && document.querySelector(".hub-menu");
     const dock = document.createElement("nav");
     dock.className = "arcade-runtime-dock";
     dock.setAttribute("aria-label", "Arcade commands");
-    dock.innerHTML = `
+    dock.innerHTML = hubMenu ? '<button type="button" data-arcade-command="controls" aria-haspopup="dialog">Menu</button>' : `
       <button type="button" class="arcade-runtime-grip" data-arcade-drag-handle aria-label="Drag arcade menu">Move</button>
       ${isGamePage ? `<button type="button" data-arcade-command="pause" aria-pressed="false">Pause</button>` : ""}
       <button type="button" data-arcade-command="mute" aria-pressed="${runtime.muted}">${runtime.muted ? "Sound off" : "Sound on"}</button>
@@ -849,6 +861,7 @@
     }
 
     function applyDockState() {
+      if (hubMenu) return;
       dock.classList.toggle("is-collapsed", dockState.collapsed);
       dockToggle.textContent = dockState.collapsed ? "Menu" : "Hide";
       dockToggle.setAttribute("aria-expanded", String(!dockState.collapsed));
@@ -929,7 +942,7 @@
         saveDockState();
       }
     });
-    dockHandle.addEventListener("pointerdown", (event) => {
+    dockHandle?.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
       event.preventDefault();
       const startRect = dock.getBoundingClientRect();
@@ -1032,10 +1045,11 @@
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) pauseForFocusLoss();
     });
-    document.body.append(pauseOverlay, dock, modal);
+    document.body.append(pauseOverlay, modal);
+    (hubMenu || document.body).append(dock);
     requestAnimationFrame(applyDockState);
     window.addEventListener("resize", () => {
-      if (!Number.isFinite(dockState.x) || !Number.isFinite(dockState.y)) return;
+      if (hubMenu || !Number.isFinite(dockState.x) || !Number.isFinite(dockState.y)) return;
       applyDockState();
       saveDockState();
     });
