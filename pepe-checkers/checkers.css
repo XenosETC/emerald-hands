@@ -55,7 +55,7 @@ main {
   border-color: #654940;
   background: linear-gradient(135deg, #49332d, #2c211e);
 }
-.team.active {
+.team:is(.active, .winner) {
   border-color: var(--team-line);
   box-shadow: inset 0 -2px var(--team-line);
 }
@@ -224,7 +224,8 @@ aside {
   gap: 6px;
   margin-top: 10px;
 }
-.board-actions:has(#hint[hidden]) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.board-actions:has(#hint[hidden]), .board-actions:has(#review[hidden]) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.board-actions:has(#hint[hidden]):has(#review[hidden]) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 #last-play {
   grid-column: 1 / -1;
   margin: 1px 0 0;
@@ -235,7 +236,7 @@ aside h2 { margin: 0; color: var(--gold); font: 400 1.35rem Georgia, serif; }
 aside p { margin: 6px 0 0; color: var(--muted); font-size: .81rem; line-height: 1.5; }
 .match-controls, .match-settings, .match-actions { display: grid; gap: 8px; }
 .match-settings label { display: grid; gap: 4px; color: var(--muted); font-size: .78rem; }
-aside button, aside select, .board-actions button, .review-controls button, #review-speed {
+aside button, aside select, .board-actions button, .result-panel button, .review-controls button, #review-speed {
   min-width: 0;
   min-height: 44px;
   padding: 7px 9px;
@@ -252,6 +253,26 @@ aside button:disabled, .board-actions button:disabled { border-color: var(--line
 aside button:not(:disabled):hover, aside select:hover, .board-actions button:not(:disabled):hover { border-color: var(--gold); }
 .board-actions button[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
 #restart { border-color: #ae8951; background: #443522; color: #fae0a7; }
+.result-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #9d8050;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #3b3021, #231f1a);
+}
+#series-score {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #ebd2a7;
+  font-size: .8rem;
+  font-variant-numeric: tabular-nums;
+}
+.result-panel button { cursor: pointer; }
+.result-panel button:hover { border-color: var(--gold); }
+#rematch { background: #ead3a2; border-color: #ead3a2; color: #242017; }
 .move-panel { border-block: 1px solid var(--line); padding: 10px 0; }
 .review-controls {
   display: grid;

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111d17">
   <title>Pepe Checkers · Emerald Arcade</title>
-  <link rel="stylesheet" href="checkers.css?v=board-10">
+  <link rel="stylesheet" href="checkers.css?v=board-12">
 </head>
 <body>
   <header>
@@ -47,6 +47,11 @@
         <button id="review" type="button" disabled>Review</button>
         <p id="last-play" hidden></p>
       </div>
+      <section class="result-panel" id="match-result" aria-label="Finished match actions" hidden>
+        <p id="series-score"></p>
+        <button id="rematch" type="button">Rematch</button>
+        <button id="review-result" type="button">Review final move</button>
+      </section>
       <section class="capture-panel" id="capture-panel" aria-labelledby="capture-title" hidden>
         <h2 id="capture-title">Capture routes</h2>
         <p id="capture-description"></p>
@@ -87,6 +92,7 @@
             </select>
           </label>
         </div>
+        <p id="save-status" hidden></p>
         <div class="match-actions">
           <button id="restart" type="button">Restart game</button>
           <button id="reset-series" type="button" hidden>Reset series</button>
@@ -107,6 +113,6 @@
   </main>
   <script src="../arcade-library.js?v=library-2-checkers"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
-  <script type="module" src="checkers.js?v=board-10"></script>
+  <script type="module" src="checkers.js?v=board-12"></script>
 </body>
 </html>

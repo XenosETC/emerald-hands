@@ -2,6 +2,7 @@ import { AVATARS, DEFAULT_AVATAR_ID } from "./avatar-catalog.mjs?v=1";
 import { DEFAULT_TABLE, TABLE_PRESETS, TURN_SECONDS, TIME_BANK_SECONDS } from "./table-settings.mjs?v=3";
 import { headsUpCallEquity, potRaiseTo } from "./bet-sizing.mjs?v=2";
 import { formatHandExport, potBreakdownLines } from "./hand-export.mjs?v=2";
+import { REPLAY_STREETS, replayStreetStarts } from "./hand-replay.mjs?v=1";
 import { REACTIONS, REACTION_COOLDOWN } from "./reaction-catalog.mjs?v=1";
 
 const $ = id => document.getElementById(id);
@@ -345,6 +346,21 @@ function selectedHand(hands) {
   return hands.find(hand => String(hand.number) === $("recap-select").value) ?? hands.at(-1);
 }
 
+function canReplayHand(hand) {
+  return Boolean(hand.actions?.length && hand.actionBoardCounts?.length === hand.actions.length);
+}
+
+const replayStreetButtons = REPLAY_STREETS.map(({ label }) => {
+  const button = element("button", "", label);
+  button.type = "button";
+  button.addEventListener("click", () => {
+    replayStep = Number(button.dataset.step);
+    renderRecap();
+  });
+  return button;
+});
+$("replay-streets").append(...replayStreetButtons);
+
 function renderRecap() {
   const hands = state?.recentHands ?? [];
   $("hand-recap").hidden = !hands.length;
@@ -370,9 +386,13 @@ function renderRecap() {
     recapOptionsKey = key;
   }
   const review = selectedHand(hands);
+  const index = hands.indexOf(review);
+  $("recap-older").disabled = index === 0;
+  $("recap-newer").disabled = index === hands.length - 1;
   const actions = review.actions ?? [];
-  const canReplay = actions.length > 0 && review.actionBoardCounts?.length === actions.length;
+  const canReplay = canReplayHand(review);
   const replaying = canReplay && replayStep !== null;
+  const revealed = replaying ? review.actionBoardCounts[replayStep] : review.board.length;
   $("replay-start").hidden = !canReplay || replaying;
   $("download-hand").hidden = replaying;
   $("replay-controls").hidden = !replaying;
@@ -382,8 +402,18 @@ function renderRecap() {
   $("recap-pot-lines").replaceChildren(...pots.map(line => element("li", "", line)));
   $("recap-action").hidden = !actions.length || replaying;
   if (replaying) {
-    const action = `${replayStep + 1}/${actions.length} · ${actions[replayStep]}`;
+    const action = `Action ${replayStep + 1} of ${actions.length} · ${actions[replayStep]}`;
     if ($("replay-action").textContent !== action) $("replay-action").textContent = action;
+    const progress = $("replay-progress");
+    progress.max = actions.length;
+    progress.value = replayStep + 1;
+    const starts = replayStreetStarts(review.actionBoardCounts);
+    for (const [index, button] of replayStreetButtons.entries()) {
+      button.dataset.step = starts[index];
+      button.disabled = starts[index] === -1;
+      if (!button.disabled && revealed === REPLAY_STREETS[index].cards) button.setAttribute("aria-current", "step");
+      else button.removeAttribute("aria-current");
+    }
     $("replay-prev").disabled = replayStep === 0;
     $("replay-next").disabled = replayStep === actions.length - 1;
   }
@@ -392,7 +422,6 @@ function renderRecap() {
     ? format.format(review.actionsOmitted) + " earlier actions omitted." : "";
   $("recap-actions").replaceChildren(...actions.map(action => element("li", "", action)));
   const board = $("recap-board");
-  const revealed = replaying ? review.actionBoardCounts[replayStep] : review.board.length;
   board.hidden = !replaying && !revealed;
   board.replaceChildren(...Array.from({ length: replaying ? 5 : revealed }, (_, index) =>
     card(index < revealed ? review.board[index] : undefined)));
@@ -890,10 +919,27 @@ $("back-to-table").onclick = () => {
   const next = ["call", "deal", "review-last"].map($).find(button => button.checkVisibility());
   (next ?? $("actions")).focus();
 };
-$("recap-select").addEventListener("change", () => {
-  replayStep = null;
+function switchReviewedHand(hand, selection = hand.number) {
+  const selector = $("recap-select");
+  replayStep = replayStep !== null && canReplayHand(hand) ? 0 : null;
+  selector.value = replayStep === null ? selection : hand.number;
   renderRecap();
+  $("recap-selection").textContent = `Reviewing hand #${hand.number}`;
+}
+
+$("recap-select").addEventListener("change", event => {
+  const hand = selectedHand(state?.recentHands ?? []);
+  if (hand) switchReviewedHand(hand, event.target.value);
 });
+for (const [id, offset] of [["recap-older", -1], ["recap-newer", 1]]) {
+  $(id).onclick = event => {
+    const hands = state?.recentHands ?? [];
+    const hand = hands[hands.indexOf(selectedHand(hands)) + offset];
+    if (!hand) return;
+    switchReviewedHand(hand);
+    if (event.currentTarget.disabled) $("recap-select").focus();
+  };
+}
 $("replay-start").onclick = () => {
   const selector = $("recap-select");
   if (!selector.value) selector.value = state.recentHands.at(-1).number;

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101611">
   <title>Pepe Poker · Emerald Arcade</title>
-  <link rel="stylesheet" href="table.css?v=connection-1">
+  <link rel="stylesheet" href="table.css?v=hand-navigation-1">
 </head>
 <body>
   <header>
@@ -137,14 +137,21 @@
       </section>
       <section id="hand-recap" aria-labelledby="recap-title" hidden>
         <h2 id="recap-title" tabindex="-1">Review hands</h2>
-        <label class="visually-hidden" for="recap-select">Completed hand</label>
-        <select id="recap-select"></select>
+        <div class="recap-hand-navigation" role="group" aria-label="Browse completed hands">
+          <button id="recap-older" type="button" aria-label="Older completed hand">← Older</button>
+          <label class="visually-hidden" for="recap-select">Completed hand</label>
+          <select id="recap-select"></select>
+          <button id="recap-newer" type="button" aria-label="Newer completed hand">Newer →</button>
+        </div>
+        <p id="recap-selection" class="visually-hidden" role="status"></p>
         <div class="recap-tools">
           <button id="back-to-table" type="button" hidden>Back to table</button>
           <button id="replay-start" type="button" hidden>Replay hand</button>
           <button id="download-hand" type="button">Download hand</button>
         </div>
         <div id="replay-controls" hidden>
+          <div id="replay-streets" role="group" aria-label="Jump to a recorded street"></div>
+          <progress id="replay-progress" max="1" value="0" aria-hidden="true"></progress>
           <p id="replay-action" role="status"></p>
           <div class="replay-buttons">
             <button id="replay-prev" type="button">Back</button>
@@ -189,6 +196,6 @@
       <button>Done</button>
     </form>
   </dialog>
-  <script type="module" src="table.js?v=reconnect-2"></script>
+  <script type="module" src="table.js?v=hand-navigation-1"></script>
 </body>
 </html>

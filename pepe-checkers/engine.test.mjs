@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { botMove, captureRoutes, legalMoves, newGame, play } from "./engine.mjs";
+import { decodeMatch, encodeMatch } from "./match-save.mjs";
 
 function position(pieces) {
   return { board: Object.assign(Array(64).fill(0), pieces), turn: 1, chain: null, winner: 0 };
@@ -66,4 +67,30 @@ test("capture routes show both legal lengths and keep the same piece through a c
 test("a route ends on crowning even if the new king could jump backward", () => {
   const game = position({ 17: 1, 10: -1, 12: -1 });
   assert.deepEqual(captureRoutes(game), [{ path: [{ from: 17, to: 3, capture: 10 }], crowns: true }]);
+});
+
+test("match save restores a journal through the first jump of a forced chain", () => {
+  const moves = [[40, 33], [17, 24], [44, 35], [19, 26], [33, 19], [12, 26]];
+  const raw = encodeMatch({ mode: "local", difficulty: "standard", moves, wins: { 1: 0, "-1": 2 } });
+  const restored = decodeMatch(raw, "local", "standard");
+  assert.deepEqual(restored.moves.map(({ from, to }) => [from, to]), moves);
+  assert.equal(restored.wins[-1], 2);
+  const position = restored.moves.reduce((game, move) => play(game, move.from, move.to), newGame());
+  assert.equal(position.chain, 26);
+  assert.deepEqual(legalMoves(position).map(({ from, to }) => [from, to]), [[26, 44]]);
+});
+
+test("match save rejects stale settings, unknown versions, and illegal moves", () => {
+  const raw = encodeMatch({ mode: "local", difficulty: "standard", moves: [[40, 33]], wins: { 1: 0, "-1": 0 } });
+  assert.equal(decodeMatch(raw, "bot", "standard"), null);
+  assert.equal(decodeMatch(raw, "local", "expert"), null);
+  const record = JSON.parse(raw);
+  for (const invalid of [
+    "not JSON",
+    JSON.stringify({ ...record, version: 2 }),
+    JSON.stringify({ ...record, wins: { 1: -1, "-1": 0 } }),
+    JSON.stringify({ ...record, moves: [[40, 33], [42, 35]] }),
+  ]) {
+    assert.equal(decodeMatch(invalid, "local", "standard"), null);
+  }
 });

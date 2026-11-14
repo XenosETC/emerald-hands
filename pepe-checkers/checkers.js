@@ -1,4 +1,5 @@
 import { botMove, captureRoutes, legalMoves, newGame, play } from "./engine.mjs?v=routes-1";
+import { decodeMatch, encodeMatch, matchKey } from "./match-save.mjs";
 
 const $ = id => document.getElementById(id);
 const pieces = { 1: "Emerald", "-1": "Crimson" };
@@ -63,7 +64,9 @@ function renderStatus(moves, waiting, position) {
     state = "review";
   } else if (game.winner) {
     title = playerName(game.winner) + " wins";
-    guide = "Start a rematch or review the move log.";
+    const loser = -game.winner;
+    const hasPieces = game.board.some(piece => Math.sign(piece) === loser);
+    guide = playerName(loser) + (hasPieces ? " has no legal moves." : " has no pieces left.");
     state = "result";
   } else if (waiting) {
     title = "Kekbot is thinking…";
@@ -172,6 +175,18 @@ function renderCaptureRoutes(moves, waiting) {
   }));
 }
 
+function renderResult(reviewing) {
+  const finished = Boolean(game.winner);
+  $("match-result").hidden = reviewing || !finished;
+  $("restart").hidden = finished;
+  $("review").hidden = finished;
+  if (!finished || reviewing) return;
+  const games = wins[1] + wins[-1];
+  const gamesLabel = games === 1 ? "1 game" : games + " games";
+  const score = wins[1] + "–" + wins[-1];
+  $("series-score").textContent = "Series after " + gamesLabel + " · Emerald " + score + " " + playerName(-1);
+}
+
 function render() {
   const reviewing = reviewIndex !== null;
   const position = reviewing ? positions[reviewIndex] : { game, lastMove };
@@ -199,7 +214,7 @@ function render() {
   });
   $("difficulty-setting").hidden = $("mode").value !== "bot";
   $("undo").disabled = reviewing || !undoHistory.length;
-  $("restart").textContent = game.winner ? "Rematch" : "Restart game";
+  renderResult(reviewing);
   $("reset-series").hidden = !wins[1] && !wins[-1];
   const waiting = botTurn();
   const moves = reviewing ? [] : legalMoves(game);
@@ -208,7 +223,7 @@ function render() {
   board.dataset.forcedCapture = String(!waiting && moves[0]?.capture != null);
   renderCaptureRoutes(moves, waiting);
   $("moves-help").hidden = moveNumber === 0;
-  $("hint").hidden = $("mode").value === "local";
+  $("hint").hidden = $("mode").value === "local" || Boolean(game.winner);
   $("hint").disabled = reviewing || waiting || !moves.length || Boolean(hint);
   const shownMove = position.lastMove;
   $("last-play").hidden = !shownMove;
@@ -225,7 +240,9 @@ function render() {
     const team = pieces[side].toLowerCase();
     const remaining = position.game.board.filter(piece => Math.sign(piece) === side);
     const kings = remaining.filter(piece => Math.abs(piece) === 2).length;
-    $(team + "-team").classList.toggle("active", !reviewing && !game.winner && game.turn === side);
+    const card = $(team + "-team");
+    card.classList.toggle("active", !reviewing && !game.winner && game.turn === side);
+    card.classList.toggle("winner", !reviewing && game.winner === side);
     $(team + "-count").textContent = remaining.length + (remaining.length === 1 ? " piece" : " pieces") +
       (kings ? " · " + kings + (kings === 1 ? " king" : " kings") : "");
     $(team + "-wins").textContent = wins[side] + (wins[side] === 1 ? " win" : " wins");
@@ -267,7 +284,7 @@ function render() {
   paintRoutePreview();
 }
 
-function makeMove(move) {
+function makeMove(move, { restoring = false } = {}) {
   const previous = game;
   if (previous.chain === null && !botTurn()) {
     undoHistory.push({ game, lastMove, moveNumber, positionCount: positions.length });
@@ -300,7 +317,10 @@ function makeMove(move) {
   const jumps = move.capture === null ? 0 : previous.chain === null ? 1 : positions.at(-1).jumps + 1;
   positions.push({ game, lastMove, turn: moveNumber, jumps });
   $("moves-empty").hidden = true;
-  list.scrollTop = list.scrollHeight;
+  if (!restoring) {
+    list.scrollTop = list.scrollHeight;
+    saveMatch();
+  }
 }
 
 function selectSquare(index) {
@@ -374,6 +394,7 @@ function restart() {
   reviewIndex = null;
   $("move-log").replaceChildren();
   $("moves-empty").hidden = false;
+  saveMatch();
   render();
 }
 
@@ -389,6 +410,7 @@ $("undo").onclick = () => {
   const log = $("move-log");
   while (log.children.length > moveNumber) log.lastElementChild.remove();
   $("moves-empty").hidden = moveNumber > 0;
+  saveMatch();
   render();
   if ($("undo").disabled) cells[legalMoves(game)[0]?.from]?.focus();
 };
@@ -423,6 +445,7 @@ function queueReplayStep() {
 }
 
 $("review").onclick = () => showPosition(positions.length - 1, true);
+$("review-result").onclick = $("review").onclick;
 $("review-prev").onclick = () => showPosition(reviewIndex - 1);
 $("review-next").onclick = () => showPosition(reviewIndex + 1);
 const reviewScrubber = $("review-scrubber");
@@ -454,7 +477,7 @@ function returnToGame() {
   stopReplay();
   reviewIndex = null;
   render();
-  cells[focusIndex]?.focus();
+  (game.winner ? $("review-result") : cells[focusIndex])?.focus();
   scheduleBot();
 }
 $("review-live").onclick = returnToGame;
@@ -479,6 +502,50 @@ function setOrientation(value) {
   for (const label of document.querySelectorAll(".board-ranks, .board-files")) {
     label.append(...Array.from(label.children).reverse());
   }
+}
+
+function showSaveStatus(message) {
+  const status = $("save-status");
+  status.textContent = message;
+  status.hidden = !message;
+}
+
+function saveMatch() {
+  try {
+    if (!moveNumber && !wins[1] && !wins[-1]) {
+      localStorage.removeItem(matchKey);
+      showSaveStatus("");
+      return;
+    }
+    const moves = positions.slice(1).map(({ lastMove }) => [lastMove.from, lastMove.to]);
+    const raw = encodeMatch({ mode: $("mode").value, difficulty: $("difficulty").value, moves, wins });
+    if (raw === null) {
+      localStorage.removeItem(matchKey);
+      showSaveStatus("This match is too long to save.");
+      return;
+    }
+    localStorage.setItem(matchKey, raw);
+    showSaveStatus("Saved on this device.");
+  } catch {
+    showSaveStatus("Couldn’t update the local save.");
+  }
+}
+
+function restoreMatch() {
+  let saved;
+  try {
+    saved = decodeMatch(localStorage.getItem(matchKey), $("mode").value, $("difficulty").value);
+  } catch {
+    return;
+  }
+  if (!saved) return;
+  for (const move of saved.moves) makeMove(move, { restoring: true });
+  const log = $("move-log");
+  log.scrollTop = log.scrollHeight;
+  wins[1] = saved.wins[1];
+  wins[-1] = saved.wins[-1];
+  selected = game.chain;
+  showSaveStatus(saved.moves.length ? "Match restored from this device." : "Series score restored from this device.");
 }
 
 function saveSettings() {
@@ -508,6 +575,10 @@ $("flip").onclick = () => {
   saveSettings();
 };
 $("restart").onclick = restart;
+$("rematch").onclick = () => {
+  restart();
+  cells[focusIndex]?.focus();
+};
 function resetSeries() {
   wins[1] = wins[-1] = 0;
   restart();
@@ -520,4 +591,6 @@ for (const id of ["mode", "difficulty"]) {
   });
 }
 restoreSettings();
+restoreMatch();
 render();
+scheduleBot();

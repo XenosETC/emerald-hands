@@ -5,6 +5,8 @@
   const saveKey = "emerald-pepe-chess-match-v1";
   const game = new Chess();
   const board = document.querySelector(".board");
+  const flipButton = document.querySelector("#flip-board");
+  const boardMove = document.querySelector("#board-move");
   const status = document.querySelector("#match-status");
   const promotion = document.querySelector("#promotion");
   const moveList = document.querySelector("#move-list");
@@ -20,6 +22,8 @@
   const reviewNext = document.querySelector("#review-next");
   const reviewLive = document.querySelector("#review-live");
   const resetButton = document.querySelector("#reset");
+  const modeSelect = document.querySelector("#match-mode");
+  const blackSeatName = document.querySelector("#black-seat-name");
   const seats = { w: document.querySelector("#white-seat"), b: document.querySelector("#black-seat") };
   const captures = { w: document.querySelector("#white-captures"), b: document.querySelector("#black-captures") };
   const roles = { k: "king", q: "queen", r: "rook", b: "bishop", n: "knight", p: "pawn" };
@@ -43,6 +47,45 @@
   let history = [];
   let result = "*";
   let reviewPly = null;
+  let mode = "local";
+  let botTimer;
+  let flipped = false;
+
+  function flipBoard() {
+    flipped = !flipped;
+    flipButton.setAttribute("aria-pressed", String(flipped));
+    board.setAttribute("aria-label", `Chessboard, viewed from ${flipped ? "Black" : "White"}'s side`);
+    board.before(seats[flipped ? "w" : "b"]);
+    board.after(seats[flipped ? "b" : "w"]);
+
+    const body = board.tBodies[0];
+    for (const row of [...body.rows].reverse()) {
+      row.append(...[...row.cells].reverse());
+      body.append(row);
+    }
+
+    // Arrow keys and coordinate labels follow the displayed row and column order.
+    const rankLabels = [...board.querySelectorAll(".rank")];
+    const fileLabels = [...board.querySelectorAll(".file")];
+    squares.reverse();
+    for (const [index, square] of squares.entries()) {
+      const [file, rank] = square.dataset.square;
+      if (index % 8 === 0) {
+        const label = rankLabels[index / 8];
+        label.textContent = rank;
+        square.parentElement.append(label);
+      }
+      if (index >= 56) {
+        const label = fileLabels[index - 56];
+        label.textContent = file;
+        square.parentElement.append(label);
+      }
+    }
+  }
+
+  function isBotTurn() {
+    return mode === "bot" && game.turn() === "b" && !finished;
+  }
 
   function pieceSource(color, type) {
     return `assets/pieces-v1/${sides[color].toLowerCase()}-${roles[type]}.png`;
@@ -52,12 +95,16 @@
     try {
       const saved = window.localStorage.getItem(saveKey);
       if (saved === null) return;
-      const moves = JSON.parse(saved);
+      const value = JSON.parse(saved);
+      const moves = Array.isArray(value) ? value : value.moves;
+      const savedMode = Array.isArray(value) ? "local" : value.mode;
       if (!Array.isArray(moves)) throw new Error("Invalid move list");
+      if (!["local", "bot"].includes(savedMode)) throw new Error("Invalid match mode");
       for (const san of moves) {
         if (typeof san !== "string" || game.isGameOver()) throw new Error("Invalid saved move");
         history.push(game.move(san, { strict: true }));
       }
+      mode = savedMode;
       saveNote.textContent = history.length ? "Match restored on this device." : "Matches save on this device.";
     } catch {
       game.reset();
@@ -68,7 +115,9 @@
 
   function saveMatch() {
     try {
-      if (history.length) window.localStorage.setItem(saveKey, JSON.stringify(history.map(move => move.san)));
+      if (history.length || mode === "bot") {
+        window.localStorage.setItem(saveKey, JSON.stringify({ mode, moves: history.map(move => move.san) }));
+      }
       else window.localStorage.removeItem(saveKey);
       saveNote.textContent = history.length ? "Match saved on this device." : "Matches save on this device.";
     } catch {
@@ -137,11 +186,16 @@
     }
     renderCaptures(ply ?? history.length);
     render();
+    scheduleBot();
   }
 
   function render() {
     const reviewing = reviewPly !== null;
     const lastMove = reviewing ? history[reviewPly - 1] : history.at(-1);
+    boardMove.hidden = !lastMove;
+    boardMove.textContent = lastMove
+      ? `${reviewing ? "Reviewed move" : "Last move"} · ${lastMove.from} → ${lastMove.to}`
+      : "";
     const position = reviewing ? new Chess(lastMove?.after ?? DEFAULT_POSITION) : game;
     const moves = selected ? game.moves({ square: selected, verbose: true }) : [];
     const targets = new Map(moves.map(move => [move.to, move]));
@@ -158,7 +212,9 @@
       : game.isInsufficientMaterial() ? "Draw by insufficient material."
       : game.isDrawByFiftyMoves() ? "Draw by the fifty-move rule."
       : draw ? "Draw."
+      : isBotTurn() ? `Kekbot to move.${check ? " Check." : ""}`
       : `${turn} to move.${check ? " Check." : ""}`;
+    blackSeatName.textContent = mode === "bot" ? "Black · Kekbot" : "Black";
     const positionCheck = reviewing ? position.isCheck() : check;
     for (const [color, seat] of Object.entries(seats)) {
       seat.classList.toggle("is-active", !reviewing && !finished && game.turn() === color);
@@ -171,7 +227,7 @@
       const label = piece ? `${sides[piece.color]} ${roles[piece.type]}` : "empty";
       button.setAttribute("aria-label", `${square}, ${label}${move ? ", legal destination" : ""}`);
       button.setAttribute("aria-pressed", String(square === selected));
-      button.setAttribute("aria-disabled", String(reviewing));
+      button.setAttribute("aria-disabled", String(reviewing || finished || isBotTurn()));
       button.classList.toggle("legal", Boolean(move));
       button.classList.toggle("capture", Boolean(move?.captured));
       button.classList.toggle("last-move", lastMove?.from === square || lastMove?.to === square);
@@ -196,9 +252,19 @@
     showPosition(null);
   }
 
+  function scheduleBot() {
+    clearTimeout(botTimer);
+    if (!isBotTurn() || reviewPly !== null) return;
+    botTimer = setTimeout(() => {
+      if (!isBotTurn() || reviewPly !== null) return;
+      const move = window.PepeChessBot.chooseMove(game);
+      if (move) movePiece(move);
+    }, 360);
+  }
+
   board.addEventListener("click", event => {
     const button = event.target.closest("[data-square]");
-    if (!button || finished || pendingPromotion || reviewPly !== null) return;
+    if (!button || finished || pendingPromotion || reviewPly !== null || isBotTurn()) return;
     const square = button.dataset.square;
     const moves = selected ? game.moves({ square: selected, verbose: true }).filter(move => move.to === square) : [];
     if (moves[0]?.promotion) {
@@ -249,6 +315,7 @@
       board.scrollIntoView({ block: "start" });
     }
   });
+  flipButton.addEventListener("click", flipBoard);
   reviewStart.addEventListener("click", () => showPosition(0));
   reviewPrev.addEventListener("click", () => showPosition((reviewPly ?? history.length) - 1));
   reviewNext.addEventListener("click", () => {
@@ -258,21 +325,34 @@
     if (reviewPly !== null) showPosition(null);
   });
 
-  resetButton.addEventListener("click", () => {
-    if (reviewPly !== null) return;
-    if (history.length && !window.confirm("Reset this board and clear the saved match?")) return;
-    selected = null;
+  function resetMatch() {
+    clearTimeout(botTimer);
     game.reset();
     history = [];
     saveMatch();
     renderMatchRecord();
     showPosition(null);
+  }
+
+  resetButton.addEventListener("click", () => {
+    if (reviewPly !== null) return;
+    if (history.length && !window.confirm("Reset this board and clear the saved match?")) return;
+    resetMatch();
+  });
+
+  modeSelect.addEventListener("change", () => {
+    if (history.length && !window.confirm("Change opponent and start a new match?")) {
+      modeSelect.value = mode;
+      return;
+    }
+    mode = modeSelect.value;
+    resetMatch();
   });
 
   exportButton.addEventListener("click", () => {
-    game.setHeader("Event", "Pepe Chess local match");
+    game.setHeader("Event", mode === "bot" ? "Pepe Chess vs. Beginner Kekbot" : "Pepe Chess local match");
     game.setHeader("White", "White");
-    game.setHeader("Black", "Black");
+    game.setHeader("Black", mode === "bot" ? "Kekbot" : "Black");
     game.setHeader("Result", result);
     const blob = new Blob([game.pgn({ maxWidth: 80 }) + "\n"], { type: "application/x-chess-pgn" });
     const link = document.createElement("a");
@@ -283,6 +363,7 @@
   });
 
   restoreMatch();
+  modeSelect.value = mode;
   renderMatchRecord();
   showPosition(null);
 })();

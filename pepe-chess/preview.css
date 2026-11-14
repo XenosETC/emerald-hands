@@ -21,6 +21,27 @@ header {
   margin-bottom: 1.2rem;
 }
 
+.mode-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem .7rem;
+  margin-top: .85rem;
+  color: #c7ccb8;
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+.mode-control select {
+  min-height: 44px;
+  padding-inline: .65rem;
+  border: 1px solid #b29866;
+  border-radius: .35rem;
+  background: #26372b;
+  color: #f6e8cc;
+  font: inherit;
+}
+
 h1 {
   margin: 0;
   font: 700 clamp(2.2rem, 6vw, 3.75rem)/1 Georgia, serif;
@@ -42,6 +63,19 @@ p {
   display: grid;
   gap: .8rem;
   min-width: 0;
+}
+
+.board-utility {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+}
+
+#board-move {
+  margin: 0;
+  color: #c7ccb8;
+  font-size: .82rem;
 }
 
 .seat {
@@ -267,6 +301,7 @@ p {
 }
 
 .match-controls button,
+.board-utility button,
 .review-buttons button,
 .promotion-options button {
   min-height: 44px;
@@ -287,9 +322,15 @@ p {
 }
 
 .match-controls button:enabled:hover,
+.board-utility button:hover,
 .review-buttons button[aria-disabled="false"]:hover,
 .promotion-options button:hover {
   background: #3a513f;
+}
+
+.board-utility button[aria-pressed="true"] {
+  color: #f2dfff;
+  border-color: #c19ad4;
 }
 
 .board button {

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { act, evaluate, evaluateBest, livePotBreakdown, options, startHand } from "./holdem.mjs";
 import { headsUpCallEquity, potRaiseTo } from "./bet-sizing.mjs";
+import { replayStreetStarts } from "./hand-replay.mjs";
 
 test("best five includes a playing kicker and prefers the board when scores tie", () => {
   const board = ["As", "Ah", "9c", "7s", "3d"];
@@ -36,6 +37,12 @@ test("live pots track side tiers, folded contributions and unmatched bets", () =
   assert.deepEqual(livePotBreakdown(players), { matched: [200, 125], unmatched: 50 });
   players[1].total += 50;
   assert.deepEqual(livePotBreakdown(players), { matched: [200, 225], unmatched: 0 });
+});
+
+test("replay street starts use retained board counts and skip unrecorded rounds", () => {
+  assert.deepEqual(replayStreetStarts([0, 0, 3, 3, 4, 5, 5]), [0, 2, 4, 5]);
+  assert.deepEqual(replayStreetStarts([0, 0, 0]), [0, -1, -1, -1]);
+  assert.deepEqual(replayStreetStarts([4, 4, 5]), [-1, -1, 0, 2]);
 });
 
 function table(...stacks) {
@@ -118,6 +125,9 @@ test("all-in showdown settles main and side pots and returns the uncalled excess
     { amount: 160, awards: [{ name: "Seat 1", amount: 160 }] }
   ]);
   assert.deepEqual(room.recentHands[0].returned, [{ name: "Seat 1", amount: 50 }]);
+  const { actions, actionBoardCounts } = room.recentHands[0];
+  assert.deepEqual(replayStreetStarts(actionBoardCounts).slice(1).map(index => actions[index].split(" ")[0]),
+    ["Flop", "Turn", "River"]);
 });
 
 test("split pots award an odd chip clockwise from the dealer", () => {

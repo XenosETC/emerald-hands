@@ -4,20 +4,31 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pepe Chess | Emerald Arcade</title>
-  <link rel="stylesheet" href="preview.css?v=play-3">
+  <link rel="stylesheet" href="preview.css?v=play-5">
 </head>
 <body>
   <main>
     <a class="back" href="../index.html">← Arcade Hub</a>
     <header>
       <h1>Pepe Chess</h1>
-      <p>Local two-player · Select a piece, then a highlighted square.</p>
+      <p>Select a piece, then a highlighted square.</p>
+      <div class="mode-control">
+        <label for="match-mode">Opponent</label>
+        <select id="match-mode">
+          <option value="local">Local two-player</option>
+          <option value="bot">Beginner Kekbot</option>
+        </select>
+      </div>
     </header>
     <div class="match-layout">
       <section class="play-area" aria-label="Local match">
+        <div class="board-utility">
+          <button id="flip-board" type="button" aria-pressed="false">Flip board</button>
+          <p id="board-move" hidden></p>
+        </div>
         <div class="seat seat--black" id="black-seat">
           <img src="assets/pieces-v1/black-king.png" alt="">
-          <strong>Black</strong>
+          <strong id="black-seat-name">Black</strong>
           <div id="black-captures" class="captures" aria-label="Captured by Black"></div>
         </div>
         <table class="board" aria-label="Chessboard, viewed from White's side">
@@ -153,7 +164,8 @@
     </dialog>
   </main>
   <script src="vendor/chess-1.4.0.js"></script>
-  <script src="game.js?v=4"></script>
+  <script src="beginner-bot.js?v=1"></script>
+  <script src="game.js?v=6"></script>
   <script src="../arcade-library.js?v=library-2-chess"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
 </body>
