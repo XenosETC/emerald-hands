@@ -16,6 +16,8 @@ let moveNumber = 0;
 const undoHistory = [];
 const positions = [{ game, lastMove, turn: 0, jumps: 0 }];
 let reviewIndex = null;
+let replayTimer = null;
+const replayInterval = 750;
 const wins = { 1: 0, "-1": 0 };
 const coordinate = index => "abcdefgh"[index % 8] + (8 - Math.floor(index / 8));
 const cells = Array.from({ length: 64 }, (_, index) => {
@@ -96,11 +98,16 @@ function render() {
   $("review-next").setAttribute("aria-disabled", String(!reviewing || reviewIndex === positions.length - 1));
   $("review-position").textContent = reviewing ? reviewIndex + " of " + (positions.length - 1) : "";
   if (reviewing) {
+    const play = $("review-play");
+    const label = replayTimer !== null ? "Pause replay" : reviewIndex === positions.length - 1 ? "Replay from start" : "Play replay";
+    if (play.textContent !== label) play.textContent = label;
+    $("status").setAttribute("aria-live", replayTimer === null ? "polite" : "off");
     const scrubber = $("review-scrubber");
     scrubber.max = positions.length - 1;
     scrubber.value = reviewIndex;
     scrubber.setAttribute("aria-valuetext", reviewLabel(position) + ", position " + $("review-position").textContent);
   }
+  if (!reviewing) $("status").setAttribute("aria-live", "polite");
   for (const id of ["mode", "difficulty", "restart", "reset-series"]) $(id).disabled = reviewing;
   Array.from($("move-log").children).forEach((entry, index) => {
     const link = entry.firstElementChild;
@@ -264,6 +271,7 @@ function scheduleBot() {
 
 function restart() {
   clearTimeout(botTimer);
+  stopReplay();
   undoHistory.length = 0;
   game = newGame();
   selected = null;
@@ -294,18 +302,56 @@ $("undo").onclick = () => {
 };
 
 function showPosition(index, focusControls = false) {
-  if (index < 0 || index >= positions.length) return;
+  stopReplay();
+  if (index < 0 || index >= positions.length) {
+    render();
+    return;
+  }
   clearTimeout(botTimer);
   reviewIndex = index;
   render();
   if (focusControls) $("review-live").focus();
 }
 
+function stopReplay() {
+  clearTimeout(replayTimer);
+  replayTimer = null;
+}
+
+function advanceReplay() {
+  reviewIndex++;
+  if (reviewIndex === positions.length - 1) stopReplay();
+  else replayTimer = setTimeout(advanceReplay, replayInterval);
+  render();
+}
+
 $("review").onclick = () => showPosition(positions.length - 1, true);
 $("review-prev").onclick = () => showPosition(reviewIndex - 1);
 $("review-next").onclick = () => showPosition(reviewIndex + 1);
-$("review-scrubber").oninput = event => showPosition(event.target.valueAsNumber);
+const reviewScrubber = $("review-scrubber");
+reviewScrubber.oninput = event => showPosition(event.target.valueAsNumber);
+reviewScrubber.addEventListener("pointerdown", () => {
+  if (replayTimer === null) return;
+  stopReplay();
+  render();
+});
+$("review-play").onclick = () => {
+  if (reviewIndex === null || document.hidden) return;
+  if (replayTimer !== null) stopReplay();
+  else {
+    if (reviewIndex === positions.length - 1) reviewIndex = 0;
+    replayTimer = setTimeout(advanceReplay, replayInterval);
+  }
+  render();
+};
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && replayTimer !== null) {
+    stopReplay();
+    render();
+  }
+});
 function returnToGame() {
+  stopReplay();
   reviewIndex = null;
   render();
   cells[focusIndex]?.focus();

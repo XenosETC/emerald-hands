@@ -255,7 +255,7 @@ aside button:not(:disabled):hover, aside select:hover, .board-actions button:not
 .move-panel { border-block: 1px solid var(--line); padding: 10px 0; }
 .review-controls {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) 44px auto;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
   gap: 6px;
   margin-top: 8px;
@@ -264,6 +264,13 @@ aside button:not(:disabled):hover, aside select:hover, .board-actions button:not
   border-radius: 8px;
   background: #2b251c;
 }
+.review-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-column: 1 / -1;
+  gap: 6px;
+}
+#review-play { border-color: #bc975b; background: #4a3b29; color: #ffe4ad; }
 .review-timeline { display: grid; justify-items: stretch; min-width: 0; }
 #review-scrubber {
   width: 100%;
@@ -314,8 +321,6 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
   .match-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 420px) {
-  .review-controls { grid-template-columns: 44px minmax(0, 1fr) 44px; }
-  #review-live { grid-column: 1 / -1; }
   .board-actions button { padding-inline: 4px; font-size: .76rem; }
   .team {
     grid-template-columns: 34px minmax(0, 1fr);

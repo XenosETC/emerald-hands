@@ -32,7 +32,26 @@ let autoDealAt = null;
 let dealtBoard = [];
 let dealerSnapshot;
 let dealerAnimation;
+let dealerEffect;
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const dealerChoreography = {
+  deal: [
+    { transform: "none", filter: "brightness(1)" },
+    { transform: "translateY(-2px) rotate(-1deg)", filter: "brightness(1.15)", offset: .24 },
+    { transform: "translateY(3px) rotate(1deg)", filter: "brightness(1.22)", offset: .6 },
+    { transform: "none", filter: "brightness(1)" }
+  ],
+  reveal: [
+    { transform: "none", filter: "brightness(1)" },
+    { transform: "translateY(2px)", filter: "brightness(1.26)", offset: .35 },
+    { transform: "none", filter: "brightness(1)" }
+  ],
+  payout: [
+    { transform: "none", filter: "brightness(1)" },
+    { transform: "scale(1.025)", filter: "brightness(1.38)", offset: .32 },
+    { transform: "none", filter: "brightness(1)" }
+  ]
+};
 const pageTitle = document.title;
 const soundKey = "pepe-poker:turn-sound";
 let turnSound = false;
@@ -154,6 +173,24 @@ function card(value) {
   return node;
 }
 
+function stopDealerChoreography() {
+  dealerAnimation?.cancel();
+  dealerEffect?.remove();
+}
+
+function playDealerChoreography(cue) {
+  const dealer = $("house-dealer");
+  dealerAnimation = dealer.animate(dealerChoreography[cue], { duration: cue === "reveal" ? 320 : 520, easing: "ease-out" });
+  if (cue === "reveal") return;
+
+  const effect = element("span", "dealer-effect dealer-effect--" + cue);
+  effect.setAttribute("aria-hidden", "true");
+  for (let index = 0; index < 3; index++) effect.append(element("i", ""));
+  dealer.append(effect);
+  dealerEffect = effect;
+  dealerAnimation.addEventListener("finish", () => effect.remove(), { once: true });
+}
+
 function renderDealer() {
   const board = state?.board ?? [];
   const boardElement = $("board");
@@ -183,15 +220,9 @@ function renderDealer() {
 
   const label = settled ? "House dealer · Pot awarded" : hand ? "House dealer · " + state.street : "House dealer";
   if ($("dealer-status").textContent !== label) $("dealer-status").textContent = label;
-  if (!sameRoom || newHand || revealed || awarded) dealerAnimation?.cancel();
-  if (!reducedMotion.matches && (newHand || revealed || awarded)) {
-    const offset = awarded ? 0 : newHand ? 4 : 2;
-    dealerAnimation = $("house-dealer").animate([
-      { transform: "translateY(0)", filter: "brightness(1)" },
-      { transform: `translateY(${offset}px)`, filter: awarded ? "brightness(1.45)" : "brightness(1.2)", offset: .38 },
-      { transform: "translateY(0)", filter: "brightness(1)" }
-    ], { duration: awarded ? 420 : 300, easing: "ease-out" });
-  }
+  const cue = awarded ? "payout" : revealed ? "reveal" : newHand ? "deal" : null;
+  if (!sameRoom || cue) stopDealerChoreography();
+  if (cue && !reducedMotion.matches) playDealerChoreography(cue);
   dealerSnapshot = { roomId, hand, settled };
 }
 
@@ -800,7 +831,7 @@ document.addEventListener("keydown", enableAudio);
 document.addEventListener("visibilitychange", updateClock);
 document.addEventListener("visibilitychange", resetAutoDeal);
 reducedMotion.addEventListener("change", event => {
-  if (event.matches) dealerAnimation?.cancel();
+  if (event.matches) stopDealerChoreography();
 });
 $("auto-deal").addEventListener("change", resetAutoDeal);
 $("raise-sizing").open = matchMedia("(min-width: 651px)").matches;

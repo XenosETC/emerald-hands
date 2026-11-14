@@ -147,6 +147,7 @@ main {
   text-align: center;
 }
 .house-dealer {
+  position: relative;
   display: flex;
   width: fit-content;
   align-items: center;
@@ -189,6 +190,49 @@ main {
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
+}
+.house-dealer .dealer-effect {
+  position: absolute;
+  z-index: 1;
+  inset: auto 0 1px;
+  height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+.dealer-effect i {
+  position: absolute;
+  left: calc(50% - 6px);
+  top: 0;
+  width: 12px;
+  will-change: transform, opacity;
+}
+.dealer-effect i:nth-child(1) { --spread: -26px; --tilt: -18deg; }
+.dealer-effect i:nth-child(2) { --spread: 0px; --tilt: 1deg; }
+.dealer-effect i:nth-child(3) { --spread: 26px; --tilt: 18deg; }
+.dealer-effect--deal i {
+  height: 16px;
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  background: repeating-linear-gradient(45deg, #253a2c 0 2px, #37533e 2px 3px);
+  animation: dealer-card-fan 500ms ease-out both;
+}
+.dealer-effect--payout i {
+  aspect-ratio: 1;
+  border: 2px dashed #f8dfa1;
+  border-radius: 50%;
+  background: #b58948;
+  box-shadow: 0 1px 5px #d5ac5b99;
+  animation: dealer-chip-sweep 500ms ease-out both;
+}
+@keyframes dealer-card-fan {
+  from { opacity: 0; transform: translate(-8px, -10px) scale(.55); }
+  33% { opacity: 1; transform: translate(var(--spread), 9px) rotate(var(--tilt)); }
+  to { opacity: 0; transform: translate(var(--spread), 19px) rotate(var(--tilt)) scale(.82); }
+}
+@keyframes dealer-chip-sweep {
+  from { opacity: 0; transform: translateY(0) scale(.5); }
+  32% { opacity: 1; transform: translate(var(--spread), -10px); }
+  to { opacity: 0; transform: translate(var(--spread), 14px) scale(.9); }
 }
 .variant {
   margin: 0;
@@ -242,10 +286,10 @@ main {
   box-shadow: inset 0 2px 8px #0b261fa3;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .new-board-card { animation: board-reveal 285ms ease-out var(--reveal-delay); }
+  .new-board-card { animation: board-reveal 320ms ease-out var(--reveal-delay); }
 }
 @keyframes board-reveal {
-  from { transform: translateY(5px) scale(.96); filter: brightness(.82); }
+  from { transform: perspective(160px) translateY(-3px) rotateX(35deg) scale(.96); filter: brightness(.83); }
   to { transform: none; filter: none; }
 }
 
@@ -896,11 +940,18 @@ h2 { color: var(--gold); font-size: 1.75rem; }
   .house-dealer .house-dealer-portrait { width: 31px; height: 31px; }
   .house-dealer strong { font-size: 1.15rem; }
   .house-dealer span { margin-top: 2px; font-size: .52rem; }
+  .dealer-effect i:nth-child(1) { --spread: -20px; }
+  .dealer-effect i:nth-child(3) { --spread: 20px; }
   .seat-turn-marker { inset-inline-start: 1px; }
   #board .card { width: clamp(35px, 10vw, 48px); }
   .seat:not(.your-seat) .card { width: 23px; }
   .avatar-option { flex-basis: 62px; min-width: 54px; }
   .avatar-option img { width: 34px; height: 34px; }
+}
+@media (max-width: 380px) {
+  #turn-indicator { gap: 6px; }
+  #time-bank { padding-inline: 7px; font-size: .76rem; }
+  #turn-clock { width: 32px; }
 }
 @media (max-width: 380px) {
   #raise-controls { grid-template-columns: minmax(0, 1fr); }
