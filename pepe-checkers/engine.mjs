@@ -1,12 +1,12 @@
 const row = index => Math.floor(index / 8);
 const column = index => index % 8;
 
-export function newGame() {
+export function newGame({ repetition = true } = {}) {
   const board = Array.from({ length: 64 }, (_, index) => {
     if ((row(index) + column(index)) % 2 === 0) return 0;
     return row(index) < 3 ? -1 : row(index) > 4 ? 1 : 0;
   });
-  return { board, turn: 1, chain: null, winner: 0 };
+  return { board, turn: 1, chain: null, winner: 0, repetitionHistory: repetition ? null : false };
 }
 
 function movesFrom(board, from) {
@@ -32,8 +32,12 @@ function movesFrom(board, from) {
   return moves;
 }
 
+export function isFinished(game) {
+  return Boolean(game.winner || game.draw);
+}
+
 export function legalMoves(game) {
-  if (game.winner) return [];
+  if (isFinished(game)) return [];
   if (game.chain !== null) return movesFrom(game.board, game.chain).filter(move => move.capture !== null);
   const moves = game.board.flatMap((piece, index) => Math.sign(piece) === game.turn ? movesFrom(game.board, index) : []);
   const jumps = moves.filter(move => move.capture !== null);
@@ -49,22 +53,46 @@ function applyMove(game, move) {
   const { from, to } = move;
   const board = [...game.board];
   const piece = board[from];
+  const repetitionHistory = game.repetitionHistory === false ? false : null;
   const crowned = Math.abs(piece) === 1 && row(to) === (game.turn === 1 ? 0 : 7);
   board[from] = 0;
   board[to] = crowned ? game.turn * 2 : piece;
   if (move.capture !== null) {
     board[move.capture] = 0;
     if (!crowned && movesFrom(board, to).some(next => next.capture !== null)) {
-      return { board, turn: game.turn, chain: to, winner: 0 };
+      return { board, turn: game.turn, chain: to, winner: 0, repetitionHistory };
     }
   }
-  const next = { board, turn: -game.turn, chain: null, winner: 0 };
+  const next = { board, turn: -game.turn, chain: null, winner: 0, repetitionHistory };
   if (!legalMoves(next).length) next.winner = game.turn;
+  else if (repetitionHistory !== false && Math.abs(piece) === 2 && move.capture === null) {
+    recordRepetition(game, next);
+  }
   return next;
+}
+
+function positionKey({ board, turn }) {
+  return turn + ":" + board.join(",");
+}
+
+function recordRepetition(game, next) {
+  // A capture or a forward man move cannot be undone by later play. Only
+  // consecutive quiet king turns can revisit a completed position.
+  const previous = game.repetitionHistory ?? { key: positionKey(game), previous: null };
+  const key = positionKey(next);
+  let occurrences = 1;
+  for (let entry = previous; entry; entry = entry.previous) {
+    if (entry.key === key && ++occurrences === 3) {
+      next.draw = true;
+      break;
+    }
+  }
+  next.repetitionHistory = { key, previous };
 }
 
 function search(game, side, depth, alpha, beta) {
   if (game.winner) return game.winner === side ? 10000 + depth : -10000 - depth;
+  if (game.draw) return 0;
   const moves = legalMoves(game);
   // Give forced exchanges up to three extra turns so a hanging piece is counted.
   const forced = moves[0]?.capture != null;
@@ -122,4 +150,26 @@ export function captureRoutes(game) {
     });
   }
   return extend(game, []);
+}
+
+export function analyzeHint(game) {
+  const first = botMove(game, "expert");
+  if (!first) return null;
+  const path = [first];
+  let next = applyMove(game, first);
+  while (next.chain !== null) {
+    const step = botMove(next, "expert");
+    path.push(step);
+    next = applyMove(next, step);
+  }
+
+  const { to } = path.at(-1);
+  return {
+    path,
+    crowns: Math.abs(game.board[first.from]) < Math.abs(next.board[to]),
+    wins: next.winner === game.turn,
+    draws: Boolean(next.draw),
+    recapturable: legalMoves(next).some(reply => reply.capture === to),
+    capturedKings: path.filter(({ capture }) => capture !== null && Math.abs(game.board[capture]) === 2).length,
+  };
 }

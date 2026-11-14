@@ -914,6 +914,24 @@ h2 { color: var(--gold); font-size: 1.75rem; }
 #replay-action { margin: 4px 0 7px; font-size: .8rem; overflow-wrap: anywhere; }
 .replay-buttons { display: flex; gap: 4px; flex-wrap: wrap; }
 .recap-tools button, .replay-buttons button { min-height: 32px; padding: 4px 7px; font-size: .74rem; }
+.replay-playback {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-top: 6px;
+}
+.replay-playback label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: .74rem;
+}
+.replay-playback :is(button, select) { min-height: 36px; padding: 4px 7px; font-size: .74rem; }
+#replay-play { color: var(--gold); border-color: var(--gold); }
+@media (max-width: 560px) {
+  .replay-buttons button, .replay-playback :is(button, select) { min-height: 44px; }
+}
 #recap-action { margin-top: 8px; font-size: .8rem; }
 #recap-action summary { color: var(--gold); cursor: pointer; }
 #recap-actions { max-height: 220px; overflow: auto; padding-inline-start: 22px; }

@@ -251,7 +251,7 @@ aside button, aside select, .board-actions button, .result-panel button, .review
 aside button, .board-actions button { cursor: pointer; }
 aside button:disabled, .board-actions button:disabled { border-color: var(--line); color: #a2afa0; cursor: default; }
 aside button:not(:disabled):hover, aside select:hover, .board-actions button:not(:disabled):hover { border-color: var(--gold); }
-.board-actions button[aria-pressed="true"] { border-color: var(--gold); color: var(--gold); }
+.board-actions button:is([aria-pressed="true"], [aria-expanded="true"]) { border-color: var(--gold); color: var(--gold); }
 #restart { border-color: #ae8951; background: #443522; color: #fae0a7; }
 .result-panel {
   display: grid;
@@ -388,15 +388,20 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 .board-key span:nth-child(2) i { background: transparent; border: 2px solid var(--gold); }
 .board-key span:nth-child(3) i { border-radius: 2px; background: transparent; border: 1px solid var(--gold); }
 
-.capture-panel {
+.hint-panel, .capture-panel {
   margin-top: 10px;
   padding: 12px;
   border: 1px solid #866b43;
   border-radius: 9px;
   background: linear-gradient(140deg, #392e20, #22271c);
 }
-.capture-panel h2 { margin: 0; color: var(--gold); font: 400 1.35rem Georgia, serif; }
-.capture-panel p { margin: 6px 0 0; color: var(--muted); font-size: .81rem; line-height: 1.5; }
+.hint-panel h2, .capture-panel h2 { margin: 0; color: var(--gold); font: 400 1.35rem Georgia, serif; }
+.hint-panel p, .capture-panel p { margin: 6px 0 0; color: var(--muted); font-size: .81rem; line-height: 1.5; }
+.hint-panel {
+  border-color: #63866a;
+  background: linear-gradient(140deg, #223f2e, #15291e);
+}
+#hint-path { color: #e8f2d8; font-weight: 700; letter-spacing: .04em; }
 #capture-routes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));

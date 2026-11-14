@@ -6,6 +6,7 @@
   const game = new Chess();
   const board = document.querySelector(".board");
   const flipButton = document.querySelector("#flip-board");
+  const undoButton = document.querySelector("#undo");
   const boardMove = document.querySelector("#board-move");
   const status = document.querySelector("#match-status");
   const promotion = document.querySelector("#promotion");
@@ -84,7 +85,11 @@
   }
 
   function isBotTurn() {
-    return mode === "bot" && game.turn() === "b" && !finished;
+    return mode !== "local" && game.turn() === "b" && !finished;
+  }
+
+  function botName() {
+    return mode === "club" ? "Club Kekbot" : "Kekbot";
   }
 
   function pieceSource(color, type) {
@@ -99,7 +104,7 @@
       const moves = Array.isArray(value) ? value : value.moves;
       const savedMode = Array.isArray(value) ? "local" : value.mode;
       if (!Array.isArray(moves)) throw new Error("Invalid move list");
-      if (!["local", "bot"].includes(savedMode)) throw new Error("Invalid match mode");
+      if (!["local", "bot", "club"].includes(savedMode)) throw new Error("Invalid match mode");
       for (const san of moves) {
         if (typeof san !== "string" || game.isGameOver()) throw new Error("Invalid saved move");
         history.push(game.move(san, { strict: true }));
@@ -115,7 +120,7 @@
 
   function saveMatch() {
     try {
-      if (history.length || mode === "bot") {
+      if (history.length || mode !== "local") {
         window.localStorage.setItem(saveKey, JSON.stringify({ mode, moves: history.map(move => move.san) }));
       }
       else window.localStorage.removeItem(saveKey);
@@ -180,6 +185,8 @@
     reviewNext.setAttribute("aria-disabled", String(!reviewing || ply === history.length));
     reviewLive.setAttribute("aria-disabled", String(!reviewing));
     resetButton.disabled = reviewing;
+    undoButton.disabled = reviewing || !history.length;
+    undoButton.textContent = mode === "local" ? "Undo move" : "Undo turn";
     for (const button of moveList.querySelectorAll("[data-ply]")) {
       if (Number(button.dataset.ply) === (ply ?? history.length)) button.setAttribute("aria-current", "step");
       else button.removeAttribute("aria-current");
@@ -212,9 +219,9 @@
       : game.isInsufficientMaterial() ? "Draw by insufficient material."
       : game.isDrawByFiftyMoves() ? "Draw by the fifty-move rule."
       : draw ? "Draw."
-      : isBotTurn() ? `Kekbot to move.${check ? " Check." : ""}`
+      : isBotTurn() ? `${botName()} to move.${check ? " Check." : ""}`
       : `${turn} to move.${check ? " Check." : ""}`;
-    blackSeatName.textContent = mode === "bot" ? "Black · Kekbot" : "Black";
+    blackSeatName.textContent = mode === "local" ? "Black" : `Black · ${botName()}`;
     const positionCheck = reviewing ? position.isCheck() : check;
     for (const [color, seat] of Object.entries(seats)) {
       seat.classList.toggle("is-active", !reviewing && !finished && game.turn() === color);
@@ -244,12 +251,15 @@
     }
   }
 
-  function movePiece(move) {
-    history.push(game.move(move));
-    selected = null;
+  function commitPosition() {
     saveMatch();
     renderMatchRecord();
     showPosition(null);
+  }
+
+  function movePiece(move) {
+    history.push(game.move(move));
+    commitPosition();
   }
 
   function scheduleBot() {
@@ -257,7 +267,7 @@
     if (!isBotTurn() || reviewPly !== null) return;
     botTimer = setTimeout(() => {
       if (!isBotTurn() || reviewPly !== null) return;
-      const move = window.PepeChessBot.chooseMove(game);
+      const move = window.PepeChessBot.chooseMove(game, mode === "club" ? "club" : "beginner");
       if (move) movePiece(move);
     }, 360);
   }
@@ -316,6 +326,17 @@
     }
   });
   flipButton.addEventListener("click", flipBoard);
+  undoButton.addEventListener("click", () => {
+    if (undoButton.disabled || pendingPromotion) return;
+    clearTimeout(botTimer);
+    // A bot reply and the move that prompted it are one human decision.
+    const plies = mode !== "local" && history.at(-1).color === "b" ? 2 : 1;
+    for (let count = 0; count < plies; count++) {
+      game.undo();
+      history.pop();
+    }
+    commitPosition();
+  });
   reviewStart.addEventListener("click", () => showPosition(0));
   reviewPrev.addEventListener("click", () => showPosition((reviewPly ?? history.length) - 1));
   reviewNext.addEventListener("click", () => {
@@ -329,9 +350,7 @@
     clearTimeout(botTimer);
     game.reset();
     history = [];
-    saveMatch();
-    renderMatchRecord();
-    showPosition(null);
+    commitPosition();
   }
 
   resetButton.addEventListener("click", () => {
@@ -350,9 +369,10 @@
   });
 
   exportButton.addEventListener("click", () => {
-    game.setHeader("Event", mode === "bot" ? "Pepe Chess vs. Beginner Kekbot" : "Pepe Chess local match");
+    const eventName = { local: "Pepe Chess local match", bot: "Pepe Chess vs. Beginner Kekbot", club: "Pepe Chess vs. Club Kekbot" };
+    game.setHeader("Event", eventName[mode]);
     game.setHeader("White", "White");
-    game.setHeader("Black", mode === "bot" ? "Kekbot" : "Black");
+    game.setHeader("Black", mode === "local" ? "Black" : botName());
     game.setHeader("Result", result);
     const blob = new Blob([game.pgn({ maxWidth: 80 }) + "\n"], { type: "application/x-chess-pgn" });
     const link = document.createElement("a");

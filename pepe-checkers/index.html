@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111d17">
   <title>Pepe Checkers · Emerald Arcade</title>
-  <link rel="stylesheet" href="checkers.css?v=board-12">
+  <link rel="stylesheet" href="checkers.css?v=board-13">
 </head>
 <body>
   <header>
@@ -42,11 +42,16 @@
       </div>
       <div class="board-actions" role="group" aria-label="Board controls">
         <button id="undo" type="button" disabled>Undo turn</button>
-        <button id="hint" type="button">Show hint</button>
+        <button id="hint" type="button" aria-expanded="false" aria-controls="hint-panel">Show hint</button>
         <button id="flip" type="button" aria-pressed="false">Flip board</button>
         <button id="review" type="button" disabled>Review</button>
         <p id="last-play" hidden></p>
       </div>
+      <section class="hint-panel" id="hint-panel" aria-labelledby="hint-title" hidden>
+        <h2 id="hint-title">Expert suggestion</h2>
+        <p id="hint-path"></p>
+        <p id="hint-detail"></p>
+      </section>
       <section class="result-panel" id="match-result" aria-label="Finished match actions" hidden>
         <p id="series-score"></p>
         <button id="rematch" type="button">Rematch</button>
@@ -92,6 +97,7 @@
             </select>
           </label>
         </div>
+        <p id="series-draws" hidden></p>
         <p id="save-status" hidden></p>
         <div class="match-actions">
           <button id="restart" type="button">Restart game</button>
@@ -106,6 +112,7 @@
       </section>
       <details><summary>How to play</summary>
         <p>Move diagonally on dark squares. Jumps are mandatory. If a piece can jump again, keep going with that piece. Reach the far edge to become a king and move both ways. Crowning ends the turn.</p>
+        <p>In new matches, the game is drawn when the same board with the same player to move occurs three times. Positions during a multi-jump are excluded. Previously saved matches keep their original rules until a restart or rematch.</p>
         <p>Last move squares are outlined. Capture destinations have a ring.</p>
         <p id="board-guide">Use arrow keys to move between playable squares and Enter or Space to select. Press Escape to clear a selection.</p>
       </details>
@@ -113,6 +120,6 @@
   </main>
   <script src="../arcade-library.js?v=library-2-checkers"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
-  <script type="module" src="checkers.js?v=board-12"></script>
+  <script type="module" src="checkers.js?v=board-14"></script>
 </body>
 </html>

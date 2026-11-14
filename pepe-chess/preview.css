@@ -315,6 +315,7 @@ p {
 }
 
 .match-controls button:disabled,
+.board-utility button:disabled,
 .review-buttons button[aria-disabled="true"] {
   color: #b0b8a5;
   border-color: #ffffff36;
@@ -322,7 +323,7 @@ p {
 }
 
 .match-controls button:enabled:hover,
-.board-utility button:hover,
+.board-utility button:enabled:hover,
 .review-buttons button[aria-disabled="false"]:hover,
 .promotion-options button:hover {
   background: #3a513f;

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101611">
   <title>Pepe Poker · Emerald Arcade</title>
-  <link rel="stylesheet" href="table.css?v=hand-navigation-1">
+  <link rel="stylesheet" href="table.css?v=replay-speed-1">
 </head>
 <body>
   <header>
@@ -158,6 +158,16 @@
             <button id="replay-next" type="button">Next</button>
             <button id="replay-end" type="button">Summary</button>
           </div>
+          <div class="replay-playback">
+            <button id="replay-play" type="button">Play replay</button>
+            <label for="replay-speed">Speed
+              <select id="replay-speed" aria-label="Replay speed">
+                <option value="0.5">0.5×</option>
+                <option value="1" selected>1×</option>
+                <option value="2">2×</option>
+              </select>
+            </label>
+          </div>
         </div>
         <div id="recap-board" class="cards recap-cards" aria-label="Reviewed community cards" hidden></div>
         <ul id="recap-players"></ul>
@@ -196,6 +206,6 @@
       <button>Done</button>
     </form>
   </dialog>
-  <script type="module" src="table.js?v=hand-navigation-1"></script>
+  <script type="module" src="table.js?v=replay-speed-1"></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pepe Chess | Emerald Arcade</title>
-  <link rel="stylesheet" href="preview.css?v=play-5">
+  <link rel="stylesheet" href="preview.css?v=play-6">
 </head>
 <body>
   <main>
@@ -17,6 +17,7 @@
         <select id="match-mode">
           <option value="local">Local two-player</option>
           <option value="bot">Beginner Kekbot</option>
+          <option value="club">Club Kekbot</option>
         </select>
       </div>
     </header>
@@ -24,6 +25,7 @@
       <section class="play-area" aria-label="Local match">
         <div class="board-utility">
           <button id="flip-board" type="button" aria-pressed="false">Flip board</button>
+          <button id="undo" type="button" disabled>Undo move</button>
           <p id="board-move" hidden></p>
         </div>
         <div class="seat seat--black" id="black-seat">
@@ -164,8 +166,8 @@
     </dialog>
   </main>
   <script src="vendor/chess-1.4.0.js"></script>
-  <script src="beginner-bot.js?v=1"></script>
-  <script src="game.js?v=6"></script>
+  <script src="beginner-bot.js?v=2"></script>
+  <script src="game.js?v=8"></script>
   <script src="../arcade-library.js?v=library-2-chess"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
 </body>

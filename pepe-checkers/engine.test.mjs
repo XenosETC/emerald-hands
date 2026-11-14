@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { botMove, captureRoutes, legalMoves, newGame, play } from "./engine.mjs";
+import { analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play } from "./engine.mjs";
 import { decodeMatch, encodeMatch } from "./match-save.mjs";
 
 function position(pieces) {
@@ -87,10 +87,97 @@ test("match save rejects stale settings, unknown versions, and illegal moves", (
   const record = JSON.parse(raw);
   for (const invalid of [
     "not JSON",
-    JSON.stringify({ ...record, version: 2 }),
+    JSON.stringify({ ...record, version: 9 }),
     JSON.stringify({ ...record, wins: { 1: -1, "-1": 0 } }),
     JSON.stringify({ ...record, moves: [[40, 33], [42, 35]] }),
   ]) {
     assert.equal(decodeMatch(invalid, "local", "standard"), null);
   }
+});
+
+test("Expert hint explains a complete chain and counts a captured king", () => {
+  const game = position({ 42: 1, 49: 1, 35: -1, 21: -2 });
+  assert.deepEqual(analyzeHint(game), {
+    path: [{ from: 42, to: 28, capture: 35 }, { from: 28, to: 14, capture: 21 }],
+    crowns: false,
+    wins: true,
+    draws: false,
+    recapturable: false,
+    capturedKings: 1,
+  });
+});
+
+test("Expert hint distinguishes crowning and a legal immediate recapture", () => {
+  const crown = analyzeHint(position({ 17: 1, 10: -1, 12: -1 }));
+  assert.equal(crown.crowns, true);
+  assert.equal(crown.path.length, 1);
+  const exposed = analyzeHint(position({ 42: 1, 14: 1, 35: -1, 21: -1 }));
+  assert.equal(exposed.recapturable, true);
+  assert.equal(analyzeHint({ ...newGame(), winner: -1 }), null);
+});
+
+test("third repeated king position ends play after a complete turn", () => {
+  const initial = position({ 56: 2, 7: -2 });
+  const cycle = [[56, 49], [7, 14], [49, 56], [14, 7]];
+  const advance = (game, [from, to]) => {
+    const next = play(game, from, to);
+    assert.notEqual(next, game);
+    return next;
+  };
+  const secondOccurrence = cycle.reduce(advance, initial);
+  assert.equal(isFinished(secondOccurrence), false);
+  const beforeDraw = cycle.slice(0, -1).reduce(advance, secondOccurrence);
+  assert.equal(isFinished(beforeDraw), false);
+  const drawn = advance(beforeDraw, cycle.at(-1));
+  assert.equal(drawn.draw, true);
+  assert.equal(drawn.winner, 0);
+  assert.deepEqual(drawn.board, initial.board);
+  assert.equal(drawn.turn, initial.turn);
+  assert.equal(drawn.chain, null);
+  assert.deepEqual(legalMoves(drawn), []);
+  for (const difficulty of ["casual", "standard", "expert"]) {
+    assert.equal(botMove(drawn, difficulty), undefined);
+  }
+  assert.equal(analyzeHint(drawn), null);
+  assert.equal(play(drawn, 56, 49), drawn);
+  // Returning to a previous immutable position restores its repetition count.
+  assert.equal(advance(beforeDraw, cycle.at(-1)).draw, true);
+});
+
+test("an irreversible jump clears repetition history and a partial chain is never recorded", () => {
+  const game = {
+    ...position({ 42: 1, 49: 1, 35: -1, 21: -1, 7: -2 }),
+    repetitionHistory: { key: "earlier position", previous: null },
+  };
+  const first = play(game, 42, 28);
+  assert.equal(first.chain, 28);
+  assert.equal(first.repetitionHistory, null);
+  assert.equal(isFinished(first), false);
+  const complete = play(first, 28, 14);
+  assert.equal(complete.chain, null);
+  assert.equal(complete.repetitionHistory, null);
+  assert.equal(isFinished(complete), false);
+});
+
+test("saved repetition draw is replayed and legacy saves keep play beyond that point", () => {
+  const opening = [[42, 33], [19, 28], [51, 42], [17, 26], [33, 19], [12, 26],
+    [58, 51], [5, 12], [46, 39], [12, 19], [44, 35], [26, 44], [44, 58], [39, 30],
+    [21, 39], [53, 46], [39, 53], [62, 44], [19, 26], [42, 33], [10, 19], [44, 37],
+    [28, 46], [55, 37], [26, 35], [60, 53], [19, 26], [33, 19], [3, 12], [19, 5]];
+  const cycle = [[58, 51], [5, 12], [51, 58], [12, 5]];
+  const moves = [...opening, ...cycle, ...cycle];
+  const record = { mode: "local", difficulty: "standard", moves, wins: { 1: 1, "-1": 0 } };
+  assert.equal(decodeMatch(encodeMatch(record), "local", "standard"), null);
+  const restored = decodeMatch(encodeMatch({ ...record, draws: 1 }), "local", "standard");
+  assert.equal(restored.draws, 1);
+  assert.equal(restored.repetition, true);
+  assert.equal(restored.moves.length, moves.length);
+  assert.equal(restored.wins[1], 1);
+  const beyondDraw = [...moves, cycle[0]];
+  assert.equal(decodeMatch(encodeMatch({ ...record, moves: beyondDraw, draws: 1 }), "local", "standard"), null);
+  const legacy = decodeMatch(encodeMatch({ ...record, moves: beyondDraw, repetition: false }), "local", "standard");
+  assert.equal(legacy.moves.length, beyondDraw.length);
+  assert.equal(legacy.repetition, false);
+  assert.equal(legacy.draws, 0);
+  assert.equal(legacy.wins[1], 1);
 });

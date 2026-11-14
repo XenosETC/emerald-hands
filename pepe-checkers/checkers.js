@@ -1,5 +1,5 @@
-import { botMove, captureRoutes, legalMoves, newGame, play } from "./engine.mjs?v=routes-1";
-import { decodeMatch, encodeMatch, matchKey } from "./match-save.mjs";
+import { analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play } from "./engine.mjs?v=draw-1";
+import { decodeMatch, encodeMatch, matchKey } from "./match-save.mjs?v=draw-1";
 
 const $ = id => document.getElementById(id);
 const pieces = { 1: "Emerald", "-1": "Crimson" };
@@ -22,6 +22,7 @@ let replayTimer = null;
 const replayInterval = 750;
 const replaySpeed = $("review-speed");
 const wins = { 1: 0, "-1": 0 };
+let draws = 0;
 const coordinate = index => "abcdefgh"[index % 8] + (8 - Math.floor(index / 8));
 const cells = Array.from({ length: 64 }, (_, index) => {
   const square = document.createElement("button");
@@ -38,7 +39,7 @@ const cells = Array.from({ length: 64 }, (_, index) => {
 board.append(...cells);
 
 function botTurn() {
-  return $("mode").value === "bot" && game.turn === -1 && !game.winner;
+  return $("mode").value === "bot" && game.turn === -1 && !isFinished(game);
 }
 
 function playerName(side) {
@@ -60,13 +61,18 @@ function renderStatus(moves, waiting, position) {
   let state = "turn";
   if (reviewIndex !== null) {
     title = reviewLabel(position);
-    guide = position.game.chain === null ? "Reviewing the match." : "Reviewing a jump in progress.";
+    guide = position.game.draw ? "Final position · Draw by repetition."
+      : position.game.chain === null ? "Reviewing the match." : "Reviewing a jump in progress.";
     state = "review";
   } else if (game.winner) {
     title = playerName(game.winner) + " wins";
     const loser = -game.winner;
     const hasPieces = game.board.some(piece => Math.sign(piece) === loser);
     guide = playerName(loser) + (hasPieces ? " has no legal moves." : " has no pieces left.");
+    state = "result";
+  } else if (game.draw) {
+    title = "Draw by repetition";
+    guide = "The same board and player to move occurred three times.";
     state = "result";
   } else if (waiting) {
     title = "Kekbot is thinking…";
@@ -84,10 +90,11 @@ function renderStatus(moves, waiting, position) {
     guide = "Choose a marked destination for " + coordinate(selected).toUpperCase() + ".";
   }
   if (hint && reviewIndex === null) {
-    const from = coordinate(hint.from).toUpperCase();
-    const to = coordinate(hint.to).toUpperCase();
-    const action = hint.capture === null ? "move" : "jump";
-    guide = "Suggested " + action + ": " + from + " to " + to + ".";
+    const first = hint.path[0];
+    const action = first.capture === null ? "move" : "jump";
+    const from = coordinate(first.from).toUpperCase();
+    const to = coordinate(first.to).toUpperCase();
+    guide = "Suggested " + action + " from " + from + " to " + to + ". Read the full hint below the board.";
   }
   $("status").dataset.state = state;
   if ($("turn-title").textContent !== title) $("turn-title").textContent = title;
@@ -175,16 +182,54 @@ function renderCaptureRoutes(moves, waiting) {
   }));
 }
 
+function clearHint() {
+  if (hint && routePreview?.path === hint.path) routePreview = null;
+  hint = null;
+}
+
+function renderHint(moves, waiting, reviewing) {
+  const button = $("hint");
+  button.hidden = $("mode").value === "local" || isFinished(game);
+  button.disabled = reviewing || waiting || !moves.length;
+  const visible = Boolean(hint) && !button.hidden && !button.disabled;
+  button.setAttribute("aria-expanded", String(visible));
+  button.textContent = visible ? "Hide hint" : "Show hint";
+  $("hint-panel").hidden = !visible;
+  if (!visible) return;
+
+  const { path, crowns, draws, wins, recapturable, capturedKings } = hint;
+  const [first] = path;
+  const capture = first.capture !== null;
+  const details = [];
+  if (capture) {
+    const captured = path.length + (path.length === 1 ? " piece" : " pieces");
+    const kings = capturedKings ? ", including " + capturedKings + (capturedKings === 1 ? " king" : " kings") : "";
+    details.push("Capturing is required. This route takes " + captured + kings + ".");
+  }
+  if (crowns) details.push("It crowns your piece.");
+  if (wins) details.push("It wins the game this turn.");
+  else if (draws) details.push("It ends the game in a draw by repetition.");
+  else if (recapturable) details.push("The opponent can immediately jump your piece afterward.");
+  else details.push("The opponent has no immediate jump over your piece afterward.");
+
+  $("hint-path").textContent = capture ? routeLabel(path)
+    : coordinate(first.from).toUpperCase() + " → " + coordinate(first.to).toUpperCase();
+  $("hint-detail").textContent = details.join(" ");
+}
+
 function renderResult(reviewing) {
-  const finished = Boolean(game.winner);
+  const finished = isFinished(game);
   $("match-result").hidden = reviewing || !finished;
   $("restart").hidden = finished;
   $("review").hidden = finished;
+  const drawLabel = draws + (draws === 1 ? " draw" : " draws");
+  $("series-draws").hidden = !draws;
+  $("series-draws").textContent = drawLabel + " in this series";
   if (!finished || reviewing) return;
-  const games = wins[1] + wins[-1];
+  const games = wins[1] + wins[-1] + draws;
   const gamesLabel = games === 1 ? "1 game" : games + " games";
   const score = wins[1] + "–" + wins[-1];
-  $("series-score").textContent = "Series after " + gamesLabel + " · Emerald " + score + " " + playerName(-1);
+  $("series-score").textContent = "Series after " + gamesLabel + " · Emerald " + score + " " + playerName(-1) + (draws ? " · " + drawLabel : "");
 }
 
 function render() {
@@ -215,7 +260,7 @@ function render() {
   $("difficulty-setting").hidden = $("mode").value !== "bot";
   $("undo").disabled = reviewing || !undoHistory.length;
   renderResult(reviewing);
-  $("reset-series").hidden = !wins[1] && !wins[-1];
+  $("reset-series").hidden = !wins[1] && !wins[-1] && !draws;
   const waiting = botTurn();
   const moves = reviewing ? [] : legalMoves(game);
   const selectedMoves = waiting ? [] : moves.filter(move => move.from === selected);
@@ -223,8 +268,7 @@ function render() {
   board.dataset.forcedCapture = String(!waiting && moves[0]?.capture != null);
   renderCaptureRoutes(moves, waiting);
   $("moves-help").hidden = moveNumber === 0;
-  $("hint").hidden = $("mode").value === "local" || Boolean(game.winner);
-  $("hint").disabled = reviewing || waiting || !moves.length || Boolean(hint);
+  renderHint(moves, waiting, reviewing);
   const shownMove = position.lastMove;
   $("last-play").hidden = !shownMove;
   if (shownMove) {
@@ -241,7 +285,7 @@ function render() {
     const remaining = position.game.board.filter(piece => Math.sign(piece) === side);
     const kings = remaining.filter(piece => Math.abs(piece) === 2).length;
     const card = $(team + "-team");
-    card.classList.toggle("active", !reviewing && !game.winner && game.turn === side);
+    card.classList.toggle("active", !reviewing && !isFinished(game) && game.turn === side);
     card.classList.toggle("winner", !reviewing && game.winner === side);
     $(team + "-count").textContent = remaining.length + (remaining.length === 1 ? " piece" : " pieces") +
       (kings ? " · " + kings + (kings === 1 ? " king" : " kings") : "");
@@ -260,7 +304,7 @@ function render() {
     const victim = captureVictims.has(index);
     const action = destination ? capture ? ", capture destination" : ", legal destination"
       : selectable ? ", can move" : victim ? ", can be captured" : "";
-    const suggested = !reviewing && hint?.to === index;
+    const suggested = !reviewing && hint?.path[0].to === index;
     square.setAttribute("aria-label", coordinate(index) + description + action + (suggested ? ", suggested" : ""));
     square.setAttribute("aria-pressed", String(!reviewing && index === selected));
     square.setAttribute("aria-disabled", String(!destination && !selectable));
@@ -291,9 +335,10 @@ function makeMove(move, { restoring = false } = {}) {
   }
   game = play(game, move.from, move.to);
   if (game.winner) wins[game.winner]++;
+  if (game.draw) draws++;
   const crowned = Math.abs(game.board[move.to]) > Math.abs(previous.board[move.from]);
   lastMove = { ...move, side: previous.turn, crowned };
-  hint = null;
+  clearHint();
   const list = $("move-log");
   const notation = coordinate(move.from) + (move.capture === null ? "–" : "×") + coordinate(move.to) +
     (crowned ? " ♛" : "");
@@ -324,7 +369,7 @@ function makeMove(move, { restoring = false } = {}) {
 }
 
 function selectSquare(index) {
-  if (reviewIndex !== null || botTurn() || game.winner) return;
+  if (reviewIndex !== null || botTurn() || isFinished(game)) return;
   const moves = legalMoves(game);
   const move = moves.find(candidate => candidate.from === selected && candidate.to === index);
   if (move) {
@@ -334,7 +379,7 @@ function selectSquare(index) {
     scheduleBot();
     if (board.contains(document.activeElement)) cells[move.to].focus();
   } else if (moves.some(move => move.from === index)) {
-    hint = null;
+    clearHint();
     selected = selected === index && game.chain === null ? null : index;
     render();
   }
@@ -353,7 +398,7 @@ board.addEventListener("keydown", event => {
   if (index < 0 || clearRoutePreview(event)) return;
   if (event.key === "Escape" && reviewIndex === null && selected !== null && game.chain === null) {
     selected = null;
-    hint = null;
+    clearHint();
     render();
     event.preventDefault();
     return;
@@ -387,7 +432,7 @@ function restart() {
   undoHistory.length = 0;
   game = newGame();
   selected = null;
-  hint = null;
+  clearHint();
   lastMove = undefined;
   moveNumber = 0;
   positions.splice(0, positions.length, { game, lastMove, turn: 0, jumps: 0 });
@@ -403,10 +448,11 @@ $("undo").onclick = () => {
   if (!snapshot) return;
   clearTimeout(botTimer);
   if (game.winner) wins[game.winner]--;
+  if (game.draw) draws--;
   ({ game, lastMove, moveNumber } = snapshot);
   positions.length = snapshot.positionCount;
   selected = null;
-  hint = null;
+  clearHint();
   const log = $("move-log");
   while (log.children.length > moveNumber) log.lastElementChild.remove();
   $("moves-empty").hidden = moveNumber > 0;
@@ -477,7 +523,7 @@ function returnToGame() {
   stopReplay();
   reviewIndex = null;
   render();
-  (game.winner ? $("review-result") : cells[focusIndex])?.focus();
+  (isFinished(game) ? $("review-result") : cells[focusIndex])?.focus();
   scheduleBot();
 }
 $("review-live").onclick = returnToGame;
@@ -487,10 +533,19 @@ $("review-controls").addEventListener("keydown", event => {
   returnToGame();
 });
 $("hint").onclick = () => {
-  if (botTurn() || game.winner) return;
-  hint = botMove(game, "expert") ?? null;
+  if (botTurn() || isFinished(game)) return;
+  if (hint) {
+    clearHint();
+    render();
+    return;
+  }
+  hint = analyzeHint(game);
   if (!hint) return;
-  selected = hint.from;
+  const [first] = hint.path;
+  if (first.capture !== null) {
+    routePreview = { path: hint.path, label: routeLabel(hint.path), game };
+  }
+  selected = first.from;
   render();
   cells[selected].focus();
 };
@@ -512,13 +567,16 @@ function showSaveStatus(message) {
 
 function saveMatch() {
   try {
-    if (!moveNumber && !wins[1] && !wins[-1]) {
+    if (!moveNumber && !wins[1] && !wins[-1] && !draws) {
       localStorage.removeItem(matchKey);
       showSaveStatus("");
       return;
     }
     const moves = positions.slice(1).map(({ lastMove }) => [lastMove.from, lastMove.to]);
-    const raw = encodeMatch({ mode: $("mode").value, difficulty: $("difficulty").value, moves, wins });
+    const raw = encodeMatch({
+      mode: $("mode").value, difficulty: $("difficulty").value, moves, wins, draws,
+      repetition: game.repetitionHistory !== false,
+    });
     if (raw === null) {
       localStorage.removeItem(matchKey);
       showSaveStatus("This match is too long to save.");
@@ -539,11 +597,14 @@ function restoreMatch() {
     return;
   }
   if (!saved) return;
+  game = newGame({ repetition: saved.repetition });
+  positions[0].game = game;
   for (const move of saved.moves) makeMove(move, { restoring: true });
   const log = $("move-log");
   log.scrollTop = log.scrollHeight;
   wins[1] = saved.wins[1];
   wins[-1] = saved.wins[-1];
+  draws = saved.draws;
   selected = game.chain;
   showSaveStatus(saved.moves.length ? "Match restored from this device." : "Series score restored from this device.");
 }
@@ -581,6 +642,7 @@ $("rematch").onclick = () => {
 };
 function resetSeries() {
   wins[1] = wins[-1] = 0;
+  draws = 0;
   restart();
 }
 $("reset-series").onclick = resetSeries;

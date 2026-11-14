@@ -33,6 +33,7 @@ let reacting = false;
 let sendingChat = false;
 let recapOptionsKey = "";
 let replayStep = null;
+let replayTimer = null;
 let autoDealAt = null;
 let dealtBoard = [];
 let dealerSnapshot;
@@ -97,7 +98,10 @@ function updateTurnCue(active) {
   if (active === hadTurn) return;
   hadTurn = active;
   $("turn-announcement").textContent = active ? "Your turn at the poker table." : "";
-  if (active) playTurnSound();
+  if (active) {
+    pauseReplayPlayback();
+    playTurnSound();
+  }
 }
 
 function element(tag, className, content) {
@@ -350,13 +354,36 @@ function canReplayHand(hand) {
   return Boolean(hand.actions?.length && hand.actionBoardCounts?.length === hand.actions.length);
 }
 
+function pauseReplayPlayback() {
+  if (replayTimer === null) return;
+  clearInterval(replayTimer);
+  replayTimer = null;
+  $("replay-play").textContent = "Play replay";
+}
+
+function scheduleReplayPlayback() {
+  if (replayTimer !== null) clearInterval(replayTimer);
+  const speed = Number($("replay-speed").value) || 1;
+  replayTimer = setInterval(() => {
+    if (document.hidden) {
+      pauseReplayPlayback();
+      return;
+    }
+    replayStep++;
+    renderRecap();
+  }, 1500 / speed);
+}
+
+function seekReplayStep(step) {
+  pauseReplayPlayback();
+  replayStep = step;
+  renderRecap();
+}
+
 const replayStreetButtons = REPLAY_STREETS.map(({ label }) => {
   const button = element("button", "", label);
   button.type = "button";
-  button.addEventListener("click", () => {
-    replayStep = Number(button.dataset.step);
-    renderRecap();
-  });
+  button.addEventListener("click", () => seekReplayStep(Number(button.dataset.step)));
   return button;
 });
 $("replay-streets").append(...replayStreetButtons);
@@ -365,6 +392,7 @@ function renderRecap() {
   const hands = state?.recentHands ?? [];
   $("hand-recap").hidden = !hands.length;
   if (!hands.length) {
+    pauseReplayPlayback();
     recapOptionsKey = "";
     replayStep = null;
     return;
@@ -392,6 +420,8 @@ function renderRecap() {
   const actions = review.actions ?? [];
   const canReplay = canReplayHand(review);
   const replaying = canReplay && replayStep !== null;
+  const atReplayEnd = replaying && replayStep === actions.length - 1;
+  if (!replaying || atReplayEnd) pauseReplayPlayback();
   const revealed = replaying ? review.actionBoardCounts[replayStep] : review.board.length;
   $("replay-start").hidden = !canReplay || replaying;
   $("download-hand").hidden = replaying;
@@ -415,7 +445,10 @@ function renderRecap() {
       else button.removeAttribute("aria-current");
     }
     $("replay-prev").disabled = replayStep === 0;
-    $("replay-next").disabled = replayStep === actions.length - 1;
+    $("replay-next").disabled = atReplayEnd;
+    const play = $("replay-play");
+    play.disabled = actions.length <= 1;
+    play.textContent = replayTimer !== null ? "Pause replay" : atReplayEnd ? "Replay again" : "Play replay";
   }
   $("recap-omitted").hidden = !review.actionsOmitted;
   $("recap-omitted").textContent = review.actionsOmitted
@@ -676,6 +709,7 @@ function showConnection(message, warning = false) {
 }
 
 function startRecovery(message) {
+  pauseReplayPlayback();
   recovering = true;
   $("actions").inert = true;
   $("enter").disabled = true;
@@ -731,6 +765,7 @@ async function poll() {
 
 async function submit(path, input) {
   if (busy || recovering) return;
+  pauseReplayPlayback();
   submission += 1;
   busy = true;
   resetAutoDeal();
@@ -906,6 +941,7 @@ $("preset").addEventListener("change", render);
 $("review-last").onclick = () => {
   const latest = state?.recentHands?.at(-1);
   if (!latest) return;
+  pauseReplayPlayback();
   $("recap-select").value = latest.number;
   replayStep = null;
   if (state.practice) {
@@ -916,10 +952,12 @@ $("review-last").onclick = () => {
   $("recap-title").focus();
 };
 $("back-to-table").onclick = () => {
+  pauseReplayPlayback();
   const next = ["call", "deal", "review-last"].map($).find(button => button.checkVisibility());
   (next ?? $("actions")).focus();
 };
 function switchReviewedHand(hand, selection = hand.number) {
+  pauseReplayPlayback();
   const selector = $("recap-select");
   replayStep = replayStep !== null && canReplayHand(hand) ? 0 : null;
   selector.value = replayStep === null ? selection : hand.number;
@@ -948,11 +986,24 @@ $("replay-start").onclick = () => {
   renderRecap();
   $("replay-next").focus();
 };
-$("replay-prev").onclick = () => { replayStep--; renderRecap(); };
-$("replay-next").onclick = () => { replayStep++; renderRecap(); };
-$("replay-end").onclick = () => {
-  replayStep = null;
+$("replay-prev").onclick = () => seekReplayStep(replayStep - 1);
+$("replay-next").onclick = () => seekReplayStep(replayStep + 1);
+$("replay-play").onclick = () => {
+  if (replayTimer !== null) {
+    pauseReplayPlayback();
+    return;
+  }
+  const review = selectedHand(state?.recentHands ?? []);
+  if (!review || !canReplayHand(review) || replayStep === null || document.hidden) return;
+  if (replayStep === review.actions.length - 1) replayStep = 0;
+  scheduleReplayPlayback();
   renderRecap();
+};
+$("replay-speed").addEventListener("change", () => {
+  if (replayTimer !== null) scheduleReplayPlayback();
+});
+$("replay-end").onclick = () => {
+  seekReplayStep(null);
   $("replay-start").focus();
 };
 $("download-hand").onclick = () => {
@@ -982,6 +1033,9 @@ document.addEventListener("pointerdown", enableAudio);
 document.addEventListener("keydown", enableAudio);
 document.addEventListener("visibilitychange", updateClock);
 document.addEventListener("visibilitychange", resetAutoDeal);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pauseReplayPlayback();
+});
 reducedMotion.addEventListener("change", event => {
   if (event.matches) stopDealerChoreography();
 });
