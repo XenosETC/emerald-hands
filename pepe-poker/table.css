@@ -2,11 +2,11 @@
 
 :root {
   color-scheme: dark;
-  --ink: #090f0c;
-  --panel: #111b15;
-  --edge: #73614170;
-  --gold: #e9c781;
-  --cream: #f7ebd0;
+  --ink: #080e0b;
+  --panel: #101a15;
+  --edge: #a38a5a5c;
+  --gold: #e3c78d;
+  --cream: #f5ecd8;
   --muted: #b7c2b7;
   font-family: "DM Sans", system-ui, sans-serif;
   color: var(--cream);
@@ -27,7 +27,7 @@
 body {
   min-height: 100vh;
   margin: 0;
-  background: radial-gradient(ellipse at 38% 17%, #1e3123, transparent 57%), var(--ink);
+  background: radial-gradient(ellipse at 39% 15%, #202f25, transparent 52%), var(--ink);
 }
 header {
   display: grid;
@@ -37,7 +37,7 @@ header {
   min-height: 86px;
   padding: 0 clamp(16px, 4vw, 64px);
   border-bottom: 1px solid var(--edge);
-  background: #0d1610d9;
+  background: linear-gradient(100deg, #0d1510, #18231b 50%, #0d1510);
 }
 header button { justify-self: end; }
 #exit-practice { justify-self: end; }
@@ -73,6 +73,18 @@ h1 {
   white-space: nowrap;
 }
 h1 em { color: var(--gold); }
+.skip-link {
+  position: fixed;
+  z-index: 10;
+  inset: 8px auto auto 8px;
+  padding: 12px;
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--gold);
+  font-weight: 700;
+  transform: translateY(-150%);
+}
+.skip-link:focus { transform: none; }
 
 main {
   display: grid;
@@ -86,13 +98,12 @@ main {
 .table-meta {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
   align-items: center;
   gap: 4px 10px;
   padding: 8px 12px;
   border: 1px solid var(--edge);
   border-radius: 8px;
-  background: #101a14;
+  background: linear-gradient(90deg, #18261e, #111a15 70%);
 }
 .table {
   position: relative;
@@ -100,7 +111,8 @@ main {
   place-items: center;
   isolation: isolate;
   min-height: 560px;
-  margin-bottom: 36px;
+  margin-top: 23px;
+  margin-bottom: 66px;
 }
 .table::before, .table::after {
   position: absolute;
@@ -113,10 +125,10 @@ main {
   border: 2px solid #b99252;
   border-radius: 50% / 48%;
   background:
-    linear-gradient(177deg, #75563d62, transparent 22%, #0c080798 88%),
-    repeating-linear-gradient(4deg, #33221a 0 3px, #422b20 4px 8px, #4e3527 9px 10px, #36251e 11px 16px);
-  box-shadow: 0 2px 0 #20170f, 0 9px 0 #21180f, 0 11px 0 #785936,
-    inset 0 0 0 4px #1d170f, inset 0 0 0 6px #795a38, 0 30px 56px #000b;
+    linear-gradient(176deg, #7359485e, transparent 32%, #0a0706b0 90%),
+    repeating-linear-gradient(5deg, #2f221d 0 4px, #3d2a23 5px 10px, #493328 11px 12px, #2f221d 13px 18px);
+  box-shadow: 0 2px 0 #1a120e, 0 9px 0 #201611, 0 11px 0 #846944,
+    inset 0 0 0 4px #191410, inset 0 0 0 6px #a18350, 0 30px 56px #000b;
 }
 .table::after {
   z-index: -1;
@@ -126,13 +138,57 @@ main {
   background:
     repeating-linear-gradient(43deg, #e0f1a805 0 1px, transparent 1px 3px),
     repeating-linear-gradient(137deg, #071d130d 0 1px, transparent 1px 3px),
-    radial-gradient(ellipse at 50% 43%, #246147 0%, #17452f 57%, #0c2c21 100%);
+    radial-gradient(ellipse at 50% 37%, #285d48 0%, #184431 55%, #0a2e24 100%);
   box-shadow: 0 0 0 3px #261b11, inset 0 0 0 6px #103725,
     inset 0 0 0 7px #c2a36569, inset 0 0 42px #091c14d9;
 }
 .felt {
   width: min(90%, 490px);
   text-align: center;
+}
+.house-dealer {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  margin: 0 auto 9px;
+  padding: 5px 13px 5px 6px;
+  border: 1px solid #ceb77d75;
+  border-radius: 40px;
+  background: linear-gradient(130deg, #142e23, #13261d);
+  box-shadow: 0 5px 14px #061c135e, inset 0 1px #e6cc9133;
+  text-align: left;
+}
+.house-dealer .house-dealer-portrait {
+  flex: none;
+  width: 45px;
+  height: 45px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid #bda46d;
+  border-radius: 50%;
+  background: #13261d;
+}
+.house-dealer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.3);
+}
+.house-dealer strong {
+  display: block;
+  color: var(--cream);
+  font: 1.45rem / 1 "Instrument Serif", Georgia, serif;
+}
+.house-dealer span {
+  display: block;
+  margin-top: 3px;
+  color: var(--gold);
+  font-size: .57rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
 }
 .variant {
   margin: 0;
@@ -204,7 +260,7 @@ main {
   box-shadow: 0 5px 16px #0009, inset 0 1px #f8dca512;
   text-align: center;
 }
-.seat:nth-child(1) { left: 50%; top: calc(89% - 8px); }
+.seat:nth-child(1) { left: 50%; top: 91%; }
 .seat:nth-child(2) { left: 15%; top: 74%; }
 .seat:nth-child(3) { left: 15%; top: 26%; }
 .seat:nth-child(4) { left: 50%; top: 11%; }
@@ -243,6 +299,18 @@ main {
   border-color: var(--gold);
   background: linear-gradient(160deg, #2a4430, #13251b 78%);
   box-shadow: 0 0 0 2px #e9c78147, 0 0 24px #edcc7342, 0 5px 16px #0009;
+}
+.seat-turn-marker {
+  position: absolute;
+  inset: -8px auto auto -3px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  color: #24180c;
+  background: var(--gold);
+  font-size: .56rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
 }
 .seat.your-seat .seat-name { color: #fff2d3; }
 .seat.your-seat .card { width: 50px; }
@@ -345,7 +413,7 @@ main {
   font-variant-numeric: tabular-nums;
 }
 .blinds {
-  margin: 7px 0 0;
+  margin: 0;
   color: #d1e0cc;
   font-size: .73rem;
   font-variant-numeric: tabular-nums;
@@ -385,6 +453,7 @@ main {
   border-color: #c49e61;
   background: linear-gradient(140deg, #273426, #111d15 70%);
 }
+#actions:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 #waiting {
   color: var(--cream);
   font-weight: 700;
@@ -424,12 +493,33 @@ main {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: end;
 }
+#raise-sizing, #practice-read {
+  min-width: 0;
+  border: 1px solid #77806455;
+  border-radius: 8px;
+  background: #101a14;
+}
+#raise-sizing summary, #practice-read summary {
+  padding: 9px 10px;
+  color: var(--muted);
+  font-size: .82rem;
+  cursor: pointer;
+}
+#raise-sizing summary:focus-visible, #practice-read summary:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 7px;
+}
+#practice-read { grid-column: 1 / -1; }
+#practice-read-value { margin-inline-start: 5px; color: var(--gold); font-weight: 700; }
+#practice-read p { margin: 0; padding: 1px 10px 10px; line-height: 1.45; }
 #raise-controls, .decision-buttons {
   display: grid;
   align-items: center;
   gap: 6px;
 }
-#raise-controls { grid-template-columns: auto minmax(0, 1fr); }
+#raise-controls { grid-template-columns: auto minmax(0, 1fr); padding: 0 8px 8px; }
+#betting:not(:has(#raise-sizing:not([hidden]))) .decision-buttons { grid-column: 1 / -1; }
 .decision-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .decision-buttons:has(#raise:not([hidden])) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .decision-buttons button { height: 100%; min-height: 44px; padding-inline: 5px; line-height: 1.15; }
@@ -444,6 +534,7 @@ main {
   color: var(--muted);
   font-size: .76rem;
   margin: 0;
+  margin-inline-start: auto;
   overflow-wrap: anywhere;
 }
 #preset-label { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px; }
@@ -770,7 +861,6 @@ h2 { color: var(--gold); font-size: 1.75rem; }
   .dealer { top: 3px; right: 3px; }
   .pot { min-height: 28px; margin-top: 7px; }
   .pot .chip { width: 19px; height: 19px; }
-  .blinds { margin: 4px 0 0; }
   #amount { font-size: 1rem; }
   #actions button, #actions input:not([type="checkbox"]) { min-height: 44px; }
 }
@@ -786,7 +876,21 @@ h2 { color: var(--gold); font-size: 1.75rem; }
   header button { padding-inline: 6px; }
   main { padding: 9px 9px 20px; }
   .variant { font-size: .62rem; }
+  .blinds { margin-inline-start: auto; font-size: .69rem; }
+  #room-status { flex-basis: 100%; }
   .controls { margin-top: 5px; }
+  #actions { padding: 8px; gap: 7px; }
+  #raise-sizing summary, #practice-read summary { min-height: 44px; padding-block: 12px; }
+  .table { grid-template-rows: auto minmax(128px, auto) auto; }
+  .felt { padding: 4px; }
+  .street-track { margin-bottom: 5px; }
+  .street-track li { padding-block: 3px; }
+  .house-dealer { gap: 6px; margin-bottom: 6px; padding: 3px 10px 3px 4px; }
+  .house-dealer .house-dealer-portrait { width: 31px; height: 31px; }
+  .house-dealer strong { font-size: 1.15rem; }
+  .house-dealer span { margin-top: 2px; font-size: .52rem; }
+  #board .card { width: clamp(35px, 10vw, 48px); }
+  .seat:not(.your-seat) .card { width: 23px; }
   .avatar-option { flex-basis: 62px; min-width: 54px; }
   .avatar-option img { width: 34px; height: 34px; }
 }

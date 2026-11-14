@@ -86,7 +86,9 @@ h1 em { font-weight: 600; color: #d2efa7; font-style: normal; }
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at center, #236344, #0a281c 72%, #071a13);
+  background:
+    radial-gradient(ellipse 42% 49% at center, transparent 97%, #c5a06866 100%, transparent 102%),
+    radial-gradient(ellipse 46% 55% at center, #285941, #0d2b22 95%, #090f0d 100%);
 }
 .game-card--pepe-checkers .game-art {
   display: flex;
@@ -114,25 +116,27 @@ h1 em { font-weight: 600; color: #d2efa7; font-style: normal; }
 .chess-preview-piece img { width: 100%; border: 2px solid #ba975c; border-radius: 50%; background: #152e22; }
 .chess-preview-piece span { position: absolute; bottom: -13px; right: -6px; color: #f0cb83; font-size: 3rem; text-shadow: 0 3px 5px #000; }
 .poker-cover-card {
-  display: flex;
-  flex-direction: column;
-  width: 80px;
-  height: 114px;
-  padding: 8px;
+  width: min(23%, 69px);
+  aspect-ratio: 5 / 7;
+  object-fit: cover;
   border: 1px solid #d3b677;
-  border-radius: 8px;
-  background: #fff0ce;
-  color: #a53935;
-  font: 700 16px/1 Georgia, serif;
+  border-radius: 5px;
   box-shadow: 0 8px 18px #04120ca8;
-  transform: rotate(-13deg);
+  transform: translate(8px, 13px) rotate(-15deg);
 }
-.poker-cover-card + .poker-cover-card {
-  margin-left: -16px;
-  color: #18291f;
-  transform: translateY(6px) rotate(12deg);
+.poker-cover-card:last-child {
+  transform: translate(-8px, 13px) rotate(15deg);
 }
-.poker-cover-card img { display: block; width: 100%; height: 64px; margin-top: 6px; object-fit: contain; }
+.poker-cover-dealer {
+  z-index: 1;
+  width: min(34%, 100px);
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 2px solid #d3b677;
+  border-radius: 50%;
+  background: #142920;
+  box-shadow: 0 0 0 4px #18241e, 0 0 0 5px #997f55, 0 8px 24px #0008;
+}
 .game-card--hands .game-art {
   background-image: url("assets/og-vault.png");
 }

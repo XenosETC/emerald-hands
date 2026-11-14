@@ -119,7 +119,7 @@ export async function pokerRequest(request, response, pathname) {
       const token = addPlayer(room, input.name, input.avatarId);
       if (room.practice) {
         const botName = room.players[0].name.toLowerCase() === "kekbot" ? "River Pepe" : "Kekbot";
-        addPlayer(room, botName, "royal", true);
+        addPlayer(room, botName, "mecha", true);
       }
       rooms.set(room.id, room);
       return reply(response, 201, { token, state: state(room, 0) });

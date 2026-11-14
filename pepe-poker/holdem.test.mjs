@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { act, evaluate, evaluateBest, options, startHand } from "./holdem.mjs";
-import { potRaiseTo } from "./bet-sizing.mjs";
+import { headsUpCallEquity, potRaiseTo } from "./bet-sizing.mjs";
 
 test("best five includes a playing kicker and prefers the board when scores tie", () => {
   const board = ["As", "Ah", "9c", "7s", "3d"];
@@ -19,6 +19,11 @@ test("pot shortcuts account for the call and clamp to legal raise totals", () =>
   assert.equal(potRaiseTo(25, 0, allowed, .5), 60);
   assert.equal(potRaiseTo(400, 20, allowed, 1), 300);
   assert.equal(potRaiseTo(80, 0, { call: 0, min: 20, max: 300 }, .5), 40);
+});
+
+test("heads-up call equity excludes uncalled chips from a short-stack all-in", () => {
+  assert.equal(headsUpCallEquity(30, 10, 20, 10), .25);
+  assert.equal(headsUpCallEquity(500, 0, 400, 100), 1 / 3);
 });
 
 function table(...stacks) {

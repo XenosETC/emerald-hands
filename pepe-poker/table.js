@@ -1,6 +1,6 @@
 import { AVATARS, DEFAULT_AVATAR_ID } from "./avatar-catalog.mjs?v=1";
 import { DEFAULT_TABLE, TABLE_PRESETS, TURN_SECONDS, TIME_BANK_SECONDS } from "./table-settings.mjs?v=3";
-import { potRaiseTo } from "./bet-sizing.mjs";
+import { headsUpCallEquity, potRaiseTo } from "./bet-sizing.mjs?v=2";
 import { formatHandExport, potBreakdownLines } from "./hand-export.mjs?v=2";
 import { REACTIONS, REACTION_COOLDOWN } from "./reaction-catalog.mjs?v=1";
 
@@ -12,6 +12,7 @@ const profileKey = "pepe-poker:table-profile";
 const rankNames = { T: "10", J: "Jack", Q: "Queen", K: "King", A: "Ace" };
 const suitNames = { s: "spades", h: "hearts", d: "diamonds", c: "clubs" };
 const format = new Intl.NumberFormat();
+const percent = new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 1 });
 const reactionsById = new Map(REACTIONS.map(reaction => [reaction.id, reaction]));
 let room = new URL(location.href).searchParams.get("room");
 let token;
@@ -162,6 +163,7 @@ function seat(player, index) {
   node.classList.toggle("your-seat", index === state.index);
   node.classList.toggle("winner", state.payouts?.some(payout => payout.seat === index) ?? false);
   node.classList.toggle("active", index === state.turn);
+  if (index === state.turn) node.append(element("span", "seat-turn-marker", "To act"));
   node.classList.toggle("folded", player.folded && state.turn !== -1 && player.cards.length > 0);
   const stack = element("div", "stack");
   stack.append(chip(), " " + format.format(player.stack));
@@ -193,7 +195,7 @@ function seat(player, index) {
   }
   if (index === state.button) {
     const dealer = element("span", "dealer", "D");
-    dealer.title = "Dealer";
+    dealer.title = "Dealer button";
     node.append(dealer);
   }
   if (player.cards.length) {
@@ -336,6 +338,7 @@ function render() {
   renderScoreboard();
   $("join").hidden = seated;
   $("actions").hidden = !seated;
+  $("jump-to-actions").hidden = !seated;
   $("auto-deal-label").hidden = !state?.practice;
   $("reaction-tray").hidden = !seated;
   $("invite").hidden = !room || missingRoom || Boolean(state?.practice);
@@ -387,10 +390,12 @@ function render() {
   const betweenHands = state.turn === -1;
   const ready = state.players.filter(player => !player.sittingOut && (player.stack > 0 || player.bot)).length >= 2;
   $("deal").hidden = !(betweenHands && ready && state.index === 0);
+  $("review-last").hidden = !(betweenHands && state.recentHands?.length);
+  $("back-to-table").hidden = !state.recentHands?.length;
   $("rebuy").hidden = !(betweenHands && state.players[state.index].stack === 0);
   const allowed = state.options;
   $("betting").hidden = !allowed;
-  $("raise").hidden = $("raise-controls").hidden = !allowed?.canRaise;
+  $("raise").hidden = $("raise-sizing").hidden = !allowed?.canRaise;
   const player = state.players[state.index];
   $("presence").hidden = Boolean(state.practice);
   $("presence").textContent = player.sittingOut ? "Return to play" : betweenHands ? "Sit out" : "Sit out next hand";
@@ -402,6 +407,21 @@ function render() {
     if (!amount.value || Number(amount.value) < allowed.min || Number(amount.value) > allowed.max) amount.value = allowed.min;
     for (const preset of ["min", "half", "pot"]) $("raise-" + preset).hidden = allowed.min === allowed.max;
   } else $("amount").value = "";
+  const decision = $("practice-read");
+  decision.hidden = !state.practice || !allowed;
+  if (!decision.hidden) {
+    if (allowed.call) {
+      const opponent = state.players.find(other => other.bot);
+      const target = percent.format(headsUpCallEquity(state.pot, player.bet, opponent.bet, allowed.call));
+      $("practice-read-value").textContent = target + " to break even";
+      $("practice-read-explanation").textContent =
+        "If there is no further betting, your share of the contestable pot needs to average " + target +
+        " to cover the " + format.format(allowed.call) + "-chip call.";
+    } else {
+      $("practice-read-value").textContent = "Free check";
+      $("practice-read-explanation").textContent = "Checking passes the action without committing more chips.";
+    }
+  }
   updateRaiseLabel();
   updateClock();
 }
@@ -672,6 +692,22 @@ for (const table of TABLE_PRESETS) {
   $("preset").append(choice);
 }
 $("preset").addEventListener("change", render);
+$("review-last").onclick = () => {
+  const latest = state?.recentHands?.at(-1);
+  if (!latest) return;
+  $("recap-select").value = latest.number;
+  replayStep = null;
+  if (state.practice) {
+    $("auto-deal").checked = false;
+    resetAutoDeal();
+  }
+  renderRecap();
+  $("recap-title").focus();
+};
+$("back-to-table").onclick = () => {
+  const next = ["call", "deal", "review-last"].map($).find(button => button.checkVisibility());
+  (next ?? $("actions")).focus();
+};
 $("recap-select").addEventListener("change", () => {
   replayStep = null;
   renderRecap();
@@ -719,6 +755,7 @@ document.addEventListener("keydown", enableAudio);
 document.addEventListener("visibilitychange", updateClock);
 document.addEventListener("visibilitychange", resetAutoDeal);
 $("auto-deal").addEventListener("change", resetAutoDeal);
+$("raise-sizing").open = matchMedia("(min-width: 651px)").matches;
 buildAvatarPicker();
 render();
 void poll();

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111d17">
   <title>Pepe Checkers · Emerald Arcade</title>
-  <link rel="stylesheet" href="checkers.css?v=board-2">
+  <link rel="stylesheet" href="checkers.css?v=board-4">
 </head>
 <body>
   <header>
@@ -35,6 +35,19 @@
         <div id="board" aria-label="Checkers board" aria-describedby="board-guide" role="group"></div>
         <div class="board-files" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
       </div>
+      <div class="board-actions" role="group" aria-label="Board controls">
+        <button id="undo" type="button" disabled>Undo turn</button>
+        <button id="hint" type="button">Show hint</button>
+        <button id="flip" type="button" aria-pressed="false">Flip board</button>
+        <button id="review" type="button" disabled>Review</button>
+        <p id="last-play" hidden></p>
+      </div>
+      <div id="review-controls" class="review-controls" role="group" aria-label="Review positions" hidden>
+        <button id="review-prev" type="button" aria-label="Previous position">←</button>
+        <span id="review-position"></span>
+        <button id="review-next" type="button" aria-label="Next position">→</button>
+        <button id="review-live" type="button">Return to game</button>
+      </div>
     </section>
     <aside aria-label="Match controls and history">
       <section class="match-controls" aria-labelledby="match-title">
@@ -53,7 +66,6 @@
         </div>
         <div class="match-actions">
           <button id="restart" type="button">Restart game</button>
-          <button id="undo" type="button" disabled>Undo turn</button>
           <button id="reset-series" type="button" hidden>Reset series</button>
         </div>
       </section>
@@ -71,6 +83,6 @@
   </main>
   <script src="../arcade-library.js?v=library-2-checkers"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
-  <script type="module" src="checkers.js?v=board-2"></script>
+  <script type="module" src="checkers.js?v=board-4"></script>
 </body>
 </html>
