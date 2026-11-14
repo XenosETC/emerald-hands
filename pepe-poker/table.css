@@ -209,30 +209,36 @@ main {
 .dealer-effect i:nth-child(1) { --spread: -26px; --tilt: -18deg; }
 .dealer-effect i:nth-child(2) { --spread: 0px; --tilt: 1deg; }
 .dealer-effect i:nth-child(3) { --spread: 26px; --tilt: 18deg; }
-.dealer-effect--deal i {
+.dealer-effect--deal i, .dealer-flight-piece--card {
   height: 16px;
   border: 1px solid var(--gold);
   border-radius: 2px;
   background: repeating-linear-gradient(45deg, #253a2c 0 2px, #37533e 2px 3px);
-  animation: dealer-card-fan 500ms ease-out both;
 }
-.dealer-effect--payout i {
+.dealer-effect--deal i { animation: dealer-card-fan 500ms ease-out both; }
+#dealer-flight {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.dealer-flight-piece {
+  position: absolute;
+  width: 15px;
+  opacity: 0;
+}
+.dealer-flight-piece--chip {
   aspect-ratio: 1;
   border: 2px dashed #f8dfa1;
   border-radius: 50%;
   background: #b58948;
   box-shadow: 0 1px 5px #d5ac5b99;
-  animation: dealer-chip-sweep 500ms ease-out both;
 }
 @keyframes dealer-card-fan {
   from { opacity: 0; transform: translate(-8px, -10px) scale(.55); }
   33% { opacity: 1; transform: translate(var(--spread), 9px) rotate(var(--tilt)); }
   to { opacity: 0; transform: translate(var(--spread), 19px) rotate(var(--tilt)) scale(.82); }
-}
-@keyframes dealer-chip-sweep {
-  from { opacity: 0; transform: translateY(0) scale(.5); }
-  32% { opacity: 1; transform: translate(var(--spread), -10px); }
-  to { opacity: 0; transform: translate(var(--spread), 14px) scale(.9); }
 }
 .variant {
   margin: 0;
@@ -952,6 +958,8 @@ h2 { color: var(--gold); font-size: 1.75rem; }
   #turn-indicator { gap: 6px; }
   #time-bank { padding-inline: 7px; font-size: .76rem; }
   #turn-clock { width: 32px; }
+  .dealer-flight-piece { width: 12px; }
+  .dealer-flight-piece--card { height: 14px; }
 }
 @media (max-width: 380px) {
   #raise-controls { grid-template-columns: minmax(0, 1fr); }

@@ -18,6 +18,7 @@ const positions = [{ game, lastMove, turn: 0, jumps: 0 }];
 let reviewIndex = null;
 let replayTimer = null;
 const replayInterval = 750;
+const replaySpeed = $("review-speed");
 const wins = { 1: 0, "-1": 0 };
 const coordinate = index => "abcdefgh"[index % 8] + (8 - Math.floor(index / 8));
 const cells = Array.from({ length: 64 }, (_, index) => {
@@ -321,8 +322,13 @@ function stopReplay() {
 function advanceReplay() {
   reviewIndex++;
   if (reviewIndex === positions.length - 1) stopReplay();
-  else replayTimer = setTimeout(advanceReplay, replayInterval);
+  else queueReplayStep();
   render();
+}
+
+function queueReplayStep() {
+  clearTimeout(replayTimer);
+  replayTimer = setTimeout(advanceReplay, replayInterval / Number(replaySpeed.value));
 }
 
 $("review").onclick = () => showPosition(positions.length - 1, true);
@@ -340,10 +346,13 @@ $("review-play").onclick = () => {
   if (replayTimer !== null) stopReplay();
   else {
     if (reviewIndex === positions.length - 1) reviewIndex = 0;
-    replayTimer = setTimeout(advanceReplay, replayInterval);
+    queueReplayStep();
   }
   render();
 };
+replaySpeed.addEventListener("change", () => {
+  if (replayTimer !== null) queueReplayStep();
+});
 document.addEventListener("visibilitychange", () => {
   if (document.hidden && replayTimer !== null) {
     stopReplay();

@@ -176,14 +176,42 @@ function card(value) {
 function stopDealerChoreography() {
   dealerAnimation?.cancel();
   dealerEffect?.remove();
+  $("dealer-flight").replaceChildren();
+}
+
+function animateDealerFlight(origin, targets, kind) {
+  if (reducedMotion.matches || !targets.length) return;
+  const layer = $("dealer-flight");
+  const box = layer.getBoundingClientRect();
+  const source = origin.getBoundingClientRect();
+  const x = source.left + source.width / 2 - box.left;
+  const y = source.top + source.height / 2 - box.top;
+  const flights = targets.map(target => {
+    const bounds = target.getBoundingClientRect();
+    return { dx: bounds.left + bounds.width / 2 - box.left - x, dy: bounds.top + bounds.height / 2 - box.top - y };
+  });
+
+  for (const [index, { dx, dy }] of flights.entries()) {
+    const piece = element("i", "dealer-flight-piece dealer-flight-piece--" + kind);
+    piece.style.left = x + "px";
+    piece.style.top = y + "px";
+    layer.append(piece);
+    const peak = Math.min(24, Math.abs(dx) * .12 + 10);
+    const animation = piece.animate([
+      { transform: "translate(-50%, -50%) scale(.64)", opacity: 0 },
+      { transform: `translate(calc(-50% + ${dx * .46}px), calc(-50% + ${dy * .46 - peak}px)) scale(1)`, opacity: .92, offset: .46 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.8)`, opacity: 0 }
+    ], { duration: kind === "chip" ? 490 : 340, delay: index * 45, easing: "ease-out" });
+    animation.addEventListener("finish", () => piece.remove(), { once: true });
+  }
 }
 
 function playDealerChoreography(cue) {
   const dealer = $("house-dealer");
   dealerAnimation = dealer.animate(dealerChoreography[cue], { duration: cue === "reveal" ? 320 : 520, easing: "ease-out" });
-  if (cue === "reveal") return;
+  if (cue !== "deal") return;
 
-  const effect = element("span", "dealer-effect dealer-effect--" + cue);
+  const effect = element("span", "dealer-effect dealer-effect--deal");
   effect.setAttribute("aria-hidden", "true");
   for (let index = 0; index < 3; index++) effect.append(element("i", ""));
   dealer.append(effect);
@@ -223,6 +251,8 @@ function renderDealer() {
   const cue = awarded ? "payout" : revealed ? "reveal" : newHand ? "deal" : null;
   if (!sameRoom || cue) stopDealerChoreography();
   if (cue && !reducedMotion.matches) playDealerChoreography(cue);
+  if (revealed) animateDealerFlight($("house-dealer"), Array.from(boardElement.children).slice(revealFrom, board.length), "card");
+  if (awarded) animateDealerFlight($("pot"), Array.from($("seats").querySelectorAll(".seat.winner .stack")), "chip");
   dealerSnapshot = { roomId, hand, settled };
 }
 
@@ -438,7 +468,6 @@ function render() {
     const index = state?.practice ? (offset === 3 ? 1 : offset === 0 ? 0 : -1) : (first + offset) % 6;
     return seat(state?.players[index], index);
   }));
-  renderDealer();
   const awarded = state?.payouts?.reduce((total, payout) => total + payout.amount, 0) || 0;
   const pot = awarded || state?.pot || 0;
   const pile = element("span", "chip-pile");
@@ -457,6 +486,7 @@ function render() {
   }
   $("street").hidden = !state?.result;
   if ($("street").textContent !== (state?.result ?? "")) $("street").textContent = state?.result ?? "";
+  renderDealer();
   $("history").replaceChildren(...(state?.history.length ? [...state.history].reverse() : ["Hands will appear here."])
     .map(line => element("li", "", line)));
   if (!seated) {

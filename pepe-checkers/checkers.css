@@ -235,7 +235,7 @@ aside h2 { margin: 0; color: var(--gold); font: 400 1.35rem Georgia, serif; }
 aside p { margin: 6px 0 0; color: var(--muted); font-size: .81rem; line-height: 1.5; }
 .match-controls, .match-settings, .match-actions { display: grid; gap: 8px; }
 .match-settings label { display: grid; gap: 4px; color: var(--muted); font-size: .78rem; }
-aside button, aside select, .board-actions button, .review-controls button {
+aside button, aside select, .board-actions button, .review-controls button, #review-speed {
   min-width: 0;
   min-height: 44px;
   padding: 7px 9px;
@@ -266,9 +266,16 @@ aside button:not(:disabled):hover, aside select:hover, .board-actions button:not
 }
 .review-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) max-content minmax(0, 1fr);
   grid-column: 1 / -1;
   gap: 6px;
+}
+#review-speed {
+  padding-inline: 7px;
+  border-color: #7e6944;
+  background: #3c3224;
+  color: var(--gold);
+  cursor: pointer;
 }
 #review-play { border-color: #bc975b; background: #4a3b29; color: #ffe4ad; }
 .review-timeline { display: grid; justify-items: stretch; min-width: 0; }
