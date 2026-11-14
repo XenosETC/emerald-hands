@@ -341,3 +341,58 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
   .team .team-wins { grid-area: wins; padding: 0; background: transparent; }
   .team span { font-size: .69rem; }
 }
+
+/* Keep tactical markers legible over the portraits and board finish. */
+#board[data-forced-capture="true"] .dark.selectable::before {
+  z-index: 1;
+  background: var(--gold);
+  box-shadow: 0 0 0 1px #382511, 0 0 8px #f0ce9160;
+}
+.dark.capture-victim .piece {
+  outline: 2px dashed #ffc4b2;
+  outline-offset: 2px;
+}
+
+.board-key {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-block: 11px 4px;
+  color: var(--muted);
+  font-size: .72rem;
+}
+.board-key span { display: inline-flex; align-items: center; gap: 5px; }
+.board-key i { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+.board-key span:nth-child(2) i { background: transparent; border: 2px solid var(--gold); }
+.board-key span:nth-child(3) i { border-radius: 2px; background: transparent; border: 1px solid var(--gold); }
+
+.capture-panel {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid #866b43;
+  border-radius: 9px;
+  background: linear-gradient(140deg, #392e20, #22271c);
+}
+.capture-panel h2 { margin: 0; color: var(--gold); font: 400 1.35rem Georgia, serif; }
+.capture-panel p { margin: 6px 0 0; color: var(--muted); font-size: .81rem; line-height: 1.5; }
+#capture-routes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 6px;
+  max-height: 10rem;
+  margin: 9px 0 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+#capture-routes li {
+  display: grid;
+  gap: 4px;
+  padding: 7px 8px;
+  border-left: 2px solid #c49b61;
+  border-radius: 0 5px 5px 0;
+  background: #151b16;
+}
+#capture-routes strong { color: var(--gold); font-size: .76rem; overflow-wrap: anywhere; }
+#capture-routes span, #moves-help { color: var(--muted); font-size: .72rem; }

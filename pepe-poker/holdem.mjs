@@ -138,6 +138,35 @@ export function startHand(room) {
   advance(room, big);
 }
 
+function contributionLayers(players) {
+  const layers = [];
+  const levels = [...new Set(players.map(player => player.total))].sort((a, b) => a - b);
+  let previous = 0;
+  for (const level of levels) {
+    const contributors = players.filter(player => player.total >= level);
+    const amount = (level - previous) * contributors.length;
+    if (amount) layers.push({ amount, contributors });
+    previous = level;
+  }
+  return layers;
+}
+
+// These tiers use chips committed so far. A later call or fold can change them.
+export function livePotBreakdown(players) {
+  const matched = new Map();
+  let unmatched = 0;
+  for (const { amount, contributors } of contributionLayers(players)) {
+    if (contributors.length === 1) {
+      unmatched += amount;
+      continue;
+    }
+    const eligible = contributors.filter(player => !player.folded);
+    const key = eligible.map(player => players.indexOf(player)).join(",");
+    matched.set(key, (matched.get(key) ?? 0) + amount);
+  }
+  return { matched: [...matched.values()], unmatched };
+}
+
 function settle(room, live) {
   room.showdown = live.length > 1;
   room.street = room.showdown ? "Showdown" : "Hand complete";
@@ -146,20 +175,14 @@ function settle(room, live) {
   const payouts = new Map();
   const pots = new Map();
   const returned = [];
-  let previous = 0;
-  const levels = [...new Set(room.players.map(player => player.total))].sort((a, b) => a - b);
-  for (const level of levels) {
-    const contributors = room.players.filter(player => player.total >= level);
-    const pot = (level - previous) * contributors.length;
-    previous = level;
-    if (!pot) continue;
+  for (const { amount: pot, contributors } of contributionLayers(room.players)) {
     if (contributors.length === 1) {
       contributors[0].stack += pot;
       returned.push({ name: contributors[0].name, amount: pot });
       logHand(room, contributors[0].name + " gets " + pot + " uncalled chips back.");
       continue;
     }
-    const eligible = live.length === 1 ? live : live.filter(player => player.total >= level);
+    const eligible = live.length === 1 ? live : contributors.filter(player => !player.folded);
     const key = eligible.map(player => room.players.indexOf(player)).join(",");
     if (!pots.has(key)) pots.set(key, { amount: 0, awards: new Map() });
     const breakdown = pots.get(key);

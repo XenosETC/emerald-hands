@@ -1,4 +1,4 @@
-import { botMove, legalMoves, newGame, play } from "./engine.mjs?v=difficulty-1";
+import { botMove, captureRoutes, legalMoves, newGame, play } from "./engine.mjs?v=routes-1";
 
 const $ = id => document.getElementById(id);
 const pieces = { 1: "Emerald", "-1": "Crimson" };
@@ -74,7 +74,7 @@ function renderStatus(moves, waiting, position) {
     state = "capture";
   } else if (capture) {
     title = activePlayer + " must capture";
-    guide = selected === null ? "Select a highlighted piece to jump." : "Choose a capture ring to jump.";
+    guide = selected === null ? "Only pieces marked in gold can move." : "Choose a capture ring. Red outlines pieces you can jump.";
     state = "capture";
   } else if (selected !== null) {
     guide = "Choose a marked destination for " + coordinate(selected).toUpperCase() + ".";
@@ -88,6 +88,27 @@ function renderStatus(moves, waiting, position) {
   $("status").dataset.state = state;
   if ($("turn-title").textContent !== title) $("turn-title").textContent = title;
   if ($("turn-guide").textContent !== guide) $("turn-guide").textContent = guide;
+}
+
+function renderCaptureRoutes(moves, waiting) {
+  const panel = $("capture-panel");
+  const forced = !waiting && moves[0]?.capture != null;
+  panel.hidden = !forced;
+  if (!forced) return;
+
+  const routes = captureRoutes(game).filter(route => selected === null || route.path[0].from === selected);
+  $("capture-description").textContent = game.chain !== null
+    ? "Finish the turn with the same piece."
+    : "Any legal route is allowed. A longer route is optional.";
+  $("capture-routes").replaceChildren(...routes.map(({ path, crowns }) => {
+    const route = document.createElement("li");
+    const notation = document.createElement("strong");
+    notation.textContent = [path[0].from, ...path.map(move => move.to)].map(index => coordinate(index).toUpperCase()).join(" × ");
+    const detail = document.createElement("span");
+    detail.textContent = path.length + (path.length === 1 ? " jump" : " jumps") + (crowns ? " · crowns" : "");
+    route.append(notation, detail);
+    return route;
+  }));
 }
 
 function render() {
@@ -121,6 +142,11 @@ function render() {
   $("reset-series").hidden = !wins[1] && !wins[-1];
   const waiting = botTurn();
   const moves = reviewing ? [] : legalMoves(game);
+  const selectedMoves = waiting ? [] : moves.filter(move => move.from === selected);
+  const captureVictims = new Set(selectedMoves.map(move => move.capture));
+  board.dataset.forcedCapture = String(!waiting && moves[0]?.capture != null);
+  renderCaptureRoutes(moves, waiting);
+  $("moves-help").hidden = moveNumber === 0;
   $("hint").hidden = $("mode").value === "local";
   $("hint").disabled = reviewing || waiting || !moves.length || Boolean(hint);
   const shownMove = position.lastMove;
@@ -148,18 +174,21 @@ function render() {
     if (square.disabled) return;
     const piece = position.game.board[index];
     const king = Math.abs(piece) === 2;
-    const destination = !waiting && moves.find(move => move.from === selected && move.to === index);
+    const destination = selectedMoves.find(move => move.to === index);
     const selectable = !waiting && moves.some(move => move.from === index);
     const capture = destination && destination.capture !== null;
     square.tabIndex = index === focusIndex ? 0 : -1;
     const description = piece ? " " + playerName(Math.sign(piece)) + (king ? " king" : " piece") : ", empty";
-    const action = destination ? capture ? ", capture destination" : ", legal destination" : selectable ? ", can move" : "";
+    const victim = captureVictims.has(index);
+    const action = destination ? capture ? ", capture destination" : ", legal destination"
+      : selectable ? ", can move" : victim ? ", can be captured" : "";
     const suggested = !reviewing && hint?.to === index;
     square.setAttribute("aria-label", coordinate(index) + description + action + (suggested ? ", suggested" : ""));
     square.setAttribute("aria-pressed", String(!reviewing && index === selected));
     square.setAttribute("aria-disabled", String(!destination && !selectable));
     square.classList.toggle("target", Boolean(destination));
     square.classList.toggle("capture-target", Boolean(capture));
+    square.classList.toggle("capture-victim", victim);
     square.classList.toggle("suggested-target", suggested);
     square.classList.toggle("last-move", shownMove?.from === index || shownMove?.to === index);
     square.classList.toggle("selectable", selectable);

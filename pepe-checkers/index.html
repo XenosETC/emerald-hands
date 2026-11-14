@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111d17">
   <title>Pepe Checkers · Emerald Arcade</title>
-  <link rel="stylesheet" href="checkers.css?v=board-7">
+  <link rel="stylesheet" href="checkers.css?v=board-8">
 </head>
 <body>
   <header>
@@ -35,6 +35,11 @@
         <div id="board" aria-label="Checkers board" aria-describedby="board-guide" role="group"></div>
         <div class="board-files" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
       </div>
+      <div class="board-key" aria-label="Board markers">
+        <span><i aria-hidden="true"></i> Legal move</span>
+        <span><i aria-hidden="true"></i> Capture landing</span>
+        <span><i aria-hidden="true"></i> Last move</span>
+      </div>
       <div class="board-actions" role="group" aria-label="Board controls">
         <button id="undo" type="button" disabled>Undo turn</button>
         <button id="hint" type="button">Show hint</button>
@@ -42,6 +47,11 @@
         <button id="review" type="button" disabled>Review</button>
         <p id="last-play" hidden></p>
       </div>
+      <section class="capture-panel" id="capture-panel" aria-labelledby="capture-title" hidden>
+        <h2 id="capture-title">Capture routes</h2>
+        <p id="capture-description"></p>
+        <ul id="capture-routes"></ul>
+      </section>
       <div id="review-controls" class="review-controls" role="group" aria-label="Review positions" hidden>
         <button id="review-prev" type="button" aria-label="Previous position">←</button>
         <div class="review-timeline">
@@ -83,6 +93,7 @@
       <section class="move-panel" aria-labelledby="moves-title">
         <h2 id="moves-title">Move log</h2>
         <p id="moves-empty">Moves will appear here.</p>
+        <p id="moves-help" hidden>Select a move to see it on the board.</p>
         <ol id="move-log"></ol>
       </section>
       <details><summary>How to play</summary>
@@ -94,6 +105,6 @@
   </main>
   <script src="../arcade-library.js?v=library-2-checkers"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
-  <script type="module" src="checkers.js?v=board-7"></script>
+  <script type="module" src="checkers.js?v=board-8"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { botMove, legalMoves, newGame, play } from "./engine.mjs";
+import { botMove, captureRoutes, legalMoves, newGame, play } from "./engine.mjs";
 
 function position(pieces) {
   return { board: Object.assign(Array(64).fill(0), pieces), turn: 1, chain: null, winner: 0 };
@@ -49,4 +49,21 @@ test("crowning ends a jump chain and kings can jump backward", () => {
 test("a side with pieces but no legal move loses", () => {
   const game = position({ 42: 1, 56: -1 });
   assert.equal(play(game, 42, 33).winner, 1);
+});
+
+test("capture routes show both legal lengths and keep the same piece through a chain", () => {
+  const game = position({ 42: 1, 44: 1, 35: -1, 37: -1, 21: -1, 7: -1 });
+  const routes = captureRoutes(game);
+  assert.deepEqual(routes.map(({ path }) => path.map(({ from, to }) => [from, to])), [
+    [[42, 28], [28, 14]],
+    [[44, 26]],
+    [[44, 30], [30, 12]],
+  ]);
+  assert.deepEqual(captureRoutes(play(game, 42, 28)), [{ path: [{ from: 28, to: 14, capture: 21 }], crowns: false }]);
+  assert.deepEqual(captureRoutes(newGame()), []);
+});
+
+test("a route ends on crowning even if the new king could jump backward", () => {
+  const game = position({ 17: 1, 10: -1, 12: -1 });
+  assert.deepEqual(captureRoutes(game), [{ path: [{ from: 17, to: 3, capture: 10 }], crowns: true }]);
 });

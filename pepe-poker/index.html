@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101611">
   <title>Pepe Poker · Emerald Arcade</title>
-  <link rel="stylesheet" href="table.css?v=dealer-flight-1">
+  <link rel="stylesheet" href="table.css?v=pot-ledger-1">
 </head>
 <body>
   <header>
@@ -44,6 +44,13 @@
           <p id="street" aria-live="polite" hidden></p>
         </div>
       </div>
+      <section id="live-pots" class="live-pots" aria-labelledby="live-pots-title" hidden>
+        <div>
+          <h2 id="live-pots-title">Pot breakdown</h2>
+          <p>Based on chips committed so far.</p>
+        </div>
+        <dl id="pot-tiers"></dl>
+      </section>
       <form id="join" class="controls">
         <label for="name">Screen name</label>
         <input id="name" maxlength="20" required placeholder="Your table name" autocomplete="nickname">
@@ -82,7 +89,7 @@
             <summary>Adjust bet size</summary>
             <div id="raise-controls">
               <label id="raise-label" for="amount"><span id="raise-verb">Raise to</span>
-                <input id="amount" type="number" inputmode="numeric" step="1" required>
+                <input id="amount" type="number" inputmode="numeric" step="1" aria-describedby="raise-preview" required>
               </label>
               <div id="raise-presets" role="group" aria-label="Bet amount shortcuts">
                 <button type="button" id="raise-min" aria-label="Set minimum amount">Min</button>
@@ -90,6 +97,7 @@
                 <button type="button" id="raise-pot" aria-label="Set pot-sized amount">Pot</button>
                 <button type="button" id="raise-max" aria-label="Set all-in amount">Max</button>
               </div>
+              <p id="raise-preview"></p>
             </div>
           </details>
           <details id="practice-read" hidden>
@@ -180,6 +188,6 @@
       <button>Done</button>
     </form>
   </dialog>
-  <script type="module" src="table.js?v=dealer-flight-1"></script>
+  <script type="module" src="table.js?v=pot-ledger-1"></script>
 </body>
 </html>

@@ -105,6 +105,56 @@ main {
   border-radius: 8px;
   background: linear-gradient(90deg, #18261e, #111a15 70%);
 }
+.live-pots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  margin: 2px 0 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: linear-gradient(110deg, #16271f, #101a15);
+}
+.live-pots h2 {
+  color: var(--gold);
+  font: 700 .83rem "DM Sans", system-ui, sans-serif;
+}
+.live-pots p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: .73rem;
+}
+#pot-tiers {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+  margin: 0;
+}
+#pot-tiers div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid #43785e;
+  border-radius: 6px;
+  background: #213e30;
+  font-size: .72rem;
+}
+#pot-tiers .unmatched {
+  border-color: #a5905a;
+  border-style: dashed;
+  background: #332a1c;
+}
+#pot-tiers dd {
+  margin: 0;
+  color: var(--gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
 .table {
   position: relative;
   display: grid;
@@ -576,6 +626,16 @@ main {
   gap: 6px;
 }
 #raise-controls { grid-template-columns: auto minmax(0, 1fr); padding: 0 8px 8px; }
+#raise-preview {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 5px 7px;
+  border-radius: 4px;
+  color: var(--cream);
+  background: #172c22;
+  font-size: .72rem;
+  font-variant-numeric: tabular-nums;
+}
 #betting:not(:has(#raise-sizing:not([hidden]))) .decision-buttons { grid-column: 1 / -1; }
 .decision-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .decision-buttons:has(#raise:not([hidden])) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -922,6 +982,7 @@ h2 { color: var(--gold); font-size: 1.75rem; }
   #actions button, #actions input:not([type="checkbox"]) { min-height: 44px; }
 }
 @media (max-width: 560px) {
+  #pot-tiers { flex-basis: 100%; justify-content: flex-start; }
   header {
     grid-template-columns: 1fr auto 1fr;
     gap: 5px;

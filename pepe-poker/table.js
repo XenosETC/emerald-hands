@@ -436,6 +436,22 @@ function renderScoreboard() {
   }));
 }
 
+function renderPotBreakdown() {
+  const breakdown = state?.potBreakdown;
+  $("live-pots").hidden = !breakdown;
+  if (!breakdown) return;
+  const tiers = breakdown.matched.map((amount, index) => {
+    const name = !index ? "Main pot" : breakdown.matched.length === 2 ? "Side pot" : "Side pot " + index;
+    return [name, amount];
+  });
+  if (breakdown.unmatched) tiers.push(["Unmatched", breakdown.unmatched]);
+  $("pot-tiers").replaceChildren(...tiers.map(([name, amount]) => {
+    const tier = element("div", name === "Unmatched" ? "unmatched" : "");
+    tier.append(element("dt", "", name), element("dd", "", format.format(amount)));
+    return tier;
+  }));
+}
+
 function render() {
   const seated = state?.index >= 0;
   $("turn-sound").hidden = !seated || !window.AudioContext;
@@ -475,6 +491,7 @@ function render() {
   if (pot >= 100) pile.append(chip("ivory"));
   pile.append(chip());
   $("pot").replaceChildren(pile, (awarded ? "Awarded " : "Pot ") + format.format(pot));
+  renderPotBreakdown();
   const streets = $("streets");
   const round = ["Preflop", "Flop", "Turn", "River"].indexOf(state?.street);
   streets.hidden = !state?.hand;
@@ -510,7 +527,7 @@ function render() {
     const amount = $("amount");
     amount.min = allowed.min;
     amount.max = allowed.max;
-    if (!amount.value || Number(amount.value) < allowed.min || Number(amount.value) > allowed.max) amount.value = allowed.min;
+    if (document.activeElement !== amount && !amount.validity.valid) amount.value = allowed.min;
     for (const preset of ["min", "half", "pot"]) $("raise-" + preset).hidden = allowed.min === allowed.max;
   } else $("amount").value = "";
   const decision = $("practice-read");
@@ -538,8 +555,20 @@ function updateRaiseLabel() {
   const openingBet = state?.street !== "Preflop" && state?.players.every(player => player.bet === 0);
   const verb = openingBet ? "Bet" : "Raise to";
   $("raise-verb").textContent = verb;
-  $("raise").textContent = !allowed?.canRaise || !amount.validity.valid ? (openingBet ? "Bet" : "Raise") :
-    Number(amount.value) === allowed.max ? "Go all-in" : verb + " " + format.format(Number(amount.value));
+  const valid = allowed?.canRaise && amount.validity.valid;
+  const target = Number(amount.value);
+  $("raise").textContent = !valid ? (openingBet ? "Bet" : "Raise") :
+    target === allowed.max ? "Go all-in" : verb + " " + format.format(target);
+  const preview = $("raise-preview");
+  if (!allowed?.canRaise) {
+    preview.textContent = "";
+  } else if (!valid) {
+    preview.textContent = "Allowed total: " + format.format(allowed.min) + "–" + format.format(allowed.max) + " chips.";
+  } else {
+    const player = state.players[state.index];
+    const extra = target - player.bet;
+    preview.textContent = format.format(extra) + " chips added · " + format.format(player.stack - extra) + " behind";
+  }
 }
 
 function updateClock() {

@@ -51,6 +51,22 @@ async function headsUp() {
   return { host, guest, path, tokens: [host.token, guest.token] };
 }
 
+test("the live pot projection follows bets and clears on settlement", async () => {
+  const { path, host, tokens } = await headsUp();
+  let { state } = await post(path + "/deal", {}, host.token);
+  assert.deepEqual(state.potBreakdown, { matched: [20], unmatched: 10 });
+
+  const spectator = await request(path);
+  assert.deepEqual(spectator.state.potBreakdown, state.potBreakdown);
+  assert.deepEqual(spectator.state.players.map(player => player.cards), [[null, null], [null, null]]);
+
+  ({ state } = await post(path + "/act", { action: "call", revision: state.revision }, tokens[state.turn]));
+  assert.deepEqual(state.potBreakdown, { matched: [40], unmatched: 0 });
+  ({ state } = await post(path + "/act", { action: "fold", revision: state.revision }, tokens[state.turn]));
+  assert.equal(state.potBreakdown, null);
+  assert.equal(state.payouts[0].amount, 40);
+});
+
 test("table presets set starting stacks, blinds and opening bets", async () => {
   assert.equal((await post("", { name: "Host", preset: "unknown" })).status, 400);
   for (const settings of TABLE_PRESETS) {

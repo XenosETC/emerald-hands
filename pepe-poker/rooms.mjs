@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { AVATARS, DEFAULT_AVATAR_ID } from "./avatar-catalog.mjs";
-import { act, evaluate, handCategory, labels, log, options, ranks, startHand } from "./holdem.mjs";
+import { act, evaluate, handCategory, labels, livePotBreakdown, log, options, ranks, startHand } from "./holdem.mjs";
 import { DEFAULT_TABLE, TABLE_PRESETS, TIME_BANK_SECONDS } from "./table-settings.mjs";
 import { REACTIONS, REACTION_COOLDOWN, REACTION_DURATION } from "./reaction-catalog.mjs";
 
@@ -90,6 +90,7 @@ function state(room, index) {
     recentHands: room.recentHands ?? [],
     chat: index >= 0 ? room.chat : [],
     pot: room.players.reduce((sum, player) => sum + player.total, 0),
+    potBreakdown: room.turn === -1 ? null : livePotBreakdown(room.players),
     players: room.players.map(({ name, avatarId, bot, stack, cards, bet, total, folded, reaction, chipsBought, handsPlayed, handsWon, sittingOut, lastAction }, seat) => ({
       name, avatarId, bot, stack, bet, folded,
       lastAction: lastAction ?? null,

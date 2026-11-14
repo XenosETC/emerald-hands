@@ -42,7 +42,11 @@ export function legalMoves(game) {
 
 export function play(game, from, to) {
   const move = legalMoves(game).find(candidate => candidate.from === from && candidate.to === to);
-  if (!move) return game;
+  return move ? applyMove(game, move) : game;
+}
+
+function applyMove(game, move) {
+  const { from, to } = move;
   const board = [...game.board];
   const piece = board[from];
   const crowned = Math.abs(piece) === 1 && row(to) === (game.turn === 1 ? 0 : 7);
@@ -61,7 +65,10 @@ export function play(game, from, to) {
 
 function search(game, side, depth, alpha, beta) {
   if (game.winner) return game.winner === side ? 10000 + depth : -10000 - depth;
-  if (depth <= 0 && game.chain === null) {
+  const moves = legalMoves(game);
+  // Give forced exchanges up to three extra turns so a hanging piece is counted.
+  const forced = moves[0]?.capture != null;
+  if (depth <= 0 && game.chain === null && (!forced || depth <= -3)) {
     return game.board.reduce((score, piece, index) => {
       const color = Math.sign(piece);
       const progress = color === 1 ? 7 - row(index) : row(index);
@@ -71,8 +78,8 @@ function search(game, side, depth, alpha, beta) {
   }
   const maximizing = game.turn === side;
   let best = maximizing ? -Infinity : Infinity;
-  for (const move of legalMoves(game)) {
-    const next = play(game, move.from, move.to);
+  for (const move of moves) {
+    const next = applyMove(game, move);
     const score = search(next, side, depth - Number(next.turn !== game.turn), alpha, beta);
     if (maximizing) {
       best = Math.max(best, score);
@@ -92,7 +99,7 @@ export function botMove(game, difficulty = "standard") {
     return moves[Math.floor(Math.random() * moves.length)];
   }
   const scored = legalMoves(game).map(move => {
-    const next = play(game, move.from, move.to);
+    const next = applyMove(game, move);
     if (difficulty === "expert") {
       const depth = 4 - Number(next.turn !== game.turn);
       return { move, score: search(next, game.turn, depth, -Infinity, Infinity) };
@@ -104,4 +111,15 @@ export function botMove(game, difficulty = "standard") {
     return { move, score };
   });
   return scored.sort((a, b) => b.score - a.score)[0]?.move;
+}
+export function captureRoutes(game) {
+  function extend(position, moves) {
+    return legalMoves(position).filter(move => move.capture !== null).flatMap(move => {
+      const next = applyMove(position, move);
+      const path = [...moves, move];
+      if (next.chain !== null) return extend(next, path);
+      return [{ path, crowns: Math.abs(next.board[move.to]) > Math.abs(position.board[move.from]) }];
+    });
+  }
+  return extend(game, []);
 }
