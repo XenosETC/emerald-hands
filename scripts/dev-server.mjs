@@ -2,6 +2,8 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
 
+import { pokerRequest } from '../pepe-poker/rooms.mjs';
+
 const root = normalize(join(import.meta.dirname, ".."));
 const port = Number(process.env.PORT || 4173);
 const types = {
@@ -17,6 +19,10 @@ const types = {
 
 createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url, `http://${request.headers.host}`).pathname);
+  if (pathname === '/api/pepe-poker' || pathname.startsWith('/api/pepe-poker/')) {
+    void pokerRequest(request, response, pathname);
+    return;
+  }
   const requested = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
   const path = normalize(join(root, requested));
   if (!path.startsWith(root) || !existsSync(path) || statSync(path).isDirectory()) {
@@ -25,6 +31,6 @@ createServer((request, response) => {
   }
   response.writeHead(200, { "content-type": types[extname(path)] || "application/octet-stream" });
   createReadStream(path).pipe(response);
-}).listen(port, "127.0.0.1", () => {
+}).listen(port, process.env.HOST || "127.0.0.1", () => {
   console.log(`Emerald Arcade: http://127.0.0.1:${port}`);
 });

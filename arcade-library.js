@@ -15,6 +15,8 @@
     ["paradox", "Pepe's Paradox", "pepes-paradox.html", ["adventure"], false, "Keyboard required"],
     ["pepeRun", "PepeCoin Emerald Run", "pepecoin-run.html", ["arcade"], true, "Tap / Space"],
     ["towerDefense", "Pepe Tower Defense", "pepe-tower-defense.html", ["strategy"], true, "Click / tap / drag"],
+    ["pepePoker", "Pepe Poker", "pepe-poker/index.html", ["strategy"], true, "Click / tap"],
+    ["pepeCheckers", "Pepe Checkers", "pepe-checkers/index.html", ["strategy"], true, "Click / tap"],
     ["pepeWars", "Pepe Wars", "pepe-wars.html", ["strategy"], true, "Click / tap"],
     ["spaceUnchained", "Pepe: Space Unchained", "pepe-space-unchained.html", ["arcade"], true, "Keyboard / drag"],
     ["hands", "Emerald Hands", "emerald-hands.html", ["idle"], true, "Click / tap"],

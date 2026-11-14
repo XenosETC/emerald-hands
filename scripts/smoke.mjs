@@ -26,6 +26,8 @@ const independentGamePages = [
   "pepe-soul-world/index.html",
   "pepe-temple-run/index.html",
   "pepe-feudalism/index.html",
+  "pepe-poker/index.html",
+  "pepe-checkers/index.html",
 ];
 
 function check(condition, message) {
@@ -33,7 +35,7 @@ function check(condition, message) {
 }
 
 const hubHtml = readFileSync(resolve(root, "index.html"), "utf8");
-check((hubHtml.match(/class="game-card(?:\s|")/g) || []).length === gamePages.length + independentGamePages.length, "Hub card count must match the released game collection");
+check((hubHtml.match(/<article class="game-card(?:\s[^"]*)?"(?![^>]*\bdata-upcoming\b)/g) || []).length === gamePages.length + independentGamePages.length, "Hub card count must match the released game collection");
 for (const page of independentGamePages) {
   const path = resolve(root, page);
   check(existsSync(path), `Missing independent game: ${page}`);

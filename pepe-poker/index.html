@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101611">
+  <title>Pepe Poker · Emerald Arcade</title>
+  <link rel="stylesheet" href="table.css?v=share-1">
+</head>
+<body>
+  <header>
+    <a href="../index.html" class="back">← Emerald Arcade</a>
+    <h1>Pepe <em>Poker</em></h1>
+    <button id="invite" type="button" hidden>Share invite</button>
+    <a id="exit-practice" class="back" href="index.html" hidden>Exit practice</a>
+  </header>
+  <main>
+    <section class="room" aria-label="Poker table">
+      <div class="table">
+        <div id="seats" aria-label="Seats"></div>
+        <div class="felt">
+          <p class="variant">NO-LIMIT HOLD'EM <span>·</span> <span id="stakes">10 / 20</span></p>
+          <div id="board" class="cards" aria-label="Community cards"></div>
+          <div id="pot" class="pot"></div>
+          <p id="street" aria-live="polite">Play-chip table</p>
+        </div>
+      </div>
+      <p id="room-status">Private table · 0 of 6 seats taken</p>
+      <form id="join" class="controls">
+        <label for="name">Screen name</label>
+        <input id="name" maxlength="20" required placeholder="Your table name" autocomplete="nickname">
+        <details id="avatar-settings" class="avatar-settings">
+          <summary>
+            <img id="avatar-preview" alt="" width="24" height="24">
+            <span>Avatar</span>
+            <strong id="avatar-selection"></strong>
+          </summary>
+          <fieldset class="avatar-picker">
+            <legend>Choose your table avatar</legend>
+            <div id="avatar-options" class="avatar-options"></div>
+          </fieldset>
+        </details>
+        <label id="preset-label">Table format <select id="preset"></select></label>
+        <button class="primary" id="enter">Create table</button>
+        <button type="submit" id="practice">Practice vs. Kekbot</button>
+        <button type="button" id="new-table" hidden>Start a new table</button>
+      </form>
+      <div id="actions" class="controls" hidden>
+        <button id="deal" class="primary" hidden>Deal hand</button>
+        <label id="auto-deal-label" hidden><input id="auto-deal" type="checkbox"> Auto-deal practice hands</label>
+        <span id="auto-deal-countdown" hidden></span>
+        <button id="rebuy" hidden>Rebuy · 2,000</button>
+        <button id="presence" type="button" hidden>Sit out</button>
+        <div id="turn-indicator">
+          <span id="waiting"></span>
+          <progress id="turn-clock" aria-label="Time remaining this turn" hidden></progress>
+        </div>
+        <button id="time-bank" type="button" hidden></button>
+        <button id="fold" hidden>Fold</button>
+        <button id="call" class="primary" hidden>Check</button>
+        <label id="raise-label" hidden>Raise to <input id="amount" type="number" inputmode="numeric" step="1" required></label>
+        <div id="raise-presets" role="group" aria-label="Raise amount shortcuts" hidden>
+          <button type="button" id="raise-min" aria-label="Set minimum raise">Min</button>
+          <button type="button" id="raise-half" aria-label="Set half-pot raise">½ pot</button>
+          <button type="button" id="raise-pot" aria-label="Set pot-sized raise">Pot</button>
+          <button type="button" id="raise-max" aria-label="Set all-in amount">Max</button>
+        </div>
+        <button id="raise" hidden>Raise</button>
+      </div>
+      <details id="reaction-tray" class="reaction-tray" hidden>
+        <summary>Pepe reactions</summary>
+        <div id="reaction-options" role="group" aria-label="Send a Pepe reaction"></div>
+      </details>
+      <p id="notice" role="status"></p>
+      <p id="turn-announcement" class="visually-hidden" role="status"></p>
+    </section>
+    <aside aria-label="Table activity">
+      <button id="turn-sound" type="button" aria-pressed="false" hidden>Turn sound</button>
+      <section id="table-chat" aria-labelledby="chat-title" hidden>
+        <h2 id="chat-title">Table chat</h2>
+        <p id="chat-empty">Say hello to the table.</p>
+        <div id="chat-messages" role="log" aria-labelledby="chat-title" tabindex="0"></div>
+        <form id="chat-form">
+          <label class="visually-hidden" for="chat-text">Message</label>
+          <input id="chat-text" maxlength="240" required placeholder="Message the table" autocomplete="off">
+          <button id="chat-send">Send</button>
+        </form>
+        <p id="chat-notice" role="status"></p>
+      </section>
+      <section id="hand-recap" aria-labelledby="recap-title" hidden>
+        <h2 id="recap-title">Review hands</h2>
+        <label class="visually-hidden" for="recap-select">Completed hand</label>
+        <select id="recap-select"></select>
+        <div class="recap-tools">
+          <button id="replay-start" type="button" hidden>Replay hand</button>
+          <button id="download-hand" type="button">Download hand</button>
+        </div>
+        <div id="replay-controls" hidden>
+          <p id="replay-action" role="status"></p>
+          <div class="replay-buttons">
+            <button id="replay-prev" type="button">Back</button>
+            <button id="replay-next" type="button">Next</button>
+            <button id="replay-end" type="button">Summary</button>
+          </div>
+        </div>
+        <div id="recap-board" class="cards recap-cards" aria-label="Reviewed community cards" hidden></div>
+        <ul id="recap-players"></ul>
+        <details id="recap-pots" hidden>
+          <summary>Pot breakdown</summary>
+          <ul id="recap-pot-lines"></ul>
+        </details>
+        <details id="recap-action" hidden>
+          <summary>Hand action</summary>
+          <p id="recap-omitted" hidden></p>
+          <ol id="recap-actions"></ol>
+        </details>
+      </section>
+      <details id="scoreboard" hidden>
+        <summary>Session scoreboard</summary>
+        <table aria-label="Session scoreboard">
+          <thead><tr><th scope="col">Player</th><th scope="col">Played</th><th scope="col">Won</th><th scope="col">Net</th></tr></thead>
+          <tbody id="scoreboard-players"></tbody>
+        </table>
+      </details>
+      <section aria-labelledby="history-title">
+        <h2 id="history-title">Hand history</h2>
+        <ol id="history"></ol>
+      </section>
+    </aside>
+  </main>
+  <script src="../arcade-library.js?v=library-2-pepe-poker"></script>
+  <script src="../arcade-visit.js?v=library-2"></script>
+  <dialog id="invite-dialog" aria-labelledby="invite-title">
+    <h2 id="invite-title">Invite to this table</h2>
+    <label for="invite-link">Table link</label>
+    <input id="invite-link" type="url" readonly>
+    <p id="invite-status" role="status"></p>
+    <form method="dialog">
+      <button id="copy-invite" class="primary" type="button">Copy link</button>
+      <button>Done</button>
+    </form>
+  </dialog>
+  <script type="module" src="table.js?v=share-1"></script>
+</body>
+</html>

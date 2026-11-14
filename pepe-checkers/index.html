@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#111d17">
+  <title>Pepe Checkers · Emerald Arcade</title>
+  <link rel="stylesheet" href="checkers.css?v=difficulty-1">
+</head>
+<body>
+  <header><a href="../index.html">← Emerald Arcade</a><h1 id="title">Pepe <em>Checkers</em></h1></header>
+  <main>
+    <section class="game" aria-labelledby="title">
+      <div class="match-banner">
+        <div class="team emerald-team" id="emerald-team">
+          <img src="../pepe-poker/avatars/emerald.webp" alt="" width="44" height="44">
+          <div><strong id="emerald-name">Emerald</strong><span id="emerald-count"></span></div>
+          <span class="team-wins" id="emerald-wins"></span>
+        </div>
+        <div class="team crimson-team" id="crimson-team">
+          <img src="../pepe-poker/avatars/fallen.webp" alt="" width="44" height="44">
+          <div><strong id="crimson-name">Crimson</strong><span id="crimson-count"></span></div>
+          <span class="team-wins" id="crimson-wins"></span>
+        </div>
+      </div>
+      <p id="status" role="status"></p>
+      <div class="board-frame">
+        <div class="board-ranks" aria-hidden="true"><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span></div>
+        <div id="board" aria-label="Checkers board" role="group"></div>
+        <div class="board-files" aria-hidden="true"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span></div>
+      </div>
+    </section>
+    <aside>
+      <label for="mode">Opponent</label>
+      <select id="mode"><option value="bot">Kekbot</option><option value="local">Local two-player</option></select>
+      <label id="difficulty-setting">Difficulty
+        <select id="difficulty">
+          <option value="casual">Casual</option>
+          <option value="standard" selected>Standard</option>
+          <option value="expert">Expert</option>
+        </select>
+      </label>
+      <button id="restart" type="button">Restart game</button>
+      <button id="undo" type="button" disabled>Undo turn</button>
+      <button id="reset-series" type="button" hidden>Reset series</button>
+      <section class="move-panel" aria-labelledby="moves-title">
+        <h2 id="moves-title">Move log</h2>
+        <p id="moves-empty">Moves will appear here.</p>
+        <ol id="move-log"></ol>
+      </section>
+      <details><summary>How to play</summary><p>Move diagonally on dark squares. Jumps are mandatory. If a piece can jump again, keep going with that piece. Reach the far edge to become a king and move both ways. Crowning ends the turn.</p></details>
+    </aside>
+  </main>
+  <script src="../arcade-library.js?v=library-2-checkers"></script>
+  <script src="../arcade-visit.js?v=library-2"></script>
+  <script type="module" src="checkers.js?v=difficulty-1"></script>
+</body>
+</html>

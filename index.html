@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#0a1110">
     <title>Emerald Arcade — Small games. Big adventures.</title>
     <link rel="preload" href="pepe-temple-run/assets/emerald-frog-temple-v1.png" as="image">
-    <link rel="stylesheet" href="mini-games.css?v=tower-six-maps-20261025">
+    <link rel="stylesheet" href="mini-games.css?v=pepe-chess-1">
   </head>
   <body>
     <a class="skip-link" href="#games">Skip to games</a>
@@ -43,7 +43,7 @@
       </section>
       <section class="recent-section" id="recentSection" aria-labelledby="recentTitle" hidden><div class="library-heading"><div><p class="eyebrow">BACK TO YOUR WORLDS</p><h2 id="recentTitle">Continue playing</h2></div><p>Last saved progress. Each world keeps its own save.</p></div><div class="recent-games" id="recentGames" role="region" aria-label="Continue playing games; scroll for more" tabindex="0"></div></section>
       <section class="library-section" id="games" aria-labelledby="library-title" tabindex="-1">
-        <div class="library-heading"><div><p class="eyebrow">PICK YOUR NEXT ADVENTURE</p><h2 id="library-title">The game collection<span id="gameCount">18</span></h2></div><p>Quick thrills. Long quests. Your call.</p></div>
+        <div class="library-heading"><div><p class="eyebrow">PICK YOUR NEXT ADVENTURE</p><h2 id="library-title">The game collection<span id="gameCount">20</span></h2></div><p>Quick thrills. Long quests. Your call.</p></div>
         <div class="library-controls">
           <div class="game-filters" role="group" aria-label="Filter games by category">
             <button class="is-active" type="button" data-filter="all" aria-pressed="true">All games</button>
@@ -180,6 +180,43 @@
             </div>
             <p class="game-stat" data-stat="towerDefense">0 best | Fresh Defender</p>
             <a href="pepe-tower-defense.html">Play Tower Defense</a>
+          </div>
+        </article>
+
+        <article class="game-card game-card--pepe-chess" data-upcoming>
+          <div class="game-art" aria-hidden="true">
+            <span class="chess-preview-piece"><img src="pepe-poker/avatars/emerald.webp" alt="" loading="lazy"><span>♚</span></span>
+          </div>
+          <div class="game-body">
+            <h2>Pepe Chess</h2>
+            <p>Bring your best opening to the frog kingdom.</p>
+            <div class="game-meta"><span>Coming soon</span></div>
+          </div>
+        </article>
+
+        <article class="game-card game-card--pepe-poker">
+          <div class="game-art" aria-hidden="true">
+            <span class="poker-cover-card"><span>K♥</span><img src="assets/pepe-relic-rumble/emerald-pepe.png" alt="" loading="lazy" decoding="async"></span>
+            <span class="poker-cover-card"><span>A♠</span><img src="assets/pepe-relic-rumble/emerald-pepe.png" alt="" loading="lazy" decoding="async"></span>
+          </div>
+          <div class="game-body">
+            <h2>Pepe Poker</h2>
+            <p>Invite up to five friends to a private, play-chip Texas Hold’em table.</p>
+            <div class="game-meta"><span>Multiplayer</span><span>Play Chips</span></div>
+            <a href="pepe-poker/index.html">Play Pepe Poker</a>
+          </div>
+        </article>
+
+        <article class="game-card game-card--pepe-checkers">
+          <div class="game-art" aria-hidden="true">
+            <img src="pepe-poker/avatars/emerald.webp" alt="" loading="lazy">
+            <img src="pepe-poker/avatars/fallen.webp" alt="" loading="lazy">
+          </div>
+          <div class="game-body">
+            <h2>Pepe Checkers</h2>
+            <p>Crown your frogs and jump the opposition. Play Kekbot or share the board with a friend.</p>
+            <div class="game-meta"><span>Solo</span><span>Local two-player</span></div>
+            <a href="pepe-checkers/index.html">Play Pepe Checkers</a>
           </div>
         </article>
 
@@ -376,6 +413,6 @@
     <script src="shard-rush-challenges.js?v=1"></script>
     <script src="arcade-daily-ui.js?v=1"></script>
     <script type="module" src="arcade-progress.mjs?v=4"></script>
-  <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-library-ui.js?v=continue-1"></script>
+  <script src="arcade-library.js?v=library-2-checkers"></script><script src="arcade-library-ui.js?v=upcoming-2"></script>
   </body>
 </html>
