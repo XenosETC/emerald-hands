@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#0a1110">
     <title>Emerald Arcade — Small games. Big adventures.</title>
     <link rel="preload" href="pepe-temple-run/assets/emerald-frog-temple-v1.png" as="image">
-    <link rel="stylesheet" href="mini-games.css?v=table-games-1">
+    <link rel="stylesheet" href="mini-games.css?v=table-games-2">
   </head>
   <body>
     <a class="skip-link" href="#games">Skip to games</a>
@@ -43,7 +43,7 @@
       </section>
       <section class="recent-section" id="recentSection" aria-labelledby="recentTitle" hidden><div class="library-heading"><div><p class="eyebrow">BACK TO YOUR WORLDS</p><h2 id="recentTitle">Continue playing</h2></div><p>Last saved progress. Each world keeps its own save.</p></div><div class="recent-games" id="recentGames" role="region" aria-label="Continue playing games; scroll for more" tabindex="0"></div></section>
       <section class="library-section" id="games" aria-labelledby="library-title" tabindex="-1">
-        <div class="library-heading"><div><p class="eyebrow">PICK YOUR NEXT ADVENTURE</p><h2 id="library-title">The game collection<span id="gameCount">20</span></h2></div><p>Quick thrills. Long quests. Your call.</p></div>
+        <div class="library-heading"><div><p class="eyebrow">PICK YOUR NEXT ADVENTURE</p><h2 id="library-title">The game collection<span id="gameCount">21</span></h2></div><p>Quick thrills. Long quests. Your call.</p></div>
         <div class="library-controls">
           <div class="game-filters" role="group" aria-label="Filter games by category">
             <button class="is-active" type="button" data-filter="all" aria-pressed="true">All games</button>
@@ -183,14 +183,16 @@
           </div>
         </article>
 
-        <article class="game-card game-card--pepe-chess" data-upcoming>
+        <article class="game-card game-card--pepe-chess">
           <div class="game-art" aria-hidden="true">
-            <span class="chess-preview-piece"><img src="pepe-poker/avatars/emerald.webp" alt="" loading="lazy"><span>♚</span></span>
+            <img src="pepe-chess/assets/pieces-v1/white-king.png" alt="" loading="lazy">
+            <img src="pepe-chess/assets/pieces-v1/black-queen.png" alt="" loading="lazy">
           </div>
           <div class="game-body">
             <h2>Pepe Chess</h2>
             <p>Bring your best opening to the frog kingdom.</p>
-            <div class="game-meta"><span>Coming soon</span></div>
+            <div class="game-meta"><span>Strategy</span><span>Local two-player</span></div>
+            <a href="pepe-chess/index.html">Play Pepe Chess</a>
           </div>
         </article>
 
@@ -414,6 +416,6 @@
     <script src="shard-rush-challenges.js?v=1"></script>
     <script src="arcade-daily-ui.js?v=1"></script>
     <script type="module" src="arcade-progress.mjs?v=4"></script>
-  <script src="arcade-library.js?v=library-2-checkers"></script><script src="arcade-library-ui.js?v=upcoming-2"></script>
+  <script src="arcade-library.js?v=library-2-chess"></script><script src="arcade-library-ui.js?v=chess-1"></script>
   </body>
 </html>

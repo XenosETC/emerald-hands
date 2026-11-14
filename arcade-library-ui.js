@@ -4,8 +4,7 @@
   let storage;
   try { storage = window.localStorage; } catch { /* Browsing works without storage. */ }
   let state = library.read(storage);
-  const upcoming = document.querySelector("[data-upcoming]");
-  const cards = new Map([...document.querySelectorAll(".game-card:not([data-upcoming])")].map(card => {
+  const cards = new Map([...document.querySelectorAll(".game-card")].map(card => {
     const game = library.byPath(card.querySelector(".game-body > a").getAttribute("href"));
     return [game.id, card];
   }));
@@ -87,18 +86,6 @@
     const active = document.activeElement;
     const grid = document.querySelector(".game-grid");
     for (const game of visibleGames) grid.append(cards.get(game.id));
-    const showUpcoming = upcoming && !favorites.checked && !touch.checked &&
-      (genre === "all" || genre === "strategy") && "pepe chess".includes(search.value.trim().toLowerCase());
-    if (upcoming) {
-      upcoming.hidden = !showUpcoming;
-      if (showUpcoming && sort.value === "featured" && visible.has("pepeWars")) {
-        const wars = cards.get("pepeWars");
-        wars.before(upcoming);
-        grid.append(wars);
-      } else {
-        grid.append(upcoming);
-      }
-    }
     if (active?.classList.contains("favorite-game")) {
       if (active.closest(".game-card").hidden) favorites.focus();
       else active.focus({ preventScroll: true });
@@ -111,7 +98,7 @@
     document.querySelector("#gameCount").textContent = String(visibleGames.length);
     document.querySelector("#filterResult").textContent = `${visibleGames.length} of ${library.games.length} games shown`;
     document.querySelector("#favoriteCount").textContent = String(state.favorites.length);
-    document.querySelector("#emptyLibrary").hidden = visibleGames.length > 0 || Boolean(showUpcoming);
+    document.querySelector("#emptyLibrary").hidden = visibleGames.length > 0;
     document.querySelector("#emptyMessage").textContent = favorites.checked && !state.favorites.length
       ? "Save a game with the star button to build your own collection." : "Try another search or clear your filters.";
     document.querySelector("#pickGame").disabled = visibleGames.length === 0;

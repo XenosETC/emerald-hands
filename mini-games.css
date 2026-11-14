@@ -108,13 +108,12 @@ h1 em { font-weight: 600; color: #d2efa7; font-style: normal; }
 }
 .game-card--pepe-checkers .game-art img + img { border-color: #dc9277; background: #572d28; }
 .game-card--pepe-chess .game-art {
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: radial-gradient(ellipse, #1b6248 0%, #132b23 55%, #0c1613 100%);
 }
-.chess-preview-piece { position: relative; display: grid; place-items: center; width: 112px; height: 112px; }
-.chess-preview-piece img { width: 100%; border: 2px solid #ba975c; border-radius: 50%; background: #152e22; }
-.chess-preview-piece span { position: absolute; bottom: -13px; right: -6px; color: #f0cb83; font-size: 3rem; text-shadow: 0 3px 5px #000; }
+.game-card--pepe-chess .game-art img { width: min(35%, 112px); }
 .poker-cover-card {
   width: min(23%, 69px);
   aspect-ratio: 5 / 7;

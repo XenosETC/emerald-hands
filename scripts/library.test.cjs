@@ -7,8 +7,8 @@ const lib = require('../arcade-library.js');
 const root = path.resolve(__dirname, '..');
 
 test('every released game has one catalog entry, local page, and visit hook', () => {
-  assert.equal(lib.games.length, 20);
-  assert.equal(new Set(lib.games.map(game => game.id)).size, 20);
+  assert.equal(lib.games.length, 21);
+  assert.equal(new Set(lib.games.map(game => game.id)).size, 21);
   const hub = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   for (const game of lib.games) {
     assert.ok(hub.includes(`href="${game.path}"`), game.id);
@@ -19,7 +19,7 @@ test('every released game has one catalog entry, local page, and visit hook', ()
 });
 
 test('new Pepe games appear in their real genres and touch filter excludes keyboard games', () => {
-  assert.deepEqual(lib.select(null, { genre: 'strategy' }).map(game => game.id), ['feudalism', 'towerDefense', 'pepePoker', 'pepeCheckers', 'pepeWars']);
+  assert.deepEqual(lib.select(null, { genre: 'strategy' }).map(game => game.id), ['feudalism', 'towerDefense', 'pepePoker', 'pepeCheckers', 'pepeChess', 'pepeWars']);
   assert.ok(lib.select(null, { genre: 'adventure' }).some(game => game.id === 'soulWorld'));
   assert.ok(lib.select(null, { genre: 'arcade', touch: true }).some(game => game.id === 'templeRun'));
   assert.ok(!lib.select(null, { touch: true }).some(game => ['rumble', 'paradox', 'feudalism'].includes(game.id)));

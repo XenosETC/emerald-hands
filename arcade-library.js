@@ -17,6 +17,7 @@
     ["towerDefense", "Pepe Tower Defense", "pepe-tower-defense.html", ["strategy"], true, "Click / tap / drag"],
     ["pepePoker", "Pepe Poker", "pepe-poker/index.html", ["strategy"], true, "Click / tap"],
     ["pepeCheckers", "Pepe Checkers", "pepe-checkers/index.html", ["strategy"], true, "Click / tap"],
+    ["pepeChess", "Pepe Chess", "pepe-chess/index.html", ["strategy"], true, "Click / tap"],
     ["pepeWars", "Pepe Wars", "pepe-wars.html", ["strategy"], true, "Click / tap"],
     ["spaceUnchained", "Pepe: Space Unchained", "pepe-space-unchained.html", ["arcade"], true, "Keyboard / drag"],
     ["hands", "Emerald Hands", "emerald-hands.html", ["idle"], true, "Click / tap"],

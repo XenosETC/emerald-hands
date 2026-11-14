@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pepe Chess | Emerald Arcade</title>
+  <link rel="stylesheet" href="preview.css?v=play-1">
+</head>
+<body>
+  <main>
+    <a class="back" href="../index.html">← Arcade Hub</a>
+    <header>
+      <h1>Pepe Chess</h1>
+      <p>Local two-player · Select a piece, then a highlighted square.</p>
+      <div class="match-controls">
+        <p id="match-status" role="status">White to move.</p>
+        <button id="reset" type="button">Reset board</button>
+      </div>
+    </header>
+    <table class="board" aria-label="Chessboard, viewed from White's side">
+      <tbody>
+      <tr>
+        <td class="light" aria-label="a8"><img src="assets/pieces-v1/black-rook.png" alt="Black rook"><span class="rank" aria-hidden="true">8</span></td>
+        <td class="dark" aria-label="b8"><img src="assets/pieces-v1/black-knight.png" alt="Black knight"></td>
+        <td class="light" aria-label="c8"><img src="assets/pieces-v1/black-bishop.png" alt="Black bishop"></td>
+        <td class="dark" aria-label="d8"><img src="assets/pieces-v1/black-queen.png" alt="Black queen"></td>
+        <td class="light" aria-label="e8"><img src="assets/pieces-v1/black-king.png" alt="Black king"></td>
+        <td class="dark" aria-label="f8"><img src="assets/pieces-v1/black-bishop.png" alt="Black bishop"></td>
+        <td class="light" aria-label="g8"><img src="assets/pieces-v1/black-knight.png" alt="Black knight"></td>
+        <td class="dark" aria-label="h8"><img src="assets/pieces-v1/black-rook.png" alt="Black rook"></td>
+      </tr>
+      <tr>
+        <td class="dark" aria-label="a7"><img src="assets/pieces-v1/black-pawn.png" alt="Black pawn"><span class="rank" aria-hidden="true">7</span></td>
+        <td class="light" aria-label="b7"><img src="assets/pieces-v1/black-pawn.png" alt="Black pawn"></td>
+        <td class="dark" aria-label="c7"><img src="assets/pieces-v1/black-pawn.png" alt="Black pawn"></td>
+        <td class="light" aria-label="d7"><img src="assets/pieces-v1/black-pawn.png" alt="Black pawn"></td>
+        <td class="dark" aria-label="e7"><img src="assets/pieces-v1/black-pawn.png" alt="Black pawn"></td>
+        <td class="light" aria-label="f7"><img src="assets/pieces-v1/black-pawn.png" alt="Black pawn"></td>
+        <td class="dark" aria-label="g7"><img src="assets/pieces-v1/black-pawn.png" alt="Black pawn"></td>
+        <td class="light" aria-label="h7"><img src="assets/pieces-v1/black-pawn.png" alt="Black pawn"></td>
+      </tr>
+      <tr>
+        <td class="light" aria-label="a6"><span class="rank" aria-hidden="true">6</span></td>
+        <td class="dark" aria-label="b6"></td>
+        <td class="light" aria-label="c6"></td>
+        <td class="dark" aria-label="d6"></td>
+        <td class="light" aria-label="e6"></td>
+        <td class="dark" aria-label="f6"></td>
+        <td class="light" aria-label="g6"></td>
+        <td class="dark" aria-label="h6"></td>
+      </tr>
+      <tr>
+        <td class="dark" aria-label="a5"><span class="rank" aria-hidden="true">5</span></td>
+        <td class="light" aria-label="b5"></td>
+        <td class="dark" aria-label="c5"></td>
+        <td class="light" aria-label="d5"></td>
+        <td class="dark" aria-label="e5"></td>
+        <td class="light" aria-label="f5"></td>
+        <td class="dark" aria-label="g5"></td>
+        <td class="light" aria-label="h5"></td>
+      </tr>
+      <tr>
+        <td class="light" aria-label="a4"><span class="rank" aria-hidden="true">4</span></td>
+        <td class="dark" aria-label="b4"></td>
+        <td class="light" aria-label="c4"></td>
+        <td class="dark" aria-label="d4"></td>
+        <td class="light" aria-label="e4"></td>
+        <td class="dark" aria-label="f4"></td>
+        <td class="light" aria-label="g4"></td>
+        <td class="dark" aria-label="h4"></td>
+      </tr>
+      <tr>
+        <td class="dark" aria-label="a3"><span class="rank" aria-hidden="true">3</span></td>
+        <td class="light" aria-label="b3"></td>
+        <td class="dark" aria-label="c3"></td>
+        <td class="light" aria-label="d3"></td>
+        <td class="dark" aria-label="e3"></td>
+        <td class="light" aria-label="f3"></td>
+        <td class="dark" aria-label="g3"></td>
+        <td class="light" aria-label="h3"></td>
+      </tr>
+      <tr>
+        <td class="light" aria-label="a2"><img src="assets/pieces-v1/white-pawn.png" alt="White pawn"><span class="rank" aria-hidden="true">2</span></td>
+        <td class="dark" aria-label="b2"><img src="assets/pieces-v1/white-pawn.png" alt="White pawn"></td>
+        <td class="light" aria-label="c2"><img src="assets/pieces-v1/white-pawn.png" alt="White pawn"></td>
+        <td class="dark" aria-label="d2"><img src="assets/pieces-v1/white-pawn.png" alt="White pawn"></td>
+        <td class="light" aria-label="e2"><img src="assets/pieces-v1/white-pawn.png" alt="White pawn"></td>
+        <td class="dark" aria-label="f2"><img src="assets/pieces-v1/white-pawn.png" alt="White pawn"></td>
+        <td class="light" aria-label="g2"><img src="assets/pieces-v1/white-pawn.png" alt="White pawn"></td>
+        <td class="dark" aria-label="h2"><img src="assets/pieces-v1/white-pawn.png" alt="White pawn"></td>
+      </tr>
+      <tr>
+        <td class="dark" aria-label="a1"><img src="assets/pieces-v1/white-rook.png" alt="White rook"><span class="rank" aria-hidden="true">1</span><span class="file" aria-hidden="true">a</span></td>
+        <td class="light" aria-label="b1"><img src="assets/pieces-v1/white-knight.png" alt="White knight"><span class="file" aria-hidden="true">b</span></td>
+        <td class="dark" aria-label="c1"><img src="assets/pieces-v1/white-bishop.png" alt="White bishop"><span class="file" aria-hidden="true">c</span></td>
+        <td class="light" aria-label="d1"><img src="assets/pieces-v1/white-queen.png" alt="White queen"><span class="file" aria-hidden="true">d</span></td>
+        <td class="dark" aria-label="e1"><img src="assets/pieces-v1/white-king.png" alt="White king"><span class="file" aria-hidden="true">e</span></td>
+        <td class="light" aria-label="f1"><img src="assets/pieces-v1/white-bishop.png" alt="White bishop"><span class="file" aria-hidden="true">f</span></td>
+        <td class="dark" aria-label="g1"><img src="assets/pieces-v1/white-knight.png" alt="White knight"><span class="file" aria-hidden="true">g</span></td>
+        <td class="light" aria-label="h1"><img src="assets/pieces-v1/white-rook.png" alt="White rook"><span class="file" aria-hidden="true">h</span></td>
+      </tr>
+      </tbody>
+    </table>
+    <dialog id="promotion" aria-labelledby="promotion-title">
+      <form method="dialog">
+        <h2 id="promotion-title">Promote pawn</h2>
+        <div class="promotion-options">
+          <button value="q">Queen</button>
+          <button value="r">Rook</button>
+          <button value="b">Bishop</button>
+          <button value="n">Knight</button>
+          <button value="cancel">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+  <script src="vendor/chess-1.4.0.js"></script>
+  <script src="game.js?v=1"></script>
+  <script src="../arcade-library.js?v=library-2-chess"></script>
+  <script src="../arcade-visit.js?v=library-2"></script>
+</body>
+</html>
