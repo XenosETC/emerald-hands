@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101611">
   <title>Pepe Poker · Emerald Arcade</title>
-  <link rel="stylesheet" href="table.css?v=replay-speed-1">
+  <link rel="stylesheet" href="table.css?v=replay-keyboard-1">
 </head>
 <body>
   <header>
@@ -103,7 +103,13 @@
           </details>
           <details id="practice-read" hidden>
             <summary>Read this decision <span id="practice-read-value"></span></summary>
+            <dl id="practice-call-odds" hidden>
+              <div><dt>Call cost</dt><dd id="practice-call-cost"></dd></div>
+              <div><dt>Pot after call</dt><dd id="practice-call-pot"></dd></div>
+              <div><dt>Break-even share</dt><dd id="practice-call-share"></dd></div>
+            </dl>
             <p id="practice-read-explanation"></p>
+            <p id="practice-uncalled" hidden></p>
           </details>
         </div>
         <div id="table-commands">
@@ -149,13 +155,17 @@
           <button id="replay-start" type="button" hidden>Replay hand</button>
           <button id="download-hand" type="button">Download hand</button>
         </div>
+        <details id="hand-archive">
+          <summary>Hand archive <span id="archive-count"></span></summary>
+          <ol id="archive-hands"></ol>
+        </details>
         <div id="replay-controls" hidden>
           <div id="replay-streets" role="group" aria-label="Jump to a recorded street"></div>
           <progress id="replay-progress" max="1" value="0" aria-hidden="true"></progress>
-          <p id="replay-action" role="status"></p>
+          <p id="replay-action" role="status" aria-live="polite"></p>
           <div class="replay-buttons">
-            <button id="replay-prev" type="button">Back</button>
-            <button id="replay-next" type="button">Next</button>
+            <button id="replay-prev" type="button" aria-disabled="true">Back</button>
+            <button id="replay-next" type="button" aria-disabled="true">Next</button>
             <button id="replay-end" type="button">Summary</button>
           </div>
           <div class="replay-playback">
@@ -206,6 +216,6 @@
       <button>Done</button>
     </form>
   </dialog>
-  <script type="module" src="table.js?v=replay-speed-1"></script>
+  <script type="module" src="table.js?v=replay-keyboard-1"></script>
 </body>
 </html>

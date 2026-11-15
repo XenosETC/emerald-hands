@@ -12,7 +12,7 @@
     ["unstableLaunch", "ETC: Unstable Launch", "etc-unstable-launch.html", ["arcade"], true, "Click / tap / Space"],
     ["rocketSimulator", "ETC Rocket Simulator", "etc-rocket-simulator.html", ["adventure", "idle"], true, "Click / tap"],
     ["pets", "ETC Pets: Meme Edition", "etc-pets.html", ["idle"], true, "Click / tap"],
-    ["paradox", "Pepe's Paradox", "pepes-paradox.html", ["adventure"], false, "Keyboard required"],
+    ["paradox", "Pepe's Paradox", "pepes-paradox.html", ["adventure"], true, "Keyboard / touch"],
     ["pepeRun", "PepeCoin Emerald Run", "pepecoin-run.html", ["arcade"], true, "Tap / Space"],
     ["towerDefense", "Pepe Tower Defense", "pepe-tower-defense.html", ["strategy"], true, "Click / tap / drag"],
     ["pepePoker", "Pepe Poker", "pepe-poker/index.html", ["strategy"], true, "Click / tap"],
@@ -28,6 +28,7 @@
   const key = "emerald-library-v1";
   const byId = id => games.find(game => game.id === id);
   const byPath = path => games.find(game => game.path === path);
+  const searchText = text => text.toLowerCase().replace(/['’]/g, "");
 
   function sanitize(value) {
     const favorites = [...new Set((Array.isArray(value?.favorites) ? value.favorites : []).filter(byId))];
@@ -78,10 +79,10 @@
 
   function select(value, { genre = "all", query = "", favorites = false, touch = false, sort = "featured", descriptions = {} } = {}) {
     const state = sanitize(value);
-    const words = String(query).trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const words = searchText(String(query)).trim().split(/\s+/).filter(Boolean);
     const result = games.filter(game => (genre === "all" || game.genres.includes(genre))
       && (!favorites || state.favorites.includes(game.id)) && (!touch || game.touch)
-      && words.every(word => `${game.title} ${game.genres.join(" ")} ${game.controls} ${descriptions[game.id] || ""}`.toLowerCase().includes(word)));
+      && words.every(word => searchText(`${game.title} ${game.genres.join(" ")} ${game.controls} ${descriptions[game.id] || ""}`).includes(word)));
     if (sort === "title") result.sort((a, b) => a.title.localeCompare(b.title));
     if (sort === "recent") {
       const times = new Map(state.recent.map(item => [item.id, item.at]));

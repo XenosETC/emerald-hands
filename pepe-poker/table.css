@@ -620,6 +620,20 @@ main {
 #practice-read { grid-column: 1 / -1; }
 #practice-read-value { margin-inline-start: 5px; color: var(--gold); font-weight: 700; }
 #practice-read p { margin: 0; padding: 1px 10px 10px; line-height: 1.45; }
+#practice-call-odds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0 8px 8px;
+}
+#practice-call-odds > div {
+  padding: 6px 5px;
+  border-radius: 4px;
+  background: #192d23;
+}
+#practice-call-odds dt { color: var(--muted); font-size: .68rem; }
+#practice-call-odds dd { margin: 3px 0 0; color: var(--gold); font-size: .78rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+#practice-uncalled { color: var(--muted); }
 #raise-controls, .decision-buttons {
   display: grid;
   align-items: center;
@@ -888,6 +902,42 @@ h2 { color: var(--gold); font-size: 1.75rem; }
 #recap-board { justify-content: flex-start; margin-top: 8px; }
 .recap-tools, #replay-controls { margin-top: 7px; }
 .recap-tools { display: flex; gap: 4px; flex-wrap: wrap; }
+#hand-archive { margin-top: 8px; }
+#hand-archive summary {
+  min-height: 44px;
+  padding: 11px 9px;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 700;
+}
+#archive-count { float: right; color: var(--muted); font-weight: 400; }
+#archive-hands {
+  display: grid;
+  gap: 4px;
+  max-height: 14rem;
+  margin: 4px 0 0;
+  padding: 3px;
+  overflow: auto;
+  list-style: none;
+}
+.archive-hand {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  min-height: 44px;
+  padding: 5px 7px;
+  font-size: .74rem;
+  text-align: left;
+}
+.archive-hand[aria-current="true"] { border-color: var(--gold); background: #293729; }
+.archive-hand-label { display: grid; gap: 1px; }
+.archive-hand-label > span { color: var(--muted); font-size: .68rem; font-weight: 400; }
+.archive-hand-award { color: var(--gold); font-variant-numeric: tabular-nums; }
 #replay-streets {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -914,6 +964,7 @@ h2 { color: var(--gold); font-size: 1.75rem; }
 #replay-action { margin: 4px 0 7px; font-size: .8rem; overflow-wrap: anywhere; }
 .replay-buttons { display: flex; gap: 4px; flex-wrap: wrap; }
 .recap-tools button, .replay-buttons button { min-height: 32px; padding: 4px 7px; font-size: .74rem; }
+.replay-buttons button[aria-disabled="true"] { cursor: default; opacity: .55; }
 .replay-playback {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

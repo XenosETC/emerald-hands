@@ -276,7 +276,7 @@ const petGameSource = readFileSync(resolve(root, "etc-pets.js"), "utf8");
 const petGameCss = readFileSync(resolve(root, "etc-pets.css"), "utf8");
 check(petGameCss.includes("height:100dvh"), "ETC Pets sanctuary is not viewport-fitted");
 check(petGameCss.includes("grid-template-columns:repeat(4,minmax(0,1fr))"), "ETC Pets compact roster contract is missing");
-for (const asset of ["meme-pets.png", "pepe-variants.png", "pet-sanctuary.png"]) {
+for (const asset of ["meme-pets.png", "pepe-variants.png", "rumble-companions.webp", "pet-sanctuary.png"]) {
   check(existsSync(resolve(root, `assets/etc-pets/${asset}`)), `ETC Pets generated asset is missing ${asset}`);
 }
 for (const contract of ["Arcade Pet Dock", "setInterval(wander", "spritePosition", "selected", "addAura"]) {

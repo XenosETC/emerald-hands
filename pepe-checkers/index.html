@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111d17">
   <title>Pepe Checkers · Emerald Arcade</title>
-  <link rel="stylesheet" href="checkers.css?v=board-13">
+  <link rel="stylesheet" href="checkers.css?v=board-16">
 </head>
 <body>
   <header>
@@ -29,6 +29,8 @@
       <div id="status" class="turn-status" role="status" aria-atomic="true">
         <strong id="turn-title"></strong>
         <span id="turn-guide"></span>
+        <p class="repetition-status" id="repetition-status" hidden></p>
+        <p class="repetition-warning" id="repetition-warning" hidden></p>
       </div>
       <div class="board-frame">
         <div class="board-ranks" aria-hidden="true"><span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span></div>
@@ -105,7 +107,10 @@
         </div>
       </section>
       <section class="move-panel" aria-labelledby="moves-title">
-        <h2 id="moves-title">Move log</h2>
+        <div class="move-panel-heading">
+          <h2 id="moves-title">Move log</h2>
+          <button id="share-match" type="button" aria-haspopup="dialog" hidden>Share move log</button>
+        </div>
         <p id="moves-empty">Moves will appear here.</p>
         <p id="moves-help" hidden>Select a move to see it on the board.</p>
         <ol id="move-log"></ol>
@@ -118,8 +123,22 @@
       </details>
     </aside>
   </main>
+  <dialog id="transcript-dialog" aria-labelledby="transcript-title">
+    <form method="dialog">
+      <header class="transcript-heading">
+        <h2 id="transcript-title">Match transcript</h2>
+        <button autofocus>Done</button>
+      </header>
+      <textarea id="transcript-text" aria-label="Match transcript text" readonly></textarea>
+      <div class="transcript-actions">
+        <button type="button" id="copy-transcript">Copy text</button>
+        <a id="download-transcript" download="pepe-checkers-match.txt">Download text</a>
+      </div>
+      <p id="transcript-feedback" role="status"></p>
+    </form>
+  </dialog>
   <script src="../arcade-library.js?v=library-2-checkers"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
-  <script type="module" src="checkers.js?v=board-14"></script>
+  <script type="module" src="checkers.js?v=board-16"></script>
 </body>
 </html>

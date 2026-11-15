@@ -138,13 +138,17 @@ function endGame(reason = 'defeat') {
   els.finishButton.disabled = true;
   els.startButton.textContent = 'Launch again';
   els.overlayStartButton.textContent = 'Launch again';
-  window.EmeraldArcade?.recordAndNotify("galaxy", {
-    score: state.score,
-    rank,
-    wave: state.wave,
-    weapon: `Mk ${roman(state.weaponLevel)}`,
-    played: true,
-  });
+  try {
+    window.EmeraldArcade?.recordAndNotify("galaxy", {
+      score: state.score,
+      rank,
+      wave: state.wave,
+      weapon: `Mk ${roman(state.weaponLevel)}`,
+      played: true,
+    });
+  } catch {
+    els.overlayText.textContent += " Arcade progress could not be saved.";
+  }
   updateHud();
   showBest();
   els.overlayStartButton.focus({preventScroll:true});

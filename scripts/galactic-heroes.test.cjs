@@ -155,3 +155,14 @@ test('best projection uses existing arcade records and handles unavailable stora
   assert.match(g.nodes.get('#flightBest').textContent,/9,000.*Crystal Pilot/);
   g.window.EmeraldArcade.load=()=>{throw Error('blocked');};g.run('showBest()');assert.match(g.nodes.get('#flightBest').textContent,/unavailable/);
 });
+
+test('a failed arcade result write still shows the score and enables the next flight', () => {
+  const g = game({ storageBlocked: true });
+  g.run('startGame(); state.score = 12345');
+  g.window.EmeraldArcade.recordAndNotify = () => { throw Error('profile write failed'); };
+  g.nodes.get('#finishFlight').emit('click');
+  assert.match(g.nodes.get('#overlayText').textContent, /12K.*Arcade progress could not be saved/);
+  assert.equal(g.nodes.get('#finishFlight').disabled, true);
+  g.nodes.get('#overlayStartButton').emit('click');
+  assert.equal(g.nodes.get('#finishFlight').disabled, false);
+});

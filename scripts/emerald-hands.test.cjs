@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const codec = require('../emerald-hands-save.js');
 const source = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
-function game({save = null, blocked = false} = {}) {
+function game({save = null, blocked = false, blockedArcade = false} = {}) {
   const nodes = new Map();
   const saves = new Map([['pepe-soul-world-v1', 'other-world'], ['emerald-arcade-v1', 'other-progress']]);
   if (save !== null) saves.set(codec.key, typeof save === 'string' ? save : JSON.stringify(save));
@@ -32,7 +32,10 @@ function game({save = null, blocked = false} = {}) {
     getElementById:id => find(`#${id}`), createElement:node,
   });
   find('#buyAmount').value = '1';
-  const window = Object.assign(node(), {EmeraldHandsSave:codec, EmeraldArcade:{isPaused:() => paused, record(){},recordAndNotify(){},toast(){},beginSession(){}}});
+  const trackArcade = () => { if (blockedArcade) throw Error('arcade profile is unavailable'); };
+  const window = Object.assign(node(), {EmeraldHandsSave:codec, EmeraldArcade:{
+    isPaused:() => paused, record:trackArcade, recordAndNotify:trackArcade, toast(){}, beginSession:trackArcade,
+  }});
   let paused = false;
   const storage = {getItem:key => {if(blocked) throw Error('blocked'); return saves.get(key) ?? null;}, setItem(key,value){if(blocked) throw Error('blocked'); saves.set(key, value);}};
   const context = vm.createContext({window,document, localStorage:storage, performance:{now:()=>0}, requestAnimationFrame(){}, setInterval(){},setTimeout(){}, Date, navigator:{}, AudioContext:class{constructor(){throw Error('no audio')}}});
@@ -93,6 +96,15 @@ test('storage failure and unavailable audio do not break collecting or purchasin
   assert.match(h.nodes.get('#saveStatus').textContent,/Could not save/);
   h.click('#saveVaultButton');
   assert.equal(codec.decode(h.nodes.get('#saveCode').value).state.levels.infra,1);
+});
+test('arcade tracking failures leave boot, the first tap, purchases and save export usable', () => {
+  const h = game({blocked: true, blockedArcade: true});
+  h.click('#shardButton');
+  assert.equal(h.snapshot().shards, 1);
+  h.run('earn(15); buy("click")');
+  assert.equal(h.snapshot().levels.click, 1);
+  h.click('#saveVaultButton');
+  assert.equal(codec.decode(h.nodes.get('#saveCode').value).state.levels.click, 1);
 });
 test('paused games and open dialogs freeze production and block gameplay input', () => {
   const h=game({save:saved({shards:100,totalEarned:100,levels:{infra:1}})});

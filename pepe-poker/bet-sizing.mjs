@@ -4,7 +4,8 @@ export function potRaiseTo(pot, committed, { call, min, max }, fraction) {
   return Math.max(min, Math.min(max, raiseTo));
 }
 
-export function headsUpCallEquity(pot, committed, opponentBet, call) {
+export function headsUpCallOdds(pot, committed, opponentBet, call) {
   const uncalled = Math.max(0, opponentBet - committed - call);
-  return call / (pot - uncalled + call);
+  const potAfterCall = pot - uncalled + call;
+  return { potAfterCall, uncalled, breakEvenShare: call / potAfterCall };
 }

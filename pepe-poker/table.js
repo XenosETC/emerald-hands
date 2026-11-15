@@ -1,6 +1,6 @@
 import { AVATARS, DEFAULT_AVATAR_ID } from "./avatar-catalog.mjs?v=1";
 import { DEFAULT_TABLE, TABLE_PRESETS, TURN_SECONDS, TIME_BANK_SECONDS } from "./table-settings.mjs?v=3";
-import { headsUpCallEquity, potRaiseTo } from "./bet-sizing.mjs?v=2";
+import { headsUpCallOdds, potRaiseTo } from "./bet-sizing.mjs?v=3";
 import { formatHandExport, potBreakdownLines } from "./hand-export.mjs?v=2";
 import { REPLAY_STREETS, replayStreetStarts } from "./hand-replay.mjs?v=1";
 import { REACTIONS, REACTION_COOLDOWN } from "./reaction-catalog.mjs?v=1";
@@ -358,12 +358,14 @@ function pauseReplayPlayback() {
   if (replayTimer === null) return;
   clearInterval(replayTimer);
   replayTimer = null;
+  $("replay-action").setAttribute("aria-live", "polite");
   $("replay-play").textContent = "Play replay";
 }
 
 function scheduleReplayPlayback() {
   if (replayTimer !== null) clearInterval(replayTimer);
   const speed = Number($("replay-speed").value) || 1;
+  $("replay-action").setAttribute("aria-live", "off");
   replayTimer = setInterval(() => {
     if (document.hidden) {
       pauseReplayPlayback();
@@ -388,6 +390,27 @@ const replayStreetButtons = REPLAY_STREETS.map(({ label }) => {
 });
 $("replay-streets").append(...replayStreetButtons);
 
+function renderArchiveEntries(hands) {
+  $("archive-count").textContent = hands.length === 1 ? "1 hand" : `${hands.length} hands`;
+  const list = $("archive-hands");
+  const focusedHand = list.contains(document.activeElement) && document.activeElement.dataset.hand;
+  list.replaceChildren(...hands.map(hand => {
+    const entry = element("li", "");
+    const button = element("button", "archive-hand");
+    button.type = "button";
+    button.dataset.hand = hand.number;
+    const summary = element("span", "archive-hand-label");
+    const showdown = hand.players.some(player => player.hand);
+    summary.append(element("strong", "", `Hand #${hand.number}`),
+      element("span", "", showdown ? "Showdown" : "Won by fold"));
+    const awarded = hand.players.reduce((total, player) => total + player.amount, 0);
+    button.append(summary, element("span", "archive-hand-award", `${format.format(awarded)} chips`));
+    entry.append(button);
+    return entry;
+  }));
+  if (focusedHand) (list.querySelector(`[data-hand="${focusedHand}"]`) ?? $("hand-archive").querySelector("summary")).focus();
+}
+
 function renderRecap() {
   const hands = state?.recentHands ?? [];
   $("hand-recap").hidden = !hands.length;
@@ -404,13 +427,15 @@ function renderRecap() {
     const selected = recapOptionsKey.startsWith(state.id + ":") ? selector.value : "";
     const recent = element("option", "", `Latest · Hand #${latest.number}`);
     recent.value = "";
-    selector.replaceChildren(recent, ...[...hands].reverse().map(hand => {
+    const newestFirst = [...hands].reverse();
+    selector.replaceChildren(recent, ...newestFirst.map(hand => {
       const option = element("option", "", "Hand #" + hand.number);
       option.value = hand.number;
       return option;
     }));
     selector.value = hands.some(hand => String(hand.number) === selected) ? selected : "";
     if (!selector.value) replayStep = null;
+    renderArchiveEntries(newestFirst);
     recapOptionsKey = key;
   }
   const review = selectedHand(hands);
@@ -426,6 +451,15 @@ function renderRecap() {
   $("replay-start").hidden = !canReplay || replaying;
   $("download-hand").hidden = replaying;
   $("replay-controls").hidden = !replaying;
+  $("hand-archive").hidden = replaying;
+  if (!replaying) {
+    const list = $("archive-hands");
+    const current = list.querySelector('[aria-current="true"]');
+    if (current?.dataset.hand !== String(review.number)) {
+      current?.removeAttribute("aria-current");
+      list.querySelector(`[data-hand="${review.number}"]`)?.setAttribute("aria-current", "true");
+    }
+  }
   $("recap-players").hidden = replaying && replayStep < actions.length - 1;
   const pots = potBreakdownLines(review, amount => format.format(amount));
   $("recap-pots").hidden = !pots.length || $("recap-players").hidden;
@@ -444,8 +478,8 @@ function renderRecap() {
       if (!button.disabled && revealed === REPLAY_STREETS[index].cards) button.setAttribute("aria-current", "step");
       else button.removeAttribute("aria-current");
     }
-    $("replay-prev").disabled = replayStep === 0;
-    $("replay-next").disabled = atReplayEnd;
+    $("replay-prev").setAttribute("aria-disabled", String(replayStep === 0));
+    $("replay-next").setAttribute("aria-disabled", String(atReplayEnd));
     const play = $("replay-play");
     play.disabled = actions.length <= 1;
     play.textContent = replayTimer !== null ? "Pause replay" : atReplayEnd ? "Replay again" : "Play replay";
@@ -516,6 +550,34 @@ function renderPotBreakdown() {
     tier.append(element("dt", "", name), element("dd", "", format.format(amount)));
     return tier;
   }));
+}
+
+function renderPracticeDecision(allowed, player) {
+  const decision = $("practice-read");
+  const opponent = state.practice && state.players.find(other => other.bot);
+  decision.hidden = !allowed || !opponent;
+  const call = decision.hidden ? 0 : allowed.call;
+  $("practice-call-odds").hidden = !call;
+  $("practice-uncalled").hidden = true;
+  if (decision.hidden) return;
+
+  if (!call) {
+    $("practice-read-value").textContent = "Free check";
+    $("practice-read-explanation").textContent = "Checking passes the action without adding chips.";
+    return;
+  }
+
+  const { potAfterCall, uncalled, breakEvenShare } = headsUpCallOdds(state.pot, player.bet, opponent.bet, call);
+  const share = percent.format(breakEvenShare);
+  $("practice-read-value").textContent = share + " to break even";
+  $("practice-call-cost").textContent = format.format(call) + " chips";
+  $("practice-call-pot").textContent = format.format(potAfterCall) + " chips";
+  $("practice-call-share").textContent = share;
+  $("practice-read-explanation").textContent = "If there’s no further betting, this is the average share of the pot you need to cover the call.";
+  if (uncalled) {
+    $("practice-uncalled").textContent = format.format(uncalled) + " unmatched chips would return to your opponent.";
+    $("practice-uncalled").hidden = false;
+  }
 }
 
 function render() {
@@ -597,21 +659,7 @@ function render() {
     if (document.activeElement !== amount && !amount.validity.valid) amount.value = allowed.min;
     for (const preset of ["min", "half", "pot"]) $("raise-" + preset).hidden = allowed.min === allowed.max;
   } else $("amount").value = "";
-  const decision = $("practice-read");
-  decision.hidden = !state.practice || !allowed;
-  if (!decision.hidden) {
-    if (allowed.call) {
-      const opponent = state.players.find(other => other.bot);
-      const target = percent.format(headsUpCallEquity(state.pot, player.bet, opponent.bet, allowed.call));
-      $("practice-read-value").textContent = target + " to break even";
-      $("practice-read-explanation").textContent =
-        "If there is no further betting, your share of the contestable pot needs to average " + target +
-        " to cover the " + format.format(allowed.call) + "-chip call.";
-    } else {
-      $("practice-read-value").textContent = "Free check";
-      $("practice-read-explanation").textContent = "Checking passes the action without committing more chips.";
-    }
-  }
+  renderPracticeDecision(allowed, player);
   updateRaiseLabel();
   updateClock();
 }
@@ -969,6 +1017,11 @@ $("recap-select").addEventListener("change", event => {
   const hand = selectedHand(state?.recentHands ?? []);
   if (hand) switchReviewedHand(hand, event.target.value);
 });
+$("archive-hands").addEventListener("click", event => {
+  const button = event.target.closest("[data-hand]");
+  const hand = state?.recentHands?.find(hand => String(hand.number) === button?.dataset.hand);
+  if (hand && replayStep === null) switchReviewedHand(hand);
+});
 for (const [id, offset] of [["recap-older", -1], ["recap-newer", 1]]) {
   $(id).onclick = event => {
     const hands = state?.recentHands ?? [];
@@ -986,8 +1039,12 @@ $("replay-start").onclick = () => {
   renderRecap();
   $("replay-next").focus();
 };
-$("replay-prev").onclick = () => seekReplayStep(replayStep - 1);
-$("replay-next").onclick = () => seekReplayStep(replayStep + 1);
+for (const [id, offset] of [["replay-prev", -1], ["replay-next", 1]]) {
+  $(id).onclick = event => {
+    if (event.currentTarget.getAttribute("aria-disabled") === "true") return;
+    seekReplayStep(replayStep + offset);
+  };
+}
 $("replay-play").onclick = () => {
   if (replayTimer !== null) {
     pauseReplayPlayback();

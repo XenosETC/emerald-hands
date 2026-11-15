@@ -120,3 +120,16 @@ test('upgrade status exposes affordability, price changes and flight reset',()=>
   assert.match(g.nodes.get('#wingmanStatus').textContent,/1\/2 wingmen online/);
   assert.equal(g.nodes.get('#wingmanButton').disabled,true);
 });
+
+test('an unavailable arcade profile still shows the finished flight and allows retry', () => {
+  const g = game({ storageBlocked: true });
+  g.run('startGame()');
+  g.window.EmeraldArcade.recordAndNotify = () => { throw Error('profile write failed'); };
+  g.window.setTimeout = callback => callback();
+  g.nodes.get('#finishButton').emit('click');
+  assert.equal(g.nodes.get('#startButton').textContent, 'Launch Again');
+  assert.equal(g.nodes.get('#startButton').focused, true);
+  assert.match(g.nodes.get('#flightReport').textContent, /Arcade progress could not be saved/);
+  g.nodes.get('#startButton').emit('click');
+  assert.equal(g.run('state.mode'), 'playing');
+});

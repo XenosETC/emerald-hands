@@ -24,9 +24,12 @@
   const reviewLive = document.querySelector("#review-live");
   const resetButton = document.querySelector("#reset");
   const modeSelect = document.querySelector("#match-mode");
+  const takebackOption = document.querySelector("#no-takebacks");
   const blackSeatName = document.querySelector("#black-seat-name");
   const seats = { w: document.querySelector("#white-seat"), b: document.querySelector("#black-seat") };
   const captures = { w: document.querySelector("#white-captures"), b: document.querySelector("#black-captures") };
+  const materialBadges = { w: document.querySelector("#white-material"), b: document.querySelector("#black-material") };
+  const materialValues = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
   const roles = { k: "king", q: "queen", r: "rook", b: "bishop", n: "knight", p: "pawn" };
   const sides = { w: "White", b: "Black" };
   const squares = [...board.querySelectorAll("td")].map(cell => {
@@ -49,6 +52,7 @@
   let result = "*";
   let reviewPly = null;
   let mode = "local";
+  let noTakebacks = false;
   let botTimer;
   let flipped = false;
 
@@ -110,6 +114,7 @@
         history.push(game.move(san, { strict: true }));
       }
       mode = savedMode;
+      noTakebacks = value.noTakebacks === true;
       saveNote.textContent = history.length ? "Match restored on this device." : "Matches save on this device.";
     } catch {
       game.reset();
@@ -120,8 +125,8 @@
 
   function saveMatch() {
     try {
-      if (history.length || mode !== "local") {
-        window.localStorage.setItem(saveKey, JSON.stringify({ mode, moves: history.map(move => move.san) }));
+      if (history.length || mode !== "local" || noTakebacks) {
+        window.localStorage.setItem(saveKey, JSON.stringify({ mode, noTakebacks, moves: history.map(move => move.san) }));
       }
       else window.localStorage.removeItem(saveKey);
       saveNote.textContent = history.length ? "Match saved on this device." : "Matches save on this device.";
@@ -177,16 +182,24 @@
     selected = null;
     const reviewing = ply !== null;
     const move = reviewing ? history[ply - 1] : null;
+    const outcomes = [];
+    if (move?.captured) outcomes.push(`Captured ${sides[move.color === "w" ? "b" : "w"]} ${roles[move.captured]}`);
+    if (move?.promotion) outcomes.push(`Promoted to ${roles[move.promotion]}`);
+    if (move?.san.endsWith("#")) outcomes.push("Checkmate");
+    else if (move?.san.endsWith("+")) outcomes.push("Check");
     reviewStatus.textContent = move
-      ? `Review · Move ${Math.ceil(ply / 2)} · ${sides[move.color]} ${move.san}`
+      ? [`Review · Move ${Math.ceil(ply / 2)} · ${sides[move.color]} ${move.san}`, ...outcomes].join(" · ")
       : reviewing ? "Review · Starting position" : "Live position";
     reviewStart.setAttribute("aria-disabled", String(ply === 0));
     reviewPrev.setAttribute("aria-disabled", String(ply === 0));
     reviewNext.setAttribute("aria-disabled", String(!reviewing || ply === history.length));
     reviewLive.setAttribute("aria-disabled", String(!reviewing));
     resetButton.disabled = reviewing;
-    undoButton.disabled = reviewing || !history.length;
+    undoButton.disabled = noTakebacks || reviewing || !history.length;
+    undoButton.hidden = noTakebacks;
     undoButton.textContent = mode === "local" ? "Undo move" : "Undo turn";
+    takebackOption.checked = noTakebacks;
+    takebackOption.disabled = history.length > 0;
     for (const button of moveList.querySelectorAll("[data-ply]")) {
       if (Number(button.dataset.ply) === (ply ?? history.length)) button.setAttribute("aria-current", "step");
       else button.removeAttribute("aria-current");
@@ -223,6 +236,7 @@
       : `${turn} to move.${check ? " Check." : ""}`;
     blackSeatName.textContent = mode === "local" ? "Black" : `Black · ${botName()}`;
     const positionCheck = reviewing ? position.isCheck() : check;
+    const material = { w: 0, b: 0 };
     for (const [color, seat] of Object.entries(seats)) {
       seat.classList.toggle("is-active", !reviewing && !finished && game.turn() === color);
     }
@@ -240,6 +254,7 @@
       button.classList.toggle("last-move", lastMove?.from === square || lastMove?.to === square);
       button.classList.toggle("in-check", positionCheck && piece?.type === "k" && piece.color === position.turn());
       if (piece) {
+        material[piece.color] += materialValues[piece.type];
         const image = button.firstElementChild || document.createElement("img");
         const src = pieceSource(piece.color, piece.type);
         if (image.getAttribute("src") !== src) image.src = src;
@@ -247,6 +262,15 @@
         if (!image.parentNode) button.append(image);
       } else {
         button.replaceChildren();
+      }
+    }
+
+    for (const [color, badge] of Object.entries(materialBadges)) {
+      const advantage = material[color] - material[color === "w" ? "b" : "w"];
+      badge.hidden = advantage <= 0;
+      if (advantage > 0) {
+        badge.firstElementChild.textContent = `+${advantage}`;
+        badge.lastElementChild.textContent = `${sides[color]} leads by ${advantage} material ${advantage === 1 ? "point" : "points"}`;
       }
     }
   }
@@ -366,6 +390,15 @@
     }
     mode = modeSelect.value;
     resetMatch();
+  });
+
+  takebackOption.addEventListener("change", () => {
+    if (history.length) {
+      takebackOption.checked = noTakebacks;
+      return;
+    }
+    noTakebacks = takebackOption.checked;
+    commitPosition();
   });
 
   exportButton.addEventListener("click", () => {

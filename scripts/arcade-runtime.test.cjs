@@ -8,7 +8,7 @@ const source = fs.readFileSync(path.join(__dirname, '..', 'arcade.js'), 'utf8');
 
 // A small event/DOM fixture executes the shipped runtime, including capture and
 // bubbling. Actual keyboard activation and pointer hit testing also need browser QA.
-function harness(page = 'shard-rush.html') {
+function harness(page = 'shard-rush.html', { blockWrites = false } = {}) {
   let document;
   class Event {
     constructor(type, options = {}) {
@@ -111,7 +111,16 @@ function harness(page = 'shard-rush.html') {
   document.append(document.head, document.body);
   document.activeElement = document.body;
   const saves = new Map([['emerald-arcade-v1', '{"xp":4321,"wallet":{"arcadeShards":876}}'], ['satoshi-system-save-v1', '{"ticks":99}']]);
-  const storage = values => ({ getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem:key => values.delete(key), key:index => [...values.keys()][index] ?? null, get length(){return values.size;} });
+  const storage = values => ({
+    getItem: key => values.get(key) ?? null,
+    setItem(key, value) {
+      if (blockWrites && values === saves) throw new Error('Arcade storage is read-only');
+      values.set(key, value);
+    },
+    removeItem: key => values.delete(key),
+    key: index => [...values.keys()][index] ?? null,
+    get length() { return values.size; },
+  });
   const location = { pathname: `/${page}`, search: '', reloads: 0, reload() { this.reloads += 1; } };
   vm.runInNewContext(source, {
     window, document, location, CustomEvent: Event, KeyboardEvent: Event, PointerEvent: Event, URLSearchParams,
@@ -148,6 +157,20 @@ test('holding shared shortcuts performs one action per physical press', () => {
   assert.equal(h.location.reloads, 0);
   h.key('r');
   assert.equal(h.location.reloads, 1);
+});
+
+test('blocked analytics writes let a game start while a reward still reports save failure', () => {
+  const h = harness('shard-rush.html', { blockWrites: true });
+  let started;
+  h.window.addEventListener('emeraldarcade:sessionstart', event => { started = event.detail; });
+
+  const profile = h.arcade.beginSession('rush');
+
+  assert.equal(profile.analytics.rush.starts, 1);
+  assert.equal(started.status, 'running');
+  assert.equal(h.document.body.dataset.arcadeSession, 'running');
+  assert.throws(() => h.arcade.recordAndNotify('rush', { played: true, score: 9000 }), /read-only/);
+  assert.equal(h.arcade.arcadeShardBalance(), 876);
 });
 
 test('browser shortcuts, composing text, inputs and editable text keep their defaults', () => {

@@ -1,4 +1,4 @@
-import { legalMoves, newGame, play } from "./engine.mjs?v=draw-1";
+import { legalMoves, newGame, play } from "./engine.mjs?v=draw-2";
 
 export const matchKey = "pepe-checkers:match";
 const legacyVersion = 1;

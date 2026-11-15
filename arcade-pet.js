@@ -3,6 +3,7 @@
   const STORAGE_KEY = "emerald-arcade-pets-v1";
   const SPRITES = "assets/etc-pets/meme-pets.png";
   const PEPE_VARIANTS = "assets/etc-pets/pepe-variants.png";
+  const RUMBLE_COMPANIONS = "assets/etc-pets/rumble-companions.webp";
   const pets = [
     { id: "pepe", name: "Emerald Pepe", title: "Shard Sniffer", col: 0, sheet: SPRITES, unlockCost: 0 },
     { id: "wojak", name: "Pocket Wojak", title: "Anxiety Sensor", col: 1, sheet: SPRITES, unlockCost: 90 },
@@ -12,6 +13,9 @@
     { id: "mecha-pepe", name: "Mini Mecha Pepe", title: "Reactor Buddy", col: 1, sheet: PEPE_VARIANTS, unlockCost: 560 },
     { id: "berserk-tadpole", name: "Berserk Tadpole", title: "Tiny Rage Engine", col: 2, sheet: PEPE_VARIANTS, unlockCost: 760 },
     { id: "fallen-crystal", name: "Fallen Crystal Pepe", title: "Red Shard Summoner", col: 3, sheet: PEPE_VARIANTS, unlockCost: 1000 },
+    { id: "rumble-monkey", name: "Monkey", title: "Jade Scout", col: 0, sheet: RUMBLE_COMPANIONS, unlockCost: 260 },
+    { id: "rumble-croakhound", name: "Croakhound", title: "Marsh Guardian", col: 1, sheet: RUMBLE_COMPANIONS, unlockCost: 260 },
+    { id: "rumble-frenix", name: "Frenix", title: "Rumble Skywatch", col: 2, sheet: RUMBLE_COMPANIONS, unlockCost: 260 },
   ];
   const supplyPacks = {
     shoot: { name: "Bamboo Shoot", shoots: 1, sticks: 0, cost: 8 },

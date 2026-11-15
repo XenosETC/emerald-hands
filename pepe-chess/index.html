@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pepe Chess | Emerald Arcade</title>
-  <link rel="stylesheet" href="preview.css?v=play-6">
+  <link rel="stylesheet" href="preview.css?v=play-8">
 </head>
 <body>
   <main>
@@ -19,7 +19,12 @@
           <option value="bot">Beginner Kekbot</option>
           <option value="club">Club Kekbot</option>
         </select>
+        <label class="takeback-option">
+          <input id="no-takebacks" type="checkbox" aria-describedby="takeback-help">
+          No takebacks
+        </label>
       </div>
+      <p id="takeback-help" class="mode-help">Set takeback rules before the first move.</p>
     </header>
     <div class="match-layout">
       <section class="play-area" aria-label="Local match">
@@ -32,6 +37,9 @@
           <img src="assets/pieces-v1/black-king.png" alt="">
           <strong id="black-seat-name">Black</strong>
           <div id="black-captures" class="captures" aria-label="Captured by Black"></div>
+          <span id="black-material" class="seat-material" title="Material advantage" hidden>
+            <span aria-hidden="true"></span><span class="sr-only"></span>
+          </span>
         </div>
         <table class="board" aria-label="Chessboard, viewed from White's side">
           <tbody>
@@ -121,6 +129,9 @@
           <img src="assets/pieces-v1/white-king.png" alt="">
           <strong>White</strong>
           <div id="white-captures" class="captures" aria-label="Captured by White"></div>
+          <span id="white-material" class="seat-material" title="Material advantage" hidden>
+            <span aria-hidden="true"></span><span class="sr-only"></span>
+          </span>
         </div>
         <div id="review-controls" class="review-controls" role="group" aria-label="Move review controls" hidden>
           <p id="review-status" role="status">Live position</p>
@@ -167,7 +178,7 @@
   </main>
   <script src="vendor/chess-1.4.0.js"></script>
   <script src="beginner-bot.js?v=2"></script>
-  <script src="game.js?v=8"></script>
+  <script src="game.js?v=10"></script>
   <script src="../arcade-library.js?v=library-2-chess"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
 </body>

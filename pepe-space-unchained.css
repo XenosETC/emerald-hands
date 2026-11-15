@@ -137,9 +137,9 @@ canvas { display: block; width: 100%; height: 100%; }
   background:
     radial-gradient(circle at 50% 50%, rgba(35, 240, 156, 0.15), transparent 16rem),
     linear-gradient(rgba(2, 8, 6, 0.64), rgba(2, 4, 8, 0.95));
-  transition: opacity 0.25s ease, visibility 0.25s ease;
+  transition: opacity 0.25s ease;
 }
-.overlay.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.overlay.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.25s ease, visibility 0.25s ease; }
 .eyebrow { margin: 0 0 10px; color: var(--green); font-size: 0.72rem; font-weight: 950; letter-spacing: 0.16em; text-transform: uppercase; }
 .overlay h1 { max-width: 900px; margin: 0; font-size: clamp(2.6rem, 7vw, 6.8rem); line-height: 0.9; letter-spacing: 0; }
 .overlay p:not(.eyebrow) { max-width: 690px; margin: 15px auto 20px; color: #d2f2e4; line-height: 1.5; }

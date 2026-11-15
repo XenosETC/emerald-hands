@@ -292,3 +292,23 @@ test('sanctuary actions work without locks and rejected locks charge nothing',as
  assert.equal((await h.api.perform('supply','stick')).ok,false);
  assert.equal(wallet.value,42);
 });
+
+test('Rumble companions use the existing unlock ledger and leave old pet stats intact', () => {
+  const key = 'emerald-arcade-pets-v1';
+  const saves = new Map([[key, JSON.stringify({
+    schemaVersion: 2, selected: 'pepe', unlocked: ['pepe'], stats: { pepe: { strengthXp: 50 } }
+  })]]);
+  const wallet = { value: 780 };
+  const { api } = tab(saves, wallet);
+  for (const [column, id] of ['rumble-monkey', 'rumble-croakhound', 'rumble-frenix'].entries()) {
+    assert.equal(api.load().unlocked.includes(id), false);
+    assert.equal(api.unlock(id).ok, true);
+    assert.equal(api.unlock(id).ok, true);
+    assert.equal(api.load().stats[id].strength, 1);
+    assert.equal(api.spritePosition(id, true), ((column / 3) * 100) + '% 100%');
+  }
+  const reopened = tab(saves, wallet).api.load();
+  assert.equal(wallet.value, 0);
+  assert.equal(reopened.selected, 'rumble-frenix');
+  assert.equal(reopened.stats.pepe.strengthXp, 50);
+});

@@ -456,22 +456,27 @@ function endGame(reason = "shield") {
   state.best = Math.max(state.best, finalScore);
   try { localStorage.setItem(STORAGE_KEY, state.best); } catch { /* session best remains playable */ }
   const rank = rankFor(finalScore, state.wave);
-  window.EmeraldArcade?.recordAndNotify("spaceUnchained", {
-    score: finalScore,
-    rank,
-    wave: state.wave,
-    shards: state.shards,
-    kills: state.kills,
-    nodesCleared: state.nodesCleared,
-    played: true,
-  });
+  let recordNotice = "";
+  try {
+    window.EmeraldArcade?.recordAndNotify("spaceUnchained", {
+      score: finalScore,
+      rank,
+      wave: state.wave,
+      shards: state.shards,
+      kills: state.kills,
+      nodesCleared: state.nodesCleared,
+      played: true,
+    });
+  } catch {
+    recordNotice = " Arcade progress could not be saved.";
+  }
   const thisFlight = flightId;
   updateHud();
   window.setTimeout(() => {
     if (flightId !== thisFlight || state.mode !== "gameover") return;
     ui.title.textContent = `${rank} Flight`;
-    ui.text.textContent = `${reason === "bank" ? "Flight banked" : "Shield depleted"} · ${finalScore.toLocaleString()} points - Wave ${state.wave} - ${state.shards} shards - ${state.kills} corrupt ships unchained - ${state.nodesCleared} vault nodes cleared.`;
-    ui.report.textContent = flightAdvice(reason);
+    ui.text.textContent = `${reason === "bank" ? "Flight finished" : "Shield depleted"} · ${finalScore.toLocaleString()} points - Wave ${state.wave} - ${state.shards} shards - ${state.kills} corrupt ships unchained - ${state.nodesCleared} vault nodes cleared.`;
+    ui.report.textContent = flightAdvice(reason) + recordNotice;
     ui.start.textContent = "Launch Again";
     ui.overlay.classList.remove("is-hidden");
     ui.start.focus();
@@ -485,7 +490,7 @@ function flightAdvice(reason) {
   let advice;
   if (state.hullDamage > state.shotDamage) advice = "Leave more space between your fighter and enemy hulls; steer before they reach you.";
   else if (state.shotDamage > 0) advice = "Watch the dashed aim warnings and change your flight line before the shot arrives.";
-  else advice = reason === "bank" ? "Clean flight banked. Keep exploring longer when you’re ready." : "Keep moving and preserve room to dodge.";
+  else advice = reason === "bank" ? "Clean flight. Keep exploring longer when you’re ready." : "Keep moving and preserve room to dodge.";
   if (state.shards >= 10 && player.shield < 100 && state.repairsUsed === 0) advice += " Ten shards can repair 25 shield during flight.";
   return `${summary} ${advice}`;
 }

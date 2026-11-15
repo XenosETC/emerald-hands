@@ -1,5 +1,5 @@
-import { analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play } from "./engine.mjs?v=draw-1";
-import { decodeMatch, encodeMatch, matchKey } from "./match-save.mjs?v=draw-1";
+import { analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play, previewRepetition, repetitionCount, repetitionLimit } from "./engine.mjs?v=draw-2";
+import { decodeMatch, encodeMatch, matchKey } from "./match-save.mjs?v=draw-2";
 
 const $ = id => document.getElementById(id);
 const pieces = { 1: "Emerald", "-1": "Crimson" };
@@ -52,6 +52,31 @@ function reviewLabel(position) {
   return position.jumps > 1 || position.game.chain !== null ? turn + " · Jump " + position.jumps : turn;
 }
 
+function renderRepetition(position, drawTargets) {
+  const status = $("repetition-status");
+  const { game: shownGame } = position;
+  const occurrences = repetitionCount(shownGame);
+  const label = shownGame.repetitionHistory === false ? "Original rules · Repetition draws start next game."
+    : shownGame.chain !== null ? "Repetition is counted after the final jump."
+    : shownGame.winner ? ""
+    : "Position occurrences: " + occurrences + " of " + repetitionLimit;
+  status.hidden = !label;
+  if (status.textContent !== label) status.textContent = label;
+  status.classList.toggle("near-draw", occurrences === repetitionLimit - 1);
+
+  const warning = $("repetition-warning");
+  const squares = [...drawTargets].map(index => coordinate(index).toUpperCase()).join(", ");
+  const message = drawTargets.size ? "Draw by repetition if you move to " + squares + "." : "";
+  warning.hidden = !message;
+  if (warning.textContent !== message) warning.textContent = message;
+}
+
+function defeatReason() {
+  const loser = -game.winner;
+  const hasPieces = game.board.some(piece => Math.sign(piece) === loser);
+  return playerName(loser) + (hasPieces ? " has no legal moves." : " has no pieces left.");
+}
+
 function renderStatus(moves, waiting, position) {
   const capture = moves.length > 0 && moves[0].capture !== null;
   const continuing = game.chain !== null;
@@ -66,9 +91,7 @@ function renderStatus(moves, waiting, position) {
     state = "review";
   } else if (game.winner) {
     title = playerName(game.winner) + " wins";
-    const loser = -game.winner;
-    const hasPieces = game.board.some(piece => Math.sign(piece) === loser);
-    guide = playerName(loser) + (hasPieces ? " has no legal moves." : " has no pieces left.");
+    guide = defeatReason();
     state = "result";
   } else if (game.draw) {
     title = "Draw by repetition";
@@ -208,7 +231,7 @@ function renderHint(moves, waiting, reviewing) {
   }
   if (crowns) details.push("It crowns your piece.");
   if (wins) details.push("It wins the game this turn.");
-  else if (draws) details.push("It ends the game in a draw by repetition.");
+  else if (draws) details.push("It repeats the position for the third time and draws the game.");
   else if (recapturable) details.push("The opponent can immediately jump your piece afterward.");
   else details.push("The opponent has no immediate jump over your piece afterward.");
 
@@ -265,9 +288,13 @@ function render() {
   const moves = reviewing ? [] : legalMoves(game);
   const selectedMoves = waiting ? [] : moves.filter(move => move.from === selected);
   const captureVictims = new Set(selectedMoves.map(move => move.capture));
+  const drawTargets = new Set(selectedMoves
+    .filter(({ from, to, capture }) => capture === null && previewRepetition(game, from, to) === repetitionLimit)
+    .map(({ to }) => to));
   board.dataset.forcedCapture = String(!waiting && moves[0]?.capture != null);
   renderCaptureRoutes(moves, waiting);
   $("moves-help").hidden = moveNumber === 0;
+  $("share-match").hidden = moveNumber === 0;
   renderHint(moves, waiting, reviewing);
   const shownMove = position.lastMove;
   $("last-play").hidden = !shownMove;
@@ -279,6 +306,7 @@ function render() {
       (shownMove.crowned ? " · Crowned" : "");
   }
   renderStatus(moves, waiting, position);
+  renderRepetition(position, drawTargets);
   $("crimson-name").textContent = playerName(-1);
   for (const side of [1, -1]) {
     const team = pieces[side].toLowerCase();
@@ -305,13 +333,15 @@ function render() {
     const action = destination ? capture ? ", capture destination" : ", legal destination"
       : selectable ? ", can move" : victim ? ", can be captured" : "";
     const suggested = !reviewing && hint?.path[0].to === index;
-    square.setAttribute("aria-label", coordinate(index) + description + action + (suggested ? ", suggested" : ""));
+    const drawDestination = drawTargets.has(index);
+    square.setAttribute("aria-label", coordinate(index) + description + action + (suggested ? ", suggested" : "") + (drawDestination ? ", draws by repetition" : ""));
     square.setAttribute("aria-pressed", String(!reviewing && index === selected));
     square.setAttribute("aria-disabled", String(!destination && !selectable));
     square.classList.toggle("target", Boolean(destination));
     square.classList.toggle("capture-target", Boolean(capture));
     square.classList.toggle("capture-victim", victim);
     square.classList.toggle("suggested-target", suggested);
+    square.classList.toggle("draw-target", drawDestination);
     square.classList.toggle("last-move", shownMove?.from === index || shownMove?.to === index);
     square.classList.toggle("selectable", selectable);
     square.replaceChildren();
@@ -558,6 +588,58 @@ function setOrientation(value) {
     label.append(...Array.from(label.children).reverse());
   }
 }
+
+function formatTranscript() {
+  const opponent = playerName(-1);
+  const mode = $("mode").value === "local" ? "Local two-player"
+    : $("difficulty").selectedOptions[0].textContent + " difficulty";
+  const turns = [];
+  for (const { turn, lastMove: move } of positions.slice(1)) {
+    const from = coordinate(move.from).toUpperCase();
+    const to = coordinate(move.to).toUpperCase();
+    const suffix = (move.capture === null ? " – " : " × ") + to + (move.crowned ? " (crowned)" : "");
+    if (turn > turns.length) turns.push(turn + ". " + playerName(move.side) + " " + from + suffix);
+    else turns[turn - 1] += suffix;
+  }
+  let result = "In progress. " + playerName(game.turn) + " to move.";
+  if (game.winner) result = playerName(game.winner) + " wins. " + defeatReason();
+  else if (game.draw) result = "Draw by repetition.";
+  else if (game.chain !== null) {
+    result = "In progress. " + playerName(game.turn) + " to continue the jump from " + coordinate(game.chain).toUpperCase() + ".";
+  }
+  return ["Pepe Checkers", "Emerald vs. " + opponent + " · " + mode, "", ...turns, "", "Result: " + result, ""].join("\n");
+}
+
+const transcriptDialog = $("transcript-dialog");
+const transcriptText = $("transcript-text");
+const transcriptFeedback = $("transcript-feedback");
+const downloadTranscript = $("download-transcript");
+
+$("share-match").onclick = () => {
+  const text = formatTranscript();
+  transcriptText.value = text;
+  transcriptFeedback.textContent = "";
+  downloadTranscript.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+  transcriptDialog.showModal();
+};
+
+$("copy-transcript").onclick = async () => {
+  const text = transcriptText.value;
+  try {
+    await navigator.clipboard.writeText(text);
+    if (transcriptDialog.open && transcriptText.value === text) transcriptFeedback.textContent = "Copied.";
+  } catch {
+    if (!transcriptDialog.open || transcriptText.value !== text) return;
+    transcriptText.focus();
+    transcriptText.select();
+    transcriptFeedback.textContent = "Copy the selected text, or choose Download text.";
+  }
+};
+
+transcriptDialog.addEventListener("close", () => {
+  URL.revokeObjectURL(downloadTranscript.href);
+  downloadTranscript.removeAttribute("href");
+});
 
 function showSaveStatus(message) {
   const status = $("save-status");

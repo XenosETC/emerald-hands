@@ -1,5 +1,6 @@
 const row = index => Math.floor(index / 8);
 const column = index => index % 8;
+export const repetitionLimit = 3;
 
 export function newGame({ repetition = true } = {}) {
   const board = Array.from({ length: 64 }, (_, index) => {
@@ -75,6 +76,16 @@ function positionKey({ board, turn }) {
   return turn + ":" + board.join(",");
 }
 
+export function repetitionCount(game) {
+  if (game.chain !== null || game.repetitionHistory === false) return null;
+  return game.repetitionHistory?.occurrences ?? 1;
+}
+
+export function previewRepetition(game, from, to) {
+  const next = play(game, from, to);
+  return next === game ? null : repetitionCount(next);
+}
+
 function recordRepetition(game, next) {
   // A capture or a forward man move cannot be undone by later play. Only
   // consecutive quiet king turns can revisit a completed position.
@@ -82,12 +93,12 @@ function recordRepetition(game, next) {
   const key = positionKey(next);
   let occurrences = 1;
   for (let entry = previous; entry; entry = entry.previous) {
-    if (entry.key === key && ++occurrences === 3) {
+    if (entry.key === key && ++occurrences === repetitionLimit) {
       next.draw = true;
       break;
     }
   }
-  next.repetitionHistory = { key, previous };
+  next.repetitionHistory = { key, occurrences, previous };
 }
 
 function search(game, side, depth, alpha, beta) {

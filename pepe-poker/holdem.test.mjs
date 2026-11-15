@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { act, evaluate, evaluateBest, livePotBreakdown, options, startHand } from "./holdem.mjs";
-import { headsUpCallEquity, potRaiseTo } from "./bet-sizing.mjs";
+import { headsUpCallOdds, potRaiseTo } from "./bet-sizing.mjs";
 import { replayStreetStarts } from "./hand-replay.mjs";
 
 test("best five includes a playing kicker and prefers the board when scores tie", () => {
@@ -23,8 +23,10 @@ test("pot shortcuts account for the call and clamp to legal raise totals", () =>
 });
 
 test("heads-up call equity excludes uncalled chips from a short-stack all-in", () => {
-  assert.equal(headsUpCallEquity(30, 10, 20, 10), .25);
-  assert.equal(headsUpCallEquity(500, 0, 400, 100), 1 / 3);
+  assert.deepEqual(headsUpCallOdds(30, 10, 20, 10),
+    { potAfterCall: 40, uncalled: 0, breakEvenShare: .25 });
+  assert.deepEqual(headsUpCallOdds(500, 0, 400, 100),
+    { potAfterCall: 300, uncalled: 300, breakEvenShare: 1 / 3 });
 });
 
 test("live pots track side tiers, folded contributions and unmatched bets", () => {

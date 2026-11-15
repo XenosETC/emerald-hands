@@ -42,6 +42,30 @@ header {
   font: inherit;
 }
 
+.takeback-option {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.takeback-option:has(input:disabled) {
+  cursor: default;
+}
+
+.takeback-option input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: #d7bd81;
+}
+
+.mode-help {
+  margin-top: .2rem;
+  font-size: .77rem;
+}
+
 h1 {
   margin: 0;
   font: 700 clamp(2.2rem, 6vw, 3.75rem)/1 Georgia, serif;
@@ -114,6 +138,27 @@ p {
   width: clamp(1rem, 4vw, 1.55rem);
   height: auto;
   aspect-ratio: 1;
+}
+
+.seat-material {
+  flex: 0 0 auto;
+  padding: .23rem .42rem;
+  border: 1px solid #d7bd815c;
+  border-radius: .35rem;
+  background: #d7bd8117;
+  color: #f6e8cc;
+  font: 700 .78rem/1.2 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .board {

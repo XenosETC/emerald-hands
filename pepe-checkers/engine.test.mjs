@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play } from "./engine.mjs";
+import { analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play, previewRepetition, repetitionCount } from "./engine.mjs";
 import { decodeMatch, encodeMatch } from "./match-save.mjs";
 
 function position(pieces) {
@@ -124,11 +124,19 @@ test("third repeated king position ends play after a complete turn", () => {
     assert.notEqual(next, game);
     return next;
   };
+  assert.equal(repetitionCount(initial), 1);
+  assert.equal(repetitionCount(newGame({ repetition: false })), null);
+  assert.equal(previewRepetition(initial, 56, 63), null);
   const secondOccurrence = cycle.reduce(advance, initial);
+  assert.equal(repetitionCount(secondOccurrence), 2);
   assert.equal(isFinished(secondOccurrence), false);
   const beforeDraw = cycle.slice(0, -1).reduce(advance, secondOccurrence);
   assert.equal(isFinished(beforeDraw), false);
+  assert.equal(repetitionCount(beforeDraw), 2);
+  assert.equal(previewRepetition(beforeDraw, ...cycle.at(-1)), 3);
+  assert.equal(repetitionCount(beforeDraw), 2);
   const drawn = advance(beforeDraw, cycle.at(-1));
+  assert.equal(repetitionCount(drawn), 3);
   assert.equal(drawn.draw, true);
   assert.equal(drawn.winner, 0);
   assert.deepEqual(drawn.board, initial.board);
@@ -149,14 +157,17 @@ test("an irreversible jump clears repetition history and a partial chain is neve
     ...position({ 42: 1, 49: 1, 35: -1, 21: -1, 7: -2 }),
     repetitionHistory: { key: "earlier position", previous: null },
   };
+  assert.equal(previewRepetition(game, 42, 28), null);
   const first = play(game, 42, 28);
   assert.equal(first.chain, 28);
+  assert.equal(repetitionCount(first), null);
   assert.equal(first.repetitionHistory, null);
   assert.equal(isFinished(first), false);
   const complete = play(first, 28, 14);
   assert.equal(complete.chain, null);
   assert.equal(complete.repetitionHistory, null);
   assert.equal(isFinished(complete), false);
+  assert.equal(repetitionCount(complete), 1);
 });
 
 test("saved repetition draw is replayed and legacy saves keep play beyond that point", () => {

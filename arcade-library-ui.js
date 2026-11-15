@@ -37,12 +37,17 @@
     sort.value = ["title", "recent"].includes(params.get("sort")) ? params.get("sort") : "featured";
   }
 
-  function updateUrl() {
+  function updateUrl(anchor) {
     const url = new URL(location.href);
     for (const [key, value] of Object.entries({ genre: genre === "all" ? "" : genre, q: search.value.trim(), favorites: favorites.checked ? "1" : "", touch: touch.checked ? "1" : "", sort: sort.value === "featured" ? "" : sort.value })) {
       if (value) url.searchParams.set(key, value); else url.searchParams.delete(key);
     }
-    try { history.replaceState(null, "", url); } catch { /* file preview fallback */ }
+    if (anchor) url.hash = anchor;
+    if (url.href === location.href) return;
+    try {
+      if (anchor) history.pushState(null, "", url);
+      else history.replaceState(null, "", url);
+    } catch { /* file preview fallback */ }
   }
 
   for (const game of library.games) {
@@ -66,6 +71,8 @@
   }
 
   function render() {
+    const active = document.activeElement;
+    const focusedCard = active?.closest(".game-card");
     const progress = window.ArcadeProgress?.read(storage) || {};
     visibleGames = library.select(state, { genre, query: search.value, favorites: favorites.checked, touch: touch.checked, sort: sort.value, descriptions });
     const visible = new Set(visibleGames.map(game => game.id));
@@ -83,12 +90,14 @@
       }
     }
     // DOM order keeps keyboard navigation aligned with the selected visual sort.
-    const active = document.activeElement;
     const grid = document.querySelector(".game-grid");
-    for (const game of visibleGames) grid.append(cards.get(game.id));
-    if (active?.classList.contains("favorite-game")) {
-      if (active.closest(".game-card").hidden) favorites.focus();
-      else active.focus({ preventScroll: true });
+    const currentOrder = [...grid.children].filter(card => !card.hidden);
+    if (visibleGames.some((game, index) => cards.get(game.id) !== currentOrder[index])) {
+      for (const game of visibleGames) grid.append(cards.get(game.id));
+    }
+    if (focusedCard) {
+      if (focusedCard.hidden) (favorites.checked ? favorites : search).focus();
+      else if (document.activeElement !== active) active.focus({ preventScroll: true });
     }
     for (const button of genreButtons) {
       const active = button.dataset.filter === genre;
@@ -96,7 +105,9 @@
       button.setAttribute("aria-pressed", String(active));
     }
     document.querySelector("#gameCount").textContent = String(visibleGames.length);
-    document.querySelector("#filterResult").textContent = `${visibleGames.length} of ${library.games.length} games shown`;
+    const result = document.querySelector("#filterResult");
+    const count = `${visibleGames.length} of ${library.games.length} games shown`;
+    if (result.textContent !== count) result.textContent = count;
     document.querySelector("#favoriteCount").textContent = String(state.favorites.length);
     document.querySelector("#emptyLibrary").hidden = visibleGames.length > 0;
     document.querySelector("#emptyMessage").textContent = favorites.checked && !state.favorites.length
@@ -162,7 +173,8 @@
     if (!genreButtons.some(button => button.dataset.filter === collection)) return;
     event.preventDefault();
     genre = collection; search.value = ""; favorites.checked = false; touch.checked = false; sort.value = "featured";
-    change();
+    updateUrl("games");
+    render();
     const collectionSection = document.querySelector("#games");
     collectionSection.scrollIntoView({ block: "start" });
     collectionSection.focus({ preventScroll: true });

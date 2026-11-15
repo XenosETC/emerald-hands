@@ -828,13 +828,15 @@ function restoreBackup() {
 
 function recordArcadeProgress(played = false, notify = false) {
   const recorder = notify ? window.EmeraldArcade?.recordAndNotify : window.EmeraldArcade?.record;
-  recorder?.("hands", {
-    prestigeRank: prestigeRankFor(state.ogPoints).name,
-    ogPoints: state.ogPoints,
-    empireValue: empireValue(),
-    totalEarned: state.totalEarned,
-    played,
-  });
+  try {
+    recorder?.("hands", {
+      prestigeRank: prestigeRankFor(state.ogPoints).name,
+      ogPoints: state.ogPoints,
+      empireValue: empireValue(),
+      totalEarned: state.totalEarned,
+      played,
+    });
+  } catch { /* This game's controls and save vault still work without arcade profile storage. */ }
 }
 
 const tapPops = [];
@@ -919,7 +921,8 @@ els.shardButton.addEventListener("click", (event) => {
   if (!canPlay()) return;
   if (!handsPlayRecorded) {
     handsPlayRecorded = true;
-    window.EmeraldArcade?.beginSession("hands", "emerald-hands.html");
+    try { window.EmeraldArcade?.beginSession("hands", "emerald-hands.html"); }
+    catch { /* Session tracking cannot block the first tap. */ }
     recordArcadeProgress(true, true);
   }
   const amount = perClick();

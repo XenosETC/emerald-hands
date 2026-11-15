@@ -368,7 +368,7 @@
     } catch {
       // Analytics are best-effort and never block a game.
     }
-    save(data);
+    try { save(data); } catch { /* A blocked analytics write must not stop a game from starting. */ }
     runtime.session = { game, path: path || gamePaths[game], startedAt, status: "running" };
     if (document.body) document.body.dataset.arcadeSession = "running";
     window.dispatchEvent(new CustomEvent("emeraldarcade:sessionstart", { detail: { ...runtime.session } }));
@@ -607,7 +607,7 @@
       { game: "Pepe: Space Unchained", task: "Reach Wave 3 and collect 20 shards." },
       { game: "Pepe Tower Defense", task: "Survive Wave 5 with at least 8 vault integrity." },
       { game: "Pepe Wars", task: "Win a shard siege with your relic base alive." },
-      { game: "Pepe's Paradox", task: "Clear Emerald Forest and find its hidden frog." },
+      { game: "Pepe's Paradox", task: "Clear Bamboo Mountains and find its hidden frog." },
       { game: "ETC: Unstable Launch", task: "Lock above $1K before the reactor fractures." },
       { game: "ETC Rocket Simulator", task: "Set a new distance record and purchase one rocket upgrade." },
       { game: "ETC Pets", task: "Feed, play with, and train your active companion." },
@@ -621,7 +621,7 @@
     "shard-rush.html": ["Move with mouse, touch, arrow keys, or WASD.", "Collect green rewards and avoid hazards.", "Press P to pause, M to mute, or R to restart."],
     "emerald-galactic-heroes.html": ["Move with mouse, touch, arrow keys, or WASD.", "Weapons auto-fire; collect upgrades and shield cells.", "Press P to pause, M to mute, or R to restart."],
     "pepe-relic-rumble.html": ["P1: WASD move, S charge, F punch, G kick, H shield or special.", "P2: arrows move, Down charge, J punch, K kick, L shield or special.", "Press P to pause, M to mute, or R to restart."],
-    "pepes-paradox.html": ["A/D or arrows move. Space jumps. Shift dashes.", "Enter advances dialogue and taunts.", "Press P to pause, M to mute, or R to restart."],
+    "pepes-paradox.html": ["Use the touch controls to move, jump, dash, or shift realms.", "A/D or arrows move. Space jumps. Shift dashes. Q shifts realms.", "Choose Continue or press Enter to advance dialogue."],
     "pepecoin-run.html": ["Tap, click, Space, W, or Up Arrow to jump.", "Collect emeralds and dodge purple spikes.", "Press P to pause, M to mute, or R to restart."],
     "pepe-space-unchained.html": ["WASD or arrows fly. Space fires a burst shot.", "Auto-fire is enabled; collect shards and survive.", "Press P to pause, M to mute, or R to restart."],
     "pepe-tower-defense.html": ["Press 1, 2, or 3 to select a tower.", "Click or drag onto a glowing pad; click a built tower to upgrade.", "Press P to pause, M to mute, or R to restart."],
@@ -738,7 +738,7 @@
         font-family: Inter, system-ui, sans-serif;
         touch-action: none;
       }
-      .hub-menu .arcade-runtime-dock {
+      .arcade-runtime-dock.is-inline {
         position: static;
         width: auto;
         padding: 0;
@@ -748,7 +748,7 @@
         backdrop-filter: none;
         touch-action: auto;
       }
-      .hub-menu .arcade-runtime-dock button { flex: none; }
+      .arcade-runtime-dock.is-inline button { flex: none; }
       .arcade-runtime-dock.is-dragging { cursor: grabbing; user-select: none; }
       .arcade-runtime-dock.is-collapsed { gap: 0; padding: 4px; }
       .arcade-runtime-dock.is-collapsed > :not([data-arcade-command="collapse"]) { display: none; }
@@ -830,11 +830,11 @@
     if (document.querySelector(".arcade-runtime-dock")) return;
     ensureRuntimeStyles();
     document.body.classList.toggle("arcade-runtime-game", isGamePage);
-    const hubMenu = !isGamePage && document.querySelector(".hub-menu");
-    const dock = document.createElement("nav");
-    dock.className = "arcade-runtime-dock";
+    const menuSlot = document.querySelector(".hub-menu, [data-arcade-inline-menu]");
+    const dock = document.createElement(menuSlot ? "div" : "nav");
+    dock.className = menuSlot ? "arcade-runtime-dock is-inline" : "arcade-runtime-dock";
     dock.setAttribute("aria-label", "Arcade commands");
-    dock.innerHTML = hubMenu ? '<button type="button" data-arcade-command="controls" aria-haspopup="dialog">Menu</button>' : `
+    dock.innerHTML = menuSlot ? '<button type="button" data-arcade-command="controls" aria-haspopup="dialog">Menu</button>' : `
       <button type="button" class="arcade-runtime-grip" data-arcade-drag-handle aria-label="Drag arcade menu">Move</button>
       ${isGamePage ? `<button type="button" data-arcade-command="pause" aria-pressed="false">Pause</button>` : ""}
       <button type="button" data-arcade-command="mute" aria-pressed="${runtime.muted}">${runtime.muted ? "Sound off" : "Sound on"}</button>
@@ -861,7 +861,7 @@
     }
 
     function applyDockState() {
-      if (hubMenu) return;
+      if (menuSlot) return;
       dock.classList.toggle("is-collapsed", dockState.collapsed);
       dockToggle.textContent = dockState.collapsed ? "Menu" : "Hide";
       dockToggle.setAttribute("aria-expanded", String(!dockState.collapsed));
@@ -1046,10 +1046,10 @@
       if (document.hidden) pauseForFocusLoss();
     });
     document.body.append(pauseOverlay, modal);
-    (hubMenu || document.body).append(dock);
+    (menuSlot || document.body).append(dock);
     requestAnimationFrame(applyDockState);
     window.addEventListener("resize", () => {
-      if (hubMenu || !Number.isFinite(dockState.x) || !Number.isFinite(dockState.y)) return;
+      if (menuSlot || !Number.isFinite(dockState.x) || !Number.isFinite(dockState.y)) return;
       applyDockState();
       saveDockState();
     });
