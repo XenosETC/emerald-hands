@@ -88,6 +88,7 @@
     for (const [key,node] of Object.entries(commandViews)) node.hidden = key !== view;
     commandTabs.forEach(button => button.setAttribute("aria-pressed", String(button.dataset.commandTab === view)));
     if (view === "intel") { reportUnread = false; renderWaveReport(); updateArrivalForecast(); }
+    if (view === "manage") updateTowerPanel();
   }
   const towerPanel = document.querySelector("#towerPanel");
   const towerDetails = document.querySelector("#towerDetails");
@@ -727,7 +728,7 @@
     }
   }
 
-  function updateHud() {
+  function updateHud(refreshHiddenInspector = true) {
     mapSelect.disabled = state.playing || Boolean(window.EmeraldArcade?.isPaused?.());
     mapMenuButton.disabled = Boolean(window.EmeraldArcade?.isPaused?.());
     speedButton.textContent = `Speed ${combatSpeed}×`;
@@ -807,7 +808,7 @@
     commandHint.textContent = movingTower ? "Moving: choose an empty numbered pad. Cancel in Tower controls." : state.waveActive ? `${state.spawnLeft + enemies.length} enemies remaining. Moving unlocks after the wave.` : "Build, upgrade or reposition before sending the wave.";
     padHint.textContent = movingTower ? "Move" : "Build pads";
     padControls.setAttribute("data-moving", String(Boolean(movingTower)));
-    updateTowerPanel();
+    if (refreshHiddenInspector || !commandViews.manage.hidden) updateTowerPanel();
     updatePlacementPanel();
     waveButton.disabled = !state.playing || state.waveActive || Boolean(window.EmeraldArcade?.isPaused?.());
   }
@@ -2205,7 +2206,7 @@
       // A completed wave always stops at its normal-speed build break.
       if (!state.waveActive) break;
     }
-    updateHud();
+    updateHud(false);
   }
 
   function loop(now) {

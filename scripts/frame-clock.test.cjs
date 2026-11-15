@@ -431,7 +431,7 @@ test('Space Unchained banking records the actual earned flight once and replay c
   g.nodes.get('#finishButton').emit('click');
   assert.equal(g.records.length, 1);
   assert.equal(g.records[0][1].score, score);
-  g.timers[0](); assert.match(g.nodes.get('#overlayText').textContent, /Flight banked/);
+  g.timers[0](); assert.match(g.nodes.get('#overlayText').textContent, /^Flight finished/);
   g.start(); assert.equal(g.read('state.score'), 0);
 });
 

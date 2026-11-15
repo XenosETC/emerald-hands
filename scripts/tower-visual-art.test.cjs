@@ -59,6 +59,7 @@ function game(file, savedValues, legacyFixtures=true) {
     setTimeout(callback) { timers.push(callback); },
     EmeraldArcade: { beginSession: (...args) => sessions.push(args), recordAndNotify: (...args) => records.push(args) },
   });
+  const deterministicMath = Object.assign(Object.create(Math), { random: () => 0.5 });
   const context = vm.createContext({
     addEventListener: window.addEventListener.bind(window), setTimeout: window.setTimeout,
     URLSearchParams, location: {search: ""},
@@ -66,22 +67,25 @@ function game(file, savedValues, legacyFixtures=true) {
     requestAnimationFrame(callback) { frames.set(++nextFrame, callback); return nextFrame; },
     cancelAnimationFrame(id) { frames.delete(id); },
     Image: class { complete = false; naturalWidth = 0; addEventListener() {} },
-    Math: Object.assign(Object.create(Math), { random: () => 0.5 }),
+    Math: deterministicMath,
     crypto: { randomUUID: () => 'test-unit' },
     localStorage: { getItem: key => saves.get(key) ?? null, setItem: (key, value) => saves.set(key, String(value)), removeItem: key => saves.delete(key) },
     fetch() { throw new Error('offline test'); },
     AbortSignal: { timeout: () => ({}) },
   });
   const read = expression => vm.runInContext(expression, context);
+  // A lexical Math binding keeps the same formulas and deterministic RNG
+  // without resolving the VM's intercepted global on every combat operation.
+  const runTowerScript = script => vm.compileFunction(script, ["Math"], { parsingContext: context })(deterministicMath);
   let source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
   if (file === 'pepe-tower-defense.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__towerRead = expression => eval(expression); })();');
   if (file === 'pepe-wars.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__warsRead = expression => eval(expression); })();');
   if (file === 'pepes-paradox.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__paradoxRead = expression => eval(expression); })();');
   if (file === "pepe-tower-defense.js") {
-    read(fs.readFileSync(path.join(__dirname, "..", "pepe-tower-maps.js"), "utf8"));
+    runTowerScript(fs.readFileSync(path.join(__dirname, "..", "pepe-tower-maps.js"), "utf8"));
     read(fs.readFileSync(path.join(__dirname, "..", "pepe-tower-checkpoint.js"), "utf8"));
-  }
-  read(source);
+    runTowerScript(source);
+  } else read(source);
   // Established combat fixtures intentionally retain the original saved-run geometry.
   // Multi-map tests below explicitly choose each production map before starting.
   if(file === 'pepe-tower-defense.js' && legacyFixtures)read('window.__towerRead("applyMap(mapCatalog.legacy);refreshMapMenu();updateHud();draw()")');
@@ -529,7 +533,7 @@ for(const hz of [30,60]) test('Two Sunwardens complete the 50-wave campaign with
         for(let tier=0;tier<5;tier++)for(const i of order){const tower=towerAtPad(pads[i]);const main=tower?.type==="shard"||tower?.type==="alchemist"||tower?.type==="hero"&&tower.heroSlot===1?"special":"power";if(tower&&tower.tiers[main]===tier&&state.shards>=upgradeCost(tower,main)){buildOrUpgrade(pads[i]);upgradeSelected(main);}}
         for(const tower of towers){const primary=tower.path;const second=tower.type==="hero"?(primary==="power"?"special":"power"):"utility";if(tower.tiers[primary]===5&&tower.tiers[second]<2&&state.shards>=upgradeCost(tower,second)){buildOrUpgrade(tower.pad);upgradeSelected(second);}}
       }
-      if(!state.waveActive)startWave();for(const slot of [0,1])if(activateHeroNova(slot))novaCasts++;update(1/${hz});ticks++;
+      if(!state.waveActive)startWave();for(const slot of [0,1])if(activateHeroNova(slot))novaCasts++;update(1/${hz},false);ticks++;
     }
     JSON.stringify({wave:state.wave,vault:state.vault,ticks,novaCasts,heroes:towers.filter(t=>t.type==="hero").length});
   `));
@@ -650,7 +654,12 @@ test('Both new defenders have order-independent 5/2/0 upgrades and complete name
 
 for(const [earlyNew,speed] of [[false,1],[true,1],[false,2]]) test('Ballista and Thornkeeper support an earned 50-wave campaign with '+(earlyNew?'early new defenders':'early heroes')+' at '+speed+'x / 30 Hz',t=>{
   const hz=30;
-  const g=towerGame();if(speed===2)g.nodes.get('#speedButton').emit('click');const outcome=JSON.parse(g.act(`
+  const g=towerGame();
+  if(speed===2)g.nodes.get('#speedButton').emit('click');
+  // This campaign exercises the actual 1×/2× combat loop. Shorter tests
+  // below check its per-frame HUD separately at the same speed settings.
+  g.act("updateHud = () => {}");
+  const outcome=JSON.parse(g.act(`
     const order=[0,4,2,6,1,5,7,8,3],loadout={0:"pepe",4:"shard",2:"hero",6:"hero",1:"alchemist",5:"ballista",7:"archer",8:"relic",3:"druid"};
     if(${earlyNew}){loadout[2]="ballista";loadout[6]="druid";loadout[5]="hero";loadout[3]="hero";}
     let ticks=0,novaCasts=0,sawTraps=false,sawBolt=false,defeatedMajors=0; const collectBefore=collectDefeatedEnemies;collectDefeatedEnemies=()=>{defeatedMajors+=enemies.filter(e=>e.hp<=0&&["warboss","tyrant","sovereign"].includes(e.kind)).length;collectBefore();};
@@ -856,6 +865,24 @@ test('Fast mode stops at wave-clear and fatal-breach boundaries without duplicat
   assert.equal(g.act('state.wave'),2);assert.equal(g.act('state.shards'),247);assert.equal(g.act('state.waveActive'),false);assert.equal(g.act('state.heroNovaCooldowns[0]'),9.975);assert.equal(g.act('readBuildCheckpoint().wave'),2);assert.equal(g.records.length,0);
   const h=towerGame();h.nodes.get('#speedButton').emit('click');h.act('startWave();enemies.length=0;state.vault=1;enemies.push({...enemyTypes.sovereign,kind:"sovereign",x:relicBase.x,y:relicBase.y,pathIndex:path.length-1,hp:100,maxHp:100,slowTimer:0,spin:0,hitFlash:0});advanceDefense(.025)');
   assert.equal(h.act('state.vault'),0);assert.equal(h.records.length,1);assert.equal(h.act('readBuildCheckpoint()'),null);assert.equal(h.nodes.get('#speedButton').disabled,true);
+});
+
+test('Manage inspector skips hidden frame refresh and catches up when opened', () => {
+  const g = towerGame();
+  g.act('buildOrUpgrade(pads[0]);buildOrUpgrade(pads[0])');
+  const record = g.nodes.get('#towerCombatRecord');
+  assert.match(record.textContent, /Total: 0 damage/);
+
+  g.nodes.get('commandTab:build').emit('click');
+  assert.equal(g.nodes.get('#manageView').hidden, true);
+  g.act('towers[0].combatDamage=15;advanceDefense(.025)');
+  assert.match(record.textContent, /Total: 0 damage/);
+
+  g.nodes.get('commandTab:manage').emit('click');
+  assert.equal(g.nodes.get('#manageView').hidden, false);
+  assert.match(record.textContent, /Total: 15 damage/);
+  g.act('towers[0].combatDamage=20;advanceDefense(.025)');
+  assert.match(record.textContent, /Total: 20 damage/);
 });
 
 test('Combat records count post-armor health removed and credit a lethal hit only once',()=>{
