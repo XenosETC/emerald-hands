@@ -306,12 +306,17 @@ function crash(hazard) {
   state.best = Math.max(state.best, finalScore);
   try { localStorage.setItem(STORAGE_KEY, state.best); } catch { /* session best still works */ }
   const rank = rankFor(finalScore);
-  window.EmeraldArcade?.recordAndNotify("pepeRun", { score: finalScore, rank, shards: state.shards, combo: state.peakCombo, played: true });
+  let recordNotice = "";
+  try {
+    window.EmeraldArcade?.recordAndNotify("pepeRun", { score: finalScore, rank, shards: state.shards, combo: state.peakCombo, played: true });
+  } catch {
+    recordNotice = " Arcade progress could not be saved.";
+  }
   const thisRun = runId;
   window.setTimeout(() => {
     if (runId !== thisRun || state.mode !== "gameover") return;
     ui.title.textContent = `${rank} Run`;
-    ui.text.textContent = `${finalScore.toLocaleString()} points · ${state.shards} emeralds · ${Math.floor(state.distance / 10)}m ridden · peak x${state.peakCombo}. ${nextGoal(finalScore)}`;
+    ui.text.textContent = `${finalScore.toLocaleString()} points · ${state.shards} emeralds · ${Math.floor(state.distance / 10)}m ridden · peak x${state.peakCombo}. ${nextGoal(finalScore)}${recordNotice}`;
     ui.start.textContent = "Run It Back";
     ui.overlay.classList.remove("is-hidden");
     updateHud();
@@ -541,9 +546,13 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
+function isPrimaryJumpPress(event) {
+  return event.isPrimary !== false && event.button === 0;
+}
+
 ui.start.addEventListener("click", startGame);
 ui.jump.addEventListener("pointerdown", (event) => {
-  if (event.button !== undefined && event.button !== 0) return;
+  if (!isPrimaryJumpPress(event)) return;
   event.preventDefault();
   if (!window.EmeraldArcade?.isPaused?.()) jump();
 });
@@ -553,7 +562,9 @@ ui.jump.addEventListener("click", (event) => {
 });
 window.addEventListener("emeraldarcade:pause", () => { state.jumpBuffer = 0; updateHud(); });
 window.addEventListener("blur", () => { state.jumpBuffer = 0; });
-stage.addEventListener("pointerdown", (event) => { if (!event.target.closest("button, a")) action(event); });
+stage.addEventListener("pointerdown", (event) => {
+  if (isPrimaryJumpPress(event)) action(event);
+});
 window.addEventListener("keydown", (event) => { if ([" ", "ArrowUp", "w", "W"].includes(event.key)) action(event); });
 ui.sound.addEventListener("click", () => { state.sound = !state.sound; ui.sound.textContent = `Sound: ${state.sound ? "on" : "off"}`; ui.sound.setAttribute("aria-pressed", String(state.sound)); });
 

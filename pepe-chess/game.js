@@ -329,6 +329,12 @@
   board.addEventListener("keydown", event => {
     const index = squares.indexOf(event.target);
     if (index < 0) return;
+    if (event.key === "Escape" && selected !== null && !pendingPromotion) {
+      event.preventDefault();
+      selected = null;
+      render();
+      return;
+    }
     const row = Math.floor(index / 8);
     const column = index % 8;
     const offsets = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };

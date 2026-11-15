@@ -449,3 +449,17 @@ test('the shard FAQ lists exactly the eleven integrated earners and excludes pet
  for(const game of ['pets','satoshiSystem'])assert.equal(h.arcade.record(game,{played:true,score:0}).arcadeShardReward,0);
  assert.match(html,/id="shard-faq"/);assert.match(html,/Temple Run’s corruption shards stay in that run/);
 });
+
+test('unwritable settings do not interrupt sound controls or suppress mute events', () => {
+  const h = harness('etc-pets.html', { blockWrites: true });
+  const events = [];
+  h.window.addEventListener('emeraldarcade:mute', event => events.push(event.detail.muted));
+  h.click('[data-arcade-command="controls"]');
+  const sound = h.click('[data-arcade-setting="sound"]');
+  assert.equal(sound.textContent, 'Turn sound on');
+  assert.equal(h.arcade.isMuted(), true);
+  h.click('[data-arcade-setting="sound"]');
+  assert.equal(sound.textContent, 'Turn sound off');
+  assert.equal(h.arcade.isMuted(), false);
+  assert.deepEqual(events, [true, false]);
+});

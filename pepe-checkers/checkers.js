@@ -500,7 +500,16 @@ function showPosition(index, focusControls = false) {
   clearTimeout(botTimer);
   reviewIndex = index;
   render();
-  if (focusControls) $("review-live").focus();
+  if (focusControls) {
+    const returnButton = $("review-live");
+    if (matchMedia("(max-width: 660px)").matches) {
+      board.scrollIntoView({ block: "start" });
+      const { bottom } = returnButton.getBoundingClientRect();
+      (bottom <= window.innerHeight ? returnButton : cells[focusIndex]).focus({ preventScroll: true });
+    } else {
+      returnButton.focus();
+    }
+  }
 }
 
 function stopReplay() {

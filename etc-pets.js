@@ -24,8 +24,10 @@ const els = {
 };
 
 let completedSession = false;
+let startedSession = false;
 let celebrationTimer;
 let showedUnreadableSave = false;
+let rosterMarkup;
 
 function render(excited = false) {
   const readable = window.ArcadePet.saveReadable();
@@ -84,7 +86,7 @@ function render(excited = false) {
       ? "The aura is fading. Emergency snacks requested."
       : "Ready to farm aura across the arcade.";
   els.rosterProgress.textContent = `${window.ArcadePet.pets.filter(p => data.unlocked.includes(p.id)).length} / ${window.ArcadePet.pets.length} companions unlocked · supplies are shared, strength is individual.`;
-  els.roster.innerHTML = window.ArcadePet.pets.map((item) => {
+  const roster = window.ArcadePet.pets.map((item) => {
     const unlocked = data.unlocked.includes(item.id);
     return `
     <button type="button" class="pet-card${item.id === pet.id ? " is-selected" : ""}${unlocked ? "" : " is-locked"}" data-pet="${item.id}" ${!unlocked && balance < item.unlockCost ? "disabled" : ""} aria-pressed="${item.id === pet.id}">
@@ -94,6 +96,15 @@ function render(excited = false) {
     </button>
   `;
   }).join("");
+  if (roster !== rosterMarkup) {
+    const focusedPet = els.roster.contains(document.activeElement) ? document.activeElement.dataset.pet : null;
+    rosterMarkup = roster;
+    els.roster.innerHTML = roster;
+    if (focusedPet) {
+      const replacement = [...els.roster.querySelectorAll("[data-pet]:enabled")].find(button => button.dataset.pet === focusedPet);
+      (replacement || els.roster.querySelector(".is-selected")).focus({ preventScroll: true });
+    }
+  }
 }
 
 let actionPending = false;
@@ -109,20 +120,27 @@ async function act(action) {
   const result = await sanctuaryAction("care", action);
   els.status.textContent = result.message || `${action[0].toUpperCase()}${action.slice(1)} complete.`;
   if (!result.ok) return;
-  if (!completedSession) window.EmeraldArcade?.beginSession("pets", "etc-pets.html");
   const stats = result.stats;
   clearTimeout(celebrationTimer);
   render(true);
   celebrationTimer = setTimeout(() => render(false), 950);
   const recordPetProgress = window.EmeraldArcade?.recordAndNotify || window.EmeraldArcade?.record;
-  recordPetProgress?.("pets", {
-    score: stats.aura,
-    rank: rankForAura(stats.aura),
-    aura: stats.aura,
-    trained: stats.strength,
-    played: !completedSession,
-  });
-  completedSession = true;
+  try {
+    if (!startedSession) {
+      window.EmeraldArcade?.beginSession("pets", "etc-pets.html");
+      startedSession = true;
+    }
+    recordPetProgress?.("pets", {
+      score: stats.aura,
+      rank: rankForAura(stats.aura),
+      aura: stats.aura,
+      trained: stats.strength,
+      played: !completedSession,
+    });
+    completedSession = true;
+  } catch {
+    els.status.textContent += " Care was saved. Your arcade record could not be updated.";
+  }
 }
 
 function rankForAura(aura) {

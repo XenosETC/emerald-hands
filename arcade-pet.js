@@ -115,6 +115,7 @@
   let sprite;
   let picker;
   let dockToggle;
+  let pickerMarkup;
   let assistNode;
   let assistTimer;
   let excitedTimer;
@@ -173,6 +174,8 @@
       .arcade-pet-picker header strong { font-size:14px; }
       .arcade-pet-picker header a { color:#8dffd1; font-size:11px; }
       .arcade-pet-picker .arcade-pet-balance { margin:-2px 0 9px; color:#e2bd6a; font-size:10px; font-weight:800; }
+      .arcade-pet-picker .arcade-pet-status { margin:8px 0 0; color:#dffff1; font-size:11px; }
+      .arcade-pet-picker .arcade-pet-status:empty { margin:0; }
       .arcade-pet-options { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
       .arcade-pet-option { border:1px solid rgba(122,255,202,.2); border-radius:8px; color:#effff7; background:rgba(16,53,37,.58); cursor:pointer; padding:5px; }
       .arcade-pet-option.is-selected { border-color:#8dffd1; box-shadow:inset 0 0 14px rgba(44,255,157,.16); }
@@ -216,13 +219,23 @@
 
   function renderPicker() {
     if (!picker) return;
-    picker.querySelector(".arcade-pet-options").innerHTML = pets
+    const options = picker.querySelector(".arcade-pet-options");
+    const markup = pets
       .filter((pet) => data.unlocked.includes(pet.id))
       .map((pet) => `
-        <button class="arcade-pet-option${pet.id === data.selected ? " is-selected" : ""}" data-pet="${pet.id}" type="button">
+        <button class="arcade-pet-option${pet.id === data.selected ? " is-selected" : ""}" data-pet="${pet.id}" type="button" aria-pressed="${pet.id === data.selected}">
           <i style="background-image:url('${pet.sheet}');background-position:${spritePosition(pet.id)}"></i><span>${pet.name}</span><small>Strength ${data.stats[pet.id].strength}</small>
         </button>
       `).join("");
+    if (markup !== pickerMarkup) {
+      const focusedPet = options.contains(document.activeElement) ? document.activeElement.dataset.pet : null;
+      pickerMarkup = markup;
+      options.innerHTML = markup;
+      if (focusedPet) {
+        const replacement = [...options.querySelectorAll("[data-pet]")].find(button => button.dataset.pet === focusedPet);
+        (replacement || dockToggle).focus({ preventScroll: true });
+      }
+    }
     const balance = picker.querySelector(".arcade-pet-balance");
     if (balance) balance.textContent = `${window.EmeraldArcade?.arcadeShardBalance?.() || 0} Arcade Shards · ${data.inventory.bambooShoots} shoots · ${data.inventory.bambooSticks} sticks`;
   }
@@ -237,29 +250,46 @@
     sprite = companion.querySelector(".arcade-pet-sprite");
     picker = document.createElement("section");
     picker.className = "arcade-pet-picker";
-    picker.innerHTML = `<header><strong>Arcade Pet Dock</strong><a href="etc-pets.html">Open sanctuary</a></header><div class="arcade-pet-balance"></div><div class="arcade-pet-options"></div>`;
+    picker.id = "arcade-pet-picker";
+    picker.setAttribute("aria-label", "Arcade Pet Dock");
+    picker.innerHTML = `<header><strong>Arcade Pet Dock</strong><a href="etc-pets.html">Open sanctuary</a></header><div class="arcade-pet-balance"></div><div class="arcade-pet-options"></div><p class="arcade-pet-status" role="status"></p>`;
     dockToggle = document.createElement("button");
     dockToggle.className = "arcade-pet-dock-toggle";
     dockToggle.type = "button";
     dockToggle.textContent = "PETS";
-    dockToggle.setAttribute("aria-label", "Open pet switcher");
+    dockToggle.setAttribute("aria-label", "Pet switcher");
+    dockToggle.setAttribute("aria-controls", picker.id);
     dockToggle.setAttribute("aria-expanded", "false");
-    document.body.append(companion, picker, dockToggle);
+    document.body.append(companion, dockToggle, picker);
     mountAssistIndicator();
+    function setPickerOpen(open) {
+      picker.classList.toggle("is-open", open);
+      dockToggle.setAttribute("aria-expanded", String(open));
+    }
     dockToggle.addEventListener("click", () => {
       celebrate();
-      picker.classList.toggle("is-open");
-      dockToggle.setAttribute("aria-expanded", String(picker.classList.contains("is-open")));
+      setPickerOpen(!picker.classList.contains("is-open"));
     });
-    picker.addEventListener("click", (event) => {
+    picker.addEventListener("click", async (event) => {
       const button = event.target.closest("[data-pet]");
-      if (button) select(button.dataset.pet);
+      if (!button) return;
+      const result = await perform("select", button.dataset.pet);
+      picker.querySelector(".arcade-pet-status").textContent = result.message;
     });
     document.addEventListener("pointerdown", (event) => {
       if (!picker.classList.contains("is-open") || picker.contains(event.target) || dockToggle.contains(event.target)) return;
-      picker.classList.remove("is-open");
-      dockToggle.setAttribute("aria-expanded", "false");
+      setPickerOpen(false);
     });
+    function onPickerKeyDown(event) {
+      // Preserve native button and link activation without forwarding keys to the game.
+      event.stopPropagation();
+      if (event.key !== "Escape" || !picker.classList.contains("is-open")) return;
+      event.preventDefault();
+      setPickerOpen(false);
+      dockToggle.focus();
+    }
+    dockToggle.addEventListener("keydown", onPickerKeyDown);
+    picker.addEventListener("keydown", onPickerKeyDown);
     refresh();
     setInterval(wander, 5200);
   }
