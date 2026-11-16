@@ -77,7 +77,13 @@ try{
   window.templeCharacter.clips=Object.keys(actions);window.templeCharacter.skinnedMeshes=0;
   model.traverse(o=>{if(o.isSkinnedMesh)window.templeCharacter.skinnedMeshes++;});
   window.templeCharacter.loaded=true;
-}catch(e){if(model){scene.remove(model);mixer?.stopAllAction();}model=null;mixer=null;actions={};window.templeCharacter.loaded=false;window.templeCharacter.error=e.message;const start=document.querySelector('#start');if(start){start.disabled=false;start.textContent='Retry loading Crown';start.onclick=()=>window.location.reload();}document.querySelector('#message').textContent='Crown could not load. Reload the page to retry.';}
+}catch(e){
+  if(model){scene.remove(model);mixer?.stopAllAction();}
+  model=null;mixer=null;actions={};
+  window.templeCharacter.loaded=false;window.templeCharacter.error=e.message;
+  renderer.dispose();
+  window.templeUse2D();
+}
 function frame(now){
   requestAnimationFrame(frame);const d=window.templeRunDiagnostics?.();if(!model||!d)return;
   const box=canvas.parentElement.getBoundingClientRect(),w=box.width,h=box.height,aspect=w/h;
@@ -123,4 +129,4 @@ function frame(now){
   renderer.render(scene,camera);window.templeTrack.camera={type:'perspective',fov:camera.fov,aspect:camera.aspect,bank,yaw,position:{x:camera.position.x,y:camera.position.y,z:camera.position.z}};window.templeTrack.actor={yaw:model.rotation.y,position:{x:model.position.x,y:model.position.y,z:model.position.z}};window.templeTrack.render={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,opaque:true,paintedPanorama:false,softShadows:quality.shadows,shadowMapSize:quality.shadows?1024:0,toneMapping:'ACES',exposure:renderer.toneMappingExposure};
   window.templeCharacter.animationTime=actions[current]?.time;window.templeCharacter.scale=[model.scale.x,model.scale.y,model.scale.z];
 }
-requestAnimationFrame(frame);
+if(model)requestAnimationFrame(frame);

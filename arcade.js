@@ -627,7 +627,7 @@
     "pepe-tower-defense.html": ["Press 1, 2, or 3 to select a tower.", "Click or drag onto a glowing pad; click a built tower to upgrade.", "Press P to pause, M to mute, or R to restart."],
     "pepe-wars.html": ["Use the on-screen stance and upgrade controls.", "Miners gather automatically while your army holds the line.", "Press P to pause, M to mute, or R to restart."],
     "etc-unstable-launch.html": ["Tap the launch button or press Space to ignite.", "Tap again before the reactor breaks to lock the lore price.", "Press P to pause, M to mute, or R to restart."],
-    "etc-rocket-simulator.html": ["Tap Launch Expedition, then steer with the on-screen controls.", "Bank salvage after every flight and upgrade the rocket.", "Press P to pause, M to mute, or R to restart."],
+    "etc-rocket-simulator.html": ["Choose your upgrades, then select Begin Expedition. The rocket flies automatically.", "Bank salvage after every flight and upgrade the rocket.", "Press P to pause, M to mute, or R to restart."],
     "etc-pets.html": ["Choose a pet, then feed, play, and train it.", "Your active companion follows you through the arcade.", "Press P to pause, M to mute, or R to restart."],
   };
 

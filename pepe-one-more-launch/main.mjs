@@ -18,20 +18,40 @@ let flight=null,last=0,time=0,W=900,H=700,boostHeld=false,boost=0,fear=0,steer=0
 let reward=0,death={x:0,y:0},returnAlt=0,zone='lily',zoneAge=10,paused=false,assetsReady=false,upgradeGlow=0;
 let gentle=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let bannerTimer=0,lastCount=-1,lastHud=0,wasPowered=false;
+let hangarOpener;
+const pauseOverlay=$('pauseOverlay');
 
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch{$('save').textContent='Save unavailable — this session only.';}}
-function hangar(open){$('hangar').hidden=!open;$('hangarToggle').setAttribute('aria-expanded',String(open));}
+function hangar(open){
+  const panel=$('hangar');
+  if(open===!panel.hidden)return;
+  const hadFocus=panel.contains?.(document.activeElement);
+  panel.hidden=!open;
+  $('hangarToggle').setAttribute('aria-expanded',String(open));
+  if(open){
+    hangarOpener=document.activeElement;
+    $('closeHangar').focus?.();
+  }else if(hadFocus){
+    (hangarOpener||$('hangarToggle')).focus?.();
+  }
+}
 function announce(kicker,title,detail,duration=2.4){$('bannerKicker').textContent=kicker;$('bannerTitle').textContent=title;$('bannerText').textContent=detail;bannerTimer=duration;$('banner').classList.add('visible');}
 function updateShop(){
   $('cash').textContent=save.cash.toLocaleString();$('best').textContent=save.best.toLocaleString()+' m';$('flightNo').textContent=String(save.flights+1).padStart(2,'0');
   $('shipTier').textContent=save.engine>=3?'MK II / EMERALD THUNDER':'MK I / LILY HOPPER';$('shipName').textContent=save.engine>=3?'The Worse Idea':'The Bad Idea';
   $('modules').textContent=`ENGINE ${save.engine} · FUEL ${save.tank} · COOLING ${save.cooling}`;
-  $('shop').replaceChildren(...parts.map(p=>{
-    const b=document.createElement('button');b.className='upgrade';b.disabled=director.phase!=='pad'||save.cash<cost(save,p)||save[p.id]>=MAX_UPGRADE_LEVEL;
+  const focusedPart=document.activeElement?.dataset.part;
+  const buttons=parts.map(p=>{
+    const b=document.createElement('button');b.className='upgrade';b.dataset.part=p.id;b.disabled=director.phase!=='pad'||save.cash<cost(save,p)||save[p.id]>=MAX_UPGRADE_LEVEL;
     b.innerHTML=`<b>${p.name}</b><span>${p.desc}</span><i>${save[p.id]>=MAX_UPGRADE_LEVEL?'MAX LEVEL':`$${cost(save,p)} · LEVEL ${save[p.id]} → ${save[p.id]+1}`}</i>`;
-    b.onclick=()=>{if(director.phase==='pad'&&buy(save,p.id)){persist();updateShop();upgradeGlow=1;audio.cue(500,.18);announce('SHIPYARD / INSTALLED',p.id==='engine'?'MORE ENGINE. LESS SENSE.':p.id==='tank'?'A BIGGER EXPLOSION BUDGET.':'COOLER HEADS. SAME FROG.','YOUR NEXT FLIGHT USES THE NEW HARDWARE.',1.7);}};
+    b.onclick=()=>{if(!paused&&director.phase==='pad'&&buy(save,p.id)){persist();updateShop();upgradeGlow=1;audio.cue(500,.18);announce('SHIPYARD / INSTALLED',p.id==='engine'?'MORE ENGINE. LESS SENSE.':p.id==='tank'?'A BIGGER EXPLOSION BUDGET.':'COOLER HEADS. SAME FROG.','YOUR NEXT FLIGHT USES THE NEW HARDWARE.',1.7);}};
     return b;
-  }));
+  });
+  $('shop').replaceChildren(...buttons);
+  if(focusedPart){
+    const replacement=buttons.find(button=>button.dataset.part===focusedPart&&!button.disabled);
+    (replacement||$('closeHangar')).focus?.({preventScroll:true});
+  }
   const next=worlds.find(w=>w.at>save.best);$('goal').textContent=next?`${next.name} · ${next.at.toLocaleString()} m`:'The void has no ceiling. Neither does the repair bill.';
 }
 function controls(){
@@ -41,26 +61,43 @@ function controls(){
   $('hangarToggle').disabled=!grounded;stage.dataset.phase=director.phase;
 }
 function start(){
-  if(director.phase!=='pad'||!assetsReady)return;
+  if(paused||director.phase!=='pad'||!assetsReady)return;
   flight=createFlight(save);boostHeld=false;boost=0;fear=0;steer=0;drift=0;viewAlt=0;wasPowered=false;zone='lily';zoneAge=10;lastCount=-1;
   fx.particles=[];fx.rings=[];$('result').hidden=true;hangar(false);director.enter('countdown');controls();updateShop();
 }
 function stop(){boostHeld=false;steer=0;}
-function pause(value){paused=value;stop();$('pauseOverlay').hidden=!value;$('pause').textContent=value?'▶':'Ⅱ';$('pause').setAttribute('aria-label',value?'Resume game':'Pause game');audio.update({powered:false,boost:0,paused:value});last=0;}
+function pause(value){
+  if(paused===value)return;
+  paused=value;
+  stop();
+  if(value)pauseOverlay.showModal();else pauseOverlay.close();
+  $('pause').textContent=value?'▶':'Ⅱ';
+  $('pause').setAttribute('aria-label',value?'Resume game':'Pause game');
+  audio.update({powered:false,boost:0,paused:value});
+  last=0;
+}
 $('launch').onclick=start;$('pause').onclick=()=>pause(!paused);$('resume').onclick=()=>pause(false);
+pauseOverlay.oncancel=e=>{e.preventDefault();pause(false);};
 $('sound').onclick=()=>{$('sound').textContent=audio.toggle()?'SOUND ON':'SOUND OFF';};
 $('motion').onclick=()=>{gentle=!gentle;$('motion').textContent=gentle?'FX: GENTLE':'FX: FULL';};
 $('hangarToggle').onclick=()=>hangar($('hangar').hidden);$('closeHangar').onclick=()=>hangar(false);
-function holdButton(id,down,up){const b=$(id);b.onpointerdown=e=>{if(director.phase==='flight'){b.setPointerCapture(e.pointerId);down();}};b.onpointerup=up;b.onpointercancel=up;b.onlostpointercapture=up;}
+function holdButton(id,down,up){const b=$(id);b.onpointerdown=e=>{if(!paused&&e.button===0&&director.phase==='flight'){b.setPointerCapture(e.pointerId);down();}};b.onpointerup=up;b.onpointercancel=up;b.onlostpointercapture=up;}
 holdButton('boost',()=>boostHeld=true,()=>boostHeld=false);
 holdButton('left',()=>steer=-1,()=>steer=0);
 holdButton('right',()=>steer=1,()=>steer=0);
 window.addEventListener('blur',stop);
 document.addEventListener('visibilitychange',()=>{stop();last=0;if(document.hidden&&['countdown','flight','boom','return','rebuild'].includes(director.phase))pause(true);});
 window.addEventListener('keydown',e=>{
-  if(e.target.matches('input,select,textarea')||['sound','motion','pause','resume','closeHangar','hangarToggle'].includes(e.target.id))return;
-  if(e.code==='Escape'){if(!$('hangar').hidden)hangar(false);else pause(!paused);return;}
-  if(paused)return;
+  if(e.isComposing||e.ctrlKey||e.altKey||e.metaKey)return;
+  if(e.code==='Escape'){
+    if(!paused&&!e.repeat){
+      e.preventDefault();
+      if(!$('hangar').hidden)hangar(false);else pause(true);
+    }
+    return;
+  }
+  const control=e.target?.closest?.('input,select,textarea,[contenteditable],button,a');
+  if(paused||(control&&!['boost','left','right'].includes(control.id)))return;
   if(['Space','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();
   if(e.code==='Space'&&!e.repeat){if(director.phase==='pad')start();else if(director.phase==='flight')boostHeld=true;}
   if(['KeyA','ArrowLeft'].includes(e.code))steer=-1;if(['KeyD','ArrowRight'].includes(e.code))steer=1;

@@ -29,6 +29,17 @@
   recordStatus(loadedRecord);
   let magnet=0,shield=false,corrupted=false,shards=0,realmEntry=null;let w,h,time=0,last=0,audio,sound=false,state='ready',lane=1,visualLane=1,distance=0,jade=0,speed=25,action='',actionTime=0,objects=[],spawn=0,seed=0xC0FFEE,shake=0;
   let row=0,route=1,combo=0,comboTime=0,notice='',noticeTime=0,milestone=0,canvasRatio=0;
+  let fallback2D=false;
+  window.templeUse2D=()=>{
+    if(fallback2D)return;
+    fallback2D=true;
+    document.querySelectorAll('.character-layer,.effects-layer').forEach(layer=>layer.remove());
+    const graphics=$('graphics'),option=document.createElement('option');
+    option.textContent='2D view';
+    graphics.replaceChildren(option);
+    graphics.disabled=true;
+    graphics.title='Using the 2D renderer because the 3D renderer is unavailable.';
+  };
   const controlButtons=[...document.querySelectorAll('[data-action]')];let controlKey='';
   function syncControls(){
     const turn=window.TempleTurns?.diagnostics(),running=state==='running',open=running&&turn?.window;
@@ -50,7 +61,7 @@
   function rand(){seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return(seed>>>0)/4294967296;}
   function resize(){const r=canvas.getBoundingClientRect();w=r.width;h=r.height;const ratio=Math.min(devicePixelRatio,2);canvasRatio=ratio;canvas.width=Math.floor(w*ratio);canvas.height=Math.floor(h*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);}new ResizeObserver(resize).observe(canvas);
   function tone(f,d=.1){if(!sound)return;audio??=new(window.AudioContext||window.webkitAudioContext)();audio.resume();const o=audio.createOscillator(),g=audio.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.055,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+d);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+d);}
-  function begin(){if(!window.templeCharacter?.loaded){$('message').textContent='Summoning the Rumble Crown character… Give it a moment, then enter.';return;}touch=null;corrupted=false;shards=0;realmEntry=null;const currencyLabel=$('jade-label')||$('jade').previousElementSibling;if(currencyLabel)currencyLabel.textContent='JADE';$('jade').textContent='0';const flowLabel=document.getElementById('flow-count')?.previousElementSibling;if(flowLabel)flowLabel.textContent='JADE FLOW';$('zone').textContent='01 / JADE CAUSEWAY';if($('zone-progress'))$('zone-progress').style.width='0%';if($('zone-next'))$('zone-next').textContent='THE SUNKEN SANCTUM / 500 M';state='running';window.TempleFeedback?.reset();window.TempleTurns?.reset();if(document.getElementById('turn-warning'))document.getElementById('turn-warning').hidden=true;magnet=0;shield=false;lane=visualLane=1;distance=jade=0;speed=25;objects=[];spawn=0;row=0;route=1;combo=0;comboTime=0;milestone=0;notice='FOLLOW THE JADE / ↑ JUMP · ↓ SLIDE';noticeTime=5;action='';actionTime=0;seed=0xC0FFEE;$('overlay').hidden=true;canvas.focus?.({preventScroll:true});$('pause').textContent='Ⅱ';$('toast').textContent='';last=performance.now();tone(220,.3);syncControls();}
+  function begin(){if(!fallback2D&&!window.templeCharacter?.loaded){$('message').textContent='Summoning the Rumble Crown character… Give it a moment, then enter.';return;}touch=null;corrupted=false;shards=0;realmEntry=null;const currencyLabel=$('jade-label')||$('jade').previousElementSibling;if(currencyLabel)currencyLabel.textContent='JADE';$('jade').textContent='0';const flowLabel=document.getElementById('flow-count')?.previousElementSibling;if(flowLabel)flowLabel.textContent='JADE FLOW';$('zone').textContent='01 / JADE CAUSEWAY';if($('zone-progress'))$('zone-progress').style.width='0%';if($('zone-next'))$('zone-next').textContent='THE SUNKEN SANCTUM / 500 M';state='running';window.TempleFeedback?.reset();window.TempleTurns?.reset();if(document.getElementById('turn-warning'))document.getElementById('turn-warning').hidden=true;magnet=0;shield=false;lane=visualLane=1;distance=jade=0;speed=25;objects=[];spawn=0;row=0;route=1;combo=0;comboTime=0;milestone=0;notice='FOLLOW THE JADE / ↑ JUMP · ↓ SLIDE';noticeTime=5;action='';actionTime=0;seed=0xC0FFEE;$('overlay').hidden=true;canvas.focus?.({preventScroll:true});$('pause').textContent='Ⅱ';$('toast').textContent='';last=performance.now();tone(220,.3);syncControls();}
   function pauseSummary(run){
     const totals=`${Math.floor(run.distance)} m · ${run.jade} jade${run.corrupted?' · '+run.shards+' shards':''}`;
     const turn=run.turn;
@@ -84,7 +95,7 @@
   const cancelSwipe=e=>{if(touch&&touch.id===e.pointerId)touch=null;};canvas.addEventListener('pointercancel',cancelSwipe);canvas.addEventListener('lostpointercapture',cancelSwipe);
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='running')pause();});
   window.addEventListener('blur',()=>{if(state==='running')pause();});
-  function project(l,z){if(window.templeTrack?.loaded&&window.templeWorldProject)return window.templeWorldProject(l,z);const p=Math.pow(Math.max(0,1-z/150),2);return{x:w/2+(l-1)*w*.245*p+(window.TempleTurns?.diagnostics().visualBend||0)*w*.105*Math.pow(1-p,2),y:h*.43+h*.52*p,s:p};}
+  function project(l,z){if(!fallback2D&&window.templeTrack?.loaded&&window.templeWorldProject)return window.templeWorldProject(l,z);const p=Math.pow(Math.max(0,1-z/150),2);return{x:w/2+(l-1)*w*.245*p+(window.TempleTurns?.diagnostics().visualBend||0)*w*.105*Math.pow(1-p,2),y:h*.43+h*.52*p,s:p};}
   function poly(points,color){ctx.fillStyle=color;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.closePath();ctx.fill();}
   function rect(x,y,ww,hh,c){ctx.fillStyle=c;ctx.fillRect(x,y,ww,hh);}
   function nextPattern(){
@@ -156,7 +167,7 @@
     setText($('toast'),state==='dead'?'':toast);
   }
   function draw(){if(!w)return;ctx.save();if(shake>0){ctx.translate(Math.sin(time*70)*shake,0);shake*=.88;}
-    const world3d=window.templeTrack?.loaded;
+    const world3d=!fallback2D&&window.templeTrack?.loaded;
     if(!world3d)window.TempleEnvironment?.draw(ctx,w,h,distance,time,project);
     if(!world3d){
     for(const o of [...objects].sort((a,b)=>b.z-a.z)){if(o.hit||o.z>150)continue;const raw=project(o.lane,o.z),p=o.type==='jade'?window.TempleFeedback?.jadePosition(raw,o,{magnet,lane,project})||raw:raw,s=p.s,x=p.x,y=p.y;if(o.type==='magnet'||o.type==='shield'){ctx.fillStyle=o.type==='shield'?'#f4da78':'#acf3dc';ctx.beginPath();ctx.arc(x,y-30*s,23*s,0,7);ctx.fill();ctx.fillStyle='#133b2c';ctx.font=`bold ${24*s}px sans-serif`;ctx.textAlign='center';ctx.fillText(o.type==='shield'?'♛':'U',x,y-22*s);}else if(o.type==='jade'){ctx.shadowColor='#a9ffa7';ctx.shadowBlur=16*s;poly([[x,y-38*s],[x+12*s,y-22*s],[x,y-5*s],[x-12*s,y-22*s]],'#cceba2');ctx.shadowBlur=0;}else if(o.type==='gap'){poly([[x- w*.105*s,y],[x+w*.105*s,y],[x+w*.115*s,y+25*s],[x-w*.115*s,y+25*s]],'#041813');ctx.strokeStyle='#dbbf79';ctx.lineWidth=3*s;ctx.beginPath();ctx.moveTo(x-w*.1*s,y);ctx.lineTo(x+w*.1*s,y);ctx.stroke();}else if(o.type==='gate'){
@@ -175,9 +186,9 @@
       window.TempleEnvironment?.prop(ctx,'idol',x,y,width,width);
     }}
 
-    const p=project(visualLane,3),jump=action==='jump'?Math.sin(Math.max(0,actionTime)/.85*Math.PI)*100:0,slide=action==='slide',size=Math.min(w*.28,240);ctx.fillStyle='#031b1599';ctx.beginPath();ctx.ellipse(p.x,h*.93,size*.3,size*.075,0,0,7);ctx.fill();const bob=state==='running'?Math.sin(time*17)*5:Math.sin(time*2)*3;ctx.save();ctx.translate(p.x,h*.92-jump+bob);ctx.rotate(state==='running'?Math.sin(time*9)*.035:0);if(!window.templeCharacter?.loaded&&sheet.complete&&sheet.naturalWidth&&state==='running'){let col=action==='jump'?0:slide?0:1+Math.floor(time*9)%2,row=action==='jump'?1:slide?2:0;const cell=sheet.naturalWidth/3;ctx.drawImage(sheet,col*cell,row*cell,cell,cell,-size/2,-size*.92,size,size);}else if(!window.templeCharacter?.loaded&&hero.complete&&hero.naturalWidth)ctx.drawImage(hero,-size/2,-size*.92,size,size);ctx.restore();
+    const p=project(visualLane,3),jump=action==='jump'?Math.sin(Math.max(0,actionTime)/.85*Math.PI)*100:0,slide=action==='slide',size=Math.min(w*.28,240);ctx.fillStyle='#031b1599';ctx.beginPath();ctx.ellipse(p.x,h*.93,size*.3,size*.075,0,0,7);ctx.fill();const bob=state==='running'?Math.sin(time*17)*5:Math.sin(time*2)*3;ctx.save();ctx.translate(p.x,h*.92-jump+bob);ctx.rotate(state==='running'?Math.sin(time*9)*.035:0);if(sheet.complete&&sheet.naturalWidth&&state==='running'){let col=action==='jump'?0:slide?0:1+Math.floor(time*9)%2,row=action==='jump'?1:slide?2:0;const cell=sheet.naturalWidth/3;ctx.drawImage(sheet,col*cell,row*cell,cell,cell,-size/2,-size*.92,size,size);}else if(hero.complete&&hero.naturalWidth)ctx.drawImage(hero,-size/2,-size*.92,size,size);ctx.restore();
     }
     for(let i=0;i<25;i++){ctx.fillStyle='#d0e9a044';ctx.beginPath();ctx.arc((i*137+Math.sin(time*.4+i)*20)%w,(i*83+time*(6+i%3))%h,1.5,0,7);ctx.fill();}const shade=ctx.createLinearGradient(0,h*.65,0,h);shade.addColorStop(0,'#03181200');shade.addColorStop(1,'#03181288');ctx.fillStyle=shade;ctx.fillRect(0,0,w,h);const fx=world3d?window.templeEffectsContext:ctx;if(world3d&&fx)fx.clearRect(0,0,w,h);if(fx)window.TempleFeedback?.draw(fx,w,h,project,{magnet,shield,lane:visualLane,project,objects});ctx.restore();}
-  function frame(now){const ratio=Math.min(devicePixelRatio,2);if(w&&h&&(canvasRatio!==ratio||canvas.width!==Math.floor(w*ratio)||canvas.height!==Math.floor(h*ratio)))resize();if($('start').disabled&&window.templeCharacter?.loaded&&window.templeTrack?.loaded&&window.templeWorld?.loaded){$('start').disabled=false;$('start').innerHTML='Enter the temple <span>↗</span>';}const dt=Math.min(.04,(now-last)/1000||0);last=now;if(state!=='paused')time+=dt;if(state==='running')update(dt);syncControls();draw();requestAnimationFrame(frame);}syncControls();requestAnimationFrame(frame);
+  function frame(now){const ratio=Math.min(devicePixelRatio,2);if(w&&h&&(canvasRatio!==ratio||canvas.width!==Math.floor(w*ratio)||canvas.height!==Math.floor(h*ratio)))resize();if($('start').disabled&&(fallback2D||(window.templeCharacter?.loaded&&window.templeTrack?.loaded&&window.templeWorld?.loaded))){$('start').disabled=false;$('start').innerHTML='Enter the temple <span>↗</span>';}const dt=Math.min(.04,(now-last)/1000||0);last=now;if(state!=='paused')time+=dt;if(state==='running')update(dt);syncControls();draw();requestAnimationFrame(frame);}syncControls();requestAnimationFrame(frame);
   window.templeRunDiagnostics=()=>({state,time,actionTime,magnet,shield,realm:corrupted?'corrupt':'jade',shards,realmEntry:realmEntry?{...realmEntry}:null,realmThreshold:CORRUPT_DISTANCE,chapter:realmStage(distance),lane,visualLane,distance,jade,best,speed,action,row,route,combo,turn:window.TempleTurns?.diagnostics(),track:window.templeTrack,scenery:window.templeScenery,world:window.templeWorld,feedback:window.TempleFeedback?.diagnostics(),environment:window.TempleEnvironment?.diagnostics(),scene:corrupted?'corrupt':window.TempleEnvironment?.sceneAt(distance),objects:objects.map(o=>({...o})),heroLoaded:hero.complete&&hero.naturalWidth>0});
 })();

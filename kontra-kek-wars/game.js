@@ -56,7 +56,30 @@ $('start').onclick=start;$('restart').onclick=()=>{s=E.create(s.mission);start()
 document.querySelectorAll('[data-mission]').forEach(b=>b.onclick=()=>{s=E.create(Number(b.dataset.mission));clear();overlay();});
 document.querySelectorAll('[data-reward]').forEach(b=>b.onclick=()=>{E.reward(s,b.dataset.reward);overlay();});$('swap').onclick=()=>E.swap(s);
 $('surge-inspect').onclick=()=>{if(E.inspectSurge(s)){clear();overlay();}};$('surge-bypass').onclick=()=>{E.leaveSurge(s);clear();overlay();};$('surge-withdraw').onclick=()=>{E.leaveSurge(s);clear();overlay();};document.querySelectorAll('[data-surge-reward]').forEach(b=>b.onclick=()=>{E.claimSurge(s,b.dataset.surgeReward);clear();overlay();});
-const controls=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS','Space','KeyZ','KeyJ','KeyX','KeyK','KeyC','ShiftLeft','ShiftRight'];addEventListener('keydown',e=>{if(controls.includes(e.code)){if(e.target.tagName==='BUTTON'&&e.code==='Space')return;e.preventDefault();held.add(e.code);if(!e.repeat)pending.add(e.code);}if(!e.repeat&&['Escape','KeyP'].includes(e.code))pause();if(e.code==='KeyE'&&!e.repeat){e.preventDefault();if(E.inspectSurge(s)){clear();overlay();}}if(e.code==='KeyQ'&&!e.repeat){e.preventDefault();E.swap(s);}if(e.code==='Enter'&&s.mode!=='playing')start();});addEventListener('keyup',e=>held.delete(e.code));addEventListener('blur',()=>{clear();if(s.mode==='playing')pause();});document.addEventListener('visibilitychange',()=>{if(document.hidden&&s.mode==='playing')pause();});
+const controls=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS','Space','KeyZ','KeyJ','KeyX','KeyK','KeyC','ShiftLeft','ShiftRight'];
+addEventListener('keydown', event => {
+  const { code, repeat, target } = event;
+  if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey ||
+    target?.isContentEditable || target?.closest?.('input, textarea, select')) return;
+  // Let focused controls handle their native activation before any game shortcut.
+  if ((code === 'Enter' || code === 'Space') && target?.closest?.('button, a')) return;
+  if (controls.includes(code)) {
+    event.preventDefault();
+    held.add(code);
+    if (!repeat) pending.add(code);
+  }
+  if (repeat) return;
+  if (code === 'Escape' || code === 'KeyP') pause();
+  if (code === 'KeyE') {
+    event.preventDefault();
+    if (E.inspectSurge(s)) { clear(); overlay(); }
+  }
+  if (code === 'KeyQ') { event.preventDefault(); E.swap(s); }
+  if (code === 'Enter' && s.mode !== 'playing') { event.preventDefault(); start(); }
+});
+addEventListener('keyup',event=>held.delete(event.code));
+addEventListener('blur',()=>{clear();if(s.mode==='playing')pause();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&s.mode==='playing')pause();});
 document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);touch.set(e.pointerId,b.dataset.key);pending.add(b.dataset.key);});for(const name of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(name,e=>touch.delete(e.pointerId));});
 function input(){const has=(...keys)=>keys.some(k=>held.has(k)||pending.has(k)||[...touch.values()].includes(k));return {left:has('ArrowLeft','KeyA'),right:has('ArrowRight','KeyD'),up:has('ArrowUp','KeyW'),down:has('ArrowDown','KeyS'),jump:has('Space','KeyZ'),fire:has('KeyJ','KeyX'),dash:has('ShiftLeft','ShiftRight'),grenade:has('KeyK','KeyC')};}
 function frame(now){const dt=Math.min(.1,(now-(last||now))/1000);last=now;if(s.mode==='playing'){accumulator+=dt;while(accumulator>=1/120&&s.mode==='playing'){const inputFrozen=s.hitstop>0;E.update(s,1/120,input());if(!inputFrozen)pending.clear();accumulator-=1/120;}for(const event of s.events){if(event==='shot')tone(s.player.shotStyle==='rails'?245:s.player.shotStyle==='overclock'?340:170,s.player.shotStyle==='rails'?.06:.035,s.player.shotStyle==='rails'?'triangle':'sawtooth',.014);if(event==='bloom-phase')tone(310,.3,'triangle',.035);if(event==='pierce')tone(660,.05,'triangle',.02);if(event==='boom')tone(65,.3,'sawtooth',.07);if(event==='pickup')tone(750,.2);if(event==='checkpoint')tone(1000,.3);if(event==='dash')tone(280,.16,'sawtooth');if(event==='warning')tone(500,.2);if(event==='hurt')tone(80,.2,'sawtooth');if(event==='hit')tone(420,.025,'triangle',.018);if(event==='kill')tone(90,.13,'sawtooth',.035);if(event==='jump')tone(200,.08,'triangle',.015);if(event==='land')tone(60,.06,'triangle',.02);if(event==='win')tone(900,.5);}s.events=[];if(s.mode==='surge-reward'){clear();overlay();}if(s.mode==='won'||s.mode==='dead'){best=Math.max(best,s.score);try{localStorage.setItem('kontra-kek-wars-best-v1',String(best));}catch{}clear();overlay();}}if(s.mode==='won'||s.mode==='dead')E.settle(s,dt);render();requestAnimationFrame(frame);}

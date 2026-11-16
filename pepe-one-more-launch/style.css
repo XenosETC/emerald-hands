@@ -5,3 +5,42 @@
 @media(max-width:600px){.world-title{top:168px;bottom:auto;max-width:180px}.world-title h1{font-size:25px}.flight-report{top:260px;width:190px}.flight-report b{font-size:22px}.flight-report p{font-size:8px}.flight-report .payout{font-size:26px}}
 .stage:has(#result:not([hidden])) .world-title{opacity:0;pointer-events:none}
 .ascent-progress{width:160px;height:2px;background:#c9e0bc33;margin:12px 0 8px}.ascent-progress i{display:block;height:100%;width:0;background:#dcf5aa;box-shadow:0 0 8px #dcf5aa55}.world-title #nextRealm{display:block;font-size:6px;letter-spacing:1px;color:#b4c8a6}.world-route{gap:17px}.world-route b{font-size:7px}@media(max-width:600px){.ascent-progress{width:125px;margin:8px 0 6px}.world-route{gap:16px;top:88px}.world-title #nextRealm{font-size:5px}}
+
+#pauseOverlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 18px;
+  border: 0;
+  color: inherit;
+  text-align: center;
+}
+
+#pauseOverlay:not([open]) { display: none; }
+
+@media (max-height: 620px) {
+  .stage { min-height: 0; }
+  .flight-deck { bottom: max(19px, env(safe-area-inset-bottom)); }
+  .bottom-note { bottom: max(5px, calc(env(safe-area-inset-bottom) - 14px)); }
+  .flight-report { max-height: calc(100dvh - 355px); overflow: auto; }
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .topbar { padding: 10px 16px; }
+  .telemetry { top: 58px; left: 16px; }
+  .telemetry strong { font-size: clamp(37px, 7vw, 50px); }
+  .world-title { top: auto; bottom: 112px; left: 16px; }
+  .world-title h1 { font-size: 25px; }
+  .world-route { top: 55px; right: 16px; gap: 10px; }
+  .world-route b { display: none; }
+  .instruments { width: min(180px, 30vw); right: 16px; bottom: 118px; }
+  .pilot-status { margin-bottom: 5px; }
+  .flight-deck { min-height: 0; }
+  .flight-report { top: 113px; left: 16px; max-height: calc(100dvh - 220px); padding: 12px; }
+  .flight-report b { font-size: 21px; }
+  .flight-report .payout { font-size: 22px; }
+  #hangar { top: 49px; bottom: 104px; }
+}

@@ -12,6 +12,7 @@ test('real runtime enables flight controls, pauses, recovers and pays only its o
   function element(id=''){
     return {id,hidden:false,disabled:false,innerHTML:'',textContent:'',value:0,style:{},dataset:{},
       classList:{add(){},remove(){},toggle(){}},setAttribute(){},setPointerCapture(){},replaceChildren(...children){this.children=children;},
+      showModal(){this.open=true;},close(){this.open=false;},
       getBoundingClientRect:()=>({width:1280,height:800,left:0,right:1280}),getContext:()=>context};
   }
   const get=id=>{if(!elements.has(id))elements.set(id,element(id));return elements.get(id);};
@@ -30,9 +31,10 @@ test('real runtime enables flight controls, pauses, recovers and pays only its o
     get('launch').onclick();advance(2.6);
     assert.equal(get('stage').dataset.phase,'flight');
     assert.equal(get('boost').disabled,false);assert.equal(get('left').disabled,false);assert.equal(get('hangarToggle').disabled,true);
-    get('pause').onclick();const altitude=get('alt').innerHTML;advance(2);assert.equal(get('alt').innerHTML,altitude);
+    get('pause').onclick();assert.equal(get('pauseOverlay').open,true);const altitude=get('alt').innerHTML;advance(2);assert.equal(get('alt').innerHTML,altitude);
     get('resume').onclick();
-    get('boost').onpointerdown({pointerId:1});advance(5);
+    assert.equal(get('pauseOverlay').open,false);
+    get('boost').onpointerdown({pointerId:1,button:0});advance(5);
     assert.equal(get('stage').dataset.phase,'boom');
     const paid=JSON.parse(storage.get('pepe-one-more-launch-v1'));assert.equal(paid.flights,1);assert.ok(paid.cash>0);
     advance(10);assert.equal(get('stage').dataset.phase,'pad');assert.equal(get('launch').hidden,false);assert.equal(get('hangarToggle').disabled,false);

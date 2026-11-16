@@ -40,7 +40,17 @@ function toast(message){$('toast').textContent=message;$('toast').className='sho
 function button(parent,label,fn,disabled=false){const b=document.createElement('button');b.textContent=label;b.disabled=disabled;b.onclick=()=>{fn();if(battle&&!scroll)canvas.focus();};parent.append(b);return b;}
 function openScroll(mode){requestedService=null;keys={};townHero.path=[];townHero.target=null;townHero.moving=false;if(!scroll&&battle){pauseBeforeScroll=paused;paused=true;keys={};}if(mode==='forge'&&gearTab==='loot')gearTab='weapon';scroll=mode;sound.cue('scroll');ui();$('scroll-panel').scrollTop=0;$('close-scroll').focus();}
 function closeScroll(){if(battle&&scroll)paused=pauseBeforeScroll;scroll=null;ui();canvas.focus();}
-function mutate(fn){if(fn()===false){toast('This action is not available yet.');return;}sound.cue(scroll==='forge'?'forge':'reward');save();ui();}
+function mutate(fn){
+ const panel=$('scroll-panel'),active=document.activeElement;
+ const index=Array.from(panel.querySelectorAll('button')).indexOf(active);
+ if(fn()===false){toast('This action is not available yet.');return;}
+ sound.cue(scroll==='forge'?'forge':'reward');save();ui();
+ if(scroll&&index>=0&&!panel.contains(document.activeElement)){
+  const replacement=panel.querySelectorAll('button')[index];
+  const target=replacement&&!replacement.disabled&&replacement.textContent===active.textContent?replacement:$('close-scroll');
+  target.focus({preventScroll:true});
+ }
+}
 function world(){if(battle)return;requestedService=null;closeScroll();townMode=false;centerOnCrown();ui();}
 function centerOnCrown(){const p=travel??NODES.find(n=>n.id===state.location);centerCamera(p.x,p.y);}
 function beginTravel(id){if(battle||travel)return;const t=startTravel(state.location,id);if(!t){toast('Crown is already here.');return;}travel=t;selected=id;townMode=false;report=null;showBattleReport(null);closeScroll();ui();}

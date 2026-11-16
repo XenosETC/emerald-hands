@@ -1267,30 +1267,36 @@
         startButton.textContent = "Tournament Running";
       } else {
         const tournamentWon = selectedMode === "tournament" && roundWinner.id === 1;
-        const result = window.EmeraldArcade?.recordAndNotify("rumble", {
-          played: true,
-          wins: roundWinner.id === 1 ? roundWinner.wins : 0,
-          rank: tournamentWon ? "Vault Tournament Champion" : rank,
-          rounds: round,
-          mode: selectedMode,
-          character: fighters[0].characterId,
-          tournamentWon,
-        });
-        if (tournamentWon) {
+        const resultRank = tournamentWon ? "Vault Tournament Champion" : rank;
+        let recordSaved = false;
+        try {
+          recordSaved = Boolean(window.EmeraldArcade?.recordAndNotify("rumble", {
+            played: true,
+            wins: roundWinner.id === 1 ? roundWinner.wins : 0,
+            rank: resultRank,
+            rounds: round,
+            mode: selectedMode,
+            character: fighters[0].characterId,
+            tournamentWon,
+          }));
+        } catch { /* The match result is still available if the arcade profile cannot be written. */ }
+
+        const showChampionRecord = tournamentWon && recordSaved;
+        rumbleSetup.hidden = false;
+        if (showChampionRecord) {
           renderCharacterCards();
           renderTournamentBoard();
-        }
-        rumbleSetup.hidden = false;
-        if (tournamentWon) {
           overlay.hidden = true;
           showDomainCeremony("completion");
         } else {
-          showOverlay(`${winnerName} wins the rumble`, `${rank}. Adjust the fight card or run it back.`);
+          const event = tournamentWon ? "tournament" : "rumble";
+          const notice = recordSaved ? "" : " Arcade progress could not be saved.";
+          showOverlay(`${winnerName} wins the ${event}`, `${resultRank}. Adjust the fight card or run it back.${notice}`);
         }
         launchButton.textContent = selectedMode === "tournament" ? "Run New Tournament" : "Run It Back";
         startButton.textContent = "New Fight Card";
         gameState = "match-over";
-        if (!tournamentWon) launchButton.focus({preventScroll:true});
+        if (!showChampionRecord) launchButton.focus({preventScroll:true});
         stopDomainMusic();
       }
     } else {
