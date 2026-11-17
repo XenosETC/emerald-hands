@@ -6,3 +6,7 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Playwright browser regression artifacts.
+test-results/
+playwright-report/
