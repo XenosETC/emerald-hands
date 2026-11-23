@@ -53,6 +53,8 @@
   let reviewPly = null;
   let mode = "local";
   let noTakebacks = false;
+  let savedMatch = null;
+  let saveConflict = false;
   let botTimer;
   let flipped = false;
 
@@ -102,9 +104,9 @@
 
   function restoreMatch() {
     try {
-      const saved = window.localStorage.getItem(saveKey);
-      if (saved === null) return;
-      const value = JSON.parse(saved);
+      savedMatch = window.localStorage.getItem(saveKey);
+      if (savedMatch === null) return;
+      const value = JSON.parse(savedMatch);
       const moves = Array.isArray(value) ? value : value.moves;
       const savedMode = Array.isArray(value) ? "local" : value.mode;
       if (!Array.isArray(moves)) throw new Error("Invalid move list");
@@ -123,12 +125,28 @@
     }
   }
 
+  function showSaveConflict() {
+    saveConflict = true;
+    saveNote.textContent = history.length
+      ? "Another tab changed the saved match. Download this tab’s PGN to keep its moves, then reload to resume the saved match."
+      : "Another tab changed the saved match. Reload to resume the saved match.";
+  }
+
   function saveMatch() {
     try {
-      if (history.length || mode !== "local" || noTakebacks) {
-        window.localStorage.setItem(saveKey, JSON.stringify({ mode, noTakebacks, moves: history.map(move => move.san) }));
+      const storage = window.localStorage;
+      if (saveConflict || storage.getItem(saveKey) !== savedMatch) {
+        showSaveConflict();
+        return;
       }
-      else window.localStorage.removeItem(saveKey);
+      if (history.length || mode !== "local" || noTakebacks) {
+        const snapshot = JSON.stringify({ mode, noTakebacks, moves: history.map(move => move.san) });
+        storage.setItem(saveKey, snapshot);
+        savedMatch = snapshot;
+      } else {
+        storage.removeItem(saveKey);
+        savedMatch = null;
+      }
       saveNote.textContent = history.length ? "Match saved on this device." : "Matches save on this device.";
     } catch {
       saveNote.textContent = "Storage is unavailable. Download PGN to keep a record.";
@@ -422,6 +440,10 @@
   });
 
   restoreMatch();
+  window.addEventListener("storage", event => {
+    if ((event.key === saveKey || event.key === null) && event.storageArea === window.localStorage &&
+        event.newValue !== savedMatch) showSaveConflict();
+  });
   modeSelect.value = mode;
   renderMatchRecord();
   showPosition(null);

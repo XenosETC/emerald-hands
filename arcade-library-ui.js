@@ -3,7 +3,8 @@
   if (!library) return;
   let storage;
   try { storage = window.localStorage; } catch { /* Browsing works without storage. */ }
-  let state = library.read(storage);
+  const temporaryFavorites = new Map();
+  let state = readLibrary();
   const cards = new Map([...document.querySelectorAll(".game-card")].map(card => {
     const game = library.byPath(card.querySelector(".game-body > a").getAttribute("href"));
     return [game.id, card];
@@ -16,15 +17,31 @@
   const touch = document.querySelector("#touchOnly");
   const sort = document.querySelector("#gameSort");
   const notice = document.querySelector("#libraryNotice");
+  const defaultNotice = notice.textContent;
   const genreButtons = [...document.querySelectorAll("[data-filter]")];
   let genre = "all";
   let visibleGames = [];
+  let recentSignature;
 
-  function persist(next) {
-    state = next;
-    notice.textContent = library.write(storage, state)
-      ? "Saved on this device."
-      : "Changes work in this tab. Browser storage is unavailable, so they cannot be saved.";
+  function readLibrary() {
+    const stored = library.read(storage);
+    const saved = new Set(stored.favorites);
+    for (const [id, selected] of temporaryFavorites) {
+      if (selected) saved.add(id);
+      else saved.delete(id);
+    }
+    return { ...stored, favorites: [...saved] };
+  }
+
+  function changeFavorite(id) {
+    state = library.toggleFavorite(readLibrary(), id);
+    if (library.write(storage, state)) {
+      temporaryFavorites.clear();
+      notice.textContent = "Saved on this device.";
+    } else {
+      temporaryFavorites.set(id, state.favorites.includes(id));
+      notice.textContent = "Changes work in this tab. Browser storage is unavailable, so they cannot be saved.";
+    }
     render();
   }
 
@@ -55,7 +72,7 @@
     const button = document.createElement("button");
     button.type = "button";
     button.className = "favorite-game";
-    button.addEventListener("click", () => persist(library.toggleFavorite(state, game.id)));
+    button.addEventListener("click", () => changeFavorite(game.id));
     card.append(button);
     const controls = document.createElement("p");
     controls.className = "control-label";
@@ -113,54 +130,78 @@
     document.querySelector("#emptyMessage").textContent = favorites.checked && !state.favorites.length
       ? "Save a game with the star button to build your own collection." : "Try another search or clear your filters.";
     document.querySelector("#pickGame").disabled = visibleGames.length === 0;
+    renderRecents(progress, active);
+  }
+
+  function renderRecents(progress, active) {
     const recentList = document.querySelector("#recentGames");
-    const scrollLeft = recentList.scrollLeft;
-    const focusedId = active?.closest?.("[data-continue-id]")?.dataset.continueId;
+    const section = document.querySelector("#recentSection");
+    const continueLink = document.querySelector("#continueGame");
     const continued = library.continuations(state, Object.keys(progress).filter(id => progress[id].status === "saved"));
-    recentList.replaceChildren();
-    for (const item of continued) {
-      const game = library.byId(item.id);
-      const link = document.createElement("a");
-      link.href = library.destination(item);
-      link.dataset.continueId = game.id;
-      let info = progress[item.id] || { label: "Recently opened", summary: game.controls, goal: "Return to this game from your collection.", action: "Open game" };
-      if (item.id === "rush" && item.mode === "daily") {
-        const challenge = window.ShardRushChallenges;
-        const best = challenge?.best(challenge.read(storage), challenge.dayKey());
-        info = {label: "Daily Vault", summary: best ? `Today’s best ${best.score.toLocaleString()} · ${challenge.medal(best.score)}` : "A new course to learn today",
-          goal: "Start a fresh attempt on today’s course. Your best ghost joins you when available.", action: "Play today’s vault"};
-      }
-      const art = document.createElement("span");
-      art.className = "continue-art";
-      art.setAttribute("aria-hidden", "true");
-      const badge = document.createElement("small");
-      badge.className = "continue-kind";
-      badge.textContent = info.label;
-      const name = document.createElement("strong");
-      name.textContent = game.title;
-      const summary = document.createElement("p");
-      summary.className = "continue-summary";
-      summary.textContent = info.summary;
-      const goal = document.createElement("p");
-      goal.className = "continue-goal";
-      goal.textContent = info.goal;
-      const label = document.createElement("span");
-      label.className = "continue-action";
-      label.textContent = `${info.action} ↗`;
-      link.setAttribute("aria-label", `${info.action}: ${item.mode === "daily" ? "Shard Rush Daily Vault" : game.title}`);
-      link.append(art, badge, name, summary, goal, label);
-      recentList.append(link);
-      if (focusedId === game.id) link.focus({ preventScroll: true });
-    }
-    recentList.scrollLeft = scrollLeft;
-    document.querySelector("#recentSection").hidden = !continued.length;
     const recent = state.recent[0];
     const old = window.EmeraldArcade?.load().lastPlayed;
     const previous = Number.isSafeInteger(old?.at) && old.at > 0 ? library.byPath(old.path) : null;
     const latest = recent && (!previous || recent.at >= old.at) ? recent : previous ? {id: previous.id} : continued[0];
-    const continueLink = document.querySelector("#continueGame");
     continueLink.href = library.destination(latest) || library.byId("hands").path;
     continueLink.textContent = latest ? `Return to ${latest.id === "rush" && latest.mode === "daily" ? "Daily Vault" : library.byId(latest.id).title}` : "Play Emerald Hands";
+
+    const entries = continued.map(item => {
+      const game = library.byId(item.id);
+      return { item, game, info: recentInfo(item, game, progress) };
+    });
+    const signature = JSON.stringify(entries.map(({ item, info }) => [item.id, item.mode, info]));
+    if (signature === recentSignature) return;
+    recentSignature = signature;
+
+    const scrollLeft = recentList.scrollLeft;
+    const focused = active?.closest?.("[data-continue-id]");
+    const focusIndex = [...recentList.children].indexOf(focused);
+    const links = entries.map(recentCard);
+    recentList.replaceChildren(...links);
+    section.hidden = !links.length;
+    recentList.scrollLeft = scrollLeft;
+    if (focusIndex >= 0) {
+      const next = links.find(link => link.dataset.continueId === focused.dataset.continueId)
+        || links[Math.min(focusIndex, links.length - 1)] || continueLink;
+      next.focus({ preventScroll: true });
+      next.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+  }
+
+  function recentInfo(item, game, progress) {
+    if (item.id !== "rush" || item.mode !== "daily") {
+      return progress[item.id] || { label: "Recently opened", summary: game.controls, goal: "Return to this game from your collection.", action: "Open game" };
+    }
+    const challenge = window.ShardRushChallenges;
+    const best = challenge?.best(challenge.read(storage), challenge.dayKey());
+    return { label: "Daily Vault", summary: best ? `Today’s best ${best.score.toLocaleString()} · ${challenge.medal(best.score)}` : "A new course to learn today",
+      goal: "Start a fresh attempt on today’s course. Your best ghost joins you when available.", action: "Play today’s vault" };
+  }
+
+  function recentCard({ item, game, info }) {
+    const link = document.createElement("a");
+    link.href = library.destination(item);
+    link.dataset.continueId = game.id;
+    const art = document.createElement("span");
+    art.className = "continue-art";
+    art.setAttribute("aria-hidden", "true");
+    const badge = document.createElement("small");
+    badge.className = "continue-kind";
+    badge.textContent = info.label;
+    const name = document.createElement("strong");
+    name.textContent = game.title;
+    const summary = document.createElement("p");
+    summary.className = "continue-summary";
+    summary.textContent = info.summary;
+    const goal = document.createElement("p");
+    goal.className = "continue-goal";
+    goal.textContent = info.goal;
+    const label = document.createElement("span");
+    label.className = "continue-action";
+    label.textContent = `${info.action} ↗`;
+    link.setAttribute("aria-label", `${info.action}: ${item.mode === "daily" ? "Shard Rush Daily Vault" : game.title}`);
+    link.append(art, badge, name, summary, goal, label);
+    return link;
   }
 
   function change() { updateUrl(); render(); }
@@ -188,12 +229,19 @@
     if (game) location.assign(game.path);
   });
   window.addEventListener("storage", event => {
-    if (event.key === library.key || event.key === null) { state = library.read(storage); render(); }
+    if (event.key === library.key || event.key === null) {
+      if (event.newValue === null) {
+        temporaryFavorites.clear();
+        notice.textContent = defaultNotice;
+      }
+      state = readLibrary();
+      render();
+    }
     else if (Object.values(window.ArcadeProgress?.keys || {}).includes(event.key) || event.key === window.ShardRushChallenges?.key) render();
   });
   window.addEventListener("arcade:progress-ready", render);
   window.addEventListener("focus", render);
-  window.addEventListener("pageshow", () => { state = library.read(storage); render(); });
+  window.addEventListener("pageshow", () => { state = readLibrary(); render(); });
   window.addEventListener("popstate", () => { readUrl(); render(); });
   readUrl();
   render();

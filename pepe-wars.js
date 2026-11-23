@@ -166,15 +166,20 @@
     }
     state.finalScore = score;
     const rank = rankFor(score, state.elapsed, win);
-    window.EmeraldArcade?.recordAndNotify("pepeWars", {
-      played: true,
-      score,
-      rank,
-      wins: win ? 1 : 0,
-      time: Math.floor(state.elapsed),
-    });
+    let recordNotice = "";
+    try {
+      window.EmeraldArcade?.recordAndNotify("pepeWars", {
+        played: true,
+        score,
+        rank,
+        wins: win ? 1 : 0,
+        time: Math.floor(state.elapsed),
+      });
+    } catch {
+      recordNotice = " Arcade progress could not be saved.";
+    }
     overlayTitle.textContent = win ? "Corrupt base cracked." : "Your relic base fell.";
-    overlayText.textContent = `${format(score)} score - ${formatTime(state.elapsed)} - rank: ${rank}.`;
+    overlayText.textContent = `${format(score)} score - ${formatTime(state.elapsed)} - rank: ${rank}.${recordNotice}`;
     startButton.textContent = "Run Siege Back";
     overlay.classList.remove("is-hidden");
     startButton.focus();

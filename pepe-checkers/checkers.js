@@ -19,6 +19,8 @@ const undoHistory = [];
 const positions = [{ game, lastMove, turn: 0, jumps: 0 }];
 let reviewIndex = null;
 let replayTimer = null;
+let savedMatch = null;
+let saveConflict = false;
 const replayInterval = 750;
 const replaySpeed = $("review-speed");
 const wins = { 1: 0, "-1": 0 };
@@ -652,14 +654,29 @@ transcriptDialog.addEventListener("close", () => {
 
 function showSaveStatus(message) {
   const status = $("save-status");
-  status.textContent = message;
+  if (status.textContent !== message) status.textContent = message;
   status.hidden = !message;
+}
+
+function showSaveConflict() {
+  saveConflict = true;
+  showSaveStatus(moveNumber
+    ? "Another tab changed the saved match. Share this tab’s move log to keep it, then reload to resume the saved match."
+    : "Another tab changed the saved match. Reload to resume the saved match.");
+}
+
+function canWriteMatch() {
+  if (!saveConflict && localStorage.getItem(matchKey) === savedMatch) return true;
+  showSaveConflict();
+  return false;
 }
 
 function saveMatch() {
   try {
+    if (!canWriteMatch()) return;
     if (!moveNumber && !wins[1] && !wins[-1] && !draws) {
       localStorage.removeItem(matchKey);
+      savedMatch = null;
       showSaveStatus("");
       return;
     }
@@ -670,10 +687,12 @@ function saveMatch() {
     });
     if (raw === null) {
       localStorage.removeItem(matchKey);
+      savedMatch = null;
       showSaveStatus("This match is too long to save.");
       return;
     }
     localStorage.setItem(matchKey, raw);
+    savedMatch = raw;
     showSaveStatus("Saved on this device.");
   } catch {
     showSaveStatus("Couldn’t update the local save.");
@@ -683,7 +702,8 @@ function saveMatch() {
 function restoreMatch() {
   let saved;
   try {
-    saved = decodeMatch(localStorage.getItem(matchKey), $("mode").value, $("difficulty").value);
+    savedMatch = localStorage.getItem(matchKey);
+    saved = decodeMatch(savedMatch, $("mode").value, $("difficulty").value);
   } catch {
     return;
   }
@@ -702,6 +722,8 @@ function restoreMatch() {
 
 function saveSettings() {
   try {
+    // An incompatible mode or difficulty would hide another tab's saved match.
+    if (!canWriteMatch()) return;
     localStorage.setItem(settingsKey, JSON.stringify({
       mode: $("mode").value,
       difficulty: $("difficulty").value,
@@ -745,5 +767,9 @@ for (const id of ["mode", "difficulty"]) {
 }
 restoreSettings();
 restoreMatch();
+window.addEventListener("storage", event => {
+  if ((event.key === matchKey || event.key === null) && event.storageArea === window.localStorage &&
+      event.newValue !== savedMatch) showSaveConflict();
+});
 render();
 scheduleBot();

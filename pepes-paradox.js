@@ -316,6 +316,7 @@
   document.addEventListener("visibilitychange",()=>{if(document.hidden)clearInput();});
   addEventListener("keydown",e=>{
     if(window.EmeraldArcade?.isPaused?.()||e.ctrlKey||e.metaKey||e.altKey||e.target?.closest?.("input,select,textarea,[contenteditable],a,.arcade-runtime-dock,.arcade-runtime-modal"))return;
+    if((e.code==="Space"||e.code==="Enter")&&e.target?.closest?.("button"))return;
     const movement=["ArrowLeft","ArrowRight","KeyA","KeyD"].includes(e.code);
     if(movement&&["playing","escape","cutscene"].includes(state.mode)){e.preventDefault();keys.add(e.code);return;}
     if(state.mode==="cutscene"){if(e.code==="Enter"&&!e.repeat){e.preventDefault();advanceDialogue();}return;}

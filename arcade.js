@@ -906,17 +906,24 @@
         </div>
         ${isSatoshiPage ? '<p>Satoshi System has a separate save. Use Reset Simulation on its game page to clear only this simulation.</p>' : ""}
         <div class="arcade-runtime-confirm" hidden>
-          <p>This clears arcade progress, game records, upgrades, and pets stored on this device. The separate Satoshi System simulation save is preserved. This cannot be undone.</p>
+          <p>This clears the shared arcade profile, pets, and upgrades for games tied to this reset. Games with separate saves keep their own progress. This cannot be undone.</p>
           <div><button type="button" data-arcade-setting="cancel-reset">Keep my data</button><button type="button" class="arcade-runtime-reset" data-arcade-setting="confirm-reset">Clear arcade data</button></div>
         </div>
       </article>
     `;
 
+    const resetConfirm = modal.querySelector(".arcade-runtime-confirm");
+    const resetTrigger = modal.querySelector('[data-arcade-setting="reset"]');
+    const keepData = modal.querySelector('[data-arcade-setting="cancel-reset"]');
+    function cancelReset() {
+      resetConfirm.hidden = true;
+      resetTrigger?.focus({ preventScroll: true });
+    }
     let pausedBeforeModal = false;
     let focusBeforeModal = null;
     function closeModal() {
       modal.hidden = true;
-      modal.querySelector(".arcade-runtime-confirm").hidden = true;
+      resetConfirm.hidden = true;
       if (isGamePage && !pausedBeforeModal) setPaused(false);
       const resumeTarget = isGamePage && !runtime.paused ? document.querySelector("canvas") : null;
       (resumeTarget || focusBeforeModal)?.focus({ preventScroll: true });
@@ -981,8 +988,11 @@
         setMuted(!runtime.muted);
         event.target.textContent = runtime.muted ? "Turn sound on" : "Turn sound off";
       }
-      if (setting === "reset") modal.querySelector(".arcade-runtime-confirm").hidden = false;
-      if (setting === "cancel-reset") modal.querySelector(".arcade-runtime-confirm").hidden = true;
+      if (setting === "reset") {
+        resetConfirm.hidden = false;
+        keepData.focus({ preventScroll: true });
+      }
+      if (setting === "cancel-reset") cancelReset();
       if (setting === "confirm-reset") resetLocalProgress();
     });
     window.addEventListener("keydown", (event) => {
@@ -990,7 +1000,8 @@
         event.stopImmediatePropagation();
         if (event.key === "Escape") {
           event.preventDefault();
-          closeModal();
+          if (resetConfirm.hidden) closeModal();
+          else cancelReset();
         } else if (event.key === "Tab") {
           event.preventDefault();
           const buttons = [...modal.querySelectorAll("button")].filter((button) => !button.disabled && !button.closest("[hidden]"));

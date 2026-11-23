@@ -81,6 +81,34 @@ test("Chess clears keyboard selection and reviews a restored local match", async
   await expect(square("e4")).toHaveAccessibleName("e4, White pawn");
 });
 
+test("Chess keeps a newer saved match when another tab plays from a stale board", async ({ page, context }) => {
+  const path = gamePath("chess");
+  const move = async (tab, from, to) => {
+    await tab.locator(`[data-square="${from}"]`).click();
+    await tab.locator(`[data-square="${to}"]`).click();
+  };
+  const stale = await context.newPage();
+  await Promise.all([page.goto(path), stale.goto(path)]);
+  await move(page, "e2", "e4");
+  await expect(page.locator("#save-note")).toHaveText("Match saved on this device.");
+  await expect(stale.locator("#save-note")).toContainText("Another tab changed the saved match");
+
+  await move(stale, "d2", "d4");
+  await expect(stale.locator('[data-square="d4"]')).toHaveAccessibleName("d4, White pawn");
+  await expect(stale.locator("#save-note")).toContainText("Download this tab’s PGN");
+  stale.once("dialog", dialog => dialog.accept());
+  await stale.getByRole("button", { name: "Reset board", exact: true }).click();
+  await page.reload();
+  await expect(page.locator('[data-square="e4"]')).toHaveAccessibleName("e4, White pawn");
+
+  await stale.reload();
+  await expect(stale.locator('[data-square="e4"]')).toHaveAccessibleName("e4, White pawn");
+  await move(stale, "e7", "e5");
+  await expect(stale.locator("#save-note")).toHaveText("Match saved on this device.");
+  await page.reload();
+  await expect(page.locator('[data-square="e5"]')).toHaveAccessibleName("e5, Black pawn");
+});
+
 test.describe("Checkers phone", () => {
   test.use({ viewport: { width: 320, height: 568 }, hasTouch: true });
 

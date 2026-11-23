@@ -33,3 +33,32 @@ test('sanctuary settings return focus and work when preference storage rejects w
   await expect(settings).toBeHidden();
   await expect(menu).toBeFocused();
 });
+
+test('continue playing keeps keyboard focus when another tab updates the shelf', async ({ page, context }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => {
+    const now = Date.now() - 1_000;
+    const recent = ['pepeWars', 'pepePoker', 'pepeCheckers', 'pepeChess'].map((id, index) => ({ id, at: now - index }));
+    localStorage.setItem('emerald-library-v1', JSON.stringify({ recent, favorites: [] }));
+  });
+  await page.goto('/');
+  const otherTab = await context.newPage();
+  const shelf = page.getByRole('region', { name: /continue playing games/i });
+  const chess = shelf.getByRole('link', { name: /Pepe Chess/ });
+  await chess.focus();
+  await page.evaluate(() => {
+    window.focusedRecentLink = document.activeElement;
+    window.dispatchEvent(new Event('focus'));
+  });
+  expect(await chess.evaluate(link => link === window.focusedRecentLink)).toBe(true);
+  await expect(chess).toBeFocused();
+
+  await otherTab.goto('/pepes-paradox.html');
+  await expect(shelf.getByRole('link', { name: /Paradox/ })).toBeVisible();
+  await expect(chess).toHaveCount(0);
+  await expect(shelf.getByRole('link', { name: /Pepe Checkers/ })).toBeFocused();
+
+  await otherTab.evaluate(() => localStorage.removeItem('emerald-library-v1'));
+  await expect(shelf).toBeHidden();
+  await expect(page.getByRole('link', { name: 'Play Emerald Hands', exact: true }).first()).toBeFocused();
+});
