@@ -839,3 +839,51 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
 }
 
 .game-card .cabinet-entry::after { content: none; }
+
+.marquee-window {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+}
+
+.marquee-track {
+  display: inline-flex;
+  gap: 2rem;
+  width: max-content;
+  max-width: none;
+  vertical-align: middle;
+}
+
+.marquee-track > span {
+  flex: none;
+  white-space: nowrap;
+}
+
+.marquee-track > span + span { display: none; }
+.is-scrolling .marquee-window { text-align: left; }
+.is-scrolling .marquee-track {
+  padding-inline-end: 2rem;
+  animation: cabinet-title-scroll var(--marquee-duration, 10s) linear infinite;
+  animation-play-state: paused;
+}
+.is-scrolling.is-visible .marquee-track { animation-play-state: running; }
+.is-scrolling .marquee-track > span + span { display: block; }
+
+@keyframes cabinet-title-scroll {
+  0%, 12% { transform: translateX(0); }
+  100% { transform: translateX(calc(-1 * var(--marquee-distance))); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cabinet-marquee .marquee-window { text-align: center; }
+  .cabinet-marquee .marquee-track {
+    display: block;
+    width: auto;
+    padding: 0;
+    animation: none;
+    transform: none;
+  }
+  .cabinet-marquee .marquee-track > span { white-space: normal; }
+  .cabinet-marquee .marquee-track > span + span { display: none; }
+}

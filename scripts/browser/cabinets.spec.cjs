@@ -66,3 +66,22 @@ test("the chess cabinet artwork opens its playable board", async ({ page }) => {
   await expect(page).toHaveURL(/\/pepe-chess\/index\.html$/);
   await expect(page.getByRole("heading", { name: "Pepe Chess", exact: true })).toBeVisible();
 });
+
+test("long cabinet titles scroll within the marquee and respect reduced motion", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 900 });
+  await page.goto("/?q=kontra");
+  const heading = page.getByRole("heading", { name: "KONTRA: The Kek Wars", exact: true });
+  await heading.scrollIntoViewIfNeeded();
+  await expect(heading).toHaveClass(/is-scrolling/);
+  await expect(heading).toHaveClass(/is-visible/);
+  const track = heading.locator(".marquee-track");
+  await expect(track.locator("span").first()).toHaveText("KONTRA: The Kek Wars");
+  await expect.poll(() => track.evaluate(element => getComputedStyle(element).transform), {
+    timeout: 6000,
+  }).not.toBe("matrix(1, 0, 0, 1, 0, 0)");
+  expect(await heading.locator(".marquee-window").evaluate(element => getComputedStyle(element).overflowX)).toBe("hidden");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(track).toHaveCSS("animation-name", "none");
+  await expect(track.locator("span").nth(1)).toBeHidden();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
