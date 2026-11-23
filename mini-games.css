@@ -548,10 +548,24 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
 .hub-action { min-height: 46px; border-radius: 7px; }
 .hub-action--primary { background: #dcebb0; }
 .hub-hero {
-  overflow: hidden;
-  border: 1px solid #c6dfb42b;
-  border-radius: 18px;
-  background: #142219;
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.hero-image-frame {
+  padding: 4px;
+  border: 1px solid #90ffd0;
+  border-radius: 16px;
+  background: #06160f;
+  box-shadow: 0 0 4px #c1ffe7, 0 0 12px #25f69c99, 0 0 30px #00d97a44;
+}
+
+.hero-image-frame .hub-hero-art { border-radius: 11px; }
+
+@media (min-width: 851px) and (min-height: 600px) {
+  .hub-hero { max-width: min(1120px, calc((100svh - 260px) * 1.777)); }
 }
 
 .hub-hero-art {
@@ -567,7 +581,9 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
   flex-wrap: wrap;
   gap: 16px 24px;
   padding: clamp(16px, 2.4vw, 30px);
-  border-top: 1px solid #c6dfb42b;
+  margin-top: 12px;
+  border: 1px solid #c6dfb42b;
+  border-radius: 12px;
   background: radial-gradient(ellipse at top left, #34523866, transparent 85%);
 }
 
