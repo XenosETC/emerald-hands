@@ -119,6 +119,10 @@
   let assistNode;
   let assistTimer;
   let excitedTimer;
+  let walkTimer;
+  let petX = null;
+  let motionPreference;
+  let excited = false;
 
   function save() {
     if (!readableStore()) throw new Error("Pet save is unreadable; original data preserved.");
@@ -142,20 +146,20 @@
     style.id = "arcade-pet-styles";
     style.textContent = `
       .arcade-pet-companion {
-        position:fixed; left:clamp(60px,var(--pet-x,76%),calc(100vw - 60px)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:80;
+        position:fixed; left:clamp(60px,var(--pet-x,76%),calc(100vw - 140px)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:80;
         width: 96px; height: 118px; transform: translateX(-50%);
-        border: 1px solid rgba(122,255,202,.38); border-radius: 48px 48px 15px 15px;
-        background: radial-gradient(circle at 50% 74%,rgba(44,255,157,.24),rgba(0,9,5,.88) 70%);
-        box-shadow: 0 12px 34px rgba(0,0,0,.58),0 0 24px rgba(44,255,157,.13);
-        pointer-events:none; transition:left 3.4s ease-in-out,transform .2s ease; overflow:visible;
+        border:0; background:none; box-shadow:none;
+        pointer-events:none; transition:left var(--pet-walk-time,3s) linear; overflow:visible;
       }
       .arcade-pet-sprite {
         position:absolute; left:5px; top:5px; width:86px; height:86px; background-image:url("${SPRITES}");
         background-size:400% 200%; background-repeat:no-repeat;
-        filter:drop-shadow(0 8px 8px rgba(0,0,0,.55)); animation:arcade-pet-bob 1.7s ease-in-out infinite alternate;
+        --pet-facing:1; transform-origin:50% 88%;
+        filter:drop-shadow(0 5px 4px rgba(0,0,0,.38)); animation:arcade-pet-idle 3.2s ease-in-out infinite;
       }
+      .arcade-pet-companion.is-walking .arcade-pet-sprite { animation:arcade-pet-walk .38s ease-in-out infinite; }
+      .arcade-pet-companion.is-excited .arcade-pet-sprite { animation:arcade-pet-hop .48s ease-in-out infinite; }
       .arcade-pet-name { position:absolute; left:50%; bottom:4px; width:max-content; max-width:130px; transform:translateX(-50%); color:#dffff1; font:800 9px/1.1 Inter,system-ui,sans-serif; letter-spacing:.04em; text-shadow:0 2px 4px #000; }
-      .arcade-pet-aura { position:absolute; inset:-10px; border:1px solid rgba(75,255,172,.2); border-radius:50%; animation:arcade-pet-aura 2.2s ease-in-out infinite; pointer-events:none; }
       .arcade-pet-picker {
         position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(58px,calc(env(safe-area-inset-bottom) + 46px)); z-index:81; display:none; width:min(340px,calc(100vw - 24px));
         max-height:calc(100dvh - 76px); overflow:auto; overscroll-behavior:contain;
@@ -198,13 +202,17 @@
       .arcade-pet-assist.is-active { border-color:#ffe09a; box-shadow:0 0 34px rgba(77,255,174,.34); transform:scale(1.05); }
       .arcade-pet-assist[data-game="rocketSimulator"] { top:155px; }
       .arcade-pet-assist[data-game="paradox"] { top:78px; }
-      @keyframes arcade-pet-bob { to { transform:translateY(-5px) rotate(1deg); } }
-      @keyframes arcade-pet-aura { 50% { transform:scale(1.08); border-color:rgba(75,255,172,.5); box-shadow:0 0 18px rgba(75,255,172,.2); } }
+      @keyframes arcade-pet-idle { 0%,100% { transform:scaleX(var(--pet-facing)) scaleY(1); } 50% { transform:scaleX(var(--pet-facing)) scaleY(1.025); } }
+      @keyframes arcade-pet-walk { 0%,100% { transform:scaleX(var(--pet-facing)) translateY(0) rotate(-2deg); } 50% { transform:scaleX(var(--pet-facing)) translateY(-3px) rotate(2deg); } }
+      @keyframes arcade-pet-hop { 0%,100% { transform:scaleX(var(--pet-facing)) translateY(0); } 45% { transform:scaleX(var(--pet-facing)) translateY(-9px) rotate(3deg); } }
+      @media(prefers-reduced-motion:reduce){
+        .arcade-pet-companion{transition:none}
+        .arcade-pet-companion .arcade-pet-sprite{animation:none;transform:scaleX(var(--pet-facing))}
+      }
       @media(max-width:680px){
-        .arcade-pet-companion{left:auto;right:86px;bottom:max(10px,env(safe-area-inset-bottom));width:60px;height:76px;transform:none}
+        .arcade-pet-companion{left:clamp(40px,var(--pet-x,60%),calc(100vw - 110px));bottom:max(10px,env(safe-area-inset-bottom));width:60px;height:76px}
         .arcade-pet-companion .arcade-pet-sprite{left:2px;top:2px;width:54px;height:54px}
         .arcade-pet-companion .arcade-pet-name{max-width:68px;font-size:8px;text-align:center}
-        .arcade-pet-companion .arcade-pet-aura{inset:-3px}
         .arcade-pet-sprite{width:66px;height:66px}
         .arcade-pet-dock-toggle{right:max(10px,env(safe-area-inset-right));width:66px}
         .arcade-pet-picker{right:max(10px,env(safe-area-inset-right));left:max(10px,env(safe-area-inset-left));width:auto;max-height:calc(100dvh - 148px)}
@@ -246,7 +254,7 @@
     companion = document.createElement("div");
     companion.className = "arcade-pet-companion";
     companion.setAttribute("aria-hidden", "true");
-    companion.innerHTML = `<i class="arcade-pet-aura"></i><i class="arcade-pet-sprite"></i><span class="arcade-pet-name"></span>`;
+    companion.innerHTML = `<i class="arcade-pet-sprite"></i><span class="arcade-pet-name"></span>`;
     sprite = companion.querySelector(".arcade-pet-sprite");
     picker = document.createElement("section");
     picker.className = "arcade-pet-picker";
@@ -291,6 +299,24 @@
     dockToggle.addEventListener("keydown", onPickerKeyDown);
     picker.addEventListener("keydown", onPickerKeyDown);
     refresh();
+    motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    function stopWalking() {
+      clearTimeout(walkTimer);
+      const x = companion.getBoundingClientRect().left + companion.offsetWidth / 2;
+      companion.style.transition = "none";
+      petX = x / window.innerWidth * 100;
+      companion.style.setProperty("--pet-x", `${petX}%`);
+      companion.classList.remove("is-walking");
+      requestAnimationFrame(() => { companion.style.transition = ""; });
+    }
+    motionPreference.addEventListener("change", stopWalking);
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stopWalking();
+    });
+    window.addEventListener("resize", stopWalking);
+    window.addEventListener("emeraldarcade:pause", event => {
+      if (event.detail?.paused) stopWalking();
+    });
     setInterval(wander, 5200);
   }
 
@@ -298,9 +324,10 @@
     data = load();
     if (!companion) return;
     const pet = petById(data.selected);
-    companion.style.setProperty("--pet-x", `${clamp(data.x, 8, 92)}%`);
+    petX ??= clamp(data.x, 8, 92);
+    companion.style.setProperty("--pet-x", `${petX}%`);
     sprite.style.backgroundImage = `url("${pet.sheet}")`;
-    sprite.style.backgroundPosition = spritePosition(pet.id);
+    sprite.style.backgroundPosition = spritePosition(pet.id, excited);
     companion.querySelector(".arcade-pet-name").textContent = pet.name;
     renderPicker();
   }
@@ -317,17 +344,39 @@
 
   function wander() {
     if (!companion) return;
+    if (motionPreference?.matches || document.hidden || companion.classList?.contains("is-walking") ||
+        picker?.classList.contains("is-open") || window.EmeraldArcade?.isPaused?.()) return;
     data = load();
-    data.x = 12 + Math.random() * 76;
+    const current = petX ?? data.x;
+    const minimum = window.innerWidth <= 680 ? 40 : 60;
+    const maximum = window.innerWidth - (window.innerWidth <= 680 ? 110 : 140);
+    const origin = clamp(current / 100 * window.innerWidth, minimum, maximum);
+    const distance = 35 + Math.random() * 85;
+    let destination = origin + (Math.random() < .5 ? -distance : distance);
+    if (destination < minimum || destination > maximum) destination = origin - (destination - origin);
+    destination = clamp(destination, minimum, maximum);
+    const duration = Math.abs(destination - origin) / 28;
+    petX = destination / window.innerWidth * 100;
+    if (sprite) sprite.style.setProperty("--pet-facing", destination < origin ? "-1" : "1");
+    companion.style.setProperty("--pet-walk-time", `${duration}s`);
     // Cosmetic wandering must never write a cached inventory across tabs.
-    companion.style.setProperty("--pet-x", `${data.x}%`);
+    companion.style.setProperty("--pet-x", `${petX}%`);
+    companion.classList?.add("is-walking");
+    clearTimeout(walkTimer);
+    walkTimer = setTimeout(() => companion.classList?.remove("is-walking"), duration * 1000);
   }
 
   function celebrate() {
     if (!sprite) return;
     clearTimeout(excitedTimer);
+    excited = true;
+    companion.classList.add("is-excited");
     sprite.style.backgroundPosition = spritePosition(data.selected, true);
-    excitedTimer = setTimeout(() => { sprite.style.backgroundPosition = spritePosition(data.selected, false); }, 1100);
+    excitedTimer = setTimeout(() => {
+      excited = false;
+      companion.classList.remove("is-excited");
+      sprite.style.backgroundPosition = spritePosition(data.selected, false);
+    }, 1100);
   }
 
   function updatePet(action) {

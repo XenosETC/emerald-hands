@@ -1,0 +1,111 @@
+{
+  "generator": "Built-in imagegen",
+  "promptTemplate": "Production game-library asset: ONE luxury vintage upright arcade machine, full body from top marquee to base, centered straight-on frontal view with subtly visible bevelled depth, isolated on real transparent alpha. Tall portrait composition about 2:3. Exact common cabinet structure: broad blank dark illuminated marquee at top (between 8 and 17 percent height), thick polished black walnut/black enamel housing, brass edge piping, glowing themed color inset trim; a large CRT display between 23 and 58 percent height; sloped control deck with physical joystick and six colorful glossy buttons between 60 and 70 percent; lower illustrated kickplate, metal coin slots, little speaker grille and feet. Premium realistic rendered collectible machine with illustrated screen and side artwork. Theme for game {title}: {subject}. The screen is an exciting legible game illustration. Kickplate has complementary themed illustration. Cohesive Emerald Arcade family with elegant luxury materials and vivid accent light, beautiful high detail, crisp silhouette. Entire machine inside frame with 5% empty margins. No text, letters, numbers, watermarks or logos anywhere, particularly leave the top marquee empty and almost black for an HTML title overlay. No room, floor, ground shadow, objects outside the machine. This machine will be displayed about 300px wide.",
+  "assets": [
+    {
+      "file": "oneMoreLaunch.webp",
+      "title": "Pepe One More Launch",
+      "subject": "a crowned green frog strapped to a rocket blasting from a lily marsh into stars, gold and teal"
+    },
+    {
+      "file": "kontra.webp",
+      "title": "KONTRA The Kek Wars",
+      "subject": "a green frog commando in a jungle battling mechanical enemies, orange and jade"
+    },
+    {
+      "file": "feudalism.webp",
+      "title": "Pepe Feudalism",
+      "subject": "a crowned frog lord and medieval warband before a stone castle, bronze and green"
+    },
+    {
+      "file": "soulWorld.webp",
+      "title": "Pepe Soul World",
+      "subject": "a jade frog swordsman with a glowing spirit blade at an academy gate, cyan and indigo"
+    },
+    {
+      "file": "templeRun.webp",
+      "title": "Pepe Temple Run",
+      "subject": "a crowned frog fleeing a colossal carved jade frog temple, jade and gold"
+    },
+    {
+      "file": "satoshiSystem.webp",
+      "title": "Satoshi System",
+      "subject": "a brilliant golden genesis star with orbital planetary networks in deep space, amber and black"
+    },
+    {
+      "file": "unstableLaunch.webp",
+      "title": "ETC Unstable Launch",
+      "subject": "a luminous green rocket reactor about to explode in emerald space, neon green and orange"
+    },
+    {
+      "file": "rocketSimulator.webp",
+      "title": "ETC Rocket Simulator",
+      "subject": "a beautifully designed emerald exploration rocket gathering space salvage, cool teal"
+    },
+    {
+      "file": "pets.webp",
+      "title": "ETC Pets",
+      "subject": "cute chibi green frog, brown monkey with blue scarf, olive frog hound and green-gold feathered frog bird in a bamboo sanctuary"
+    },
+    {
+      "file": "paradox.webp",
+      "title": "Pepe's Paradox",
+      "subject": "a crowned frog adventurer between a bamboo realm and its purple spectral mirror"
+    },
+    {
+      "file": "pepeRun.webp",
+      "title": "PepeCoin Emerald Run",
+      "subject": "a green frog jumping over purple crystal spikes collecting emerald coins, electric lime"
+    },
+    {
+      "file": "towerDefense.webp",
+      "title": "Pepe Tower Defense",
+      "subject": "a jade miniature tower-defense battlefield with frog defenders guarding a gold relic from an enormous boss"
+    },
+    {
+      "file": "pepePoker.webp",
+      "title": "Pepe Poker",
+      "subject": "a suave frog dealer at an emerald poker table with ivory playing cards and gold chips, gold trim"
+    },
+    {
+      "file": "pepeCheckers.webp",
+      "title": "Pepe Checkers",
+      "subject": "friendly green and crimson frog kings on a polished checkerboard, brass and burgundy"
+    },
+    {
+      "file": "pepeChess.webp",
+      "title": "Pepe Chess",
+      "subject": "ivory gold frog king opposite an obsidian violet frog queen on a chessboard, royal gold"
+    },
+    {
+      "file": "pepeWars.webp",
+      "title": "Pepe Wars",
+      "subject": "two frog armies clashing before a corrupt citadel, green and crimson banners"
+    },
+    {
+      "file": "spaceUnchained.webp",
+      "title": "Pepe Space Unchained",
+      "subject": "a sleek green starfighter breaking free from purple corrupt vault warships"
+    },
+    {
+      "file": "hands.webp",
+      "title": "Emerald Hands",
+      "subject": "two stylized emerald hands cradling glowing green shards above a golden vault, emerald and brass"
+    },
+    {
+      "file": "rush.webp",
+      "title": "Shard Rush",
+      "subject": "a speeding green frog weaving through red hazards to collect radiant green shards, vivid teal"
+    },
+    {
+      "file": "galaxy.webp",
+      "title": "Emerald Galactic Heroes",
+      "subject": "an emerald hero starship facing a colossal purple galactic boss fleet, blue and lime"
+    },
+    {
+      "file": "rumble.webp",
+      "title": "Pepe Relic Rumble",
+      "subject": "two muscular frog martial artists facing off around an ancient origin flame, violet and gold"
+    }
+  ]
+}

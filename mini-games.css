@@ -680,3 +680,162 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
 .game-card--one-more-launch .eyebrow { color:#e0cc8a; }
 .game-card--one-more-launch .game-body>a { color:#e9e2aa; border-color:#d7c67b44; background:#d7c67b0b; }
 @media(prefers-reduced-motion:reduce){.game-card--one-more-launch .game-art img{transition:none}.game-card--one-more-launch:hover .game-art img{transform:none}}
+
+/* Illustrated cabinets share their controls and typography with the library. */
+.game-grid {
+  gap: 42px 30px;
+  align-items: start;
+}
+
+.game-card {
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.game-card:hover {
+  transform: none;
+  background: transparent;
+}
+
+.cabinet {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  isolation: isolate;
+  filter: drop-shadow(0 18px 16px #0008);
+  transition: filter .2s ease, transform .2s ease;
+}
+
+.cabinet-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.cabinet-marquee {
+  position: absolute;
+  top: 3.5%;
+  left: 14%;
+  right: 14%;
+  height: 12%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: #fff1c3;
+  font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  font-size: clamp(1rem, 1.6vw, 1.45rem);
+  line-height: 1.05;
+  letter-spacing: .025em;
+  text-align: center;
+  text-wrap: balance;
+  text-shadow: 0 0 10px #e9ae6a77, 0 2px 3px #000;
+  pointer-events: none;
+}
+
+.game-card:hover .cabinet,
+.game-card:focus-within .cabinet {
+  filter: drop-shadow(0 18px 16px #0008) drop-shadow(0 0 12px #8acf6540);
+  transform: translateY(-4px);
+}
+
+.game-card .game-body {
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+  margin-top: -3px;
+  background: transparent;
+}
+
+.game-body > .eyebrow,
+.game-body > .game-meta {
+  display: none;
+}
+
+.game-body > p:not(.eyebrow):not(.game-stat):not(.control-label) {
+  margin: 12px 0 8px;
+  color: #b5c5b6;
+  font-size: .78rem;
+  line-height: 1.55;
+}
+
+.game-body > a {
+  order: -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid #d6ba786b;
+  border-radius: 5px;
+  color: #f4e4b4;
+  background: linear-gradient(180deg, #3a3523, #201f17);
+  text-align: center;
+  text-decoration: none;
+  font-size: .8rem;
+}
+
+.game-body > a:hover {
+  color: #fff4d3;
+  border-color: #f0d090;
+  background: #4c4227;
+}
+
+.game-card .favorite-game {
+  top: 0;
+  right: 0;
+  min-height: 44px;
+  border-radius: 999px;
+  font-size: .67rem;
+  box-shadow: 0 4px 12px #0007;
+}
+
+.game-body > .control-label {
+  margin: 3px 0 0;
+  color: #c7dca7;
+  font-size: .65rem;
+}
+
+.game-body > .game-stat {
+  margin-block: 8px;
+}
+
+@media (max-width: 850px) {
+  .cabinet-marquee { font-size: clamp(1rem, 2.4vw, 1.5rem); }
+}
+
+@media (max-width: 540px) {
+  .game-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 12px; }
+  .cabinet-marquee { top: 3.5%; left: 14%; right: 14%; height: 12%; font-size: clamp(.65rem, 2.9vw, 1rem); }
+  .game-card .game-body { padding: 0 3px; }
+  .game-body > p:not(.game-stat):not(.control-label) { display: none; }
+  .game-body > a { font-size: .7rem; padding: 8px 5px; }
+  .game-body > .control-label { font-size: .6rem; }
+  .game-card .favorite-game { position: relative; top: auto; right: auto; align-self: center; order: 1; margin-top: 8px; padding: 8px 14px; }
+  .game-body > .game-stat { font-size: .62rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cabinet { transition: none; }
+  .game-card:hover .cabinet, .game-card:focus-within .cabinet { transform: none; }
+}
+
+.game-card .cabinet-entry {
+  position: absolute;
+  inset: 0;
+  display: block;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.game-card .cabinet-entry::after { content: none; }
