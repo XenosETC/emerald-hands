@@ -161,14 +161,14 @@
       .arcade-pet-companion.is-excited .arcade-pet-sprite { animation:arcade-pet-hop .48s ease-in-out infinite; }
       .arcade-pet-name { position:absolute; left:50%; bottom:4px; width:max-content; max-width:130px; transform:translateX(-50%); color:#dffff1; font:800 9px/1.1 Inter,system-ui,sans-serif; letter-spacing:.04em; text-shadow:0 2px 4px #000; }
       .arcade-pet-picker {
-        position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(58px,calc(env(safe-area-inset-bottom) + 46px)); z-index:81; display:none; width:min(340px,calc(100vw - 24px));
+        position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(58px,calc(env(safe-area-inset-bottom) + 46px)); z-index:2147483003; display:none; width:min(340px,calc(100vw - 24px));
         max-height:calc(100dvh - 76px); overflow:auto; overscroll-behavior:contain;
         padding:12px; border:1px solid rgba(122,255,202,.38); border-radius:12px; color:#effff7;
         background:rgba(0,10,6,.94); box-shadow:0 20px 60px rgba(0,0,0,.7); backdrop-filter:blur(15px);
         font-family:Inter,system-ui,sans-serif;
       }
       .arcade-pet-dock-toggle {
-        position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(14px,env(safe-area-inset-bottom)); z-index:82; width:72px; height:34px;
+        position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(14px,env(safe-area-inset-bottom)); z-index:2147483003; width:72px; height:34px;
         border:1px solid rgba(122,255,202,.48); border-radius:999px; color:#dffff1;
         background:rgba(0,18,11,.92); box-shadow:0 10px 28px rgba(0,0,0,.55);
         cursor:pointer; touch-action:manipulation; font:900 9px/1 Inter,system-ui,sans-serif; letter-spacing:.08em;
@@ -207,7 +207,9 @@
       @keyframes arcade-pet-hop { 0%,100% { transform:scaleX(var(--pet-facing)) translateY(0); } 45% { transform:scaleX(var(--pet-facing)) translateY(-9px) rotate(3deg); } }
       @media(prefers-reduced-motion:reduce){
         .arcade-pet-companion{transition:none}
-        .arcade-pet-companion .arcade-pet-sprite{animation:none;transform:scaleX(var(--pet-facing))}
+        .arcade-pet-companion .arcade-pet-sprite,
+        .arcade-pet-companion.is-walking .arcade-pet-sprite,
+        .arcade-pet-companion.is-excited .arcade-pet-sprite{animation:none;transform:scaleX(var(--pet-facing))}
       }
       @media(max-width:680px){
         .arcade-pet-companion{left:clamp(40px,var(--pet-x,60%),calc(100vw - 110px));bottom:max(10px,env(safe-area-inset-bottom));width:60px;height:76px}

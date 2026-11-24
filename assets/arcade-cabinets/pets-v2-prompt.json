@@ -1,0 +1,12 @@
+{
+  "generator": "Built-in imagegen",
+  "references": [
+    "assets/arcade-cabinets/pets.webp",
+    "assets/etc-pets/meme-pets.png",
+    "assets/etc-pets/pepe-variants.png",
+    "assets/etc-pets/rumble-companions.webp",
+    "rumble-unreal-playable/docs/2026-09-27-northstar-implementation/review-assets/croak-concept.png"
+  ],
+  "prompt": "Edit image 1, our ETC Pets luxury arcade cabinet. Preserve its straight-on full-body proportions, blank almost-black top marquee, brass and dark wood construction, joystick/control deck, coin slots and transparent outer silhouette. Replace ALL screen and lower kickplate character artwork with a gorgeous cohesive ensemble of ALL ELEVEN actual pets from the three sprite-sheet references. References 2-4 are identity and painted chibi style, reference 5 is Croakhound Northstar anatomy. This is a new v2 collectible machine illustration. MAIN SCREEN, in a bamboo garden with a gentle waterfall, seven characters in a clear group: Emerald Pepe (green frog orange lips emerald collar); Pocket Wojak (pale bald sad face in navy hoodie); Mini Chad (muscular blond man gold necklace); Cosmic Bog (dark swept hair magician black/gold cosmic cloak); Monkey (chestnut fur, huge green eyes, navy scarf, emerald medallion, curled tail); Croakhound prominently in foreground (squat muscular FOUR-LEGGED OLIVE SPOTTED FROG-HOUND, BROAD FROG MUZZLE, huge AMBER EYES, pale throat, ridged GOLD DORSAL SPINES, sharp little claws, DARK LEATHER HARNESS with BRASS FROG MEDALLION, short pointed reptile tail, exactly as refs 4/5, NO floppy dog ears, NO furry green puppy); Frenix (GREEN FROG-BIRD, wide frog face, golden yellow eyes, layered emerald/gold FEATHERS, spiky feathered crest, feather tail and wings). LOWER KICKPLATE with four heroic pet variants posed together: Big Chain Pepe in green bandana black tee multiple huge gold chains; Mini Mecha Pepe in black/gold armor and green core; Berserk Tadpole as black lava-cracked muscular frog with orange core; Fallen Crystal Pepe charcoal gray frog in dark hoodie with red crystals and red eyes. Eleven DISTINCT identities total, seven on screen and four on lower art panel; no puppy or substitutions. Make all recognizable and lively with nice hierarchy and readability. No lettering/logos anywhere, blank top marquee required for live HTML title. Premium high-quality painted dimensional arcade product art consistent with image1; no room/floor/background outside machine, true transparent alpha.",
+  "output": "pets-v2.webp"
+}

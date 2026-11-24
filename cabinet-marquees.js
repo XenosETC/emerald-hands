@@ -2,6 +2,23 @@
   const marquees = [...document.querySelectorAll(".cabinet-marquee")];
   if (!marquees.length) return;
 
+  const motion = document.createElement("button");
+  motion.type = "button";
+  motion.className = "marquee-motion-toggle";
+  motion.textContent = "Pause title motion";
+  motion.setAttribute("aria-pressed", "false");
+  document.querySelector(".library-options")?.append(motion);
+  motion.addEventListener("click", () => {
+    const paused = document.body.classList.toggle("marquees-paused");
+    motion.setAttribute("aria-pressed", String(paused));
+    motion.textContent = paused ? "Resume title motion" : "Pause title motion";
+  });
+  function syncVisibility() {
+    document.body.classList.toggle("marquees-hidden", document.hidden);
+  }
+  document.addEventListener("visibilitychange", syncVisibility);
+  syncVisibility();
+
   for (const marquee of marquees) {
     const title = marquee.getAttribute("aria-label") || marquee.textContent.trim();
     const window = document.createElement("span");

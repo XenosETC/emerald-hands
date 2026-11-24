@@ -214,3 +214,77 @@ canvas {
   .price-block strong { font-size: 2.4rem; }
   .launch-controls button { min-width: 0; width: 100%; }
 }
+
+/* The flight and its primary action share one viewport. Supporting lore lives in Flight info. */
+[data-game="launch"] { height: 100dvh; min-height: 0; overflow: hidden; }
+[data-game="launch"] .launch-shell { width: 100%; height: 100%; padding: 6px; }
+[data-game="launch"] .launch-game { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; border-radius: 10px; }
+[data-game="launch"] .launch-topbar { grid-row: 1; padding: 8px 12px; gap: 10px; align-items: center; }
+[data-game="launch"] .launch-topbar h1 { margin: 0; font-size: clamp(1.1rem, 2.6vw, 2rem); line-height: 1.1; }
+[data-game="launch"] .launch-topbar nav { flex-shrink: 0; }
+[data-game="launch"] .launch-topbar :is(a,button), #flightInfo button {
+  min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 7px;
+  color: var(--ink); background: #10271b; cursor: pointer; font: inherit; font-size: .85rem;
+}
+[data-game="launch"] .launch-layout { grid-row: 2; display: block; min-height: 0; overflow: hidden; }
+[data-game="launch"] .flight-deck { display: grid; height: 100%; min-height: 0; grid-template-rows: auto minmax(0, 1fr) auto; }
+[data-game="launch"] .flight-deck > canvas { grid-area: 2 / 1; width: 100%; height: 100%; min-height: 0; aspect-ratio: auto; object-fit: contain; }
+[data-game="launch"] .flight-hud {
+  position: static; grid-area: 1 / 1; inset: auto; margin: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;
+}
+[data-game="launch"] .price-block, [data-game="launch"] .integrity-block { padding: 8px 10px; }
+[data-game="launch"] .price-block strong { font-size: clamp(1.8rem, 4vw, 3rem); }
+[data-game="launch"] .price-block span, [data-game="launch"] .integrity-block p { font-size: .8rem; }
+[data-game="launch"] .price-block small, [data-game="launch"] .integrity-block small { font-size: .68rem; letter-spacing: .03em; }
+[data-game="launch"] .integrity-track { margin: 5px 0; }
+[data-game="launch"] .flight-result {
+  grid-area: 3 / 1; position: static; width: auto; margin: 8px; padding: 10px 12px;
+}
+[data-game="launch"] .flight-result h2 { font-size: clamp(1.2rem, 2.8vw, 1.8rem); margin-bottom: 5px; }
+[data-game="launch"] .flight-result > p:last-of-type { font-size: .85rem; line-height: 1.35; }
+[data-game="launch"] .flight-result .eyebrow { font-size: .65rem; }
+[data-game="launch"] .result-stats { margin-top: 7px; }
+[data-game="launch"] .result-stats div { padding: 5px 7px; }
+[data-game="launch"] .result-stats small { font-size: .7rem; }
+[data-game="launch"] .launch-controls { grid-row: 3; flex-direction: row; padding: 8px; border-top: 1px solid var(--line); border-bottom: 0; gap: 12px; }
+[data-game="launch"] .launch-controls button { min-height: 58px; min-width: 220px; }
+[data-game="launch"] .launch-controls p { font-size: .75rem; max-width: 45ch; }
+#flightInfo {
+  width: min(600px, calc(100% - 20px)); max-height: calc(100dvh - 20px); padding: 16px;
+  border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: #05110b;
+}
+#flightInfo::backdrop { background: #000b; }
+.info-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.info-heading h2 { margin: 0; font-size: 1.4rem; }
+#flightInfo .timeline-panel { padding: 14px 0; min-height: 0; border: 0; background: none; }
+#flightInfo .timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+#flightInfo .timeline::before, #flightInfo .timeline-progress, #flightInfo .milestone::before { display: none; }
+#flightInfo .run-log { position: static; margin-top: 12px; }
+#flightInfo .game-guide { width: auto; display: block; padding: 0; margin: 0; }
+#flightInfo .game-guide > div { padding-block: 8px; }
+@media (max-width: 680px) {
+  [data-game="launch"] .launch-topbar { flex-direction: row; padding: 5px 8px; }
+  [data-game="launch"] .launch-topbar nav { gap: 5px; }
+  [data-game="launch"] .launch-topbar h1 { font-size: 1rem; line-height: 1.15; }
+  [data-game="launch"] .launch-topbar :is(a,button) { padding: 8px; font-size: .75rem; }
+  [data-game="launch"] .launch-controls p { display: none; }
+  [data-game="launch"] .launch-controls button { width: 100%; min-width: 0; }
+  [data-game="launch"] .flight-hud { gap: 5px; margin: 5px; }
+  [data-game="launch"] .price-block, [data-game="launch"] .integrity-block { padding: 6px; }
+  [data-game="launch"] .flight-result { margin: 5px; padding: 8px; }
+}
+@media (max-height: 480px) and (min-width: 600px) {
+  [data-game="launch"] .flight-deck { grid-template-columns: minmax(0, 1fr) minmax(260px, .7fr); grid-template-rows: auto minmax(0, 1fr); }
+  [data-game="launch"] .flight-hud { grid-area: 1 / 1 / 2 / 3; }
+  [data-game="launch"] .flight-deck > canvas { grid-area: 2 / 1; }
+  [data-game="launch"] .flight-result { grid-area: 2 / 2; align-self: center; }
+  [data-game="launch"] .launch-controls button { min-height: 48px; }
+  [data-game="launch"] .launch-topbar { padding-block: 3px; }
+  [data-game="launch"] .flight-result .eyebrow { display: none; }
+}
+[data-game="launch"] .launch-topbar [data-arcade-inline-menu] button { min-width: 44px; }
+@media (max-width: 680px) {
+  [data-game="launch"] .launch-topbar { display: grid; grid-template-columns: 1fr; gap: 4px; }
+  [data-game="launch"] .launch-topbar nav { justify-content: space-between; }
+}

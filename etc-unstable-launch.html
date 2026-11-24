@@ -8,21 +8,20 @@
     <link rel="preload" href="assets/etc-unstable-launch/flight-corridor-v1.png" as="image">
     <link rel="preload" href="assets/etc-unstable-launch/etc-rocket-sheet.png" as="image">
     <link rel="preload" href="assets/etc-unstable-launch/emerald-explosion-sheet.png" as="image">
-    <link rel="stylesheet" href="etc-unstable-launch.css">
     <link rel="stylesheet" href="game-polish.css?v=1">
+    <link rel="stylesheet" href="etc-unstable-launch.css?v=screen-1">
   </head>
-  <body class="arcade-game" data-game="launch">
+  <body class="arcade-game" data-game="launch" data-no-arcade-pet="true">
     <main class="launch-shell">
       <section class="launch-game" aria-label="ETC Unstable Launch game">
         <header class="launch-topbar arcade-topbar">
           <div>
-            <p class="eyebrow">Emerald Arcade // Lore Flight 10</p>
             <h1>ETC: Unstable Launch</h1>
-            <p class="subtitle">Launch the reactor. Lock the price before velocity tears the rocket apart.</p>
           </div>
           <nav aria-label="Mini game navigation">
-            <a href="index.html">Arcade Hub</a>
-            <a href="pepe-space-unchained.html">Space Unchained</a>
+            <a href="index.html" aria-label="Arcade Hub">Hub</a>
+            <button id="flightInfoButton" type="button" aria-haspopup="dialog">Flight info</button>
+            <span data-arcade-inline-menu></span>
           </nav>
         </header>
 
@@ -56,6 +55,14 @@
             </div>
           </section>
 
+
+        </div>
+
+      </section>
+    </main>
+
+    <dialog id="flightInfo" aria-labelledby="flightInfoTitle">
+      <form method="dialog" class="info-heading"><h2 id="flightInfoTitle">Flight info</h2><button>Done</button></form>
           <aside class="timeline-panel" aria-label="Price flight timeline">
             <div class="timeline-heading">
               <p class="eyebrow">Flight Timeline</p>
@@ -71,20 +78,16 @@
               <small id="bestRank">Ground Crew</small>
             </div>
           </aside>
-        </div>
-
-      </section>
-    </main>
-
     <footer class="game-guide" aria-label="How to play">
       <div><span class="game-guide__label">One-tap timing</span><p><strong>Launch. Watch stability. Lock the run.</strong> Bank a fictional lore price before the reactor fails.</p></div>
       <div id="game-controls"><span class="game-guide__label">Controls</span><p>Click the reactor button or press <kbd>Space</kbd> to launch; use it again to lock the price.</p></div>
       <div><span class="game-guide__label">Fictional flight</span><p><a href="index.html#shard-faq">Shard economy &amp; achievements FAQ</a>. All prices and milestones are arcade lore. This game uses no live price feed, wallet, or real money.</p></div>
     </footer>
+    </dialog>
 
-    <script src="arcade.js?v=12"></script>
-    <script src="arcade-pet.js?v=natural-18"></script>
-    <script src="etc-unstable-launch.js?v=5"></script>
+    <script src="arcade.js?v=reset-focus-1"></script>
+    <script src="arcade-pet.js?v=motion-19"></script>
+    <script src="etc-unstable-launch.js?v=screen-1"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

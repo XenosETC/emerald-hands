@@ -10,7 +10,7 @@ async function expectCenterAccessible(locator) {
   })).toBe(true);
 }
 
-for (const width of [320, 1440]) {
+for (const width of [320, 768, 1440]) {
   test("all 21 cabinet games retain usable controls at " + width + "px", async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
@@ -84,4 +84,32 @@ test("long cabinet titles scroll within the marquee and respect reduced motion",
   await expect(track).toHaveCSS("animation-name", "none");
   await expect(track.locator("span").nth(1)).toBeHidden();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test.describe("phone cabinet controls", () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+  test("saving a cabinet and following its play link work independently", async ({ page }) => {
+    await page.goto("/?q=pepe%20chess");
+    const card = page.locator(".game-card:visible");
+    const favorite = card.getByRole("button", { name: "Save Pepe Chess to favorites" });
+    await favorite.tap();
+    await expect(card.locator(".favorite-game")).toHaveAttribute("aria-pressed", "true");
+    expect(new URL(page.url()).pathname).toBe("/");
+    expect(new URL(page.url()).searchParams.get("q")).toBe("pepe chess");
+
+    const artwork = card.getByRole("link", { name: "Open Pepe Chess", exact: true });
+    await artwork.focus();
+    await page.keyboard.press("Tab");
+    const play = card.locator(".game-body > a");
+    await expect(play).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(card.locator(".favorite-game")).toBeFocused();
+    await page.keyboard.press("Space");
+    await expect(card.locator(".favorite-game")).toHaveAttribute("aria-pressed", "false");
+
+    await play.tap();
+    await expect(page).toHaveURL(/\/pepe-chess\/index\.html$/);
+    await expect(page.getByRole("heading", { name: "Pepe Chess", exact: true })).toBeVisible();
+  });
 });

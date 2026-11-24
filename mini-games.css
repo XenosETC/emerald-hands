@@ -903,3 +903,24 @@ body { background: radial-gradient(ellipse at 80% 0, #23362b66, transparent 42re
   .cabinet-marquee .marquee-track > span { white-space: normal; }
   .cabinet-marquee .marquee-track > span + span { display: none; }
 }
+
+.marquee-motion-toggle {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: #d6e8cc;
+  background: #16251c;
+  font: inherit;
+  font-size: .75rem;
+  cursor: pointer;
+}
+
+.marquees-paused .is-scrolling .marquee-track,
+.marquees-hidden .is-scrolling .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-motion-toggle { display: none; }
+}

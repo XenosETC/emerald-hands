@@ -547,3 +547,14 @@ buildTimeline();
 loadBest();
 updateHud();
 requestAnimationFrame(loop);
+
+const flightInfo = document.querySelector("#flightInfo");
+let pausedBeforeInfo = false;
+document.querySelector("#flightInfoButton").addEventListener("click", () => {
+  pausedBeforeInfo = Boolean(window.EmeraldArcade?.isPaused?.());
+  if (!pausedBeforeInfo) window.EmeraldArcade?.setPaused?.(true);
+  flightInfo.showModal();
+});
+flightInfo.addEventListener("close", () => {
+  if (!pausedBeforeInfo) window.EmeraldArcade?.setPaused?.(false);
+});
