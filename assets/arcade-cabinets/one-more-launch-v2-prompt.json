@@ -1,0 +1,12 @@
+{
+  "mode": "Built-in image_gen, reference-guided generation",
+  "output": "oneMoreLaunch-v2.webp",
+  "format": "640x960 RGBA WebP, quality 91, method 6",
+  "references": [
+    "assets/arcade-cabinets/oneMoreLaunch.webp",
+    "assets/arcade-cabinets/kontra-v2.webp",
+    "pepe-one-more-launch/assets/card-key-art-v1.png",
+    "pepe-one-more-launch/assets/crown-rig-integrated-v3.png"
+  ],
+  "prompt": "Use case: stylized-concept. Create the ninth updated Emerald Arcade upright cabinet, for Pepe: One More Launch. Reference1 is the old machine: preserve entire frontal silhouette, screen/control/deck/marquee placement and full feet. Reference2 is the approved new cabinet finish: dark walnut black enamel, antique brass, emerald neon, dimensional joystick and six colored buttons. Reference3 is this game's actual approved key art: adapt its EXACT Crown Pepe and rocket into main screen and kickplate. Reference4 shows exact integrated pilot identity: green classic Pepe orange lips, gold crown, black short sleeve shirt with green candle emblem, brown X-shaped leather harness, hands grasping hull handles, feet on footholds, strapped OUTSIDE black gold emerald-crystal rocket. NO royal cape, NO generic smiling frog riding a silver rocket. Main CRT depicts the terrified wide-eyed Crown Pepe and black gold emerald-tipped rocket launching diagonally from exploding lotus lily marsh, green planet curve and violet cosmic sky with broken gold celestial rings. Crisp deliberate pixel art inside screen consistent with reference3, expressive readable big frog face. Lower kickplate shows close-up smug Crown Pepe in same black shirt/harness beside emerald rocket engine and cosmic realm imagery. Side wraps feature lotus flowers, gold orbital arcs and emerald crystals. Most important: top marquee stays totally EMPTY pure near-black inside its neon frame for live HTML title. NO text, lettering, labels, logos, numbers anywhere. Whole machine centered full height portrait 2:3 image; transparent alpha outside silhouette, no room, no floor, no shadow outside. High quality polished physical machine, cohesive with reference2. All illustration confined to cabinet panels."
+}
