@@ -312,3 +312,101 @@ test('Rumble companions use the existing unlock ledger and leave old pet stats i
   assert.equal(reopened.selected, 'rumble-frenix');
   assert.equal(reopened.stats.pepe.strengthXp, 50);
 });
+
+test('legacy sanctuary migration gives a free habitat and keeps progress when migration writes fail', () => {
+  const key = 'emerald-arcade-pets-v1';
+  const raw = JSON.stringify({schemaVersion:2,selected:'pepe',unlocked:['pepe','wojak'],inventory:{bambooShoots:8,bambooSticks:3},stats:{pepe:{strengthXp:90}}});
+  const saves = new Map([[key,raw]]);
+  const h = tab(saves,{},true);
+  assert.equal(h.api.load().sanctuary.habitat,'bamboo');
+  assert.deepEqual(Array.from(h.api.load().sanctuary.ownedHabitats),['bamboo']);
+  saves.set(key,raw);
+  h.read('localStorage.setItem=()=>{throw new Error("blocked")};');
+  assert.equal(h.api.load().stats.pepe.strengthXp,90);
+  assert.equal(h.api.load().inventory.bambooShoots,8);
+  assert.equal(saves.get(key),raw);
+});
+
+test('cosmetic habitat and decoration purchases persist, equip, toggle, and never alter pet assists', async () => {
+  const saves=new Map(),h=tab(saves,{},true);
+  h.window.EmeraldArcade.awardArcadeShards(200);
+  const stats=JSON.stringify(h.api.load().stats);
+  const bonus=JSON.stringify(h.api.activeBonus('rush'));
+  assert.equal((await h.api.perform('habitat','moonlit')).ok,true);
+  assert.equal(h.api.load().sanctuary.habitat,'moonlit');
+  assert.equal(h.window.EmeraldArcade.arcadeShardBalance(),180);
+  assert.equal((await h.api.perform('decoration','lantern')).ok,true);
+  assert.deepEqual(Array.from(h.api.load().sanctuary.decorations),['lantern']);
+  assert.equal(h.window.EmeraldArcade.arcadeShardBalance(),160);
+  assert.equal((await h.api.perform('habitat','bamboo')).ok,true);
+  assert.equal((await h.api.perform('habitat','moonlit')).ok,true);
+  assert.equal((await h.api.perform('decoration','lantern')).ok,true);
+  assert.equal(h.api.load().sanctuary.decorations.length,0);
+  assert.equal(h.window.EmeraldArcade.arcadeShardBalance(),160);
+  const fresh=tab(saves,{},true);
+  assert.equal(fresh.api.load().sanctuary.habitat,'moonlit');
+  assert.equal(fresh.api.load().sanctuary.ownedDecorations.includes('lantern'),true);
+  assert.equal(JSON.stringify(fresh.api.load().stats),stats);
+  assert.equal(JSON.stringify(fresh.api.activeBonus('rush')),bonus);
+});
+
+test('cosmetic paid grants survive pet write failure and cannot be charged again on recovery', async () => {
+  for (const [kind,id,cost] of [['habitat','moonlit',80],['decoration','lantern',20]]) {
+    const saves=new Map(),h=tab(saves,{},true);
+    h.window.EmeraldArcade.awardArcadeShards(100);
+    h.read('window.originalPetWrite=localStorage.setItem;window.petWrites=0;localStorage.setItem=(key,value)=>{if(key==="emerald-arcade-pets-v1" && ++window.petWrites>1)throw new Error("quota");window.originalPetWrite(key,value)}');
+    const purchase=await h.api.perform(kind,id);
+    assert.equal(purchase.ok,true);
+    assert.match(purchase.message,/secured/);
+    assert.equal(h.window.EmeraldArcade.arcadeShardBalance(),160-cost);
+    const fresh=tab(saves,{},true);
+    const ownership=kind==='habitat'?'ownedHabitats':'ownedDecorations';
+    assert.equal(fresh.api.load().sanctuary[ownership].includes(id),true);
+    assert.equal((await fresh.api.perform(kind,id)).ok,true);
+    assert.equal(fresh.window.EmeraldArcade.arcadeShardBalance(),160-cost);
+    assert.equal(tab(saves,{},true).api.load().sanctuary[ownership].filter(value=>value===id).length,1);
+  }
+});
+
+test('failed cosmetic wallet writes and unreadable saves spend nothing; unknown ownership is filtered', async () => {
+  const saves=new Map(),h=tab(saves,{},true);
+  h.read('window.originalWrite=localStorage.setItem;localStorage.setItem=(key,value)=>{if(key==="emerald-arcade-v1")throw new Error("quota");window.originalWrite(key,value)}');
+  assert.equal((await h.api.perform('decoration','lantern')).ok,false);
+  assert.equal(h.window.EmeraldArcade.arcadeShardBalance(),60);
+  assert.equal(h.api.load().sanctuary.ownedDecorations.length,0);
+  h.read('localStorage.setItem=window.originalWrite');
+  const saved=h.api.load();
+  saved.sanctuary={habitat:'sunset',ownedHabitats:['bamboo','missing'],ownedDecorations:['lantern','missing'],decorations:['lantern','pond','missing']};
+  saves.set('emerald-arcade-pets-v1',JSON.stringify(saved));
+  assert.equal(h.api.load().sanctuary.habitat,'bamboo');
+  assert.deepEqual(Array.from(h.api.load().sanctuary.decorations),['lantern']);
+  assert.equal((await h.api.perform('habitat','missing')).ok,false);
+  saves.set('emerald-arcade-pets-v1','{broken');
+  assert.equal((await h.api.perform('decoration','lantern')).ok,false);
+  assert.equal(saves.get('emerald-arcade-pets-v1'),'{broken');
+  assert.equal(h.window.EmeraldArcade.arcadeShardBalance(),60);
+});
+
+test('two sanctuary tabs serialize cosmetic purchases and preserve both arrangements', async () => {
+  const saves=new Map(),a=tab(saves,{},true),b=tab(saves,{},true);
+  a.window.EmeraldArcade.awardArcadeShards(100);
+  let tail=Promise.resolve();
+  const locks={request(name,callback){const next=tail.then(callback);tail=next.catch(()=>{});return next;}};
+  a.window.navigator={locks};b.window.navigator={locks};
+  const results=await Promise.all([a.api.perform('habitat','moonlit'),b.api.perform('habitat','moonlit'),a.api.perform('decoration','lantern'),b.api.perform('decoration','pond')]);
+  assert.equal(results.every(result=>result.ok),true);
+  assert.equal(a.window.EmeraldArcade.arcadeShardBalance(),25);
+  const loaded=tab(saves,{},true).api.load();
+  assert.equal(loaded.sanctuary.habitat,'moonlit');
+  assert.deepEqual(Array.from(loaded.sanctuary.decorations).sort(),['lantern','pond']);
+  assert.deepEqual(Array.from(loaded.sanctuary.ownedHabitats),['bamboo','moonlit']);
+});
+
+test('failed owned arrangement writes keep the previous habitat and decoration placement', async () => {
+  const saves=new Map(),h=tab(saves,{},true);
+  assert.equal((await h.api.perform('decoration','lantern')).ok,true);
+  h.read('window.originalPetWrite=localStorage.setItem;window.petWrites=0;localStorage.setItem=(key,value)=>{if(key==="emerald-arcade-pets-v1" && ++window.petWrites>1)throw new Error("quota");window.originalPetWrite(key,value)}');
+  assert.equal((await h.api.perform('decoration','lantern')).ok,false);
+  assert.deepEqual(Array.from(h.api.load().sanctuary.decorations),['lantern']);
+  assert.equal(h.window.EmeraldArcade.arcadeShardBalance(),40);
+});

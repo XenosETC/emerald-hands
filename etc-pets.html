@@ -1,101 +1,68 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="ETC Pets: Meme Edition, the companion sanctuary for Emerald Arcade.">
-    <title>ETC Pets: Meme Edition</title>
-    <link rel="preload" href="assets/etc-pets/pet-sanctuary.png" as="image">
-    <link rel="preload" href="assets/etc-pets/meme-pets.png" as="image">
-    <link rel="preload" href="assets/etc-pets/pepe-variants.png" as="image">
-    <link rel="stylesheet" href="etc-pets.css?v=natural-pets-1">
-    <link rel="stylesheet" href="game-polish.css?v=1">
-  </head>
-  <body data-no-arcade-pet="true" class="arcade-game" data-game="pets">
-    <main class="pets-shell">
-      <section class="pets-game">
-        <header class="pets-topbar arcade-topbar">
-          <div>
-            <p class="eyebrow">Arcade Companion Sanctuary</p>
-            <h1>ETC Pets: Meme Edition</h1>
-            <p>Raise the aura. Switch companions. Bring your pet into every corner of the Emerald Arcade.</p>
-          </div>
-          <nav aria-label="Arcade navigation"><a href="index.html">Arcade Hub</a><a href="etc-rocket-simulator.html">Rocket Simulator</a><div data-arcade-inline-menu></div></nav>
-        </header>
-
-        <div class="pets-layout">
-          <section class="sanctuary">
-            <div class="pet-stage">
-              <div class="hero-pet" id="heroPet" aria-label="Selected arcade pet"></div>
-              <div class="pet-shadow"></div>
-            </div>
-            <div class="pet-identity">
-              <p class="eyebrow" id="petTitle">Shard Sniffer</p>
-              <h2 id="petName">Emerald Pepe</h2>
-              <p id="petMood">Ready to farm aura across the arcade.</p>
-            </div>
-            <div class="pet-meters">
-              <span><small>Fed</small><i><b id="hungerBar"></b></i><strong id="hungerLabel">78%</strong></span>
-              <span><small>Joy</small><i><b id="joyBar"></b></i><strong id="joyLabel">72%</strong></span>
-              <span><small>Aura</small><i><b id="auraBar"></b></i><strong id="auraLabel">0</strong></span>
-              <span><small>Power</small><i><b id="strengthBar"></b></i><strong id="strengthLabel">Lv. 1</strong></span>
-            </div>
-          </section>
-
-          <aside class="pet-console">
-            <section class="pet-wallet" aria-label="Pet supplies and Arcade Shards">
-              <p class="eyebrow">Sanctuary Inventory</p>
-              <div>
-                <span><small>Arcade Shards</small><strong id="arcadeShardBalance">60</strong></span>
-                <span><small>Bamboo Shoots</small><strong id="bambooShootBalance">2</strong></span>
-                <span><small>Training Sticks</small><strong id="bambooStickBalance">1</strong></span>
-              </div>
-              <p id="petActionStatus" aria-live="polite">Finish arcade runs to earn shards for supplies and new pets.</p>
-            </section>
-            <section>
-              <p class="eyebrow">Care Actions</p>
-              <p id="trainingGoal"></p><progress id="trainingProgress" value="0" max="1" aria-label="Progress to next strength level"></progress>
-              <div class="pet-actions">
-                <button type="button" data-action="feed"><strong>Feed Shoot</strong><small>Costs 1 shoot · +22 fed</small></button>
-                <button type="button" data-action="play"><strong>Play</strong><small>Free · +20 joy</small></button>
-                <button type="button" data-action="train"><strong>Train</strong><small>Costs 1 stick · raises Strength</small></button>
-              </div>
-            </section>
-            <section>
-              <p class="eyebrow">Bamboo Supply Shop</p>
-              <div class="supply-shop">
-                <button type="button" data-supply="shoot"><strong>1 Shoot</strong><small>8 shards</small></button>
-                <button type="button" data-supply="shoot-bundle"><strong>5 Shoots</strong><small>35 shards</small></button>
-                <button type="button" data-supply="stick"><strong>1 Training Stick</strong><small>18 shards</small></button>
-              </div>
-            </section>
-            <section>
-              <p class="eyebrow">Pet Roster & Unlocks</p><p id="rosterProgress"></p>
-              <div class="pet-roster" id="petRoster"></div>
-            </section>
-            <div class="companion-note">
-              <strong>Strength has controlled game effects.</strong>
-              <p id="assistReport">Train and care for your pet to strengthen its supported-game assists.</p>
-              <nav class="pet-adventures" aria-label="Games with pet assists">
-                <a href="shard-rush.html">Shard Rush <span>Classic pickup range</span></a>
-                <a href="pepes-paradox.html">Pepe’s Paradox <span>Relic range</span></a>
-                <a href="etc-rocket-simulator.html">Rocket Simulator <span>Salvage bonus</span></a>
-              </nav>
-              <details class="care-history"><summary>Recent care · last 8 actions</summary><ol id="careHistory"></ol></details>
-            </div>
-          </aside>
-        </div>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A living home for your Emerald Arcade companions. Care, collect, and furnish your sanctuary.">
+  <title>ETC Pets · Living Sanctuary</title>
+  <link rel="preload" href="assets/etc-pets/pet-sanctuary.png" as="image">
+  <link rel="stylesheet" href="game-polish.css?v=1">
+  <link rel="stylesheet" href="etc-pets-sanctuary.css?v=1">
+  <link rel="stylesheet" href="etc-pets.css?v=sanctuary-1">
+</head>
+<body data-no-arcade-pet="true" class="arcade-game" data-game="pets">
+  <main class="pets-shell">
+    <header class="pets-topbar arcade-topbar">
+      <div><p class="eyebrow">Emerald Arcade</p><h1>ETC Pets</h1></div>
+      <nav aria-label="Arcade navigation"><a href="index.html" aria-label="Arcade Hub">Hub</a><div data-arcade-inline-menu></div></nav>
+    </header>
+    <div class="sanctuary-toolbar">
+      <div class="pet-wallet" aria-label="Sanctuary inventory"><span><strong id="arcadeShardBalance">0</strong> shards</span><span class="inventory-resource"><img src="assets/etc-pets/supply-shoots-v1.webp" alt="" width="32" height="32"><span><strong id="bambooShootBalance">2</strong><small>shoots</small></span></span><span class="inventory-resource"><img src="assets/etc-pets/supply-sticks-v1.webp" alt="" width="32" height="32"><span><strong id="bambooStickBalance">1</strong><small>sticks</small></span></span></div>
+      <div class="sanctuary-tools"><button id="openRoster" type="button">Pets</button><button id="openShop" type="button">Shop</button><button id="openDetails" type="button" aria-label="Care info">ⓘ</button></div>
+    </div>
+    <section class="sanctuary" aria-label="Living pet sanctuary" data-habitat="bamboo">
+      <div class="habitat-light" aria-hidden="true"></div>
+      <div class="habitat-label"><span class="eyebrow">Your sanctuary</span><h2 id="habitatName">Emerald Den</h2><p id="residentCount">Your companions live here</p></div>
+      <div id="sanctuaryResidents" aria-label="Owned pets"><div id="sanctuaryDecorations" aria-hidden="true"></div></div>
+      <p class="scene-hint">Tap a resident to care for them</p>
+    </section>
+    <section class="care-deck" aria-label="Selected pet care">
+      <div class="pet-identity"><div><p class="eyebrow" id="petTitle">Shard Sniffer</p><h2 id="petName">Emerald Pepe</h2></div><p id="petMood">Ready for some company.</p></div>
+      <div class="pet-meters">
+        <span><small>Fed</small><i><b id="hungerBar"></b></i><strong id="hungerLabel">78%</strong></span>
+        <span><small>Joy</small><i><b id="joyBar"></b></i><strong id="joyLabel">72%</strong></span>
+        <span><small>Aura</small><i><b id="auraBar"></b></i><strong id="auraLabel">0</strong></span>
+        <span><small>Power</small><i><b id="strengthBar"></b></i><strong id="strengthLabel">Lv. 1</strong></span>
+      </div>
+      <div class="pet-actions">
+        <button type="button" data-action="feed"><img class="care-supply-art" src="assets/etc-pets/supply-shoots-v1.webp" alt="" width="32" height="32"><strong>Feed</strong><small>1 shoot · +22 fed</small></button>
+        <button type="button" data-action="play"><strong>Play</strong><small>Free · +20 joy</small></button>
+        <button type="button" data-action="train"><img class="care-supply-art" src="assets/etc-pets/supply-sticks-v1.webp" alt="" width="32" height="32"><strong>Train</strong><small>1 stick · +10 XP</small></button>
+      </div>
+      <p id="petActionStatus" role="status" aria-live="polite">Your owned pets share this home. Pick a resident to begin.</p>
+    </section>
+  </main>
+  <dialog id="sanctuaryPanel" aria-labelledby="panelTitle">
+    <header class="panel-heading"><h2 id="panelTitle">Sanctuary</h2><button id="closePanel" type="button">Done</button></header>
+    <nav class="panel-tabs" aria-label="Sanctuary panels"><button type="button" data-panel="roster">Pets</button><button type="button" data-panel="shop">Shop</button><button type="button" data-panel="details">Care info</button></nav>
+    <div class="panel-content">
+      <section data-panel-view="roster"><p id="rosterProgress"></p><p class="muted">Every owned companion lives in your sanctuary. Selecting one also equips their arcade assist.</p><div class="pet-roster" id="petRoster"></div></section>
+      <section data-panel-view="shop" hidden>
+        <p class="shop-note">Make this home yours. Habitats and decorations are cosmetic, permanent unlocks with no pet stat bonuses. Prices are an initial tuning pass.</p>
+        <h3>Habitats</h3><div id="habitatShop" class="habitat-shop"></div>
+        <h3>Decorations</h3><p class="muted">Place or store any decoration you own.</p><div id="decorationShop" class="decoration-shop"></div>
+        <h3>Bamboo supplies</h3><div class="supply-shop"><button type="button" data-supply="shoot"><img class="supply-shop-art" src="assets/etc-pets/supply-shoots-v1.webp" alt="" width="72" height="72"><strong>1 Shoot</strong><small>8 shards</small></button><button type="button" data-supply="shoot-bundle"><img class="supply-shop-art" src="assets/etc-pets/supply-shoots-v1.webp" alt="" width="72" height="72"><strong>5 Shoots</strong><small>35 shards</small></button><button type="button" data-supply="stick"><img class="supply-shop-art" src="assets/etc-pets/supply-sticks-v1.webp" alt="" width="72" height="72"><strong>1 Training Stick</strong><small>18 shards</small></button></div>
       </section>
-    </main>
-
-    <footer class="game-guide" aria-label="How to play">
-      <div><span class="game-guide__label">Your arcade companion</span><p><strong>Care for your companion.</strong> Feed, play, train, and unlock more of the sanctuary roster.</p></div>
-      <div id="game-controls"><span class="game-guide__label">Controls</span><p>Click or tap a pet to select it. Feed uses bamboo shoots; training uses sticks; play is free.</p></div>
-      <div><span class="game-guide__label">Spend with a purpose</span><p>Arcade Shards buy supplies and unlocks. Food and joy affect your pet assist in supported games. <a href="index.html#shard-faq">How to earn Arcade Shards ↗</a></p></div>
-    </footer>
-    <script src="arcade.js?v=reset-focus-1"></script>
-    <script src="arcade-pet.js?v=motion-19"></script>
-    <script src="etc-pets.js?v=locks-16"></script>
+      <section data-panel-view="details" hidden>
+        <h3>Training &amp; care</h3><p id="trainingGoal"></p><progress id="trainingProgress" value="0" max="1" aria-label="Progress to next strength level"></progress>
+        <p id="assistReport"></p><h3>Recent care</h3><ol id="careHistory"></ol>
+        <p class="muted">Feed uses shoots; train uses sticks and requires at least 20% fed. Play is free. Each pet has independent strength. Supplies and cosmetic ownership are shared.</p>
+        <p>Earn Arcade Shards by playing arcade games. <a href="index.html#shard-faq">Shard guide ↗</a></p>
+      </section>
+    </div>
+    <p id="panelStatus" role="status" aria-live="polite"></p>
+  </dialog>
+  <script src="arcade.js?v=sanctuary-1"></script><script src="arcade-pet.js?v=sanctuary-1"></script>
+  <script src="etc-pets-sanctuary.js?v=1"></script><script src="etc-pets.js?v=sanctuary-1"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

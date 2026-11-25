@@ -11,7 +11,9 @@ async function move(tab, from, to) {
 
 test("Checkers keeps the current saved match when a stale tab plays or changes mode", async ({ page, context }) => {
   await page.goto(path);
+  await page.locator("#match-options").click();
   await page.locator("#mode").selectOption("local");
+  await page.locator("#close-match-options").click();
   const stale = await context.newPage();
   await stale.goto(path);
   await expect(stale.locator("#mode")).toHaveValue("local");
@@ -22,13 +24,17 @@ test("Checkers keeps the current saved match when a stale tab plays or changes m
   await move(stale, "e3", "f4");
   await expect(square(stale, "f4", "Emerald piece")).toBeVisible();
   await expect(stale.locator("#save-status")).toContainText("Share this tab’s move log");
+  await stale.locator("#match-options").click();
   await stale.getByRole("button", { name: "Share move log" }).click();
   await expect(stale.locator("#transcript-text")).toHaveValue(/E3.*F4/);
   await stale.keyboard.press("Escape");
+  await stale.locator("#close-match-options").click();
 
   await page.reload();
   await expect(square(page, "d4", "Emerald piece")).toBeVisible();
+  await stale.locator("#match-options").click();
   await stale.locator("#mode").selectOption("bot");
+  await stale.locator("#close-match-options").click();
   await page.reload();
   await expect(page.locator("#mode")).toHaveValue("local");
   await expect(square(page, "d4", "Emerald piece")).toBeVisible();

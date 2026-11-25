@@ -1,0 +1,12 @@
+{
+  "generator": "Built-in imagegen",
+  "transparentBackground": true,
+  "prompts": {
+    "shoots": "Production collectible supply icon for ETC Pets in Emerald Arcade, premium whimsical hand-painted 3D fantasy game asset matching detailed antique-gold and emerald sanctuary art. A single clearly readable resource, centered, tightly framed with transparent padding, fully isolated on TRUE TRANSPARENT background, NO rectangle, NO colored box, NO text, NO UI, NO letters or numbers, NO scenery. Soft upper-left light, beautiful textured material, clear silhouette readable at 32px. Camera three-quarter front view slightly above. Tiny soft contact shadow only, not a big opaque floor. FOOD RESOURCE: a little bundle of three fresh tender BAMBOO SHOOTS, plump tapered pale golden-green shoots with overlapping natural husk scales and rich leafy green tips. One slightly peeled revealing pale edible flesh. Tied loosely with a thin natural fiber cord and a tiny tasteful emerald bead. Wholesome fresh pet food, recognizable bamboo shoots, not mature bamboo poles, no bowl or basket.",
+    "sticks": "Production collectible supply icon for ETC Pets in Emerald Arcade, premium whimsical hand-painted 3D fantasy game asset matching detailed antique-gold and emerald sanctuary art. A single clearly readable resource, centered, tightly framed with transparent padding, fully isolated on TRUE TRANSPARENT background, NO rectangle, NO colored box, NO text, NO UI, NO letters or numbers, NO scenery. Soft upper-left light, beautiful textured material, clear silhouette readable at 32px. Camera three-quarter front view slightly above. Tiny soft contact shadow only, not a big opaque floor. TRAINING RESOURCE: a compact bundle of three polished BAMBOO TRAINING STICKS, short sturdy honey-brown bamboo rods with visible nodes and smooth cut ends, one angled across the other two. A tasteful dark emerald cloth binding around the center with a small antique brass ring and engraved leaf-shaped charm. Pet training equipment, natural bamboo material, no sharp tips, no weapon blade, no lettering."
+  },
+  "outputs": [
+    "supply-shoots-v1.webp",
+    "supply-sticks-v1.webp"
+  ]
+}

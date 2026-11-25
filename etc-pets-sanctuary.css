@@ -1,0 +1,23 @@
+/* Transparent residents: movement lives inside the sanctuary's reserved scene. */
+#sanctuaryResidents { position:absolute; inset:0; overflow:hidden; isolation:isolate; }
+[data-game="pets"] .sanctuary-resident {
+  position:absolute; display:block; width:var(--resident-size,100px); height:var(--resident-size,100px);
+  min-width:44px; min-height:44px; margin:0; padding:0; border:0; border-radius:50%;
+  background:none; box-shadow:none; color:#fff5d8; cursor:pointer; touch-action:manipulation;
+  transform:translate(-50%,-100%) scale(var(--resident-depth,1)); transform-origin:center bottom;
+  -webkit-tap-highlight-color:transparent;
+}
+[data-game="pets"] .sanctuary-resident:hover,
+[data-game="pets"] .sanctuary-resident.is-selected { background:none; box-shadow:none; }
+[data-game="pets"] .sanctuary-resident:focus-visible { outline:2px solid #edce8a; outline-offset:3px; }
+.resident-sprite { position:absolute; inset:var(--foot-pad,0%) 0 calc(-1 * var(--foot-pad,0%)); display:block; background-size:400% 200%; background-repeat:no-repeat;
+  filter:var(--pet-environment-light,brightness(.98) saturate(.95)) drop-shadow(0 2px 1px #10201433); transform:scaleX(var(--resident-facing,1)); pointer-events:none; }
+.resident-shadow { position:absolute; left:28%; right:28%; bottom:-2%; height:6%; border-radius:50%; background:var(--contact-shadow,#25201670); filter:blur(1.5px); pointer-events:none; }
+/* A small selection point keeps the scene free of floating text. */
+.sanctuary-resident.is-selected::after { content:""; position:absolute; left:calc(50% - 2px); bottom:-7px; width:4px; height:4px; border-radius:50%; background:#e7c77f; pointer-events:none; }
+.sanctuary-resident.is-walking .resident-sprite { animation:resident-step .42s ease-in-out infinite; }
+.sanctuary-resident.is-celebrating .resident-sprite { animation:resident-delight .6s ease-in-out infinite; }
+.residents-paused .sanctuary-resident .resident-sprite { animation-play-state:paused; }
+@keyframes resident-step { 0%,100% { transform:scaleX(var(--resident-facing,1)) translateY(0) rotate(-1deg); } 50% { transform:scaleX(var(--resident-facing,1)) translateY(-2px) rotate(1deg); } }
+@keyframes resident-delight { 0%,100% { transform:scaleX(var(--resident-facing,1)) translateY(0); } 50% { transform:scaleX(var(--resident-facing,1)) translateY(-6px); } }
+@media(prefers-reduced-motion:reduce) { .sanctuary-resident .resident-sprite { animation:none!important; } }

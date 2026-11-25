@@ -433,19 +433,25 @@
 
   function petPurchaseLedger() {
     const ledger = load().wallet.petPurchases || {};
-    return { shoots: ledger.shoots || 0, sticks: ledger.sticks || 0, unlocked: [...(ledger.unlocked || [])] };
+    const ids = value => [...new Set((Array.isArray(value) ? value : []).filter(id => typeof id === "string"))];
+    const count = value => Number.isSafeInteger(value) && value >= 0 ? value : 0;
+    return { shoots: count(ledger.shoots), sticks: count(ledger.sticks), unlocked: ids(ledger.unlocked), habitats: ids(ledger.habitats), decorations: ids(ledger.decorations) };
   }
 
   function purchasePetGrant(cost, grant) {
     if (!Number.isSafeInteger(cost) || cost <= 0 || !grant) return false;
     if (![grant.shoots ?? 0, grant.sticks ?? 0].every(value => Number.isSafeInteger(value) && value >= 0)) return false;
-    if (!grant.shoots && !grant.sticks && typeof grant.pet !== "string") return false;
+    if (!grant.shoots && !grant.sticks && typeof grant.pet !== "string" && typeof grant.habitat !== "string" && typeof grant.decoration !== "string") return false;
     const data = load();
-    if (data.wallet.arcadeShards < cost) return false;
     const ledger = petPurchaseLedger();
+    // Unique cosmetic ownership cannot be charged twice, including recovery after a failed pet write.
+    if ((grant.habitat && ledger.habitats.includes(grant.habitat)) || (grant.decoration && ledger.decorations.includes(grant.decoration))) return true;
+    if (data.wallet.arcadeShards < cost) return false;
     ledger.shoots += grant.shoots || 0;
     ledger.sticks += grant.sticks || 0;
     if (grant.pet && !ledger.unlocked.includes(grant.pet)) ledger.unlocked.push(grant.pet);
+    if (grant.habitat && !ledger.habitats.includes(grant.habitat)) ledger.habitats.push(grant.habitat);
+    if (grant.decoration && !ledger.decorations.includes(grant.decoration)) ledger.decorations.push(grant.decoration);
     data.wallet.arcadeShards -= cost;
     data.wallet.petPurchases = ledger;
     // The charge and its recoverable grant share one localStorage write.

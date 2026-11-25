@@ -43,3 +43,11 @@ body:has(.studio){height:auto;overflow:auto}body:has(.studio) main{height:auto;p
 #journal .checkpoint-panel{grid-column:1/-1}#journal .checkpoint-panel label{display:block;margin-top:18px}#journal .checkpoint-panel input{display:block;width:100%;max-width:100%;margin-top:8px}#journal .checkpoint-panel button{min-height:44px;margin:6px 8px 6px 0}#journal .checkpoint-panel button[hidden]{display:none}
 
 #journal .completion-exit{display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;margin:8px 8px 0 0;border:1px solid #9cdec0;border-radius:4px;color:#d8f3b5;text-decoration:none}#journal .completion-exit:focus-visible{outline:2px solid #e7f7b5;outline-offset:3px}
+
+/* Include control padding in the screen's reserved rows. */
+body:not(:has(.studio)){height:100dvh;min-height:0}.stage-shell>.controls,.stage-shell>.touch{box-sizing:border-box;min-height:0}.stage-shell>.controls{height:auto;min-height:36px;padding:8px}.stage-shell>.touch{flex-shrink:0}.viewport{min-height:0}.veil{overflow:auto;justify-content:safe center}.journal-content{min-height:0}#journal{max-height:calc(100% - 16px)}
+@media(max-height:480px){.stage-shell>.controls{display:none}.veil h2{font-size:28px;margin-block:4px}.veil p:not(.eyebrow){margin-block:5px}.veil{padding:14px}.veil small{margin-top:6px}.quest-strip{top:86px;font-size:9px;padding:5px 8px;width:210px}.journal-launch{bottom:6px}.journal-launch button{padding:5px 8px}#journal{inset:5px;padding:10px}#journal h2{font-size:22px;margin-bottom:5px}#journal nav{padding-bottom:6px;gap:4px}#journal nav button{padding:5px 8px}}
+
+.stage-top{height:44px}.stage-top #pause,.masthead #sound{min-height:44px}.veil button{min-height:44px}.journal-launch button{min-width:44px;min-height:44px}
+
+.stage-top{height:44px}.stage-top #pause,.masthead #sound{min-height:44px}.veil button{min-height:44px}.journal-launch button{min-width:44px;min-height:44px}

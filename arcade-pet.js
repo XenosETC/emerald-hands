@@ -1,5 +1,5 @@
 (function () {
-  const SCHEMA_VERSION = 2;
+  const SCHEMA_VERSION = 3;
   const STORAGE_KEY = "emerald-arcade-pets-v1";
   const SPRITES = "assets/etc-pets/meme-pets.png";
   const PEPE_VARIANTS = "assets/etc-pets/pepe-variants.png";
@@ -22,6 +22,29 @@
     "shoot-bundle": { name: "Bamboo Basket", shoots: 5, sticks: 0, cost: 35 },
     stick: { name: "Training Stick", shoots: 0, sticks: 1, cost: 18 },
   };
+  // Starter prices for cosmetic sanctuary items; these never change pet assists.
+  const habitats = [
+    { id: "bamboo", name: "Emerald Den", cost: 0, description: "Your original sanctuary, always free." },
+    { id: "moonlit", name: "Moonlit Marsh", cost: 80, description: "Cool moonlight and a quiet waterside retreat." },
+    { id: "sunset", name: "Sunset Garden", cost: 120, description: "A warm golden-hour home for your whole roster." },
+  ];
+  const decorations = [
+    { id: "lantern", name: "Amber Lantern", cost: 20, description: "A welcoming glow beside the garden path." },
+    { id: "pond", name: "Lily Pond", cost: 35, description: "A little pool for a peaceful afternoon." },
+    { id: "crystals", name: "Crystal Cluster", cost: 50, description: "A sparkling garden centerpiece." },
+  ];
+
+  function sanctuaryState(saved = {}) {
+    const known = (items, catalog) => [...new Set((Array.isArray(items) ? items : []).filter(id => catalog.some(item => item.id === id)))];
+    const ownedHabitats = [...new Set(["bamboo", ...known(saved?.ownedHabitats, habitats)])];
+    const ownedDecorations = known(saved?.ownedDecorations, decorations);
+    return {
+      habitat: ownedHabitats.includes(saved?.habitat) ? saved.habitat : "bamboo",
+      ownedHabitats,
+      decorations: known(saved?.decorations, decorations).filter(id => ownedDecorations.includes(id)),
+      ownedDecorations,
+    };
+  }
 
   function defaults() {
     return {
@@ -30,6 +53,7 @@
       unlocked: ["pepe"],
       x: 76,
       inventory: { bambooShoots: 2, bambooSticks: 1 },
+      sanctuary: sanctuaryState(),
       stats: Object.fromEntries(pets.map((pet) => [pet.id, {
         aura: 0,
         hunger: 78,
@@ -68,6 +92,7 @@
         ...base,
         ...saved,
         schemaVersion: SCHEMA_VERSION,
+        sanctuary: sanctuaryState(saved?.sanctuary),
         inventory: {
           bambooShoots: safeCount(saved?.inventory?.bambooShoots ?? base.inventory.bambooShoots),
           bambooSticks: safeCount(saved?.inventory?.bambooSticks ?? base.inventory.bambooSticks),
@@ -101,9 +126,17 @@
             migrated.selected = id;
           }
         }
+        for (const id of ledger.habitats || []) {
+          if (habitats.some(item => item.id === id) && !migrated.sanctuary.ownedHabitats.includes(id)) migrated.sanctuary.ownedHabitats.push(id);
+        }
+        for (const id of ledger.decorations || []) {
+          if (decorations.some(item => item.id === id) && !migrated.sanctuary.ownedDecorations.includes(id)) migrated.sanctuary.ownedDecorations.push(id);
+        }
       }
       if (!migrated.unlocked.includes(migrated.selected)) migrated.selected = "pepe";
-      if (saved?.schemaVersion !== SCHEMA_VERSION) localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      if (saved?.schemaVersion !== SCHEMA_VERSION) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated)); } catch { /* Keep readable legacy progress when migration storage is blocked. */ }
+      }
       return migrated;
     } catch {
       return defaults();
@@ -251,8 +284,10 @@
   }
 
   function mount() {
-    if (document.body.dataset.noArcadePet === "true" || companion) return;
+    // Focus screens can suppress the roaming decoration without hiding earned assists.
     injectStyles();
+    mountAssistIndicator();
+    if (document.body.dataset.noArcadePet === "true" || companion) return;
     companion = document.createElement("div");
     companion.className = "arcade-pet-companion";
     companion.setAttribute("aria-hidden", "true");
@@ -271,7 +306,6 @@
     dockToggle.setAttribute("aria-controls", picker.id);
     dockToggle.setAttribute("aria-expanded", "false");
     document.body.append(companion, dockToggle, picker);
-    mountAssistIndicator();
     function setPickerOpen(open) {
       picker.classList.toggle("is-open", open);
       dockToggle.setAttribute("aria-expanded", String(open));
@@ -466,6 +500,36 @@
     return { ok: true, message: `${pet.name} joined your arcade roster.` };
   }
 
+  function customizeSanctuary(kind, id) {
+    if (!readableStore()) return { ok: false, message: "Sanctuary changes stopped: pet save is unreadable. Original data kept." };
+    data = load();
+    const habitat = kind === "habitat";
+    const item = (habitat ? habitats : decorations).find(entry => entry.id === id);
+    if (!item) return { ok: false, message: "Unknown sanctuary item." };
+    const owned = habitat ? data.sanctuary.ownedHabitats : data.sanctuary.ownedDecorations;
+    const buying = !owned.includes(id);
+    if (!storageReady()) return { ok: false, message: "Sanctuary changes stopped: browser storage is unavailable. No shards spent." };
+    if (buying) {
+      if (!window.EmeraldArcade?.purchasePetGrant?.(item.cost, habitat ? { habitat: id } : { decoration: id })) {
+        return { ok: false, message: `Purchase stopped. You need ${item.cost} Arcade Shards and available browser storage.` };
+      }
+      data = load();
+    }
+    if (habitat) data.sanctuary.habitat = id;
+    else {
+      const active = data.sanctuary.decorations;
+      data.sanctuary.decorations = active.includes(id) ? active.filter(value => value !== id) : [...active, id];
+    }
+    try { save(); } catch {
+      data = load();
+      return buying
+        ? { ok: true, message: `${item.name} purchased. Ownership is secured in your wallet; reopen the shop to equip it when storage is available.` }
+        : { ok: false, message: "Sanctuary arrangement was not saved. Your items and shards are kept." };
+    }
+    const placed = habitat || data.sanctuary.decorations.includes(id);
+    return { ok: true, message: `${item.name} ${buying ? "purchased and " : ""}${placed ? (habitat ? "selected" : "placed") : "put away"}. Cosmetic only; pet assists are unchanged.` };
+  }
+
   function trainingProgress(xp) {
     const level = strengthForXp(xp);
     if (level >= 25) return { level, maxed:true, remaining:0, sticks:0, fraction:1 };
@@ -571,6 +635,7 @@
       if (action === "care") return updatePet(value);
       if (action === "supply") return purchaseSupply(value);
       if (action === "unlock") return unlock(value);
+      if (action === "habitat" || action === "decoration") return customizeSanctuary(action, value);
       if (action === "select") {
         if (!readableStore()) return { ok: false, message: "Selection stopped: pet save is unreadable." };
         data = load();
@@ -594,6 +659,8 @@
     perform,
     pets,
     supplyPacks,
+    habitats,
+    decorations,
     load,
     select,
     unlock,

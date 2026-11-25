@@ -97,6 +97,7 @@ test("Chess keeps a newer saved match when another tab plays from a stale board"
   await expect(stale.locator('[data-square="d4"]')).toHaveAccessibleName("d4, White pawn");
   await expect(stale.locator("#save-note")).toContainText("Download this tab’s PGN");
   stale.once("dialog", dialog => dialog.accept());
+  await stale.locator("#match-options").click();
   await stale.getByRole("button", { name: "Reset board", exact: true }).click();
   await page.reload();
   await expect(page.locator('[data-square="e4"]')).toHaveAccessibleName("e4, White pawn");
@@ -114,7 +115,9 @@ test.describe("Checkers phone", () => {
 
   test("forces a capture and keeps the reviewed board visible", async ({ page }) => {
     await page.goto(gamePath("checkers"));
+    await page.locator("#match-options").click();
     await page.locator("#mode").selectOption("local");
+    await page.locator("#close-match-options").click();
     const square = (name, description) => page.locator("#board")
       .getByRole("button", { name: new RegExp(`^${name}.*${description}`, "i") });
     await square("c3", "can move").tap();
@@ -128,7 +131,9 @@ test.describe("Checkers phone", () => {
     await expect(square("b6", "Emerald piece")).toBeVisible();
     await expect(square("c5", "empty")).toBeVisible();
 
+    await page.locator("#match-options").tap();
     await page.locator("#move-log button").first().tap();
+    await page.locator("#close-match-options").tap();
     await expect(page.getByRole("group", { name: "Review positions" })).toBeVisible();
     await expect(page.locator("#board")).toBeInViewport({ ratio: 1 });
     await expect(square("d4", "Emerald piece")).toBeVisible();

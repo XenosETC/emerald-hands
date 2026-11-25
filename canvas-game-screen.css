@@ -1,0 +1,101 @@
+/* Opt-in viewport layout for the six fixed-camera arcade games. */
+body.canvas-screen { height:100dvh; min-height:0; margin:0; padding:0; overflow:hidden; }
+.canvas-screen .canvas-screen-shell { width:min(1680px,100%); height:100dvh; min-height:0; padding:5px; margin:auto; }
+.canvas-screen .canvas-screen-game { height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+.canvas-screen .arcade-topbar { flex:0 0 auto; display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:10px; padding:6px 10px; min-height:0; }
+.canvas-screen .arcade-topbar :is(h1,.brand strong,.paradox-topbar strong) { margin:0; font-size:clamp(1rem,2vw,1.5rem); line-height:1.1; }
+.canvas-screen .arcade-topbar :is(.eyebrow,.brand>span,.paradox-topbar>div>span) { display:none; }
+.canvas-screen .arcade-topbar nav { flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:flex-end; gap:5px; }
+.canvas-screen .arcade-topbar :is(a,button) { min-height:44px; min-width:44px; margin:0; padding:7px 10px; font-size:.75rem; }
+.canvas-screen .arcade-topbar #startButton { padding:7px 10px; }
+.canvas-screen .canvas-screen-stage { flex:1 1 0; display:block; position:relative; width:100%; min-height:0; max-height:none; aspect-ratio:auto; margin:0; overflow:hidden; border-radius:7px; }
+.canvas-screen .canvas-screen-stage::before { content:""; position:absolute; inset:-12px; background:var(--canvas-screen-backdrop,linear-gradient(#101d17,#020805)) center/cover; filter:blur(8px) brightness(.35); pointer-events:none; }
+.canvas-screen .canvas-screen-stage > canvas.canvas-screen-art { grid-area:auto; align-self:auto; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); min-height:0; max-height:none; max-width:none; aspect-ratio:auto; touch-action:none; }
+.canvas-screen .canvas-screen-art { z-index:1; }
+.canvas-screen :is(.rush-hud,.galaxy-hud,.hud,.paradox-hud,.rumble-hud,.market-pill,.mission-pill) { z-index:4; }
+.canvas-screen :is(.rush-overlay,.galaxy-overlay,.overlay,.paradox-overlay,.rumble-overlay,.dialogue,.domain-ceremony) { z-index:8; }
+.canvas-screen :is(.rush-overlay,.galaxy-overlay,.overlay,.paradox-overlay,.rumble-overlay) { max-width:100%; max-height:calc(100% - 12px); overflow:auto; overscroll-behavior:contain; }
+.canvas-screen :is(.rush-overlay,.galaxy-overlay,.overlay,.paradox-overlay,.rumble-overlay) { position:absolute; grid-area:auto; min-height:0; margin:0; }
+.canvas-screen :is(.rush-overlay,.galaxy-overlay,.rumble-overlay) { left:50%; top:50%; bottom:auto; right:auto; transform:translate(-50%,-50%); }
+.canvas-screen :is(.rush-overlay,.galaxy-overlay,.rumble-overlay) { width:min(820px,calc(100% - 12px)); }
+.canvas-screen :is(.rush-overlay,.galaxy-overlay,.overlay,.paradox-overlay) { padding:16px; }
+.canvas-screen :is(.overlay,.paradox-overlay) { inset:6px; }
+.canvas-screen :is(.overlay h1,.paradox-overlay h1,.rush-overlay h2,.galaxy-overlay h2) { font-size:clamp(1.5rem,4vw,3rem); line-height:1.05; margin:7px 0; }
+.canvas-screen :is(.overlay,.paradox-overlay) > img { width:84px; height:84px; object-fit:contain; }
+.canvas-screen :is(.overlay,.paradox-overlay,.rush-overlay,.galaxy-overlay) p { font-size:.82rem; line-height:1.4; }
+.canvas-screen :is(.overlay,.paradox-overlay,.rush-overlay,.galaxy-overlay) small { font-size:.68rem; }
+.canvas-screen :is(.rush-hud,.galaxy-hud,.hud,.paradox-hud) { top:6px; left:6px; right:6px; inset-block-end:auto; width:auto; display:flex; flex-wrap:wrap; gap:4px; pointer-events:none; }
+.canvas-screen :is(.rush-hud,.galaxy-hud,.hud,.paradox-hud) { position:absolute; grid-area:auto; margin:0; }
+.canvas-screen :is(.rush-hud,.galaxy-hud,.hud,.paradox-hud) > div { flex:1 1 0; min-width:0; padding:5px; }
+.canvas-screen :is(.rush-hud,.galaxy-hud,.hud,.paradox-hud) :is(span,strong) { font-size:.8rem; overflow-wrap:anywhere; }
+.canvas-screen :is(.rush-hud,.galaxy-hud,.hud,.paradox-hud) small { font-size:.55rem; letter-spacing:.02em; }
+.canvas-screen :is(.rush-mode-bar,.rush-target,.flight-brief,.run-controls,.flight-controls,.paradox-controls) { flex:0 0 auto; margin:0; padding:5px 8px; min-height:0; }
+.canvas-screen .rush-mode-bar { flex-wrap:nowrap; gap:7px; }
+.canvas-screen .rush-modes { gap:5px; }
+.canvas-screen .rush-modes button { min-height:44px; font-size:.75rem; padding:6px 9px; }
+.canvas-screen .rush-target { padding-block:4px; }
+.canvas-screen .rush-target span { font-size:.68rem; }
+.canvas-screen .flight-brief { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.canvas-screen #finishFlight { min-height:44px; }
+.canvas-screen #bossStatus { flex:1; }
+.canvas-screen .run-controls { display:flex; align-items:center; gap:10px; }
+.canvas-screen .run-controls p { margin:0; font-size:.75rem; flex:1; }
+.canvas-screen #jumpButton { min-height:48px; min-width:120px; }
+.canvas-screen .flight-controls { display:flex; flex-wrap:wrap; gap:5px; }
+.canvas-screen .flight-controls button { min-height:44px; flex:1 1 100px; padding:6px; font-size:.7rem; }
+.canvas-screen .flight-controls progress { width:100%; height:5px; }
+.canvas-screen .wingman-upgrade { flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:5px 8px; margin:0; }
+.canvas-screen .wingman-upgrade > img { width:36px; height:36px; }
+.canvas-screen .wingman-upgrade > div { flex:1; min-width:0; }
+.canvas-screen .wingman-upgrade :is(h2,p,.wingman-kicker) { display:none; }
+.canvas-screen #wingmanStatus { font-size:.68rem; }
+.canvas-screen #wingmanButton { width:auto; min-height:44px; font-size:.7rem; padding:6px; flex:0 1 auto; }
+.canvas-screen .paradox-controls { gap:5px; }
+.canvas-screen .paradox-controls button { min-height:48px; font-size:.75rem; }
+.canvas-screen .market-pill,.canvas-screen .mission-pill { position:absolute; grid-area:auto; top:auto; bottom:7px; max-width:calc(100% - 14px); font-size:.65rem; }
+.canvas-screen .dialogue { max-height:calc(100% - 65px); overflow:auto; }
+body.canvas-screen[data-game="paradox"] .dialogue { position:absolute; grid-area:auto; inset:auto 7px 7px; margin:0; }
+.canvas-screen .arcade-topbar [data-arcade-inline-menu] .arcade-runtime-dock { display:flex; }
+.canvas-screen .rumble-hud { inset:6px 6px auto; gap:5px; }
+.canvas-screen .rumble-hud { position:absolute; grid-area:auto; }
+.canvas-screen .rumble-hud :is(.fighter-panel,.round-panel) { padding:5px; min-width:0; }
+.canvas-screen .rumble-hud .fighter-panel small { display:none; }
+.canvas-screen .rumble-hud :is(span,strong) { font-size:.75rem; }
+.canvas-screen .rumble-overlay { padding:12px; }
+.canvas-screen .rumble-overlay h2 { font-size:clamp(1.3rem,3vw,2.4rem); margin:8px 0; }
+.canvas-screen .domain-ceremony { max-height:100%; overflow:auto; }
+#canvasGameInfo { width:min(820px,calc(100% - 20px)); max-height:calc(100dvh - 20px); padding:14px; color:#eef7ee; border:1px solid #bda56c; border-radius:12px; background:#07130d; }
+#canvasGameInfo[open] { display:grid; grid-template-rows:auto minmax(0,1fr); height:min(760px,calc(100dvh - 20px)); overflow:hidden; }
+#canvasGameInfo::backdrop { background:#000b; }
+.canvas-info-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.canvas-info-heading h2 { margin:0; font-size:1.3rem; }
+.canvas-info-heading button { min-height:44px; padding:7px 14px; color:#eef7ee; border:1px solid #bda56c66; border-radius:7px; background:#243327; }
+.canvas-info-content { margin-top:12px; min-height:0; overflow:auto; overscroll-behavior:contain; }
+#canvasGameInfo .arcade-pet-assist { display:block; position:static; max-width:100%; width:auto; margin-bottom:12px; }
+#canvasGameInfo .game-guide { display:block; width:auto; padding:0; margin:12px 0; }
+#canvasGameInfo .game-guide > div { margin-top:14px; }
+#canvasGameInfo :is(.asset-guide,.rush-field-guide) { margin:0; padding:10px; }
+#canvasGameInfo .asset-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.canvas-info-links { display:flex; gap:12px; flex-wrap:wrap; padding-block:10px; }
+.canvas-info-links a { color:#dceaca; }
+@media(max-width:600px) {
+  .canvas-screen .arcade-topbar { flex-wrap:wrap; padding:5px; gap:5px; }
+  .canvas-screen .arcade-topbar > div:first-child { flex:1; }
+  .canvas-screen .arcade-topbar nav { width:100%; justify-content:space-between; }
+  .canvas-screen .arcade-topbar .brand { order:-1; width:100%; text-align:left; }
+  .canvas-screen .paradox-topbar > div { display:block; flex-basis:100%; order:-1; text-align:left; }
+  .canvas-screen .galaxy-hud { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .canvas-screen .paradox-hud { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .canvas-screen .paradox-hud > div:first-child { grid-column:1/-1; display:flex; justify-content:space-between; }
+  .canvas-screen .wingman-upgrade { flex-wrap:wrap; }
+  .canvas-screen #wingmanButton { flex:1; }
+  #canvasGameInfo .asset-grid { grid-template-columns:1fr; }
+}
+@media(max-height:480px) and (min-width:600px) {
+  .canvas-screen .arcade-topbar { padding-block:3px; }
+  .canvas-screen .canvas-screen-stage { min-height:100px; }
+  .canvas-screen .overlay > img { display:none; }
+  .canvas-screen :is(.rush-overlay,.galaxy-overlay,.overlay,.paradox-overlay) { padding:9px; }
+  .canvas-screen .flight-controls { padding-block:3px; }
+  .canvas-screen .wingman-upgrade { padding-block:3px; }
+}

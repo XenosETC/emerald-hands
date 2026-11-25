@@ -1,0 +1,191 @@
+/* Opt-in adapters: primary game stays bounded; supporting information scrolls in panels. */
+html:has(body[data-strategy-screen]),body[data-strategy-screen]{height:100%;min-height:0;overflow:hidden}
+body[data-strategy-screen] main{min-width:0}
+body[data-strategy-screen] :is(button,a,select){touch-action:manipulation}
+body[data-strategy-screen] .strategy-screen-tools{display:flex;gap:6px;padding:5px 8px;position:relative;z-index:3;align-items:center;background:#08170f;border-block:1px solid #b09a5b44}
+body[data-strategy-screen] .strategy-screen-tools button,body[data-strategy-screen] .strategy-details button{min-height:44px;padding:8px 12px;border:1px solid #b09a5b88;border-radius:8px;color:#f5f5dc;background:#1d3023;font:inherit;font-size:.8rem;cursor:pointer}
+body[data-strategy-screen] button:focus-visible{outline:2px solid #e3c775;outline-offset:2px}
+body[data-strategy-screen] .strategy-details{width:min(860px,calc(100% - 20px));height:min(820px,calc(100dvh - 20px));max-height:calc(100dvh - 20px);padding:14px;border:1px solid #b09a5b;border-radius:14px;color:#f1faed;background:#07150f;overflow:hidden}
+body[data-strategy-screen] .strategy-details[open]{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:10px}
+body[data-strategy-screen] .strategy-details::backdrop{background:#000c;backdrop-filter:blur(4px)}
+.strategy-details>header{display:flex;align-items:center;justify-content:space-between;gap:10px}.strategy-details>header h2{margin:0;font-size:1.2rem}.strategy-panel-tabs{display:flex;flex-wrap:wrap;gap:6px}.strategy-panel-tabs button[aria-pressed="true"]{border-color:#e3c775!important;background:#35442b!important}.strategy-panel-content{min-height:0;overflow:auto;overscroll-behavior:contain;padding:3px}.strategy-panel-content>[hidden]{display:none!important}
+.strategy-panel-content .game-guide{display:block;width:auto;padding:12px;margin:0}.strategy-panel-content .game-guide>div{margin-bottom:12px}.strategy-panel-content .game-guide p{font-size:.85rem;line-height:1.5}.strategy-panel-content .arcade-pet-assist{position:static;max-width:none;margin:12px 0}
+body[data-strategy-screen] :is(.topbar,.sim-topbar,.system-header){min-height:0;gap:8px;padding:6px 10px;align-items:center}
+body[data-strategy-screen] :is(.topbar h1,.sim-topbar h1,.system-header h1){font-size:clamp(1.1rem,2.3vw,1.8rem);margin:0;line-height:1.1}
+body[data-strategy-screen] :is(.topbar .eyebrow,.sim-topbar>div>p,.system-intro,.brand-lockup .eyebrow,.special-mark,.brand>span){display:none}
+body[data-strategy-screen] :is(.topbar-actions,.sim-topbar nav,.system-nav){gap:6px;display:flex;flex-wrap:wrap;align-items:center}
+body[data-strategy-screen] :is(.topbar-actions button,.topbar-actions a,.sim-topbar a,.system-nav button,.system-nav a,.back,.sound-toggle){min-height:44px;padding:6px 10px;font-size:.75rem;min-width:0}
+.strategy-canvas-slot{display:flex;align-items:center;justify-content:center;min-height:0;min-width:0;overflow:hidden;background:#000}
+body[data-strategy-screen] .strategy-canvas-slot canvas{display:block;min-height:0!important;min-width:0;max-width:100%;max-height:100%;aspect-ratio:auto!important;flex:none}
+/* Emerald Hands */
+body[data-strategy-screen="hands"] .shell{height:100dvh;max-height:100dvh;width:100%;padding:5px;margin:0}
+body[data-strategy-screen="hands"] .hero{height:100%;min-height:0;padding:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);overflow:hidden}
+body[data-strategy-screen="hands"] .topbar{display:flex;justify-content:space-between;flex-wrap:wrap}
+body[data-strategy-screen="hands"] .hero-grid{min-height:0;margin:0;padding:8px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+body[data-strategy-screen="hands"] .click-panel{display:grid;grid-template-rows:auto minmax(40px,1fr) auto auto;min-height:0;padding:10px}
+body[data-strategy-screen="hands"] .shard-button{margin:0 auto;min-height:0;max-height:100%;width:100%;height:100%;max-width:340px;aspect-ratio:auto;display:flex;align-items:center;justify-content:center}
+body[data-strategy-screen="hands"] .shard-button img{max-width:100%;max-height:100%;object-fit:contain;width:auto;height:auto}
+body[data-strategy-screen="hands"] .primary-stat{margin:3px 0}.primary-stat small{font-size:.7rem}
+body[data-strategy-screen="hands"] .primary-stat span{font-size:clamp(1.5rem,4vw,3rem)}
+body[data-strategy-screen="hands"] .stat-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:5px}
+body[data-strategy-screen="hands"] .stat-grid>div{padding:5px}.stat-grid small{font-size:.65rem!important}
+body[data-strategy-screen="hands"] .stat-grid span{font-size:.9rem}.rank-stat{grid-column:span 2}
+body[data-strategy-screen="hands"] .rank-strip{font-size:.65rem;gap:4px}
+body[data-strategy-screen="hands"] .empire-panel{display:grid;grid-template-rows:minmax(0,1fr) auto auto auto;min-height:0;padding:10px;gap:6px}
+body[data-strategy-screen="hands"] .empire-art{height:auto;min-height:0}
+body[data-strategy-screen="hands"] .event-card{margin:0;padding:8px;font-size:.75rem}.event-card strong{font-size:.8rem!important}
+body[data-strategy-screen="hands"] .progress-shell{margin:0}.prestige-button{min-height:44px}
+.strategy-details .shop{display:grid;grid-template-columns:1fr;gap:10px}.strategy-details .upgrade-card{min-height:0}.strategy-details .hands-shop-heading{padding:8px 0 12px}.strategy-details .hands-journey{grid-template-columns:1fr;padding:12px;gap:14px}
+/* Satoshi System */
+body[data-strategy-screen="satoshi"] .system-shell{height:100dvh;max-height:100dvh;width:100%;max-width:none;margin:0;padding:5px;display:grid;grid-template-rows:auto auto auto minmax(0,1fr);gap:0;overflow:hidden}
+body[data-strategy-screen="satoshi"] .system-header{display:flex;flex-wrap:wrap;justify-content:space-between}
+body[data-strategy-screen="satoshi"] .brand-lockup{gap:0}
+body[data-strategy-screen="satoshi"] .save-status{padding:3px 10px;font-size:.7rem;line-height:1.25}
+body[data-strategy-screen="satoshi"] .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:0;margin:6px 0 0;gap:8px}
+body[data-strategy-screen="satoshi"] .click-card{padding:10px;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;min-height:0;overflow:hidden}
+body[data-strategy-screen="satoshi"] .click-stage{min-height:0;display:grid;place-items:center}
+body[data-strategy-screen="satoshi"] .genesis-star{width:min(180px,100%);max-height:100%;aspect-ratio:1}
+body[data-strategy-screen="satoshi"] .star-corona{width:180px;height:180px;max-width:90%;max-height:90%}
+body[data-strategy-screen="satoshi"] .primary-balance{margin:3px 0}.primary-balance>span{font-size:clamp(1.5rem,4vw,3rem)!important}
+body[data-strategy-screen="satoshi"] .quick-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+body[data-strategy-screen="satoshi"] .quick-stats>div{padding:5px}.quick-stats strong{font-size:.9rem!important}.quick-stats small{font-size:.6rem!important}
+body[data-strategy-screen="satoshi"] .cosmos-card{display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:10px;min-height:0;overflow:hidden}
+body[data-strategy-screen="satoshi"] .cosmos-copy{display:block;margin:0}.cosmos-copy h2{font-size:1rem!important}.cosmos-copy .eyebrow{display:none}
+body[data-strategy-screen="satoshi"] .monetary-system{min-height:0;height:auto;margin:4px 0}.cosmos-copy .epoch-badge{font-size:.65rem}
+body[data-strategy-screen="satoshi"] .event-card{padding:6px;margin:0}.event-card p{font-size:.72rem;margin:4px 0!important}
+.strategy-details .build-panel{padding:10px;grid-column:auto}.strategy-details .build-grid{grid-template-columns:1fr}.strategy-details .system-notebook{margin:10px 0}.strategy-details .intelligence-grid{grid-template-columns:1fr}.strategy-details .goal-row{grid-template-columns:1fr}.strategy-details .flight-guide{display:grid}
+/* Rocket expedition: primary flight + launch remain together, upgrades in Hangar. */
+body[data-strategy-screen="rocket"] .sim-shell{height:100dvh;width:100%;margin:0;padding:5px}
+body[data-strategy-screen="rocket"] .sim-game{height:100%;display:grid;grid-template-rows:auto auto minmax(0,1fr);min-height:0}
+body[data-strategy-screen="rocket"] .sim-topbar{flex-direction:row;flex-wrap:wrap;justify-content:space-between}
+body[data-strategy-screen="rocket"] .sim-layout{display:grid;grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;min-height:0}
+body[data-strategy-screen="rocket"] .flight-stage{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;min-height:0;align-self:stretch}
+body[data-strategy-screen="rocket"] .strategy-canvas-slot{grid-row:2}
+body[data-strategy-screen="rocket"] .flight-readout{position:static;inset:auto;grid-row:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:5px}
+body[data-strategy-screen="rocket"] .flight-readout>div{padding:5px}.flight-readout strong{font-size:1rem!important}
+body[data-strategy-screen="rocket"] .systems{position:static;grid-row:3;inset:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:5px}
+body[data-strategy-screen="rocket"] .systems span{padding:5px}.systems small,.systems strong{font-size:.65rem!important}
+body[data-strategy-screen="rocket"] .mission-card{position:static;grid-row:4;width:auto;min-width:0;margin:5px;padding:8px}
+body[data-strategy-screen="rocket"] .mission-card h2{font-size:1.1rem;margin-bottom:4px}.mission-card>p:last-of-type{font-size:.75rem!important;line-height:1.3!important}.mission-card .eyebrow{font-size:.6rem}
+body[data-strategy-screen="rocket"] .mission-reward{margin-top:5px}.mission-reward div{padding:4px}.mission-reward small{font-size:.6rem}
+body[data-strategy-screen="rocket"] .hangar{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:8px;padding:6px;border-left:0;border-top:1px solid #6ed49744;min-height:0}
+body[data-strategy-screen="rocket"] .hangar-wallet{padding:6px;gap:5px}.hangar-wallet strong{font-size:1rem!important}.hangar-wallet small{font-size:.6rem}
+body[data-strategy-screen="rocket"] .launch-button{min-height:52px;margin:0;font-size:.85rem}.launch-button small{font-size:.58rem!important}
+.strategy-details .upgrade-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.strategy-details .upgrade-card button{min-height:44px}.strategy-details .sector-goal{margin-top:10px}
+/* Wars keeps training and stance controls visible, without overlapping the canvas. */
+body[data-strategy-screen="wars"] .game-shell{height:100dvh;min-height:0;padding:5px;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:5px}
+body[data-strategy-screen="wars"] .topbar{display:flex;justify-content:space-between;flex-wrap:wrap}.brand strong{font-size:1rem}
+body[data-strategy-screen="wars"] .stage-wrap{display:grid;grid-template-columns:minmax(0,1fr) 260px;min-height:0}
+.strategy-war-field{position:relative;min-height:0;min-width:0;display:grid;grid-template-rows:auto minmax(0,1fr)}
+body[data-strategy-screen="wars"] .hud{position:static;inset:auto;margin:5px;gap:4px;grid-template-columns:repeat(5,minmax(0,1fr))}
+body[data-strategy-screen="wars"] .hud div{padding:5px}.hud small{font-size:.55rem!important}.hud span{font-size:1rem!important}
+body[data-strategy-screen="wars"] .command-panel{position:static;display:grid;grid-template-columns:1fr;gap:5px;padding:8px;min-height:0;overflow:auto}
+body[data-strategy-screen="wars"] .command-panel__header{padding:0;margin:0}.command-panel__header span{display:none}.command-panel__header strong{font-size:.9rem}
+body[data-strategy-screen="wars"] .unit-card{min-height:48px;gap:6px;padding:5px;margin:0}.unit-card img{width:38px;height:38px}.unit-card strong{font-size:.75rem}.unit-card small{font-size:.61rem}
+body[data-strategy-screen="wars"] .stance-row{margin:0;gap:4px}.stance-button{min-height:44px;font-size:.7rem}
+body[data-strategy-screen="wars"] .overlay{position:absolute;inset:0;padding:12px;gap:6px;overflow:auto;align-content:center}
+body[data-strategy-screen="wars"] .overlay img{width:70px}.overlay h1{font-size:1.8rem}.overlay p{font-size:.8rem}.overlay small{font-size:.65rem}
+body[data-strategy-screen="wars"] .siege-health{padding:5px 8px;gap:5px;font-size:.65rem}.siege-health progress{height:6px}.siege-health p{font-size:.65rem}
+/* Tower Defense: an internal command bay and a persistent wave action. */
+body[data-strategy-screen="tower"] .game-shell{height:100dvh;min-height:0;padding:5px;grid-template-rows:auto auto minmax(0,1fr);gap:5px}
+body[data-strategy-screen="tower"] .topbar{display:flex;flex-wrap:wrap;justify-content:space-between}.topbar .brand{min-width:0}.topbar .brand strong{font-size:1rem}
+body[data-strategy-screen="tower"] .stage-wrap{min-height:0;height:100%;grid-template-columns:minmax(0,1fr) 320px;grid-template-rows:1fr}
+body[data-strategy-screen="tower"] .playfield{min-height:0;position:relative;grid-template-rows:auto minmax(0,1fr) auto}
+body[data-strategy-screen="tower"] .strategy-canvas-slot{grid-area:2/1}
+body[data-strategy-screen="tower"] .command-bay{grid-template-rows:auto auto minmax(0,1fr) auto auto;padding:8px;gap:5px;min-height:0}
+body[data-strategy-screen="tower"] .command-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.command-tabs button{min-width:0}
+body[data-strategy-screen="tower"] .command-view{grid-row:3;min-height:0;overflow:auto}
+body[data-strategy-screen="tower"] .command-footer{grid-row:4;max-height:150px;overflow:auto;min-height:0;padding-top:5px}
+.strategy-wave-action{grid-row:5;display:grid;gap:3px}.strategy-wave-action small{font-size:.65rem;color:#dec98c}.strategy-wave-action .wave-button{width:100%;min-height:44px;margin:0}
+body[data-strategy-screen="tower"] .status-pill{display:none}
+@media(max-width:600px){
+ body[data-strategy-screen] :is(.topbar,.sim-topbar,.system-header){padding:4px 7px;gap:5px}
+ body[data-strategy-screen] .strategy-screen-tools{padding:4px 6px;gap:4px}
+ body[data-strategy-screen] .strategy-screen-tools button{padding:6px 10px;font-size:.73rem}
+ body[data-strategy-screen="hands"] .hero-grid{grid-template-columns:1fr;grid-template-rows:minmax(0,1.2fr) minmax(0,.8fr);gap:5px;padding:5px}
+ body[data-strategy-screen="hands"] .click-panel{padding:6px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;gap:4px}
+ body[data-strategy-screen="hands"] .rank-strip{grid-column:1/-1}.shard-button{grid-column:1;grid-row:2/4}.primary-stat{grid-column:2;grid-row:2;align-self:center}.stat-grid{grid-column:2;grid-row:3}
+ body[data-strategy-screen="hands"] .stat-grid{grid-template-columns:1fr 1fr;gap:3px}.stat-grid span{font-size:.7rem!important}.stat-grid small{font-size:.56rem!important}.rank-stat{grid-column:1/-1}
+ body[data-strategy-screen="hands"] .empire-panel{padding:6px}.prestige-button{font-size:.72rem;padding:7px}
+ body[data-strategy-screen="satoshi"] .hero-grid{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
+ body[data-strategy-screen="satoshi"] .click-card{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto minmax(0,1fr) auto;padding:7px;gap:4px}
+ body[data-strategy-screen="satoshi"] .rank-strip{grid-column:1/-1;font-size:.6rem}.click-stage{grid-column:1;grid-row:2/4}.primary-balance{grid-column:2;grid-row:2;align-self:center}.quick-stats{grid-column:2;grid-row:3}
+ body[data-strategy-screen="satoshi"] .quick-stats{grid-template-columns:1fr 1fr;gap:3px}.quick-stats strong{font-size:.7rem!important}.quick-stats small{font-size:.5rem!important}.quick-stats>div{padding:3px!important}
+ body[data-strategy-screen="satoshi"] .genesis-star{width:100%;max-width:150px}.genesis-star .bitcoin-mark{font-size:3rem}.genesis-star strong{font-size:.65rem}.genesis-star small{font-size:.55rem}
+ body[data-strategy-screen="satoshi"] .cosmos-copy{display:none}.cosmos-card{padding:6px!important}.system-header .system-nav{font-size:.7rem}.system-nav button{padding:5px!important}
+ body[data-strategy-screen="rocket"] .flight-readout{grid-template-columns:repeat(2,minmax(0,1fr))}.flight-readout small{font-size:.55rem!important}.flight-readout strong{font-size:.8rem!important}
+ body[data-strategy-screen="rocket"] .hangar{grid-template-columns:1fr}.hangar-wallet{padding:3px!important}.hangar-wallet strong{font-size:.85rem!important}.hangar-wallet span{display:flex;align-items:center;justify-content:space-between;gap:5px}
+ body[data-strategy-screen="rocket"] .mission-card h2{font-size:1rem}.mission-card p{font-size:.7rem!important}.mission-card .eyebrow{display:none}
+ .strategy-details .upgrade-list{grid-template-columns:1fr}
+ body[data-strategy-screen="wars"] .stage-wrap{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
+ body[data-strategy-screen="wars"] .command-panel{grid-template-columns:1fr 1fr;gap:4px;padding:5px;overflow:visible}
+ body[data-strategy-screen="wars"] .command-panel__header{display:none}.stance-row{grid-column:1/-1}.unit-card img{width:30px;height:30px}.unit-card small{font-size:.56rem}.unit-card{min-height:44px!important}
+ body[data-strategy-screen="wars"] .overlay{align-content:start;padding:8px}.overlay img{display:none}.overlay p{font-size:.73rem}.overlay h1{font-size:1.25rem}
+ body[data-strategy-screen="tower"] .stage-wrap{grid-template-columns:1fr;grid-template-rows:minmax(140px,1fr) minmax(220px,40%)}
+ body[data-strategy-screen="tower"] .command-bay{padding:5px;gap:4px}.tower-dock__header{display:none!important}
+ body[data-strategy-screen="tower"] .command-footer{max-height:65px}.command-footer #checkpointHint,.command-footer #commandHint{display:none}
+ body[data-strategy-screen="tower"] .pad-controls>div{grid-template-columns:repeat(9,minmax(0,1fr))}.pad-controls button{min-height:34px!important;padding:2px!important;font-size:.55rem!important}.pad-caption{display:none!important}
+ body[data-strategy-screen="tower"] .command-tabs button{min-height:40px;font-size:.7rem}
+}
+@media(max-height:480px) and (min-width:601px){
+ body[data-strategy-screen] .strategy-screen-tools{padding-block:2px}
+ body[data-strategy-screen="hands"] .hero-grid{padding:4px;gap:5px}.click-panel,.empire-panel{padding:5px!important}.rank-strip{font-size:.6rem!important}.stat-grid>div{padding:3px!important}.stat-grid span{font-size:.75rem!important}.primary-stat span{font-size:1.7rem!important}
+ body[data-strategy-screen="satoshi"] .click-card,.cosmos-card{padding:5px}.click-card .rank-strip{font-size:.6rem}.primary-balance{margin:0!important}.genesis-star{width:110px!important}.genesis-star .bitcoin-mark{font-size:2.4rem}.genesis-star strong{font-size:.6rem}.genesis-star small{display:none}.quick-stats>div{padding:3px!important}
+ body[data-strategy-screen="rocket"] .flight-stage{grid-template-columns:minmax(0,1fr) minmax(220px,.55fr);grid-template-rows:auto minmax(0,1fr) auto}
+ body[data-strategy-screen="rocket"] .flight-readout{grid-area:1/1/2/3;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+ body[data-strategy-screen="rocket"] .strategy-canvas-slot{grid-area:2/1}.mission-card{grid-area:2/2!important;align-self:center}.systems{grid-area:3/1/4/3!important}.hangar{grid-template-columns:1fr 1fr!important}.launch-button{min-height:44px!important}.mission-reward strong{font-size:.8rem}.mission-card h2{font-size:1rem!important}
+ body[data-strategy-screen="wars"] .stage-wrap{grid-template-columns:minmax(0,1fr) 240px}.command-panel{gap:4px!important;padding:5px!important}.unit-card{min-height:40px!important}.unit-card img{width:27px;height:27px}.command-panel__header{display:none}.siege-health{font-size:.6rem!important}.siege-health #baseReport{display:none}
+ body[data-strategy-screen="tower"] .stage-wrap{grid-template-columns:minmax(0,1fr) 260px}.command-bay{padding:5px!important;gap:4px!important}.tower-dock__header{display:none!important}.command-footer{max-height:60px!important}.command-footer #checkpointHint,.command-footer #commandHint{display:none}.pad-controls button{min-height:30px!important}
+}
+/* Explicit areas prevent legacy grid placements from creating implicit off-screen rows. */
+body[data-strategy-screen] :is(.topbar,.system-header){flex-direction:row}
+body[data-strategy-screen="satoshi"] .system-nav{width:auto}
+body[data-strategy-screen="satoshi"] .monetary-system{grid-row:2;align-self:stretch}
+body[data-strategy-screen="satoshi"] .cosmos-card>.event-card{grid-row:3;min-height:0;display:block}
+body[data-strategy-screen="satoshi"] .cosmos-card>.event-card p{line-height:1.3;margin:4px 0 0!important}
+body[data-strategy-screen="wars"] .stage-wrap{align-items:stretch}
+body[data-strategy-screen="wars"] .strategy-war-field{height:100%;grid-area:1/1;overflow:hidden}
+body[data-strategy-screen="wars"] .command-panel{grid-area:1/2;height:100%;max-height:100%;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}
+body[data-strategy-screen="wars"] .command-panel__header{grid-row:1}
+.strategy-units{grid-row:2;display:grid;grid-template-columns:1fr;align-content:start;gap:5px;overflow:auto;min-height:0;overscroll-behavior:contain}
+body[data-strategy-screen="wars"] .strategy-units>.unit-card{grid-template-columns:38px minmax(0,1fr);min-height:48px;height:auto}
+body[data-strategy-screen="wars"] .stance-row{grid-row:3;grid-column:1/-1}
+body[data-strategy-screen="wars"] .overlay{min-height:0;grid-area:auto}
+body[data-strategy-screen="tower"] .overlay{min-height:0}
+.strategy-management-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+body[data-strategy-screen="rocket"] .flight-stage{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto auto}
+body[data-strategy-screen="rocket"] .flight-readout{grid-area:1/1}
+body[data-strategy-screen="rocket"] .strategy-canvas-slot{grid-area:2/1}
+body[data-strategy-screen="rocket"] .systems{grid-area:3/1;width:auto;padding:3px;margin:4px;gap:6px}
+body[data-strategy-screen="rocket"] .systems span{display:grid;grid-template-columns:auto minmax(0,1fr) auto;margin:0;padding:3px;gap:4px}
+.strategy-mission-summary{grid-area:4/1;margin:4px 7px!important;padding:5px;color:#e0e8c6;font-size:.75rem;line-height:1.3}
+.strategy-details .mission-card{position:static!important;width:auto!important;margin:0!important;padding:12px!important}
+.strategy-details .mission-card h2{font-size:1.4rem!important}
+@media(max-width:600px){
+ body[data-strategy-screen="wars"] .strategy-war-field{grid-area:1/1}
+ body[data-strategy-screen="wars"] .command-panel{grid-area:2/1;height:auto;grid-template-rows:auto auto auto;overflow:visible}
+ body[data-strategy-screen="wars"] .strategy-units{grid-column:1/-1;grid-template-columns:1fr 1fr;overflow:visible}
+ body[data-strategy-screen="wars"] .strategy-units>.unit-card{min-height:44px;grid-template-columns:30px minmax(0,1fr)}
+ body[data-strategy-screen="satoshi"] .cosmos-card{grid-template-rows:0 minmax(0,1fr) auto}
+ body[data-strategy-screen="rocket"] .hangar-wallet span{display:grid;gap:1px}
+ body[data-strategy-screen="rocket"] .systems strong{font-size:.57rem!important}
+}
+@media(max-width:400px){body[data-strategy-screen] :is(.sim-topbar h1,.topbar h1,.system-header h1){font-size:1rem}}
+@media(max-height:480px) and (min-width:601px){
+ body[data-strategy-screen="wars"] .strategy-units>.unit-card{min-height:44px;grid-template-columns:30px minmax(0,1fr);padding:3px}
+ body[data-strategy-screen="wars"] .strategy-units img{width:28px;height:28px}.strategy-units span{gap:1px}
+ body[data-strategy-screen="rocket"] .flight-stage{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto auto}
+ body[data-strategy-screen="rocket"] .flight-readout{grid-area:1/1}.systems{grid-area:3/1!important}
+}
+@media(max-height:480px) and (min-width:601px){
+ body[data-strategy-screen] .strategy-screen-tools{border:0;background:none;padding:0}
+ body[data-strategy-screen="hands"] .hero,body[data-strategy-screen="rocket"] .sim-game{grid-template-rows:auto minmax(0,1fr)}
+ body[data-strategy-screen="satoshi"] .system-shell{grid-template-rows:auto auto minmax(0,1fr)}
+ body[data-strategy-screen="wars"] .game-shell{grid-template-rows:auto minmax(0,1fr) auto}
+ body[data-strategy-screen="tower"] .game-shell{grid-template-rows:auto minmax(0,1fr)}
+ body[data-strategy-screen="rocket"] .flight-stage{grid-template-columns:minmax(0,1fr) 220px;grid-template-rows:auto auto minmax(0,1fr)}
+ body[data-strategy-screen="rocket"] .flight-readout{grid-area:1/2;grid-template-columns:1fr 1fr}
+ body[data-strategy-screen="rocket"] .strategy-canvas-slot{grid-area:1/1/4/2}
+ body[data-strategy-screen="rocket"] .systems{grid-area:2/2!important;grid-template-columns:1fr}
+ body[data-strategy-screen="rocket"] .strategy-mission-summary{grid-area:3/2;font-size:.68rem;align-self:end}
+}

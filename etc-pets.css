@@ -1,57 +1,90 @@
-:root {
-  color-scheme: dark;
-  --text:#f0fff8; --muted:#8ca99c; --green:#35f4a2; --green-soft:#9affd6; --gold:#e2bd6a; --line:rgba(112,255,191,.24);
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-*{box-sizing:border-box} html,body{height:100%}body{min-height:100vh;min-height:100dvh;margin:0;overflow:hidden;color:var(--text);background:radial-gradient(circle at 40% 0,rgba(53,244,162,.18),transparent 36rem),#010403} button,a{font:inherit}
-.pets-shell{width:min(1800px,calc(100% - 18px));height:100vh;height:100dvh;margin:auto;padding:9px 0}.pets-game{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:#020806;box-shadow:0 28px 100px rgba(0,0,0,.7)}
-.pets-topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:11px 16px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(7,29,20,.96),rgba(1,8,5,.9))}
-.eyebrow{margin:0 0 4px;color:var(--green-soft);font-size:.65rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}h1,h2,p{margin-top:0}h1{margin-bottom:3px;font-size:clamp(1.85rem,3vw,3.35rem);line-height:.92;letter-spacing:-.045em}.pets-topbar p:last-child{margin-bottom:0;color:#bad8ca;font-size:clamp(.72rem,1vw,.9rem)}.pets-topbar nav{display:flex;flex:0 0 auto;align-items:center;gap:7px}.pets-topbar [data-arcade-inline-menu]:empty{display:none}.pets-topbar a{display:grid;min-height:40px;place-items:center;padding:0 12px;border:1px solid rgba(154,255,214,.32);border-radius:9px;color:var(--text);background:rgba(3,20,13,.78);text-decoration:none;font-size:.82rem}
-.pets-layout{display:grid;grid-template-columns:minmax(0,1fr) clamp(360px,28vw,420px);min-height:0}.sanctuary{position:relative;min-width:0;min-height:0;overflow:hidden;background:linear-gradient(rgba(0,8,5,.1),rgba(0,5,3,.42)),url("assets/etc-pets/pet-sanctuary.png") center/cover}
-.pet-stage{position:absolute;left:50%;bottom:clamp(90px,14vh,128px);width:clamp(230px,min(34vw,48vh),360px);aspect-ratio:1;transform:translateX(-50%)}.hero-pet{position:absolute;inset:0;background-image:url("assets/etc-pets/meme-pets.png");background-size:400% 200%;background-repeat:no-repeat;filter:drop-shadow(0 22px 18px rgba(0,0,0,.7));animation:pet-float 1.7s ease-in-out infinite alternate}.pet-shadow{position:absolute;left:20%;right:20%;bottom:8px;height:32px;border-radius:50%;background:rgba(0,0,0,.55);filter:blur(12px)}
-.pet-identity{position:absolute;left:14px;bottom:12px;width:min(340px,calc(100% - 28px));padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(0,10,6,.77);backdrop-filter:blur(12px)}.pet-identity h2{margin-bottom:3px;font-size:clamp(1.35rem,2.2vw,1.8rem);line-height:1}.pet-identity p:last-child{margin-bottom:0;color:#c7e2d5;font-size:.76rem}
-.pet-meters{position:absolute;right:18px;top:18px;width:280px;padding:11px;border:1px solid var(--line);border-radius:11px;background:rgba(0,10,6,.72);backdrop-filter:blur(12px)}.pet-meters span{display:grid;grid-template-columns:42px 1fr 40px;align-items:center;gap:8px;margin:7px 0}.pet-meters small{color:var(--muted);font-size:.66rem}.pet-meters i{height:8px;overflow:hidden;border-radius:99px;background:rgba(255,255,255,.09)}.pet-meters b{display:block;width:100%;height:100%;transform-origin:left;background:linear-gradient(90deg,#e2bd6a,#35f4a2)}.pet-meters strong{font-size:.7rem;text-align:right}
-.pet-console{display:flex;min-height:0;flex-direction:column;gap:10px;padding:12px;overflow:auto;overscroll-behavior:contain;border-left:1px solid var(--line);background:linear-gradient(180deg,#07180f,#020705);scrollbar-color:rgba(80,220,157,.45) transparent}.pet-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.pet-actions button{min-height:62px;padding:6px 4px;border:1px solid var(--line);border-radius:9px;color:var(--text);background:linear-gradient(145deg,rgba(22,78,51,.72),rgba(2,16,10,.9));cursor:pointer}.pet-actions strong,.pet-actions small{display:block}.pet-actions small{margin-top:3px;color:var(--muted);font-size:.57rem}.pet-roster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.pet-card{min-width:0;padding:5px;border:0;border-bottom:2px solid transparent;border-radius:0;color:var(--text);background:transparent;cursor:pointer;text-align:left}.pet-card.is-selected{border-bottom-color:var(--gold)}.pet-card i{display:block;width:100%;aspect-ratio:1;background-image:url("assets/etc-pets/meme-pets.png");background-size:400% 200%;background-repeat:no-repeat}.pet-card strong,.pet-card small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pet-card strong{font-size:.68rem}.pet-card small{color:var(--muted);font-size:.56rem}.companion-note{margin-top:auto;padding:10px;border:1px solid rgba(226,189,106,.3);border-radius:10px;background:rgba(31,23,7,.5)}.companion-note p{margin:4px 0 0;color:#cfc7ad;font-size:.7rem;line-height:1.32}
-.pet-wallet{padding:12px;border:1px solid rgba(226,189,106,.34);border-radius:11px;background:linear-gradient(145deg,rgba(42,31,8,.72),rgba(3,16,10,.86))}.pet-wallet>div{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.pet-wallet span{padding:8px;border:1px solid rgba(226,189,106,.2);border-radius:8px;background:rgba(0,8,5,.42)}.pet-wallet small,.pet-wallet strong{display:block}.pet-wallet small{color:#cfc7ad;font-size:.57rem;text-transform:uppercase}.pet-wallet strong{margin-top:3px;color:#ffe6a7;font-size:1rem}.pet-wallet>p:last-child{margin:9px 0 0;color:#cfe9dc;font-size:.72rem;line-height:1.35}.supply-shop{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.supply-shop button{min-height:58px;border:1px solid rgba(226,189,106,.3);border-radius:9px;color:var(--text);background:rgba(51,38,9,.62);cursor:pointer}.supply-shop strong,.supply-shop small{display:block}.supply-shop small{margin-top:3px;color:#e2bd6a;font-size:.65rem}.pet-card.is-locked{filter:saturate(.35);opacity:.78}.pet-card .pet-cost{margin-top:5px;color:#ffe09a;font-weight:900}.pet-card:disabled{cursor:not-allowed;opacity:.5}
-@keyframes pet-float{to{transform:translateY(-8px) rotate(1deg)}}
-@media(max-width:980px){
-  body{height:auto;overflow:auto}.pets-shell{height:auto;min-height:100dvh}.pets-game{height:auto;min-height:calc(100dvh - 18px)}.pets-layout{grid-template-columns:1fr;grid-template-rows:clamp(470px,66dvh,650px) auto}.sanctuary{min-height:470px}.pet-console{overflow:visible;border-top:1px solid var(--line);border-left:0}.pet-stage{bottom:100px;width:clamp(240px,min(48vw,43dvh),340px)}
-}
-@media(max-width:680px){
-  .pets-shell{width:100%;padding:0}.pets-game{min-height:100dvh;border-right:0;border-left:0;border-radius:0}.pets-topbar{align-items:stretch;flex-direction:column;gap:8px;padding:10px 12px}.pets-topbar>div>p:last-child{display:none}.pets-topbar nav{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto}.pets-topbar a{min-height:36px;padding:0 8px;font-size:.72rem}.pets-layout{grid-template-rows:clamp(440px,69dvh,570px) auto}.sanctuary{min-height:440px}.pet-stage{bottom:92px;width:clamp(220px,62vw,280px)}.pet-meters{top:10px;right:10px;left:10px;width:auto;display:grid;grid-template-columns:1fr 1fr;gap:0 10px;padding:7px}.pet-meters span{grid-template-columns:34px 1fr 34px;gap:5px;margin:4px 0}.pet-identity{right:10px;bottom:9px;left:10px;width:auto;padding:8px 10px}.pet-identity p:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pet-console{padding:10px}.pet-roster{grid-template-columns:repeat(4,minmax(0,1fr))}.pet-wallet>div,.pet-actions,.supply-shop{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-@media(max-height:720px) and (min-width:981px){
-  .pets-topbar>div>p:last-child{display:none}.pets-topbar{padding-block:8px}.pet-stage{bottom:86px;width:min(31vw,43dvh)}.pet-meters{top:10px}.pet-identity{bottom:9px}.pet-console{gap:7px;padding:9px}.pet-actions button{min-height:54px}.companion-note{display:none}
-}
+:root{color-scheme:dark;--text:#fff9eb;--muted:#c2c4b5;--gold:#e2bd6a;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body[data-game="pets"]{height:100%;min-height:0;margin:0;overflow:hidden;background:#090e0c;color:var(--text)}
+[data-game="pets"] .pets-shell{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;width:min(1680px,100%);height:100dvh;margin:auto;padding:8px max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));gap:0}
+[data-game="pets"] h1,[data-game="pets"] h2,[data-game="pets"] h3,[data-game="pets"] p{margin-top:0}
+[data-game="pets"] button,[data-game="pets"] a{font:inherit;touch-action:manipulation}
+[data-game="pets"] button{cursor:pointer;color:var(--text);border:1px solid #93816266;background:#22271f;border-radius:9px;min-height:44px;padding:8px 12px}
+[data-game="pets"] button:disabled{opacity:.48;cursor:not-allowed}
+[data-game="pets"] button:focus-visible,[data-game="pets"] a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+[data-game="pets"] button:hover:enabled{background-color:#34382a}
+[data-game="pets"] .eyebrow{display:block;margin:0 0 4px;font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;color:var(--gold)}
+[data-game="pets"] .pets-topbar{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#101a14;border:1px solid #b6985140;border-bottom:0;border-radius:14px 14px 0 0;gap:12px}
+[data-game="pets"] .pets-topbar h1{font-size:clamp(1.2rem,2.3vw,1.8rem);margin:0;line-height:1.1;letter-spacing:-.03em}
+[data-game="pets"] .pets-topbar nav{display:flex;align-items:center;gap:8px}
+[data-game="pets"] .pets-topbar a{display:grid;place-items:center;min-height:44px;padding:6px 14px;color:var(--text);text-decoration:none;background:#22271f;border:1px solid #93816266;border-radius:9px}
+[data-game="pets"] .sanctuary-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:7px 12px;background:#131c16;border:1px solid #b6985140;border-top:0}
+[data-game="pets"] .pet-wallet{display:flex;flex-wrap:wrap;min-width:0;max-width:100%;gap:18px;font-size:.75rem;color:var(--muted)}
+[data-game="pets"] .pet-wallet strong{color:#ffe1a0;font-size:1rem}
+[data-game="pets"] .pet-wallet .inventory-resource{display:flex;align-items:center;gap:5px}
+.inventory-resource img{display:block;width:32px;height:32px;object-fit:contain}
+[data-game="pets"] .inventory-resource>span{display:grid;gap:1px}.inventory-resource small{font-size:.66rem;color:var(--muted)}
+[data-game="pets"] .sanctuary-tools{display:flex;gap:6px;margin-left:auto}
+[data-game="pets"] .sanctuary-tools button{padding:6px 14px}
+[data-game="pets"] .sanctuary{isolation:isolate;position:relative;min-height:0;overflow:hidden;background:#244d37 url('assets/etc-pets/pet-sanctuary.png') center 58%/cover;border-inline:1px solid #b6985140}
+[data-game="pets"] .habitat-light{position:absolute;inset:0;z-index:-1;background:linear-gradient(#08201433,transparent 40%,#11231633);pointer-events:none;transition:background .6s}
+[data-game="pets"] .sanctuary[data-habitat="moonlit"]{background-image:url('assets/etc-pets/habitat-moonlit-v1.webp');background-position:center top}
+[data-game="pets"] .sanctuary[data-habitat="moonlit"] .habitat-light{background:linear-gradient(#0d153222,transparent 65%)}
+[data-game="pets"] .sanctuary[data-habitat="sunset"]{background-image:url('assets/etc-pets/habitat-sunset-v1.webp');background-position:center top}
+[data-game="pets"] .sanctuary[data-habitat="sunset"] .habitat-light{background:linear-gradient(#3d201b11,transparent 65%)}
+[data-game="pets"] .habitat-label{position:absolute;left:20px;top:16px;pointer-events:none;text-shadow:0 2px 8px #000;z-index:2}
+[data-game="pets"] .habitat-label h2{font-size:clamp(1.3rem,2.4vw,2.2rem);margin-bottom:4px;letter-spacing:-.03em}
+[data-game="pets"] .habitat-label p{font-size:.75rem;color:#fff5d9;margin:0}
+#sanctuaryResidents{position:absolute;inset:18% 3% 6%;z-index:3}
+[data-game="pets"] .scene-hint{position:absolute;bottom:7px;left:0;right:0;margin:0;text-align:center;color:#fff5dc;font-size:.68rem;text-shadow:0 2px 4px #000;pointer-events:none}
+/* Props share the residents' ground plane, so feet determine front/back order. */
+#sanctuaryDecorations{display:contents;pointer-events:none}
+.sanctuary-decoration{position:absolute;pointer-events:none;transform:translate(-50%,-100%);filter:var(--pet-environment-light,brightness(.98) saturate(.95)) drop-shadow(0 3px 2px #13201333)}
+.sanctuary-decoration img{display:block;width:100%;height:auto;transform:translateY(var(--decor-foot-pad,0%))}
+.decor-lantern{left:16%;top:80%;width:clamp(56px,8vw,110px);z-index:80;--decor-foot-pad:3.8%}
+.decor-pond{left:80%;top:92%;width:clamp(100px,19vw,250px);z-index:92;--decor-foot-pad:1.5%}
+.decor-crystals{left:63%;top:72%;width:clamp(60px,9vw,125px);z-index:72;--decor-foot-pad:1.5%}
+[data-game="pets"] .sanctuary{--pet-environment-light:brightness(.97) saturate(.94);--contact-shadow:#10231780}
+[data-game="pets"] .sanctuary[data-habitat="moonlit"]{--pet-environment-light:brightness(.87) saturate(.88);--contact-shadow:#0a172c88}
+[data-game="pets"] .sanctuary[data-habitat="sunset"]{--pet-environment-light:brightness(.97) saturate(.94) sepia(.1);--contact-shadow:#4b281780}
+[data-game="pets"] .care-deck{padding:12px 16px 8px;background:linear-gradient(130deg,#20291e,#111b16);border:1px solid #b6985140;border-top:1px solid #cfb77a66;border-radius:0 0 14px 14px}
+[data-game="pets"] .pet-identity{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+[data-game="pets"] .pet-identity h2{font-size:1.25rem;margin:0;line-height:1.15}
+[data-game="pets"] .pet-identity>p{font-size:.75rem;color:var(--muted);margin:0;max-width:38ch}
+[data-game="pets"] .pet-meters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:10px}
+[data-game="pets"] .pet-meters span{display:flex;align-items:center;gap:7px;font-size:.7rem}
+[data-game="pets"] .pet-meters small{font-size:.7rem;color:var(--muted)}
+[data-game="pets"] .pet-meters i{flex:1;height:5px;overflow:hidden;border-radius:10px;background:#ffffff18}
+[data-game="pets"] .pet-meters b{display:block;transform-origin:left;width:100%;height:100%;background:linear-gradient(90deg,#a68d50,#f4d78b)}
+[data-game="pets"] .pet-meters strong{min-width:30px;text-align:right;font-size:.7rem}
+[data-game="pets"] .pet-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+[data-game="pets"] .pet-actions button{min-height:52px;background:linear-gradient(145deg,#3d4230,#242c22);border-color:#e2bd6a55}
+[data-game="pets"] .pet-actions button{position:relative}.care-supply-art{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:32px;height:32px;object-fit:contain;pointer-events:none}
+[data-game="pets"] .pet-actions button:has(.care-supply-art) strong{padding-left:20px}
+[data-game="pets"] .pet-actions strong,[data-game="pets"] .pet-actions small{display:block}
+[data-game="pets"] .pet-actions strong{font-size:.88rem}
+[data-game="pets"] .pet-actions small{font-size:.66rem;color:#dad5c1;margin-top:3px}
+#petActionStatus{margin:7px 0 0;font-size:.73rem;line-height:1.3;min-height:1.3em;color:#f3dba8}
+#sanctuaryPanel{width:min(780px,calc(100% - 20px));height:min(760px,calc(100dvh - 20px));max-height:calc(100dvh - 20px);padding:14px;background:#121b16;color:var(--text);border:1px solid #b49c63;border-radius:16px;overflow:hidden;box-shadow:0 30px 100px #000b}
+#sanctuaryPanel[open]{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:10px}
+#sanctuaryPanel::backdrop{background:#020805b8;backdrop-filter:blur(5px)}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.panel-heading h2{margin:0;font-size:1.25rem}
+.panel-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.panel-tabs button[aria-pressed="true"]{border-color:var(--gold);color:#ffe1a0;background:#363827}
+.panel-content{overflow:auto;min-height:0;overscroll-behavior:contain;padding:3px 4px 6px;scrollbar-color:#a68d50 #121b16}
+.panel-content h3{margin:18px 0 10px;font-size:1rem}.panel-content p{font-size:.82rem;line-height:1.5}.panel-content a{color:#f5d695}
+.muted,.shop-note{color:var(--muted)}
+#panelStatus{margin:0;font-size:.8rem;line-height:1.4;color:#ffe1a0;min-height:1.4em}
+[data-game="pets"] .pet-roster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+[data-game="pets"] .pet-roster .pet-card{min-width:0;border:0;border-bottom:2px solid transparent;border-radius:0;background:none;box-shadow:none;padding:7px;text-align:center}
+[data-game="pets"] .pet-roster .pet-card.is-selected{border-bottom-color:var(--gold);background:none}
+[data-game="pets"] .pet-card i{display:block;width:100%;aspect-ratio:1;background-size:400% 200%;background-repeat:no-repeat;filter:drop-shadow(0 5px 4px #0006)}
+[data-game="pets"] .pet-card strong,[data-game="pets"] .pet-card small{display:block;font-size:.72rem;line-height:1.35;white-space:normal}.pet-card small{color:var(--muted)}.pet-card.is-locked i{filter:grayscale(.6);opacity:.65}.pet-cost{color:var(--gold)!important;margin-top:5px}
+.habitat-shop,.decoration-shop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.shop-item{min-width:0}.shop-item h4{margin:9px 0 4px;font-size:.86rem}.shop-item p{margin:0 0 7px;color:var(--muted);font-size:.73rem}.shop-item button{width:100%;font-size:.8rem!important}
+.habitat-swatch{height:86px;border-radius:10px;background:url('assets/etc-pets/pet-sanctuary.png') center/cover;position:relative;overflow:hidden}.habitat-swatch[data-habitat="moonlit"]{background-image:url('assets/etc-pets/habitat-moonlit-v1.webp')}.habitat-swatch[data-habitat="sunset"]{background-image:url('assets/etc-pets/habitat-sunset-v1.webp')}
+.decor-preview{display:grid;place-items:center;height:110px;background:radial-gradient(ellipse,#34443055,transparent 70%)}.decor-preview img{display:block;width:100%;height:100%;max-height:110px;object-fit:contain}
+[data-game="pets"] .supply-shop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.supply-shop strong,.supply-shop small{display:block}.supply-shop small{color:var(--gold);font-size:.7rem;margin-top:4px}
+.supply-shop-art{display:block;width:72px;height:72px;object-fit:contain;margin:0 auto 6px}
+#trainingProgress{width:100%;accent-color:var(--gold)}#careHistory{padding-left:20px;font-size:.8rem;line-height:1.7}
+@media(max-width:600px){[data-game="pets"] .pets-shell{padding:0 0 max(0px,env(safe-area-inset-bottom))}[data-game="pets"] .pets-topbar{border-radius:0;padding:5px 10px}[data-game="pets"] .pets-topbar .eyebrow{font-size:.55rem}[data-game="pets"] .sanctuary-toolbar{padding:5px 8px;gap:5px}[data-game="pets"] .pet-wallet{gap:10px;font-size:.61rem}[data-game="pets"] .pet-wallet span{display:grid;gap:1px}[data-game="pets"] .pet-wallet strong{font-size:.88rem}[data-game="pets"] .sanctuary-tools{gap:4px}[data-game="pets"] .sanctuary-tools button{font-size:.75rem;padding:5px 10px}[data-game="pets"] .care-deck{padding:9px 10px 7px;border-radius:0}[data-game="pets"] .pet-identity>p{display:none}[data-game="pets"] .pet-identity h2{font-size:1.12rem}[data-game="pets"] .pet-meters{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 14px;margin-bottom:8px}[data-game="pets"] .habitat-label{left:12px;top:12px}[data-game="pets"] .habitat-label h2{font-size:1.3rem}[data-game="pets"] .habitat-label p{font-size:.65rem}[data-game="pets"] .pet-roster{grid-template-columns:repeat(2,minmax(0,1fr))}.habitat-shop,.decoration-shop{grid-template-columns:1fr}.shop-item{display:grid;grid-template-columns:86px minmax(0,1fr);gap:10px;align-items:center}.shop-item h4{margin-top:0}.shop-item button{min-height:44px}.shop-item p{font-size:.72rem}.decor-preview{height:80px}.habitat-swatch{height:100%}#petActionStatus{font-size:.67rem}}
+@media(max-height:480px) and (min-width:600px){[data-game="pets"] .pets-shell{grid-template-columns:minmax(0,1fr) 290px;grid-template-rows:auto auto minmax(0,1fr);padding:4px}[data-game="pets"] .pets-topbar{grid-column:1/-1;padding-block:3px}[data-game="pets"] .pets-topbar .eyebrow{display:none}[data-game="pets"] .sanctuary-toolbar{grid-column:1/-1;padding-block:3px}[data-game="pets"] .sanctuary{grid-column:1;grid-row:3}[data-game="pets"] .care-deck{grid-column:2;grid-row:3;padding:10px;border-radius:0;display:flex;flex-direction:column;justify-content:center}[data-game="pets"] .pet-identity>p{display:none}[data-game="pets"] .pet-meters{grid-template-columns:1fr 1fr;gap:8px}[data-game="pets"] .pet-actions{gap:5px}[data-game="pets"] .pet-actions button{padding:5px;min-height:48px}[data-game="pets"] .pet-actions small{font-size:.57rem}#petActionStatus{font-size:.68rem}.habitat-label p{display:none}}
+@media(prefers-reduced-motion:reduce){[data-game="pets"] .habitat-light{transition:none}}
 
-/* Quiet bamboo sanctuary with readable, tactile care controls. */
-.pet-console > section { padding:14px; border:1px solid rgba(112,255,191,.18); border-radius:16px; background:rgba(5,25,17,.76); }
-.pet-console { gap:14px; background:linear-gradient(160deg,#102d20,#04120c); }
-.pet-wallet { position:sticky; top:0; z-index:2; box-shadow:0 10px 28px #0006; background:linear-gradient(135deg,#243522,#102318)!important; }
-.pet-actions button,.supply-shop button { border-radius:12px; min-height:74px; transition:background .15s,transform .15s; }
-.pet-actions button:hover,.supply-shop button:hover { background:#24533c; transform:translateY(-2px); }
-.pet-actions small { font-size:.68rem; line-height:1.4; color:#bfd7c8; }
-.pet-roster { gap:9px; }
-.pet-card { padding:8px; }.pet-card i{filter:drop-shadow(0 4px 4px #0006)}
-.pet-card strong { font-size:.73rem; }.pet-card small { font-size:.62rem; }
-.pet-actions button:focus-visible,.supply-shop button:focus-visible,.pet-card:focus-visible { outline:3px solid #e2bd6a; outline-offset:3px; }
-#petActionStatus { min-height:3em; color:#e3f6ea; }
-@media(max-width:680px){ .pet-wallet { position:static; }.pet-roster { grid-template-columns:repeat(2,minmax(0,1fr)); }.pet-card i{max-height:115px;}.pet-actions,.supply-shop {grid-template-columns:1fr;}.pet-actions button,.supply-shop button{min-height:58px;}.pets-layout{grid-template-rows:430px auto;} }
-@media(prefers-reduced-motion:reduce){.hero-pet{animation:none}.pet-actions button,.supply-shop button{transition:none}}
+[data-game="pets"] .sanctuary-resident:hover:enabled{background:none;box-shadow:none}
 
-.pet-actions button:disabled,.supply-shop button:disabled{opacity:.5;cursor:default;transform:none}.pet-console .eyebrow{font-size:.72rem;letter-spacing:.11em}.pet-roster .pet-card.is-selected strong{color:var(--gold)}
-
-.pet-roster{grid-template-columns:repeat(2,minmax(0,1fr))}.pet-card i{max-height:110px}.pet-card strong,.pet-card small{white-space:normal;overflow:visible;text-overflow:clip}.pet-identity{bottom:92px}
-@media(max-width:680px){.pet-identity{bottom:12px}}
-
-#trainingGoal{color:#c7e2d5;font-size:.8rem;line-height:1.5;margin:0 0 8px}#trainingProgress{width:100%;height:10px;accent-color:#e2bd6a;margin-bottom:12px}
-
-#rosterProgress{font-size:.78rem;line-height:1.5;color:#c7e2d5;margin:0 0 12px}
-
-.pet-console .companion-note{display:block;margin-top:0}#assistReport{line-height:1.6;font-size:.78rem}
-
-.pet-adventures{display:grid;gap:8px;margin-top:12px}.pet-adventures a{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px;padding:10px 12px;border:1px solid rgba(226,189,106,.32);border-radius:9px;color:#f5e2af;background:rgba(6,20,13,.7);text-decoration:none;font-size:.8rem}.pet-adventures a span{color:#b2c8b7;font-size:.7rem}.pet-adventures a:hover{border-color:#8ce6b0;background:rgba(23,64,42,.7)}.pet-adventures a:focus-visible{outline:2px solid #8ce6b0;outline-offset:3px}
-
-.care-history{margin-top:12px;color:#cfc7ad;font-size:.78rem}.care-history summary{cursor:pointer;min-height:44px;padding:12px 0}.care-history summary:focus-visible{outline:2px solid #8ce6b0}.care-history ol{padding-left:20px;margin:0}.care-history li{padding:8px 0;line-height:1.6;border-top:1px solid rgba(226,189,106,.2)}
-
-[data-game="pets"] .pet-roster .pet-card.is-selected{border:0;border-bottom:2px solid var(--gold);background:transparent;box-shadow:none}
+@media(max-width:600px){.inventory-resource img{width:22px;height:26px}[data-game="pets"] .pet-wallet .inventory-resource{gap:3px}.inventory-resource small{font-size:.6rem}.care-supply-art{width:26px;height:26px;left:5px}[data-game="pets"] .pet-actions button:has(.care-supply-art) strong{padding-left:20px}}

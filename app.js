@@ -304,7 +304,7 @@ function earn(amount) {
 }
 
 function buy(type) {
-  if (!canPlay() || !upgrades[type]) return;
+  if (!canManage() || !upgrades[type]) return;
   const {cost, quantity} = purchaseQuote(type);
   if (!quantity || !Number.isFinite(cost) || state.shards < cost) return;
   state.shards -= cost;
@@ -334,6 +334,13 @@ function purchaseQuote(type) {
 
 function canPlay() {
   return !window.EmeraldArcade?.isPaused?.() && !document.querySelector('dialog[open]');
+}
+
+// The viewport's upgrade panel pauses production, while retaining its own actions.
+// Confirmation/save dialogs still block purchases exactly as before.
+function canManage() {
+  const dialog = document.querySelector('dialog[open]');
+  return !window.EmeraldArcade?.isPaused?.() && (!dialog || dialog.classList.contains('strategy-details'));
 }
 
 function labelFor(type) {
@@ -949,7 +956,7 @@ for (const choice of els.scrollChoices) {
 }
 
 els.resetButton.addEventListener("click", () => {
-  if (!canPlay() || saveBlocked) return;
+  if (!canManage() || saveBlocked) return;
   requestConfirmation('Restart this cycle?', `Lose ${format(state.shards)} unspent shards, this cycle's earned total, and all shop levels. Keep your ${format(state.ogPoints)} OG points, permanent boost, and ${state.lifetimePrestiges} sealed cycles. No prestige reward is awarded.`, 'Restart cycle', () => {
     Object.assign(state, saveCodec.restart(state));
     resetEvents();
@@ -979,6 +986,9 @@ window.addEventListener('keydown', event => {
 });
 document.querySelector('#journeyAction').addEventListener('click', () => {
   const target = document.getElementById(saveCodec.objective(state).target);
+  const view = target?.closest?.('[data-strategy-view]');
+  if (view) document.querySelector(`[data-strategy-open="${view.dataset.strategyView}"]`)?.click();
+  else document.querySelector('dialog.strategy-details[open]')?.close();
   target?.scrollIntoView({block: 'center', behavior: 'smooth'});
   if (!target?.disabled) target?.focus({preventScroll: true});
 });
