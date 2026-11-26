@@ -1,0 +1,15 @@
+{
+  "mode": "Built-in image_gen",
+  "assets": [
+    {
+      "key": "celestial-crown-v1",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. ONE majestic collectible CELESTIAL CROWN for Emerald Arcade's PepeCoin side-scrolling runner. Genuine transparent background. Front three-quarter view of an extravagant antique-gold frog king crown with five elegant sweeping points, a LARGE luminous emerald lotus-cut jewel in center shaped subtly like classic Pepe's broad sleepy-eyed frog face sculpted in jade, tiny violet gemstones, delicate wing-like filigree arches at each side, polished golden rim. Premium handcrafted fantasy game loot, grand and magical, rich metallic gold shading with restrained cyan/violet rim light, recognizable bold silhouette at72px wide. Entire crown centered with 8 percent transparent padding. NO head, character, pedestal, floor, external glow fog, lettering, UI, borders, logo or watermark."
+    },
+    {
+      "key": "royal-skyrealm-v1",
+      "transparent": false,
+      "prompt": "Use case: stylized-concept. Wide16:9 premium hand-painted 2D game BACKGROUND for a majestic Royal Skyride in a Pepe fantasy arcade runner. No characters, crown collectible, foreground track, platforms or UI. Floating jade islands and distant slender golden pagoda spires in a celestial cloud kingdom, huge soft emerald aurora arcs across midnight sapphire sky, elegant constellations, a crescent moon, long warm-gold sunrays filtering through high clouds. Majestic and exhilarating, emerald gold indigo palette, more heavenly than outer space. Keep scenery concentrated in TOP HALF, lower half dark calm blue-green mist with negative space for bright crystals and hazards, no blinding sun/white bloom. No perspective racing road, no text, letters, numbers, HUD or logos. Opaque full bleed 16:9 landscape."
+    }
+  ]
+}

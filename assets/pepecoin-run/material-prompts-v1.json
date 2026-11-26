@@ -1,0 +1,20 @@
+{
+  "mode": "Built-in image_gen",
+  "assets": [
+    {
+      "key": "jade-track-v1",
+      "transparent": false,
+      "prompt": "Use case: stylized-concept. Seamless tileable square material texture ONLY for the SIDE FACE of a premium emerald arcade runner track. Dark cut jade stone blocks in offset masonry courses, subtle emerald crystalline veins, bevelled edges, occasional tiny antique brass inset joiners. Consistent flat orthographic frontal lighting from upper left, no perspective, no horizon, no sky, no ground plane. All four edges must repeat seamlessly. Rich detailed stone material, restrained low-contrast mottled emerald teal and charcoal, tiny cool highlights, no large glowing areas, no lettering/runes/symbols/text/logos. This will be clipped into a curved track cliff; do not draw a road border or rail, just continuous jade stone masonry texture. Square opaque image."
+    },
+    {
+      "key": "emerald-shard-v1",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. One collectible emerald shard sprite for a side scrolling browser arcade. Transparent background. Use reference emerald-shards-v2 as quality/material reference, but create ONE SINGLE elongated symmetrical hexagonal emerald crystal shard, not a cluster. Sharp top and bottom points, 2:3 silhouette, luminous rich jade center, polished cyan edge facets, tiny pale gold internal reflections, engraved subtle geometric vein lines. High quality hand-painted dimensional crystal with controlled lighting, clear silhouette at32px tall, tasteful luminous edges without outer glow cloud. Centered completely inside frame with 8 percent transparent padding. No text, pedestal, shadow, background, objects or extra gems."
+    },
+    {
+      "key": "corrupt-shard-v1",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. ONE PURPLE CORRUPT CRYSTAL SPIKE hazard sprite for a high quality 2D side scrolling arcade. Genuine transparent background, no matte. Front orthographic view, tall sharp triangular silhouette with one central needle-sharp apex, broad flat base, straight tapered sides, width to height ratio0.7. Keep solid footprint inside triangle for accurate collision. Faceted obsidian-violet amethyst with hot magenta fissures, lilac edge highlights, dark purple core, small facets IN the triangular body rather than protruding extras. Premium polished painted crystal, readable as DANGER and distinct from emerald green collectible. No skulls, lettering, UI, scattered debris, external glow fog, pedestal, floor or shadow. Entire crystal centered with 8percent transparent padding."
+    }
+  ]
+}

@@ -5,6 +5,11 @@ dialogs or bounded internal panels; the document itself does not need to scroll.
 Canvas games retain their authored camera ratio and map pointer input through
 the actual displayed canvas rectangle. Letterboxing preserves the whole world.
 
+Emerald Run now has a game-specific portrait camera: a 720×720 window enlarges
+the coin and nearby course on narrow, tall screens. Landscape keeps its 1280×720
+view. Only the render camera changes; world positions and collision remain fixed.
+See `emerald-run-cosmic.md` for the camera and rotation checks.
+
 ## Screen families
 
 | Games | Screen behavior |

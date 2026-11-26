@@ -36,7 +36,8 @@ for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }
       await assertFits();
       const canvas = page.locator(game.canvas);
       const ratio = await canvas.evaluate(node => { const box = node.getBoundingClientRect(); return box.width / box.height; });
-      expect(ratio).toBeCloseTo(16 / 9, 2);
+      const portraitRunner = game.path === 'pepecoin-run.html' && viewport.width < 600 && viewport.height > viewport.width;
+      expect(ratio).toBeCloseTo(portraitRunner ? 1 : 16 / 9, 2);
       const info = page.getByRole('button', { name: 'Game info', exact: true });
       await info.click();
       await expect(page.locator('#canvasGameInfo')).toBeVisible();

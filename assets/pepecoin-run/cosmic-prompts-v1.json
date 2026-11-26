@@ -1,0 +1,20 @@
+{
+  "mode": "Built-in image_gen",
+  "assets": [
+    {
+      "key": "gold-frog-statue-v1",
+      "transparent": true,
+      "prompt": "Use case: stylized-concept. A single collectible GOLD PEPE FROG STATUE for a high quality 2D browser runner game. Transparent background cutout. Recognizable classic Pepe face: broad flat frog head, sleepy expressive eyes, thick orange-lip-shaped muzzle sculpted entirely from polished gold. Seated smug frog on a compact beveled dark gold plinth, holding a small emerald crystal disco orb between both hands. Three-quarter front view, whole statue centered with ample transparent padding, chunky silhouette readable at64 pixels high. Rich warm gold with controlled bright highlights and shadowed creases, tiny teal and magenta rim reflections suggesting cosmic magic. Premium sculpted collectible trophy, coherent arcade game art. NO lettering, text, UI, background, external glow cloud, floor, watermark, or extra objects."
+    },
+    {
+      "key": "emerald-night-v1",
+      "transparent": false,
+      "prompt": "Use case: stylized-concept. Wide16:9 side-scrolling game background ONLY, no foreground floor or playable terrain, no characters, no UI or lettering. Dark midnight emerald fantasy valley with layered jade mountain silhouettes and faraway crumbling aqueduct arches, a few luminous hanging emerald crystals among small stars. Deep navy teal sky, soft atmospheric depth, lower half fades to very dark desaturated teal. Fine hand-painted stylized 2D game art. Brightest highlights small and distant along upper third; center and lower two-thirds calm low-contrast negative space for bright gameplay objects. Balanced exposure, avoid muddy black, no bloom washout, no sun glare. Entire image opaque, fill edges."
+    },
+    {
+      "key": "cosmic-disco-v1",
+      "transparent": false,
+      "prompt": "Use case: stylized-concept. Wide16:9 side-scrolling game background ONLY for cosmic disco power-up. Deep indigo violet galaxy with distant emerald crescent planet upper right, a floating gold-and-emerald faceted DISCO ORB upper center-left reflecting tiny magenta cyan gold star specks, soft nebula ribbons and distant orbital arcs. Cosmic dreamy premium 2D hand-painted arcade art. No ground, characters, gameplay objects, UI, text, borders or logos. Keep lower half very dark navy/indigo and low contrast for readable spikes/road; restrained luminous upper third, no giant white highlights, no dense rainbow clutter. Slow dreamy dance-floor atmosphere rather than explosive strobe. Entire image opaque fill edges."
+    }
+  ]
+}

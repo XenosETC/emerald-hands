@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#05020a">
     <title>PepeCoin Classic: Emerald Run</title>
     <link rel="preload" href="assets/pepecoin-run/pepecoin-classic.png" as="image">
-    <link rel="stylesheet" href="pepecoin-run.css?v=finish-2">
+    <link rel="stylesheet" href="pepecoin-run.css?v=tempest-1">
     <link rel="stylesheet" href="game-polish.css?v=1">
     <link rel="stylesheet" href="canvas-game-screen.css?v=1">
   </head>
@@ -23,12 +23,12 @@
       </header>
 
       <section class="stage-wrap" aria-label="PepeCoin Classic Emerald Run">
-        <canvas id="gameCanvas" width="1280" height="720" aria-label="Tap to jump over purple spikes and collect emerald shards" tabindex="0" aria-describedby="game-controls"></canvas>
+        <canvas id="gameCanvas" width="1280" height="720" aria-label="Jump over purple spikes, collect emeralds, and catch gold frog statues for cosmic speed and spike smashing" tabindex="0" aria-describedby="game-controls"></canvas>
 
         <section class="hud" aria-label="Run statistics">
           <div><span id="scoreLabel">0</span><small>score</small></div>
           <div><span id="shardLabel">0</span><small>emeralds</small></div>
-          <div><span id="comboLabel">x1</span><small>combo</small></div>
+          <div><span id="comboLabel">x1</span><small>combo</small><progress id="comboMeter" max="3.2" value="0" aria-label="Combo time remaining"></progress></div>
           <div><span id="bestLabel">0</span><small>best</small></div>
         </section>
 
@@ -38,12 +38,39 @@
           <small id="marketMeta">loading terrain…</small>
         </div>
 
+        <div class="cosmic-status" id="cosmicStatus" hidden>
+          <img id="powerIcon" src="assets/pepecoin-run/gold-frog-statue-v1.webp" alt="" width="40" height="44">
+          <div><strong id="cosmicTitle">COSMIC DISCO</strong><span id="cosmicTime"></span><progress id="cosmicMeter" max="8" value="0" aria-label="Cosmic burst time remaining"></progress><strong id="rushBanner" hidden>EMERALD RUSH</strong></div>
+        </div>
+        <p class="power-announcement" id="powerAnnouncement" role="status" aria-live="polite"></p>
+        <div class="weather-status" id="routeStatus" hidden><strong id="routeTitle">JADE VALLEY</strong><small id="routeDetail">Opening route</small><progress id="routeProgress" max="1" value="0" aria-label="Opening route progress"></progress></div>
+        <div class="cosmic-event" id="cosmicEvent" hidden>
+          <strong id="eventName">COSMIC DISCO</strong>
+          <div><span id="eventPrice">$20.00</span><svg viewBox="0 0 124 36" aria-hidden="true"><path id="eventCurve" d="M0,32" /></svg></div>
+          <small>SIMULATED EVENT PRICE · GAME EFFECT</small>
+        </div>
+
         <section class="overlay" id="gameOverlay">
           <img src="assets/pepecoin-run/pepecoin-classic.png" alt="PepeCoin Classic">
           <p class="eyebrow">One-tap market runner</p>
           <h1 id="overlayTitle">Ride the ETC chart.</h1>
-          <p id="overlayText">Tap to jump. Collect emeralds. Dodge the purple spikes. Every third emerald raises your multiplier, up to x8. Keep collecting within 3.2 seconds to hold it.</p>
-          <button id="startButton" type="button">Start Run</button>
+          <p id="overlayText">Ride Jade Valley into Cosmic Causeway, Royal Skyway and stormy Tempest Reach, then discover Emerald Grove. Gold frogs grant cosmic speed and spike smashing. Crowns let you soar through optional sky gates. Emerald frogs trigger Emerald Rush: green eyes and stronger emerald attraction! Purple spikes stay dangerous without a shield. Every third emerald raises your combo, up to x8; collect within 3.2 seconds to hold it.</p>
+          <section id="runResults" class="run-results" aria-label="Run results" tabindex="0" hidden>
+            <strong id="resultBadge">RUN COMPLETE</strong>
+            <dl>
+              <div><dt>Score</dt><dd id="resultScore">0</dd></div>
+              <div><dt>Distance</dt><dd id="resultDistance">0m</dd></div>
+              <div><dt>Peak combo</dt><dd id="resultCombo">x1</dd></div>
+              <div><dt>Emeralds</dt><dd id="resultShards">0</dd></div>
+              <div><dt>Spikes smashed</dt><dd id="resultSmashes">0</dd></div>
+              <div><dt>Gold frogs</dt><dd id="resultStatues">0</dd></div>
+            </dl>
+            <p id="resultPeak"></p>
+            <p id="resultRoute"></p>
+            <p id="resultCompare" hidden></p>
+            <p id="crashTip"></p>
+          </section>
+          <div class="run-actions"><button id="startButton" type="button">Start Run</button><button id="retryRoadButton" class="retry-road" type="button" hidden>Retry Same Road</button></div>
           <small>Tap / click / spacebar · points only · no wallet required</small>
         </section>
 
@@ -56,15 +83,19 @@
     </main>
 
     <footer class="game-guide" aria-label="How to play">
-      <div><span class="game-guide__label">One-tap runner</span><p><strong>Read the road. Time the jump.</strong> Collect emeralds and avoid the purple spikes.</p></div>
-      <div id="game-controls"><span class="game-guide__label">Controls</span><p><kbd>Tap</kbd>, <kbd>Click</kbd>, or <kbd>Space</kbd> or the Jump button to jump. A tap just before landing is remembered briefly. Landscape gives more room to read the road.</p></div>
-      <div><span class="game-guide__label">Arcade points only</span><p>Each run keeps one fixed chart road, using recent ETC prices or a simulated fallback. Scores are fictional; no wallet or wagering.</p></div>
+      <div><span class="game-guide__label">One-tap runner</span><p><strong>Read the road. Time the jump.</strong> Collect emeralds and avoid purple spikes. Gold frog statues turn the world cosmic for 8 seconds: run 35% faster and smash spikes. A gold ring shows your shield through a brief protected slowdown. An exit pulse clears nearby spikes once as protection ends; jump the purple shards beyond it.</p></div>
+      <div id="game-controls"><span class="game-guide__label">Controls</span><p><kbd>Tap</kbd>, <kbd>Click</kbd>, or <kbd>Space</kbd> or the Jump button to jump. A tap just before landing is remembered briefly. Crowns grant six seconds of Royal Skyride: soar through optional style gates and land protected. Emerald frog statues grant seven seconds of Emerald Rush: green eyes attract emeralds from farther away, but spikes remain dangerous. Powers have independent timers; only Cosmic Disco adds speed. Blue storm auras do not change spike collisions. Landscape gives more room to read the road.</p></div>
+      <div><span class="game-guide__label">Arcade points only</span><p>Each run keeps one fixed chart road, using recent ETC prices or a simulated fallback. After a run, Retry Same Road repeats its terrain and object placements; Run It Back starts a new route. Same-road retries stay available until you reload or leave. Scores are fictional; no wallet or wagering.</p></div>
     </footer>
 
     <script src="canvas-game-screen.js?v=1"></script>
     <script src="arcade.js?v=sanctuary-1"></script>
     <script src="arcade-pet.js?v=sanctuary-1"></script>
-    <script src="pepecoin-run.js?v=jump-retry-1"></script>
+    <script src="pepecoin-route.js?v=1"></script>
+    <script src="pepecoin-royal.js?v=wild-2"></script>
+    <script src="pepecoin-weather.js?v=1"></script>
+    <script src="pepecoin-rush.js?v=1"></script>
+    <script src="pepecoin-run.js?v=tempest-1"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

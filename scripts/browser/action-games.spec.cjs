@@ -23,8 +23,8 @@ test.describe("mobile arcade controls", () => {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     await page.route("https://api.coingecko.com/**", route => route.abort());
-    // Force the first procedural segment to spawn a hazard.
-    await page.addInitScript(() => { Math.random = () => 0.1; });
+    // Choose a deterministic course seed whose opening segment has a hazard.
+    await page.addInitScript(() => { Math.random = () => 0; });
     await page.goto("/pepecoin-run.html");
     await page.getByRole("button", { name: "Start Run" }).tap();
     await page.evaluate(() => {

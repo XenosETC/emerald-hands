@@ -1,0 +1,10 @@
+{
+  "mode": "Built-in image_gen",
+  "asset": "pepecoin-power-aura-v1.webp",
+  "reference": "pepecoin-classic.png",
+  "columns": 4,
+  "rows": 2,
+  "frameSize": 256,
+  "fps": 10,
+  "prompt": "Use case: stylized-concept. Asset type: production 2D game sprite sheet for PepeCoin Classic Emerald Run. Reference image is the existing green PepeCoin, for jade/metallic palette only. Create ONLY an animated POWER AURA around an EMPTY TRANSPARENT circular center; do not redraw coin or frog. One strictly regular 4-column by 2-row grid, 8 animation frames in reading order, each equal cell. Genuine transparent background everywhere outside effects and inside each empty central circle. Request canvas1024x512, cells256x256. Every frame centered at the exact cell center, outer effect radius110px, empty inner circle radius76px. Luxury emerald jade and polished gold crown-like filigree ring with crisp cyan luminous edges, restrained violet sparks, jewel facets. Animation: a magical halo forming from thin golden arcs in frame1, building gracefully into a grand emerald/gold orb in frames3-5, releasing tiny jewels in frames6-7, returning to thin arcs in frame8 for a loop. Consistent size/position; keep every frame inside its cell with12px padding, no overlap across cells. High quality handcrafted fantasy arcade VFX, legible at90px. No text, headings, panels, grid lines, numbers, coin, characters, scenery, dark backdrop, checkerboard pattern or external fog. The center must remain fully transparent so we draw our existing coin underneath."
+}
