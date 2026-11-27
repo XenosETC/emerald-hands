@@ -33,7 +33,7 @@ emerald collectibles and purple corrupt spikes replace the geometric fallback
 shapes; alpha padding is excluded at draw time to align sprites with their
 established gameplay footprints. Corrupt spikes remain hazards, not collectibles.
 
-All eleven built-in imagegen assets live under `assets/pepecoin-run/`:
+All runner imagegen assets live under `assets/pepecoin-run/`:
 
 - `gold-frog-statue-v1.webp`: transparent collectible and HUD icon.
 - `emerald-night-v1.webp`: calm jade valley background.
@@ -331,12 +331,11 @@ native-input automated run on the offline road reached all three powers and
 passed all three gates at both 390px and 1,440px, with no browser errors. This
 does not establish campaign balance or physical-device comfort.
 
-For expansion, add authored chapters and their event definitions to the route
-registry, keeping environment rendering, pickup timers and shared rewards
-separate. The next substantial development should be a second authored act
-after 16,800 with its own landmark and traversal event, then a longer reward
-balance pass. Beyond the Valley currently continues the existing endless road;
-new second-act scenery or bosses are not implemented in this pass.
+The table above describes the original opening-route pass. Act Two now replaces
+the former Beyond the Valley continuation starting at 16,800 with Obsidian
+Starrail, Lunar Lotus Sea and Eclipse Cathedral. See `emerald-run-act-two.md`
+for the current route, ride physics, assets and validation. Environment
+rendering, pickup timers and shared rewards remain separate.
 
 Final validation for this route/event pass: all 541 core tests passed, followed
 by all 44 focused browser checks. Desktop/phone isolated fixtures cover storm
@@ -347,8 +346,8 @@ passed. The generated assets and changes remain local and uncommitted.
 ## Release progression feedback
 
 The chapter strip now includes a bounded progress bar for the authored opening
-route. Entering Beyond the Valley announces opening-route completion once;
-the endless road continues with the existing speed and reward rules. Results
+route. Entering Act Two announces opening-route completion once and starts
+a separate Act Two progress bar; the endless road follows its finale. Results
 show the reached region and opening-route percentage, or completion. Both
 replay choices start a fresh route-progress display while preserving their
 existing same-road/new-road semantics. This adds no persistent unlock or reward.

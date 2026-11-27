@@ -282,3 +282,7 @@ canvas {
     max-height: none;
   }
 }
+#sprintClock { display:block; width:100%; height:3px; margin-top:4px; accent-color:#8bffc0; }
+#timeStatus.is-final-sprint { background:#4a351dc9; box-shadow:inset 0 0 0 1px #edcd79; }
+#timeStatus.is-final-sprint :is(span,small) { color:#ffdf88; }
+.rush-announcement { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }

@@ -5,8 +5,9 @@
   const content=dialog.querySelector('.screen-dialog-content');
   const trigger=document.createElement('button');trigger.type='button';trigger.id='match-options';trigger.textContent='Match options';trigger.setAttribute('aria-haspopup','dialog');
   document.body.append(dialog);dialog.addEventListener('keydown',event=>event.stopPropagation());
-  const open=()=>dialog.showModal();trigger.addEventListener('click',open);dialog.querySelector('#close-match-options').addEventListener('click',()=>dialog.close());
-  dialog.addEventListener('close',()=>trigger.focus({preventScroll:true}));
+  const optionsChanged=()=>document.dispatchEvent(new Event('pepechess:optionschange'));
+  const open=()=>{dialog.showModal();optionsChanged();};trigger.addEventListener('click',open);dialog.querySelector('#close-match-options').addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('close',()=>{trigger.focus({preventScroll:true});optionsChanged();});
   const main=document.querySelector('main'),header=main.querySelector('header'),heading=document.createElement('div');heading.className='screen-heading';
   heading.append(main.querySelector('.back'),header.querySelector('h1'),trigger);main.prepend(heading);
   const panel=document.querySelector('.match-panel');document.querySelector('.play-area').prepend(document.querySelector('#match-status'));

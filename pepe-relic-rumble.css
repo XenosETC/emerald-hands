@@ -778,3 +778,25 @@ meter::-webkit-meter-optimum-value {
     text-align: left;
   }
 }
+/* Solo tournament controls reserve their own screen space on touch layouts. */
+.rumble-touch-controls { display:none; }
+.rumble-touch-controls[hidden] { display:none; }
+@media (pointer:coarse), (max-width:760px) {
+  .rumble-touch-controls:not([hidden]) { display:flex; flex:0 0 auto; justify-content:space-between; gap:12px; padding:6px; background:#071911; border:1px solid #52876b; border-radius:9px; }
+  .rumble-touch-move,.rumble-touch-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; flex:1; max-width:280px; }
+  .rumble-touch-actions button:last-child { grid-column:1/-1; }
+  .rumble-touch-controls button { min-height:44px; min-width:44px; padding:6px 4px; color:#dfffeb; border:1px solid #669b7e; border-radius:8px; background:linear-gradient(#234d39,#102c20); font:800 .68rem system-ui; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .rumble-touch-actions button { border-color:#b69c5e; color:#fff0c3; }
+  .rumble-touch-controls button.is-held { background:#3a8158; border-color:#b6ffcf; box-shadow:inset 0 0 0 2px #b6ffcf66; }
+  .rumble-touch-controls button:disabled { opacity:.45; }
+  .rumble-touch-controls button:focus-visible { outline:2px solid #dcffae; outline-offset:2px; }
+}
+body.canvas-screen[data-game="rumble"] .rumble-hud { display:grid; grid-template-columns:minmax(0,1fr) 84px minmax(0,1fr); align-items:start; }
+body.canvas-screen[data-game="rumble"] .fighter-panel { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px; align-items:center; }
+body.canvas-screen[data-game="rumble"] .fighter-panel span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:.6rem; line-height:1.3; letter-spacing:0; }
+body.canvas-screen[data-game="rumble"] .fighter-panel meter { height:7px; }
+body.canvas-screen[data-game="rumble"] .fighter-energy { display:block; grid-column:1/-1; width:100%; height:4px; accent-color:#b1a0ff; }
+body.canvas-screen[data-game="rumble"] .round-panel :is(span,strong) { font-size:.65rem; line-height:1.25; letter-spacing:0; }
+body.canvas-screen[data-game="rumble"] .round-panel #stateLabel { display:none; }
+body.canvas-screen[data-game="rumble"] .round-panel #timerLabel { font-size:1rem; color:#fff1bf; }
+.rumble-touch-controls button.is-ready { border-color:#e6c677; background:linear-gradient(#876128,#3d2d16); color:#fff0c3; }

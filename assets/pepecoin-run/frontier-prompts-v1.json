@@ -1,0 +1,13 @@
+{
+  "generator": "Built-in imagegen",
+  "assets": [
+    {
+      "file": "corrupt-frontier-v1.webp",
+      "prompt": "Use case: stylized-concept. Premium fantasy arcade runner background widescreen16:9 for Emerald Arcade PepeCoin. CORRUPT FRONTIER: a vast haunting jade kingdom overtaken by violet amethyst corruption, gigantic fractured black crystal spires, luminous purple crystalline roots threading ruined gold-trimmed frog temples and floating stone arches, a fractured emerald moon with purple seams, drifting jade relic fragments, elegant distant fog. Magnificent, mysterious and dark; rich emerald jade/gold identity with deep violet and blue-black corruption, NOT horror gore. Painterly cinematic high-quality game environment with tactile rock and precious-metal detail, beautiful strong silhouettes and depth. Focus landmarks in upper two thirds, keep bottom third dark and quiet for our independently rendered game road and coin. NO foreground playable track, words, labels, UI, characters, coins, text, logos or watermark. Edge-to-edge landscape."
+    },
+    {
+      "file": "volcanic-forge-v1.webp",
+      "prompt": "Use case: stylized-concept. Premium fantasy arcade runner background widescreen16:9 for Emerald Arcade PepeCoin. VOLCANIC FORGE: tremendous obsidian volcano caldera and distant molten orange lava cascades, ancient emerald-and-gold frog civilization forge-temples perched on basalt islands, a huge antique-gold cosmic foundry ring over the crater, jade energy crystals cooled into black rock, rising amber sparks against deep charcoal/midnight indigo sky. Ridiculously majestic craftsmanship, volcanic power without washing out gameplay. Rich tactile obsidian basalt, intricate gold architecture and emerald highlights; cinematic painterly hand-crafted fantasy game quality, beautifully readable depth and silhouettes. Scenic volcano/forge landmarks in upper two thirds, dark quiet lower third for our separate playable road and coin. NO foreground gameplay track, text, characters, coins, lettering, UI, logos or watermark. Edge-to-edge landscape."
+    }
+  ]
+}

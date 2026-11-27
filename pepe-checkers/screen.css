@@ -13,3 +13,6 @@ body{display:grid;grid-template-rows:auto minmax(0,1fr)}body>header{display:flex
 @media(max-width:370px){body>header{gap:6px}body>header h1{font-size:1rem}.arcade-link{font-size:.65rem}#match-options{font-size:.7rem;padding-inline:7px}.game{--board-size:min(calc(100vw - 60px),calc(100dvh - 265px))}}
 
 body>header,body>main{max-width:1000px}
+.screen-dialog-heading{position:sticky;top:0;z-index:2;background:#16241b;padding-bottom:8px}
+#show-capture-routes{border-color:#c9aa66;color:#f8e3ae;background:#35422a}
+#show-capture-routes[hidden]{display:none}

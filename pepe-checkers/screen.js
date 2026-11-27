@@ -5,11 +5,26 @@
   const content=dialog.querySelector('.screen-dialog-content');
   const trigger=document.createElement('button');trigger.type='button';trigger.id='match-options';trigger.textContent='Match options';trigger.setAttribute('aria-haspopup','dialog');
   document.body.append(dialog);dialog.addEventListener('keydown',event=>event.stopPropagation());
-  const open=()=>dialog.showModal();trigger.addEventListener('click',open);dialog.querySelector('#close-match-options').addEventListener('click',()=>dialog.close());
-  dialog.addEventListener('close',()=>trigger.focus({preventScroll:true}));
+  let returnFocus=trigger;
+  const open=()=>{returnFocus=trigger;dialog.showModal();};trigger.addEventListener('click',open);dialog.querySelector('#close-match-options').addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('close',()=>{const target=returnFocus?.isConnected?returnFocus:trigger;returnFocus=trigger;target.focus({preventScroll:true});});
   document.querySelector('body>header').append(trigger);
   content.append(document.querySelector('main>aside'));
   for(const selector of ['.board-key','#hint-panel','#match-result','#capture-panel'])content.append(document.querySelector(selector));
+  const captureButton=document.querySelector('#show-capture-routes');
+  const capturePanel=document.querySelector('#capture-panel');
+  captureButton.addEventListener('click',()=>{
+    returnFocus=captureButton;
+    content.prepend(capturePanel);
+    dialog.showModal();
+    dialog.scrollTop=0;
+    capturePanel.querySelector('button')?.focus({preventScroll:true});
+  });
+  document.querySelector('#board').addEventListener('checkers:route-preview',event=>{
+    if(!dialog.open)return;
+    returnFocus=document.querySelectorAll('#board>button')[event.detail.to]||captureButton;
+    dialog.close();
+  });
   document.querySelector('#hint').addEventListener('click',()=>setTimeout(()=>{if(!document.querySelector('#hint-panel').hidden&&!dialog.open)open();},0));
 
   const surface=document.querySelector('.game');let fitFrame;

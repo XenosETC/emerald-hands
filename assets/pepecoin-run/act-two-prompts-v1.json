@@ -1,0 +1,18 @@
+{
+  "mode": "Built-in image_gen",
+  "boardPrompt": "Use case: stylized-concept. Production transparent game sprite: ONE deluxe COMET EXPRESS hoverboard for Emerald Arcade frog civilization. Exact side profile with a slightly visible top deck, long low silhouette, polished obsidian aerodynamic hull, rich emerald inset panels, beveled antique gold edge trim, two small bright cyan magnetic engine nozzles at REAR LEFT, raised gold forward tip pointing RIGHT. No wheels. Sophisticated miniature fantasy maglev vehicle, premium handcrafted 3D game loot rendering, crisp readable edges at110px wide. Board only, no rider, coin, face, character, long exhaust flame, floor, scenery, writing, letters, branding, frame or watermark. Genuine transparent background with generous transparent padding, entire object centered, width roughly3.5times height. Clear lighting and restrained glow, no large fog or green box.",
+  "assets": [
+    {
+      "key": "obsidian-starrail-v1",
+      "prompt": "Use case: stylized-concept. Premium fantasy arcade runner background, widescreen16:9. Obsidian Starrail world for Emerald Arcade PepeCoin Classic. Vast black-glass floating mountain needles, gigantic polished gold magnetic train tracks twisting in impossible elegant loops across deep space, emerald energy streams and jade pagoda stations perched on asteroids, distant comets and magenta nebula, an emerald moon. Luxurious handcrafted painterly game environment, detailed lit upper two thirds with strong depth and dramatic silhouettes, dark quiet lower third for our separate game track and green coin to remain legible. Foreground game track NOT included. Cohesive jade/gold fantasy palette with deep indigo shadows, restrained glow, cinematic quality. No words, lettering, logos, UI, characters or coins. Landscape artwork edge to edge."
+    },
+    {
+      "key": "lunar-lotus-sea-v1",
+      "prompt": "Use case: stylized-concept. Premium fantasy arcade runner background widescreen16:9. Lunar Lotus Sea world for Emerald Arcade PepeCoin Classic. Impossible ocean suspended in outer space, huge translucent blue-green lotus flowers rising from floating mirror-water terraces, a colossal luminous pale jade moon and thin gold orbital rings, pearl islands and elegant golden frog temple silhouettes, distant gentle emerald waterfalls falling into a starfield. Majestic dreamy atmosphere with rich turquoise and midnight blue, subtle violet reflections and gold highlights. Painterly polished game environment, detailed scenic upper two thirds, dark quiet lower third reserved for separately drawn runner road. No foreground game path. Clear depth, restrained luminous highlights, no blown out white. No text, letters, logos, UI, characters or coins."
+    },
+    {
+      "key": "eclipse-cathedral-v1",
+      "prompt": "Use case: stylized-concept. Premium fantasy arcade runner background widescreen16:9. Eclipse Cathedral world for Emerald Arcade PepeCoin Classic. A monumental emerald and obsidian cathedral drifting among cosmic jade crystal shards, extremely tall gothic arches with polished antique gold trim and luminous emerald stained glass, an enormous black solar eclipse encircled by a vivid green corona behind the cathedral, gold celestial machinery and floating jewel debris. Ridiculously majestic deep space frog-civilization architecture, ornate but legible silhouettes, cinematic painterly high quality, deep velvet green and purple shadows. Scenic focal points in upper two thirds, dark quiet lower third so a separate green coin and game road remain readable. No foreground road, characters, text, lettering, logos, coins or UI."
+    }
+  ]
+}

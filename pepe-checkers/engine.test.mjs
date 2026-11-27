@@ -1,11 +1,27 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play, previewRepetition, repetitionCount } from "./engine.mjs";
+import { analyzeCaptureRoute, analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play, previewRepetition, repetitionCount } from "./engine.mjs";
 import { decodeMatch, encodeMatch } from "./match-save.mjs";
 
 function position(pieces) {
   return { board: Object.assign(Array(64).fill(0), pieces), turn: 1, chain: null, winner: 0 };
 }
+
+test("capture forecasts inspect an entire reply chain and preserve the match", () => {
+  const game = position({ 51: 1, 42: -1, 17: 1, 10: -1 });
+  const before = structuredClone(game);
+  const route = captureRoutes(game).find(route => route.path[0].from === 51);
+  const forecast = analyzeCaptureRoute(game, route.path);
+  assert.equal(forecast.recapturable, true);
+  assert.equal(forecast.wins, false);
+  assert.deepEqual(game, before);
+});
+
+test("capture forecasts explain crowning, kings taken and a winning route", () => {
+  const game = position({ 17: 1, 10: -2 });
+  const forecast = analyzeCaptureRoute(game, captureRoutes(game)[0].path);
+  assert.deepEqual(forecast, { crowns: true, wins: true, draws: false, recapturable: false, capturedKings: 1 });
+});
 
 test("each difficulty obeys forced captures and stops at game over", () => {
   const game = position({ 42: 1, 49: 1, 35: -1, 21: -1 });

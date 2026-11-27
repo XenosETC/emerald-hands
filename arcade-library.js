@@ -23,7 +23,7 @@
     ["hands", "Emerald Hands", "emerald-hands.html", ["idle"], true, "Click / tap"],
     ["rush", "Shard Rush", "shard-rush.html", ["arcade"], true, "Keyboard / drag"],
     ["galaxy", "Emerald Galactic Heroes", "emerald-galactic-heroes.html", ["arcade"], true, "Keyboard / drag"],
-    ["rumble", "Pepe Relic Rumble", "pepe-relic-rumble.html", ["arcade"], false, "Keyboard required"],
+    ["rumble", "Pepe Relic Rumble", "pepe-relic-rumble.html", ["arcade"], true, "Tournament: touch / keyboard; Versus: keyboard"],
   ].map(([id, title, path, genres, touch, controls]) => Object.freeze({ id, title, path, genres: Object.freeze(genres), touch, controls }));
   const key = "emerald-library-v1";
   const byId = id => games.find(game => game.id === id);

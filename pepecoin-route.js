@@ -3,8 +3,14 @@
   // Authored world coordinates. Pickup spacing/RNG remain independent of
   // presentation, so adding a chapter cannot silently reshuffle a saved road.
   const opening = Object.freeze({ statue: 1600, crown: 5200, rush: 13200 });
+  // Four rewards in every 16,800-unit cycle, with at least 3,200 units between
+  // types. Authored spacing avoids random clusters of consecutive powers.
+  const pickupSpacing = Object.freeze({ statue: 8400, crown: 16800, rush: 16800 });
   const tempest = Object.freeze({ start: 7200, riseEnd: 8000, fallStart: 10400, end: 11600,
     strikes: Object.freeze([7950, 9100, 10450]) });
+  const actTwo = Object.freeze({ start: 16800, rail: 17800, lunar: 22400, eclipse: 27600, eclipseEvent: 28400,
+    bells: Object.freeze([29700, 31000, 32300]), end: 33600 });
+  const frontier = Object.freeze({ start: actTwo.end, volcanic: 42000, end: 50400 });
   const chapters = Object.freeze([
     { id: "valley", name: "Jade Valley", start: 0 },
     { id: "cosmic", name: "Cosmic Causeway", start: opening.statue },
@@ -12,7 +18,12 @@
     { id: "tempest", name: "Tempest Reach", start: tempest.start },
     { id: "stormbreak", name: "Stormbreak", start: tempest.end },
     { id: "grove", name: "Emerald Grove", start: opening.rush },
-    { id: "beyond", name: "Beyond the Valley", start: 16800 },
+    { id: "beyond", name: "Obsidian Starrail", start: actTwo.start },
+    { id: "lunar", name: "Lunar Lotus Sea", start: actTwo.lunar },
+    { id: "eclipse", name: "Eclipse Cathedral", start: actTwo.eclipse },
+    { id: "corrupt", name: "Corrupt Frontier", start: frontier.start },
+    { id: "volcanic", name: "Volcanic Forge", start: frontier.volcanic },
+    { id: "endless", name: "Beyond the Forge", start: frontier.end },
   ].map(Object.freeze));
   function chapterAt(worldX) {
     for (let i = chapters.length - 1; i >= 0; i -= 1) {
@@ -20,9 +31,15 @@
     }
     return { ...chapters[0], index: 0, next: chapters[1] };
   }
-  const openingEnd = chapters[chapters.length - 1].start;
+  const openingEnd = actTwo.start;
   function progressAt(worldX) {
     return Number.isFinite(worldX) ? Math.max(0, Math.min(1, worldX / openingEnd)) : 0;
   }
-  root.EmeraldRoute = Object.freeze({ opening, tempest, chapters, chapterAt, openingEnd, progressAt });
+  function actTwoProgress(worldX) {
+    return Number.isFinite(worldX) ? Math.max(0, Math.min(1, (worldX - actTwo.start) / (actTwo.end - actTwo.start))) : 0;
+  }
+  function frontierProgress(worldX) {
+    return Number.isFinite(worldX) ? Math.max(0, Math.min(1, (worldX - frontier.start) / (frontier.end - frontier.start))) : 0;
+  }
+  root.EmeraldRoute = Object.freeze({ opening, pickupSpacing, tempest, chapters, chapterAt, openingEnd, progressAt, actTwo, actTwoProgress, frontier, frontierProgress });
 })(typeof window === "undefined" ? globalThis : window);

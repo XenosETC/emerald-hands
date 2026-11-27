@@ -12,6 +12,8 @@
   const p2Health = document.querySelector("#p2Health");
   const p1Meter = document.querySelector("#p1Meter");
   const p2Meter = document.querySelector("#p2Meter");
+  const p1Energy = document.querySelector('#p1Energy');
+  const p2Energy = document.querySelector('#p2Energy');
   const roundLabel = document.querySelector("#roundLabel");
   const timerLabel = document.querySelector("#timerLabel");
   const matchScore = document.querySelector('#matchScore');
@@ -55,6 +57,9 @@
   const floorY = 566;
   const gravity = 0.9;
   const keys = new Set();
+  const keyboardKeys = new Set();
+  const touchKeys = new Set();
+  let touchControls;
   const pressed = new Set();
   let lastTime = performance.now();
   let lastRenderTime = performance.now();
@@ -2472,6 +2477,9 @@
   }
 
   function syncHud() {
+    touchControls?.sync(selectedMode === 'tournament' && gameState !== 'idle' && gameState !== 'match-over', gameState === 'playing' && !window.EmeraldArcade?.isPaused?.(), fighters[0].energy >= 100, Math.abs(fighters[1].x - fighters[0].x) < 380);
+    p1Energy.value = fighters[0].energy;
+    p2Energy.value = fighters[1].energy;
     p1Name.textContent = fighterName(fighters[0]);
     p2Name.textContent = kekDomainActive ? `Domain Champion • ${fighterName(fighters[1])}` : fighterName(fighters[1]);
     p1Health.textContent = Math.ceil(fighters[0].health);
@@ -2480,7 +2488,8 @@
     p2Meter.value = fighters[1].health;
     roundLabel.textContent = kekDomainActive ? `KEK Final • Round ${round}` : `Round ${round}`;
     timerLabel.textContent = Math.ceil(roundTime);
-    matchScore.textContent = `P1 ${fighters[0].wins} · P2 ${fighters[1].wins} · First to ${firstTo}`;
+    matchScore.textContent = `${fighters[0].wins} — ${fighters[1].wins} · FT${firstTo}`;
+    matchScore.setAttribute('aria-label', `Player 1: ${fighters[0].wins} wins. Player 2: ${fighters[1].wins} wins. First to ${firstTo} round wins.`);
     if (gameState === "playing") {
       const bout = selectedMode === "tournament" ? ` | bout ${tournamentIndex + 1}/${tournamentOpponents.length}` : "";
       const domain = kekDomainActive ? " | domain champion empowered" : "";
@@ -2543,22 +2552,37 @@
   }
 
   function resetInput() {
-    keys.clear(); pressed.clear();
+    keyboardKeys.clear(); touchKeys.clear(); keys.clear(); pressed.clear();
+    touchControls?.releaseAll();
     fighters.forEach(f=>{if(f.inputBuffer) f.inputBuffer={action:null,ttl:0};});
   }
   window.addEventListener('blur',resetInput);
   window.addEventListener('emeraldarcade:pause',resetInput);
   document.addEventListener('visibilitychange',()=>{if(document.hidden) resetInput();});
+  function pressTouchCode(code) {
+    if (selectedMode !== 'tournament' || gameState !== 'playing' || window.EmeraldArcade?.isPaused?.()) return;
+    if (!keys.has(code)) pressed.add(code);
+    touchKeys.add(code); keys.add(code);
+  }
+  function releaseTouchCode(code) {
+    touchKeys.delete(code);
+    if (!keyboardKeys.has(code)) keys.delete(code);
+  }
+  touchControls = window.RelicRumbleTouch?.attach(document.querySelector('#rumbleTouchControls'), {
+    canUse: () => selectedMode === 'tournament' && gameState === 'playing' && !window.EmeraldArcade?.isPaused?.(),
+    press: pressTouchCode, release: releaseTouchCode,
+  });
   window.addEventListener("keydown", (event) => {
     if (event.target?.isContentEditable || event.target?.closest?.('button, a, input, textarea, select') || event.altKey || event.ctrlKey || event.metaKey) return;
     if (gameState !== 'playing' || window.EmeraldArcade?.isPaused?.()) return;
     if (["Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
     if (!keys.has(event.code)) pressed.add(event.code);
-    keys.add(event.code);
+    keyboardKeys.add(event.code); keys.add(event.code);
   });
 
   window.addEventListener("keyup", (event) => {
-    keys.delete(event.code);
+    keyboardKeys.delete(event.code);
+    if (!touchKeys.has(event.code)) keys.delete(event.code);
   });
 
   modeButtons.forEach((button) => {

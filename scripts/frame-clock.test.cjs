@@ -83,6 +83,7 @@ function game(file, options = {}) {
     read(fs.readFileSync(path.join(__dirname, '..', 'pepecoin-royal.js'), 'utf8'));
     read(fs.readFileSync(path.join(__dirname, '..', 'pepecoin-weather.js'), 'utf8'));
     read(fs.readFileSync(path.join(__dirname, '..', 'pepecoin-rush.js'), 'utf8'));
+    read(fs.readFileSync(path.join(__dirname, '..', 'pepecoin-act-two.js'), 'utf8'));
   }
   if (file === 'pepe-tower-defense.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__towerRead = expression => eval(expression); })();');
   if (file === 'pepe-wars.js') source = source.replace(/\}\)\(\);\s*$/, 'window.__warsRead = expression => eval(expression); })();');
@@ -683,14 +684,14 @@ test('Emerald Run optional sky gates award style once and keep the flight trail 
 
 test('Emerald Run authored route orders pickups, storm and the expandable endless section', () => {
   const g = game('pepecoin-run.js');g.start();
-  assert.equal(g.read('route.chapters.map(c=>c.id).join(",")'), 'valley,cosmic,royal,tempest,stormbreak,grove,beyond');
+  assert.equal(g.read('route.chapters.map(c=>c.id).join(",")'), 'valley,cosmic,royal,tempest,stormbreak,grove,beyond,lunar,eclipse,corrupt,volcanic,endless');
   assert.ok(g.read('route.chapters.every((c,i)=>!i||c.start>route.chapters[i-1].start)'));
   assert.equal(g.read('statues[0].x'), g.read('route.opening.statue'));
   assert.equal(g.read('crowns[0].x'), g.read('route.opening.crown'));
   g.read('state.distance=12000;buildCourse()');
   assert.equal(g.read('rushStatues[0].x'), g.read('route.opening.rush'));
   assert.ok(g.read('rushStatues.every(s=>hazards.every(h=>Math.abs(s.x-h.x)>=210))'));
-  assert.equal(g.read('route.chapterAt(100000).id'), 'beyond');
+  assert.equal(g.read('route.chapterAt(100000).id'), 'endless');
 });
 
 test('Emerald Run storm freezes on pause, calms lightning and preserves lethal spikes', () => {
@@ -756,7 +757,8 @@ test('Emerald Run opening progress completes once, reports its region and resets
   assert.equal(g.read('route.progressAt(route.openingEnd/2)'), .5);
   assert.equal(g.read('route.progressAt(route.openingEnd*2)'), 1);
   g.read('hazards.length=0;state.distance=route.openingEnd-player.x;state.noticeTime=0;update(.016)');
-  assert.equal(g.nodes.get('#routeProgress').value, 1);
+  assert.equal(g.read('route.progressAt(state.distance+player.x)'), 1);
+  assert.ok(g.nodes.get('#routeProgress').value < .01, 'Act Two begins a new progress bar');
   assert.match(g.read('state.noticeText'), /OPENING ROUTE COMPLETE/);
   g.read('state.noticeTime=0;update(.016)');
   assert.doesNotMatch(g.nodes.get('#runGoal').textContent, /OPENING ROUTE COMPLETE/);
@@ -768,6 +770,185 @@ test('Emerald Run opening progress completes once, reports its region and resets
   g.read('state.distance=7900;crash({})');
   for (const timer of g.timers) timer();
   assert.match(g.nodes.get('#resultRoute').textContent, /Tempest Reach/);
+});
+
+test('Emerald Run Act Two events fire once, ignore skipped regions and freeze on pause', () => {
+  const g = game('pepecoin-run.js');g.start();
+  g.read('hazards.length=0;state.distance=route.actTwo.rail-player.x+1;update(.016)');
+  assert.equal(g.read('state.railRuns'), 1);
+  assert.equal(g.nodes.get('#cosmicTitle').textContent, 'COMET EXPRESS');
+  const frozen = g.read('JSON.stringify([state.railTime,state.railAge,state.starrailBlend])');
+  g.read('window.EmeraldArcade.isPaused=()=>true;update(2)');
+  assert.equal(g.read('JSON.stringify([state.railTime,state.railAge,state.starrailBlend])'), frozen);
+  g.read('window.EmeraldArcade.isPaused=()=>false;update(.016)');
+  assert.equal(g.read('state.railRuns'), 1);
+  g.read('crash({});startGame({sameRoad:true});state.distance=100000;hazards.length=0;update(.016)');
+  assert.equal(g.read('state.railRuns+state.eclipseTime'), 0, 'seeking past an event does not launch it in the wrong world');
+});
+
+test('Emerald Run Comet vaulting protects through landing and does not multiply speed boosts', () => {
+  const g = game('pepecoin-run.js');g.read('applyMarketSeries([20,20],false,"flat")');g.start();
+  g.read('state.distance=route.actTwo.rail-player.x+1;buildCourse();hazards.length=0;statues.length=0;crowns.length=0;player.y=terrainAt(state.distance+player.x)-player.radius-100;update(.016)');
+  assert.ok(g.read('state.railLift') >= 95, 'boarding retains the current jump height');
+  g.read('for(let i=0;i<40;i++)update(1/60)');
+  assert.ok(g.read('state.railLift') > 40);
+  g.read('jump();update(.25)');
+  assert.ok(g.read('state.railLift') > 120);
+  assert.equal(g.nodes.get('#jumpButton').textContent, 'Vault ↑');
+  g.read('collectStatue({collected:false},245,400);update(.016)');
+  assert.ok(g.read('state.speed') <= Math.min(570,g.read('310+state.elapsed*7.2')) * 1.35);
+  g.read('state.cosmicTime=0;state.boost=0;state.railTime=.01;hazards.push({x:state.distance+player.x+5,width:50,height:70,hit:false});update(.016)');
+  assert.equal(g.read('state.mode'), 'running');
+  assert.equal(g.read('actTwo.active(state)'), true);
+  g.read('hazards.length=0;for(let i=0;i<60;i++)update(1/60)');
+  assert.equal(g.read('actTwo.active(state)'), false);
+  g.read('hazards.push({x:state.distance+player.x+5,width:50,height:70,hit:false});update(.016)');
+  assert.equal(g.read('state.mode'), 'gameover');
+});
+
+test('Emerald Run lunar jumps keep their gravity across the boundary until landing', () => {
+  const g = game('pepecoin-run.js');g.read('applyMarketSeries([20,20],false,"flat")');g.start();
+  g.read('hazards.length=0;statues.length=0;crowns.length=0;state.distance=route.actTwo.lunar-player.x+1;player.grounded=true;jump()');
+  assert.equal(g.read('player.vy'), -580);
+  assert.equal(g.read('state.moonJump'), true);
+  g.read('state.distance=route.actTwo.eclipse-player.x+1;player.y=terrainAt(state.distance+player.x)-player.radius-100;update(.01)');
+  assert.equal(g.read('player.vy'), -567.5);
+  g.read('hazards.length=0;for(let i=0;i<100;i++)update(.016)');
+  assert.equal(g.read('state.moonJump'), false);
+  g.read('jump()');
+  assert.equal(g.read('player.vy'), -690);
+});
+
+test('Emerald Run lunar hazard spacing includes takeoff and landing boundaries', () => {
+  const g = game('pepecoin-run.js');g.start();g.read('state.distance=30000;buildCourse()');
+  assert.ok(g.read('hazards.filter(h=>h.x>=route.actTwo.lunar&&h.x<route.actTwo.eclipse).length') > 2);
+  assert.ok(g.read('hazards.every((h,i)=>!i||actTwo.hazardGap(h.x)!==780||h.x-hazards[i-1].x>=780)'));
+  assert.equal(g.read('actTwo.hazardGap(route.actTwo.lunar-700)'), 780);
+  assert.equal(g.read('actTwo.hazardGap(route.actTwo.eclipse+700)'), 780);
+});
+
+test('Emerald Run Emerald Eclipse grants a wider normal-path magnet without shielding', () => {
+  const g = game('pepecoin-run.js');g.read('applyMarketSeries([20,20],false,"flat")');g.start();
+  g.read('state.distance=route.actTwo.eclipseEvent-player.x+1;buildCourse();hazards.length=0;emeralds.length=0;statues.length=0;crowns.length=0;emeralds.push({x:state.distance+player.x+320,lift:105,size:22,spin:0,collected:false});update(.016)');
+  assert.equal(g.read('state.eclipseTime'), 7);
+  assert.equal(g.read('emeralds[0].attracted'), true);
+  assert.equal(g.read('protectedRide()'), false);
+  assert.equal(g.nodes.get('#cosmicTitle').textContent, 'EMERALD ECLIPSE');
+  g.read('for(let i=0;i<30;i++)update(1/60)');
+  assert.ok(g.read('state.shards') >= 1);
+  assert.equal(g.records.length, 0);
+  assert.equal(g.read('state.rushCaught'), 1);
+});
+
+test('Emerald Run Act Two expiry is frame independent and replay clears every event', () => {
+  const g = game('pepecoin-run.js');g.start();
+  g.read('const railA={},railB={};actTwo.reset(railA);actTwo.reset(railB);actTwo.step(railA,0,17801);actTwo.step(railB,0,17801);for(let i=0;i<540;i++)actTwo.step(railA,1/60,18000,true);for(let i=0;i<90;i++)actTwo.step(railB,.1,18000,true)');
+  assert.equal(g.read('actTwo.active(railA)||actTwo.active(railB)'), false);
+  assert.equal(g.read('railA.railLift+railB.railLift'), 0);
+  g.read('hazards.length=0;state.distance=route.actTwo.rail-player.x+1;update(.016);crash({});startGame({sameRoad:true})');
+  assert.equal(g.read('state.railTime+state.railLanding+state.railRuns+state.eclipseTime+state.starrailBlend+state.lunarBlend+state.cathedralBlend'), 0);
+  assert.equal(g.read('state.moonJump'), false);
+});
+
+test('Emerald Run cathedral bells require airborne contact and ignore duplicate rings', () => {
+  const g=game('pepecoin-run.js');g.read('applyMarketSeries([20,20],false,"flat")');g.start();
+  g.read('state.distance=state.bells[0].x-player.x;buildCourse();hazards.length=0;statues.length=0;crowns.length=0;rushStatues.length=0;update(.016)');
+  assert.equal(g.read('state.bellsRung'),0,'rolling underneath does not ring an airborne bell');
+  g.read('player.y=terrainAt(state.bells[0].x)-state.bells[0].lift;player.grounded=false;player.vy=0;update(.016)');
+  assert.equal(g.read('state.bellsRung'),1);
+  const before=g.read('state.score');
+  g.read('ringCathedralBell(state.bells[0],245,400)');
+  assert.equal(g.read('state.bellsRung'),1);
+  assert.equal(g.read('state.score'),before);
+  assert.equal(g.read('state.slingshots'),0);
+});
+
+test('Emerald Run three unique bells awaken Slingshot once without direct rewards', () => {
+  const g=game('pepecoin-run.js');g.start();
+  g.read('for(const bell of state.bells)ringCathedralBell(bell,245,400)');
+  assert.equal(g.read('state.bellsRung'),3);
+  assert.equal(g.read('state.slingshots'),1);
+  assert.equal(g.read('state.railKind'),'slingshot');
+  assert.equal(g.read('state.railTime'),3.6);
+  assert.equal(g.read('state.railRuns'),0,'Slingshot is separate from Comet Express statistics');
+  assert.equal(g.read('state.score+state.shards'),0);
+  assert.equal(g.records.length,0);
+  g.read('for(const bell of state.bells)ringCathedralBell(bell,245,400);updateHud()');
+  assert.equal(g.read('state.slingshots'),1);
+  assert.equal(g.nodes.get('#cosmicTitle').textContent,'ECLIPSE SLINGSHOT');
+  assert.equal(g.nodes.get('#jumpButton').textContent,'Surge ↑');
+  assert.equal(g.nodes.get('#cosmicMeter').max,3.6);
+});
+
+test('Emerald Run missed bells cannot grant Slingshot or block Act Two completion', () => {
+  const g=game('pepecoin-run.js');g.start();
+  g.read('actTwo.step(state,.016,route.actTwo.bells[0]+100);for(const bell of state.bells)ringCathedralBell(bell,245,400)');
+  assert.equal(g.read('state.bellsRung'),2);
+  assert.equal(g.read('state.slingshots'),0);
+  g.read('state.distance=route.actTwo.end-player.x+1;buildCourse();hazards.length=0;update(.016)');
+  assert.equal(g.read('state.routeId'),'corrupt');
+  assert.equal(g.read('route.actTwoProgress(state.distance+player.x)'),1);
+  assert.ok(g.nodes.get('#routeProgress').value<.01);
+});
+
+test('Emerald Run Slingshot pauses, stays visible, lands safely and resets all bell state', () => {
+  const g=game('pepecoin-run.js');g.start();
+  g.read('terrainAt=()=>280;hazards.length=0;statues.length=0;crowns.length=0;for(const bell of state.bells)ringCathedralBell(bell,245,200);jump();update(.3)');
+  assert.ok(g.read('player.y')>=145,'the high arc stays inside the camera');
+  const frozen=g.read('JSON.stringify([state.railTime,state.railLift,state.bells.map(b=>b.ringTime)])');
+  g.read('window.EmeraldArcade.isPaused=()=>true;update(1)');
+  assert.equal(g.read('JSON.stringify([state.railTime,state.railLift,state.bells.map(b=>b.ringTime)])'),frozen);
+  g.read('window.EmeraldArcade.isPaused=()=>false;state.railTime=.01;update(.016)');
+  assert.equal(g.read('protectedRide()'),true);
+  g.read('for(let i=0;i<60;i++)update(1/60)');
+  assert.equal(g.read('protectedRide()'),false);
+  g.read('hazards.push({x:state.distance+player.x+5,width:50,height:70,hit:false});update(.016)');
+  assert.equal(g.read('state.mode'),'gameover');
+  g.read('startGame({sameRoad:true})');
+  assert.equal(g.read('state.bellsRung+state.slingshots+state.railTime+state.bells.filter(b=>b.collected||b.missed).length'),0);
+});
+
+test('Emerald Run Slingshot expires consistently and bells have clear jump approaches', () => {
+  const g=game('pepecoin-run.js');g.start();
+  g.read('const slingA={},slingB={};for(const s of [slingA,slingB]){actTwo.reset(s);for(const b of s.bells)actTwo.ringBell(s,b,100)}for(let i=0;i<270;i++)actTwo.step(slingA,1/60,32301,true);for(let i=0;i<45;i++)actTwo.step(slingB,.1,32301,true)');
+  assert.equal(g.read('actTwo.active(slingA)||actTwo.active(slingB)'),false);
+  g.read('state.distance=33000;buildCourse()');
+  assert.ok(g.read('hazards.every(h=>!pickupApproach(h.x,route.actTwo.bells))'));
+});
+
+test('Emerald Run frontier worlds have equal spans and reset their blends on retry', () => {
+  const g=game('pepecoin-run.js');g.start();
+  assert.equal(g.read('route.frontier.volcanic-route.frontier.start'),8400);
+  assert.equal(g.read('route.frontier.end-route.frontier.volcanic'),8400);
+  g.read('state.distance=route.frontier.start-player.x+1;buildCourse();hazards.length=0;update(.3)');
+  assert.equal(g.read('state.routeId'),'corrupt');assert.ok(g.read('state.corruptWorldBlend')>.8);
+  const blend=g.read('state.corruptWorldBlend');g.read('window.EmeraldArcade.isPaused=()=>true;update(1)');
+  assert.equal(g.read('state.corruptWorldBlend'),blend);
+  g.read('window.EmeraldArcade.isPaused=()=>false;state.distance=route.frontier.volcanic-player.x+1;buildCourse();hazards.length=0;update(.3)');
+  assert.equal(g.read('state.routeId'),'volcanic');assert.ok(g.read('state.volcanicWorldBlend')>.8);
+  g.read('crash({});startGame({sameRoad:true})');assert.equal(g.read('state.corruptWorldBlend+state.volcanicWorldBlend'),0);
+});
+
+test('Emerald Run authored power pickups stay regularly spaced across the frontier', () => {
+  const g=game('pepecoin-run.js');g.start();
+  g.read('for(const at of [16000,24000,32000,40000,48000,56000,64000]){state.distance=at;buildCourse()}');
+  const positions=g.read('[...statues,...crowns,...rushStatues].filter(p=>p.x>=route.frontier.start).map(p=>p.x).sort((a,b)=>a-b)');
+  assert.ok(positions.length>2);
+  for(let i=1;i<positions.length;i++)assert.ok(positions[i]-positions[i-1]>=3200);
+  assert.ok(g.read('statues.every(p=>(p.x-route.opening.statue)%route.pickupSpacing.statue===0)'));
+  assert.ok(g.read('crowns.every(p=>(p.x-route.opening.crown)%route.pickupSpacing.crown===0)'));
+  assert.ok(g.read('rushStatues.every(p=>(p.x-route.opening.rush)%route.pickupSpacing.rush===0)'));
+});
+
+test('Emerald Run disco feedback uses colored facets and orbs instead of the old straight streaks', () => {
+  const g=game('pepecoin-run.js');g.start();g.read('state.elapsed=1;drawDiscoMotes()');
+  assert.ok(g.drawingCalls.some(c=>c.method==='arc'));
+  assert.ok(g.drawingCalls.some(c=>c.method==='fillRect'));
+  assert.equal(g.drawingCalls.filter(c=>c.method==='lineTo').length,0);
+  g.drawingCalls.length=0;g.read('reducedMotion.matches=true;state.elapsed=2;drawDiscoMotes()');
+  const calm=JSON.stringify(g.drawingCalls.map(c=>({method:c.method,args:c.args})));
+  g.drawingCalls.length=0;g.read('state.elapsed=9;drawDiscoMotes()');
+  assert.equal(JSON.stringify(g.drawingCalls.map(c=>({method:c.method,args:c.args}))),calm);
 });
 
 test('Emerald Run rejects corrupt market tapes and copies accepted data', () => {

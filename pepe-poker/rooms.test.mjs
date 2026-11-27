@@ -7,7 +7,7 @@ import { evaluate, handCategory, labels, STARTING_STACK } from "./holdem.mjs";
 import { formatHandExport } from "./hand-export.mjs";
 import { pokerRequest } from "./rooms.mjs";
 import { DEFAULT_TABLE, TABLE_PRESETS, TIME_BANK_SECONDS, TURN_SECONDS } from "./table-settings.mjs";
-import { REACTIONS, REACTION_DURATION } from "./reaction-catalog.mjs";
+import { REACTIONS, REACTION_DURATION, REACTION_COOLDOWN } from "./reaction-catalog.mjs";
 
 const base = "/api/pepe-poker";
 
@@ -229,6 +229,63 @@ test("each Pepe reaction has a shipped illustration", () => {
     const bytes = readFileSync(new URL(`./reactions/${id}.webp`, import.meta.url));
     assert.equal(bytes.toString("ascii", 8, 12), "WEBP", id);
   }
+});
+
+test("all eight fresh seats can send every emote without unlocks or chip spending", async t => {
+  const host = await post("", { name: "Emote host" });
+  const path = "/" + host.state.id;
+  const players = [host];
+  for (let i = 1; i < 8; i++) players.push(await post(path + "/join", { name: "Emote guest " + i }));
+  let now = Date.now();
+  t.mock.method(Date, "now", () => now);
+  for (let seat = 0; seat < players.length; seat++) {
+    for (const emote of REACTIONS) {
+      const sent = await post(path + "/react", { reaction: emote.id }, players[seat].token);
+      assert.equal(sent.status, 200);
+      assert.equal(sent.state.players[seat].reaction, emote.id);
+      assert.equal(sent.state.players[seat].stack, STARTING_STACK);
+      const seen = await request(path, { token: players[(seat + 1) % players.length].token });
+      assert.equal(seen.state.players[seat].reaction, emote.id);
+      now += REACTION_COOLDOWN;
+    }
+  }
+});
+
+test("eight players complete a full hand, ninth join is rejected and spectators have no private actions", async () => {
+  const host = await post("", {name:"Eight host"});const path="/"+host.state.id;const seats=[host];
+  for(let i=1;i<8;i++) seats.push(await post(path+"/join",{name:"Eight guest "+i}));
+  const full=await post(path+"/join",{name:"Ninth guest"});assert.equal(full.status,400);assert.match(full.error,/8 players/);
+  let {state}=await post(path+"/deal",{},host.token);
+  assert.equal(state.players.length,8);assert.equal(state.maxSeats,8);
+  const watch=(await request(path)).state;
+  assert.equal(watch.index,-1);assert.equal(watch.options,null);assert.equal(watch.yourHand,null);
+  for(const player of watch.players) {hidden(player.cards);assert.equal('token' in player,false);}
+  assert.equal((await post(path+"/act",{action:"call",revision:state.revision})).status,403);
+  assert.equal((await post(path+"/react",{reaction:"rocket"})).status,403);
+  const acted=new Set();let turns=0;
+  while(state.turn!==-1&&turns++<60) {
+    acted.add(state.turn);
+    const result=await post(path+"/act",{action:"call",revision:state.revision},seats[state.turn].token);
+    assert.equal(result.status,200);state=result.state;
+  }
+  assert.equal(state.turn,-1);assert.equal(acted.size,8);assert.equal(state.board.length,5);
+  assert.equal(state.players.reduce((sum,p)=>sum+p.stack,0),STARTING_STACK*8);
+  assert.equal(state.payouts.reduce((sum,p)=>sum+p.amount,0),160);
+});
+
+test("two private tables isolate identities, chips and hand progression",async()=>{
+ const first=await post("",{name:"Multi player"}),second=await post("",{name:"Multi player"});
+ const a="/"+first.state.id,b="/"+second.state.id;
+ await post(a+"/join",{name:"Guest A"});await post(b+"/join",{name:"Guest B"});
+ assert.notEqual(first.state.id,second.state.id);assert.notEqual(first.token,second.token);
+ assert.equal((await request(b,{token:first.token})).state.index,-1);
+ assert.equal((await post(b+"/deal",{},first.token)).status,403);
+ const deal=await post(a+"/deal",{},first.token);assert.equal(deal.status,200);
+ const untouched=(await request(b,{token:second.token})).state;
+ assert.equal(untouched.hand,0);assert.equal(untouched.players[0].stack,STARTING_STACK);
+ assert.equal((await post(b+"/deal",{},second.token)).status,200);
+ assert.equal((await request(a,{token:first.token})).state.index,0);
+ assert.equal((await request(b,{token:second.token})).state.index,0);
 });
 
 function visible(cards) {

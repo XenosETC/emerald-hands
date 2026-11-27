@@ -5,14 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101611">
   <title>Pepe Poker · Emerald Arcade</title>
-  <link rel="stylesheet" href="table.css?v=replay-keyboard-1">
-<link rel="stylesheet" href="screen.css?v=1">
+  <link rel="stylesheet" href="table.css?v=bet-clarity-1">
+<link rel="stylesheet" href="screen.css?v=tables-3">
 </head>
 <body>
   <header>
     <a href="../index.html" class="back">← Emerald Arcade</a>
     <h1>Pepe <em>Poker</em></h1>
     <button id="invite" type="button" hidden>Share invite</button>
+    <button id="emotes" type="button" aria-haspopup="dialog" aria-controls="emotes-dialog" hidden>Emotes</button>
+    <button id="tables" type="button" aria-haspopup="dialog" aria-controls="tables-dialog">Tables</button>
     <a id="exit-practice" class="back" href="index.html" hidden>Exit practice</a>
   </header>
   <a id="jump-to-actions" class="skip-link" href="#actions" hidden>Skip to table controls</a>
@@ -21,7 +23,8 @@
       <div class="table-meta">
         <p class="variant">No-limit Hold’em <span aria-hidden="true">·</span> Play chips</p>
         <p class="blinds">Blinds <span id="stakes">10 / 20</span></p>
-        <p id="room-status">Private table · 0 of 6 seats taken</p>
+        <p id="room-status">Private table · 0 of 8 seats taken</p>
+        <p id="watch-status" hidden>Spectating · public cards only. <a id="take-seat" href="index.html">Take a seat / restore my seat</a></p>
       </div>
       <p id="table-connection" role="status"></p>
       <div class="table">
@@ -87,6 +90,7 @@
             <button id="call" class="primary">Check</button>
             <button id="raise" hidden>Raise</button>
           </div>
+          <p id="raise-preview" role="status" aria-live="polite" hidden></p>
           <details id="raise-sizing" hidden>
             <summary>Adjust bet size</summary>
             <div id="raise-controls">
@@ -99,7 +103,6 @@
                 <button type="button" id="raise-pot" aria-label="Set pot-sized amount">Pot</button>
                 <button type="button" id="raise-max" aria-label="Set all-in amount">Max</button>
               </div>
-              <p id="raise-preview"></p>
             </div>
           </details>
           <details id="practice-read" hidden>
@@ -217,7 +220,23 @@
       <button>Done</button>
     </form>
   </dialog>
-  <script type="module" src="table.js?v=replay-keyboard-1"></script>
-<script src="screen.js?v=1"></script>
+  <dialog id="emotes-dialog" aria-labelledby="emotes-title">
+    <div class="screen-dialog-heading"><h2 id="emotes-title">Pepe emotes</h2><button id="close-emotes" type="button">Done</button></div>
+    <p>All four are included for every player at the table. No unlocks or chips required.</p>
+    <div id="emotes-content"></div>
+    <p id="emote-status" role="status" aria-live="polite">Choose an emote. The table will see it at your seat.</p>
+  </dialog>
+  <dialog id="tables-dialog" aria-labelledby="tables-title">
+    <div class="screen-dialog-heading"><h2 id="tables-title">Your Poker tables</h2><button id="close-tables" type="button">Done</button></div>
+    <p>Play multiple private tables in separate tabs. Each table keeps its own seat. These links stay on this browser; there is no public table listing.</p>
+    <a id="create-another-table" class="table-manager-action" href="index.html" target="_blank" rel="noopener">Create another table ↗</a>
+    <label for="table-link">Join or watch an invite link</label>
+    <input id="table-link" type="url" placeholder="Paste a Poker table link" autocomplete="off">
+    <p id="table-link-status" role="status">Only links to this arcade are accepted.</p>
+    <div class="table-link-actions"><a id="open-table-link" target="_blank" rel="noopener" hidden>Open table ↗</a><a id="watch-table-link" target="_blank" rel="noopener" hidden>Watch table ↗</a></div>
+    <h3>Known tables</h3><div id="known-tables"></div>
+  </dialog>
+  <script type="module" src="table.js?v=tables-3"></script>
+<script src="screen.js?v=tables-3"></script>
 </body>
 </html>

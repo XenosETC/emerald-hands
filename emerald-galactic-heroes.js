@@ -8,6 +8,7 @@ const els = {
   objective: document.querySelector('#flightObjective'),
   bossStatus: document.querySelector('#bossStatus'),
   bossHealth: document.querySelector('#bossHealth'),
+  bossAttackLabel: document.querySelector('#bossAttackLabel'),
   best: document.querySelector('#flightBest'),
   score: document.querySelector("#scoreLabel"),
   shields: document.querySelector("#shieldLabel"),
@@ -463,6 +464,7 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawCover(background, 0, 0, canvas.width, canvas.height);
   drawStars();
+  for (const enemy of enemies) drawShotWarning(enemy);
 
   for (const shot of heroShots) drawSprite("heroLaser", shot.x, shot.y, shot.size, 0);
   for (const shot of enemyShots) drawEnemyShot(shot);
@@ -477,6 +479,30 @@ function draw() {
 
   drawParticles();
   drawPopups();
+}
+
+function shotWarning(enemy) {
+  if (enemy.type === 'meteor' || enemy.hp <= 0 || enemy.y + enemy.size * .6 < 0) return 0;
+  const windupSeconds = enemy.type === 'boss' ? .32 : .28;
+  return enemy.shotTimer > 0 && enemy.shotTimer <= windupSeconds ? 1 - enemy.shotTimer / windupSeconds : 0;
+}
+
+function drawShotWarning(enemy) {
+  const charge = shotWarning(enemy);
+  if (!charge) return;
+  const muzzle = enemy.y + enemy.size * .28;
+  const top = Math.max(75, muzzle);
+  ctx.save();
+  ctx.fillStyle = 'rgba(211,121,255,.07)';
+  ctx.fillRect(enemy.x - 21, top, 42, Math.max(0, canvas.height - top));
+  ctx.strokeStyle = enemy.type === 'boss' ? '#e5b6ff' : '#c487ff';
+  ctx.globalAlpha = .3 + charge * .35; ctx.lineWidth = 2;
+  ctx.setLineDash([8,12]);
+  ctx.beginPath(); ctx.moveTo(enemy.x,top); ctx.lineTo(enemy.x,canvas.height-30); ctx.stroke();
+  ctx.setLineDash([]);
+  const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  ctx.beginPath(); ctx.arc(enemy.x,muzzle,calm ? 16 : 10+charge*12,0,Math.PI*2); ctx.stroke();
+  ctx.restore();
 }
 
 function drawPickup(pickup) {
@@ -625,6 +651,8 @@ function rankForScore(score, wave) {
 }
 
 function updateHud() {
+  const firingBoss = enemies.find(enemy => enemy.type === 'boss' && enemy.hp > 0);
+  els.bossAttackLabel.textContent = firingBoss && shotWarning(firingBoss) > 0 ? 'Cruiser charging · leave the violet lane' : 'Boss Cruiser';
   els.score.textContent = format(state.score);
   els.shields.textContent = `${Math.round(state.shieldCharge)}%`;
   els.armor.textContent = state.shieldCells;

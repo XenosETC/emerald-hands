@@ -1,8 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { act, evaluate, evaluateBest, livePotBreakdown, options, startHand } from "./holdem.mjs";
-import { headsUpCallOdds, potRaiseTo } from "./bet-sizing.mjs";
+import { headsUpCallOdds, potRaiseTo, raiseCommitment } from "./bet-sizing.mjs";
 import { replayStreetStarts } from "./hand-replay.mjs";
+
+test("raise commitment distinguishes total from added chips and short all-ins", () => {
+  assert.deepEqual(raiseCommitment("40", 10, 1990, {canRaise:true,min:40,max:2000}), {total:40,added:30,behind:1960,allIn:false});
+  assert.deepEqual(raiseCommitment("2000", 10, 1990, {canRaise:true,min:40,max:2000}), {total:2000,added:1990,behind:0,allIn:true});
+  assert.deepEqual(raiseCommitment("25", 20, 5, {canRaise:true,min:25,max:25}), {total:25,added:5,behind:0,allIn:true});
+  for (const value of ["", " ", "39", "2001", "40.5", "bad", "Infinity"]) {
+    assert.equal(raiseCommitment(value,10,1990,{canRaise:true,min:40,max:2000}),null);
+  }
+  assert.equal(raiseCommitment("40",10,1990,{canRaise:false,min:40,max:2000}),null);
+});
 
 test("best five includes a playing kicker and prefers the board when scores tie", () => {
   const board = ["As", "Ah", "9c", "7s", "3d"];

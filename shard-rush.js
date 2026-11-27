@@ -7,6 +7,10 @@ const els = {
   overlayStartButton: document.querySelector("#overlayStartButton"),
   score: document.querySelector("#scoreLabel"),
   time: document.querySelector("#timeLabel"),
+  timeStatus: document.querySelector('#timeStatus'),
+  sprintPhase: document.querySelector('#sprintPhase'),
+  sprintClock: document.querySelector('#sprintClock'),
+  sprintAnnouncement: document.querySelector('#sprintAnnouncement'),
   combo: document.querySelector("#comboLabel"),
   rank: document.querySelector("#rankLabel"),
   rankTarget: document.querySelector("#rankTarget"),
@@ -113,6 +117,7 @@ function startGame() {
     hazardsHit: 0,
     missedCatches: 0,
     timeLeft: 60,
+    sprintAnnounced: 0,
     elapsed: 0,
     spawnTimer: 0,
     lastFrame: null,
@@ -486,6 +491,18 @@ function drawSprite(type, x, y, size, rotation) {
 }
 
 function updateHud() {
+  const finalSprint = state.running && state.timeLeft > 0 && state.timeLeft <= 10;
+  els.timeStatus.classList.toggle('is-final-sprint', finalSprint);
+  els.sprintPhase.textContent = finalSprint ? 'FINAL SPRINT' : 'seconds';
+  els.sprintClock.value = Math.max(0, Math.min(60,state.timeLeft));
+  const cue = finalSprint ? state.timeLeft <= 5 ? 5 : 10 : 0;
+  if (cue && cue !== state.sprintAnnounced) {
+    state.sprintAnnounced = cue;
+    els.sprintAnnouncement.textContent = `${cue} seconds left. Final sprint: catch rewards and avoid red hazards.`;
+  }
+  if (!state.running || state.timeLeft > 10) {
+    state.sprintAnnounced = 0; els.sprintAnnouncement.textContent = '';
+  }
   els.score.textContent = format(state.score);
   els.time.textContent = Math.ceil(state.timeLeft);
   els.combo.textContent = `x${state.combo}`;

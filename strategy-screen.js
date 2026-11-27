@@ -22,6 +22,15 @@
   const pauseSimulation = !['hands','satoshi'].includes(kind);
   const content = dialog.querySelector('.strategy-panel-content');
   const tabs = dialog.querySelector('.strategy-panel-tabs');
+  // Mirror existing rendered balances; the game remains the only economy owner.
+  function purchaseContext(section, selector, label) {
+    const balance = document.querySelector(selector);
+    const context = document.createElement('p'); context.className = 'strategy-purchase-context';
+    section.prepend(context);
+    const update = () => { context.textContent = label + ': ' + balance.textContent.trim(); };
+    new MutationObserver(update).observe(balance,{childList:true,characterData:true,subtree:true}); update();
+    return context;
+  }
   function open(name) {
     content.querySelectorAll('[data-strategy-view]').forEach(node => { node.hidden = node.dataset.strategyView !== name; });
     tabs.querySelectorAll('button').forEach(button => button.setAttribute('aria-pressed',String(button.dataset.strategyOpen === name)));
@@ -45,16 +54,30 @@
   dialog.querySelector('[data-strategy-close]').addEventListener('click',() => dialog.close());
   dialog.addEventListener('close',() => { if (pauseSimulation && !wasPaused) window.EmeraldArcade?.setPaused?.(false); origin?.focus({preventScroll:true}); });
   if (kind === 'hands') {
-    panel('Upgrades',['.hands-shop-heading','.shop']);
+    const upgrades = panel('Upgrades',['.hands-shop-heading','.shop']);
+    purchaseContext(upgrades,'#shardCount','Available shards');
+    const shortcuts = document.createElement('nav'); shortcuts.className = 'strategy-shop-shortcuts'; shortcuts.setAttribute('aria-label','Find an upgrade');
+    upgrades.querySelector('.hands-shop-heading').append(shortcuts);
+    upgrades.querySelectorAll('.upgrade-card').forEach(card => {
+      const button = document.createElement('button'); button.type = 'button'; button.textContent = card.querySelector('h2').textContent;
+      button.addEventListener('click',() => { card.scrollIntoView({block:'start',behavior:'instant'}); card.querySelector('[data-buy]').focus({preventScroll:true}); });
+      shortcuts.append(button);
+    });
     const progress = panel('Progress',['.hands-journey','.hands-journal']);
     const management = document.createElement('div'); management.className = 'strategy-management-actions';
     management.append(document.querySelector('#saveVaultButton'),document.querySelector('#resetButton')); progress.prepend(management);
     panel('How to play',['.game-guide']);
   }
   if (kind === 'satoshi') {
-    panel('Build',['.build-panel']);
+    const build = panel('Build',['.build-panel']);
+    const reserve = purchaseContext(build,'#treasuryBalance','Treasury reserve · fictional sats');
     panel('System',['#resetButton','.epoch-progress','.market-oracle','.goal-row','.system-notebook','.save-recovery']);
     panel('How to play',['.boundary-notice','.flight-guide','.system-footer']);
+    const next = document.createElement('button'); next.type = 'button'; next.className = 'strategy-next-step'; next.addEventListener('click',() => open('Build')); tools.append(next);
+    const guidance = document.createElement('p'); guidance.className = 'strategy-build-guidance'; reserve.after(guidance);
+    const goal = document.querySelector('#goalText');
+    const summarize = () => { guidance.textContent = goal.textContent; next.textContent = /^Next:/i.test(goal.textContent) ? goal.textContent : 'Next: ' + goal.textContent; next.title = next.textContent; };
+    new MutationObserver(summarize).observe(goal,{childList:true,characterData:true,subtree:true}); summarize();
     dialog.querySelectorAll('a[href="#build-title"],a[href="#cosmos-title"]').forEach(link => link.addEventListener('click',event => {
       event.preventDefault(); if (link.hash === '#build-title') open('Build'); else dialog.close();
     }));

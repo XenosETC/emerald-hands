@@ -166,3 +166,15 @@ test('a failed arcade result write still shows the score and enables the next fl
   g.nodes.get('#overlayStartButton').emit('click');
   assert.equal(g.nodes.get('#finishFlight').disabled, false);
 });
+test('firing warnings follow the real muzzle lane without changing shot cadence',()=>{
+ const g=game();g.run('startGame();enemies.length=0;heroShots.length=0;enemies.push({type:"boss",x:360,y:150,size:150,hp:50,speed:0,shotTimer:.3});draw()');
+ assert.ok(g.run('shotWarning(enemies[0])')>0);
+ assert.ok(g.rendered.some(call=>call.method==='lineTo'&&call.args[0]===360&&call.args[1]===690));
+ g.run('updateEnemies(.1)');assert.equal(g.run('enemyShots.length'),0);
+ g.run('updateEnemies(.21)');assert.equal(g.run('enemyShots.length'),1);
+ assert.equal(g.run('enemyShots[0].x'),360);
+ assert.equal(g.run('enemies[0].shotTimer'),.55);
+ assert.equal(g.run('shotWarning(enemies[0])'),0);
+ assert.equal(g.run('shotWarning({type:"meteor",hp:2,y:200,size:70,shotTimer:.1})'),0);
+ assert.equal(g.rewards.length,0);
+});

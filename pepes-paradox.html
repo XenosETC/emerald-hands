@@ -11,7 +11,7 @@
     <link rel="preload" href="assets/pepes-paradox/bamboo-distant.png" as="image">
     <link rel="preload" href="assets/pepes-paradox/bamboo-temple-path.png" as="image">
     <link rel="preload" href="assets/pepes-paradox/bamboo-foreground.png" as="image">
-    <link rel="stylesheet" href="pepes-paradox.css?v=touch-7">
+    <link rel="stylesheet" href="pepes-paradox.css?v=journey-1">
     <link rel="stylesheet" href="game-polish.css?v=1">
     <link rel="stylesheet" href="canvas-game-screen.css?v=1">
   </head>
@@ -20,13 +20,13 @@
       <header class="paradox-topbar arcade-topbar">
         <a href="index.html">← Emerald Arcade</a>
         <div><span>PEPE LEGENDS</span><strong>Pepe's Paradox</strong></div>
-        <button id="pauseToggle" type="button" aria-pressed="false">Pause</button>
+        <button id="journeyMapButton" type="button">Journey map</button><button id="pauseToggle" type="button" aria-pressed="false">Pause</button>
         <button id="soundToggle" type="button" aria-pressed="true">Sound: on</button>
       </header>
       <section class="paradox-stage" aria-label="Pepe's Paradox Bamboo Mountains stage">
         <canvas id="paradoxCanvas" width="1280" height="720" aria-label="Run, jump, dash, collect relics, and rescue Pepina" tabindex="0" aria-describedby="game-controls"></canvas>
         <section class="paradox-hud" aria-label="Stage progress">
-          <div><small>Stage 2</small><strong>Bamboo Mountains</strong></div>
+          <div><small id="journeyStage">Level 1 · Stage 1</small><strong id="journeyName">Moonlit Approach</strong></div>
           <div><small>Shards</small><strong id="shardCount">0 / 12</strong></div>
           <div><small>Relics</small><strong id="relicCount">0 / 2</strong></div>
           <div><small>Hidden Frogs</small><strong id="frogCount">0 / 1</strong></div>
@@ -56,6 +56,8 @@
       <section class="trail-summary" aria-label="Trail objective"><p id="trailGoal">Follow the trail to Fallen, then reach the temple gate.</p><progress id="trailProgress" value="0" max="1" aria-label="Trail progress"></progress></section>
     </main>
 
+    <dialog id="journeyMap" class="journey-dialog" aria-labelledby="journeyMapTitle"><header><div><small>FOLLOW PEPINA'S SIGNAL</small><h2 id="journeyMapTitle">The road beyond the mountains</h2></div><button data-close type="button">Close map</button></header><p>Choose a ready or cleared stage. Every fifth stage is a base. Cinder Crown and Moonlit Citadel are planned routes.</p><div class="journey-map-scroll"><div class="journey-route"></div></div></dialog>
+    <dialog id="journeyBase" class="journey-dialog journey-base" aria-labelledby="journeyBaseTitle"><header><div><small>STAGE 5 · REST, EQUIP, CONTINUE</small><h2 id="journeyBaseTitle">Frogspire Outpost</h2></div><button data-close type="button">Close camp</button></header><p class="journey-purse"></p><p>Permanent journey gear. Replays award only newly found shards.</p><div class="journey-shop"></div><p id="journeySaveStatus" role="status"></p><button data-onward type="button">Continue journey</button></dialog>
     <footer class="game-guide" aria-label="How to play">
       <div><span class="game-guide__label">Chapter II · Adventure</span><p><strong>Follow Pepina into the mountains.</strong> Jump over hostile wisps or dash through to disperse them; shift realities to reveal stepping stones. Find shards, hidden frogs, and Origin Relics along the way.</p></div>
       <div id="game-controls"><span class="game-guide__label">Controls</span><p>Keyboard or touch buttons. Hold Move and tap or hold Jump. Tap Dash or Realm to use abilities. <kbd>A</kbd> <kbd>D</kbd> / arrows move · <kbd>Space</kbd> jump · <kbd>Shift</kbd> dash · <kbd>Q</kbd> shift realm.</p></div>
@@ -64,7 +66,7 @@
     <script src="canvas-game-screen.js?v=1"></script>
     <script src="arcade.js?v=sanctuary-1"></script>
     <script src="arcade-pet.js?v=sanctuary-1"></script>
-    <script src="pepes-paradox.js?v=touch-8"></script>
+    <script src="paradox-campaign.js?v=1"></script><script src="paradox-campaign-ui.js?v=1"></script><script src="pepes-paradox.js?v=journey-1"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

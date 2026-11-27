@@ -1,6 +1,6 @@
 import { AVATARS, DEFAULT_AVATAR_ID } from "./avatar-catalog.mjs?v=1";
 import { DEFAULT_TABLE, TABLE_PRESETS, TURN_SECONDS, TIME_BANK_SECONDS } from "./table-settings.mjs?v=3";
-import { headsUpCallOdds, potRaiseTo } from "./bet-sizing.mjs?v=3";
+import { headsUpCallOdds, potRaiseTo, raiseCommitment } from "./bet-sizing.mjs?v=4";
 import { formatHandExport, potBreakdownLines } from "./hand-export.mjs?v=2";
 import { REPLAY_STREETS, replayStreetStarts } from "./hand-replay.mjs?v=1";
 import { REACTIONS, REACTION_COOLDOWN } from "./reaction-catalog.mjs?v=1";
@@ -16,20 +16,24 @@ const format = new Intl.NumberFormat();
 const percent = new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 1 });
 const reactionsById = new Map(REACTIONS.map(reaction => [reaction.id, reaction]));
 let room = new URL(location.href).searchParams.get("room");
+let watching = new URL(location.href).searchParams.get("watch") === "1";
 let token;
 try {
+  if (!watching)
   token = room && sessionStorage.getItem("pepe-poker:" + room);
 } catch { /* The table remains playable when browser storage is blocked. */ }
-if (!token && room) {
+if (!watching && !token && room) {
   try { token = localStorage.getItem("pepe-poker:seat:" + room); } catch { /* Optional reconnect storage. */ }
 }
 let state;
 let busy = false;
+let raiseDraftKey = null;
 let submission = 0;
 let polling = false;
 let missingRoom = false;
 let recovering = false;
 let reacting = false;
+let reactionNotice = "";
 let sendingChat = false;
 let recapOptionsKey = "";
 let replayStep = null;
@@ -271,6 +275,67 @@ function reactionImage(reaction, className, alt) {
   image.src = "./reactions/" + reaction.id + ".webp";
   return image;
 }
+
+const knownTablesKey = "pepe-poker:known-tables-v1";
+let knownTables = [];
+let knownTablesRendered = "";
+let rememberedRoom = "";
+try {
+  const stored = JSON.parse(localStorage.getItem(knownTablesKey) || "[]");
+  if (Array.isArray(stored)) knownTables = stored.filter(item => /^[\w-]{10,80}$/.test(item?.id) && Number.isFinite(item.at)).slice(0,12);
+} catch { /* A table manager also works in memory when storage is unavailable. */ }
+function tableURL(id, watch = false) {
+  const url = new URL("index.html", location.href); url.search = ""; url.hash = "";
+  url.searchParams.set("room", id); if (watch) url.searchParams.set("watch", "1");
+  return url.href;
+}
+function renderKnownTables() {
+  const signature = JSON.stringify([room, knownTables]);
+  if (signature === knownTablesRendered) return;
+  knownTablesRendered = signature;
+  const rows = knownTables.map(item => {
+    const row = element("div", "known-table");
+    row.append(element("strong", "", "Table " + item.id.slice(0,6) + (item.id === room ? " · current" : "")));
+    for (const [text, watch] of [["Open table ↗", false], ["Watch table ↗", true]]) {
+      const link = element("a", "", text);link.href = tableURL(item.id, watch);link.target = "_blank";link.rel = "noopener";row.append(link);
+    }
+    return row;
+  });
+  $("known-tables").replaceChildren(...(rows.length ? rows : [element("p", "", "Private tables you open will appear here. Invite links are never listed publicly.")]));
+}
+function rememberTable() {
+  if (!state || state.practice || !room) { renderKnownTables(); return; }
+  if (rememberedRoom !== room) {
+    rememberedRoom = room;
+    knownTables = [{id:room,at:Date.now()},...knownTables.filter(item=>item.id!==room)].slice(0,12);
+    try { localStorage.setItem(knownTablesKey,JSON.stringify(knownTables)); } catch {}
+  }
+  renderKnownTables();
+}
+$("table-link").addEventListener("input", () => {
+  let url;
+  try {
+    const input = new URL($("table-link").value, location.href);
+    const id = input.searchParams.get("room");
+    if (input.origin !== location.origin || input.pathname !== location.pathname || !/^[\w-]{10,80}$/.test(id || "")) throw Error();
+    url = tableURL(id);
+  } catch {}
+  for (const [id, watch] of [["open-table-link",false],["watch-table-link",true]]) {
+    $(id).hidden = !url;
+    if (url) $(id).href = tableURL(new URL(url).searchParams.get("room"),watch);
+    else $(id).removeAttribute("href");
+  }
+  $("table-link-status").textContent = url ? "Open a separate tab to play or watch. Your current table stays open." : "Paste a valid invite from this arcade.";
+});
+renderKnownTables();
+window.addEventListener("storage", event => {
+  if (event.key !== knownTablesKey) return;
+  try {
+    const stored = JSON.parse(event.newValue || "[]");
+    if (Array.isArray(stored)) knownTables = stored.filter(item => /^[\w-]{10,80}$/.test(item?.id) && Number.isFinite(item.at)).slice(0,12);
+    renderKnownTables();
+  } catch { /* Ignore malformed storage from another tab. */ }
+});
 
 function seat(player, index) {
   if (!player) return element("div", "seat open", "Open seat");
@@ -587,10 +652,17 @@ function render() {
   renderRecap();
   renderScoreboard();
   $("join").hidden = seated;
+  if (watching && state) $("join").hidden = true;
+  $("watch-status").hidden = !(watching && state);
+  const seatURL = new URL(location.href); seatURL.searchParams.delete("watch");
+  $("take-seat").href = seatURL.href;
   $("actions").hidden = !seated;
   $("jump-to-actions").hidden = !seated;
   $("auto-deal-label").hidden = !state?.practice;
   $("reaction-tray").hidden = !seated;
+  $("emotes").hidden = !seated;
+  $("emotes").disabled = missingRoom || recovering;
+  if (!seated && $("emotes-dialog").open) $("emotes-dialog").close();
   $("invite").hidden = !room || missingRoom || Boolean(state?.practice);
   $("exit-practice").hidden = !state?.practice;
   $("new-table").hidden = !missingRoom;
@@ -602,15 +674,17 @@ function render() {
   const table = state?.settings ?? preview ?? DEFAULT_TABLE;
   $("stakes").textContent = `${format.format(table.smallBlind)} / ${format.format(table.bigBlind)}`;
   $("rebuy").textContent = "Rebuy · " + format.format(table.startingStack);
-  const seatsTaken = state?.practice ? "Heads-up practice" : `${state?.players.length ?? 0} of 6 seats taken`;
+  const seatsTaken = state?.practice ? "Heads-up practice" : `${state?.players.length ?? 0} of 8 seats taken`;
   $("room-status").textContent = missingRoom ? "Table unavailable" :
     room && !state ? "Checking table" :
     state?.hand ? `Hand #${state.hand} · ${seatsTaken}` :
       state?.practice ? seatsTaken : `Private table · ${seatsTaken}`;
   const first = seated ? state.index : 0;
   $("seats").classList.toggle("practice-seats", Boolean(state?.practice));
-  $("seats").replaceChildren(...Array.from({ length: 6 }, (_, offset) => {
-    const index = state?.practice ? (offset === 3 ? 1 : offset === 0 ? 0 : -1) : (first + offset) % 6;
+  const seatCount = state?.practice ? 6 : 8;
+  $("seats").classList.toggle("eight-seats", !state?.practice);
+  $("seats").replaceChildren(...Array.from({ length: seatCount }, (_, offset) => {
+    const index = state?.practice ? (offset === 3 ? 1 : offset === 0 ? 0 : -1) : (first + offset) % 8;
     return seat(state?.players[index], index);
   }));
   const awarded = state?.payouts?.reduce((total, payout) => total + payout.amount, 0) || 0;
@@ -633,6 +707,7 @@ function render() {
   $("street").hidden = !state?.result;
   if ($("street").textContent !== (state?.result ?? "")) $("street").textContent = state?.result ?? "";
   renderDealer();
+  rememberTable();
   $("history").replaceChildren(...(state?.history.length ? [...state.history].reverse() : ["Hands will appear here."])
     .map(line => element("li", "", line)));
   if (!seated) {
@@ -656,9 +731,10 @@ function render() {
     const amount = $("amount");
     amount.min = allowed.min;
     amount.max = allowed.max;
-    if (document.activeElement !== amount && !amount.validity.valid) amount.value = allowed.min;
+    const draftKey = [state.id, state.hand, state.street, state.index, player.bet, player.stack, allowed.min, allowed.max, allowed.call].join(":");
+    if (draftKey !== raiseDraftKey) { amount.value = allowed.min; raiseDraftKey = draftKey; }
     for (const preset of ["min", "half", "pot"]) $("raise-" + preset).hidden = allowed.min === allowed.max;
-  } else $("amount").value = "";
+  } else { $("amount").value = ""; raiseDraftKey = null; }
   renderPracticeDecision(allowed, player);
   updateRaiseLabel();
   updateClock();
@@ -670,19 +746,23 @@ function updateRaiseLabel() {
   const openingBet = state?.street !== "Preflop" && state?.players.every(player => player.bet === 0);
   const verb = openingBet ? "Bet" : "Raise to";
   $("raise-verb").textContent = verb;
-  const valid = allowed?.canRaise && amount.validity.valid;
+  const player = state?.players[state.index];
+  const commitment = player && raiseCommitment(amount.value, player.bet, player.stack, allowed);
+  const valid = amount.validity.valid && Boolean(commitment);
   const target = Number(amount.value);
+  $("raise").disabled = busy || recovering || !valid;
+  amount.setAttribute("aria-invalid", String(Boolean(allowed?.canRaise && !valid)));
   $("raise").textContent = !valid ? (openingBet ? "Bet" : "Raise") :
-    target === allowed.max ? "Go all-in" : verb + " " + format.format(target);
+    target === allowed.max ? "All-in " + format.format(target) : verb + " " + format.format(target);
   const preview = $("raise-preview");
+  preview.hidden = !allowed?.canRaise;
+  preview.classList.toggle("invalid", Boolean(allowed?.canRaise && !valid));
   if (!allowed?.canRaise) {
     preview.textContent = "";
   } else if (!valid) {
     preview.textContent = "Allowed total: " + format.format(allowed.min) + "–" + format.format(allowed.max) + " chips.";
   } else {
-    const player = state.players[state.index];
-    const extra = target - player.bet;
-    preview.textContent = format.format(extra) + " chips added · " + format.format(player.stack - extra) + " behind";
+    preview.textContent = `${commitment.allIn ? "All-in" : verb} ${format.format(target)} total · ` + format.format(commitment.added) + " chips added · " + format.format(commitment.behind) + " behind";
   }
 }
 
@@ -854,11 +934,13 @@ async function submit(path, input) {
     busy = false;
     for (const button of document.querySelectorAll(".controls button")) button.disabled = false;
     $("enter").disabled = missingRoom || recovering || Boolean(room && !state);
+    updateRaiseLabel();
   }
 }
 
 $("join").addEventListener("submit", event => {
   event.preventDefault();
+  if (watching) return;
   if (missingRoom || (room && !state)) return;
   const selected = $("avatar-options").querySelector("input:checked");
   const input = {
@@ -873,12 +955,14 @@ $("join").addEventListener("submit", event => {
 });
 $("new-table").onclick = () => {
   room = token = null;
+  watching = false; state = undefined;
   missingRoom = false;
   recovering = false;
   showConnection("");
   $("actions").inert = false;
   const url = new URL(location.href);
   url.searchParams.delete("room");
+  url.searchParams.delete("watch");
   history.replaceState(null, "", url);
   $("notice").textContent = "";
   $("chat-text").value = "";
@@ -937,17 +1021,25 @@ async function sendReaction(reaction) {
   reacting = true;
   const buttons = $("reaction-options").querySelectorAll("button");
   for (const button of buttons) button.disabled = true;
+  $("emote-status").textContent = "Sending " + reaction.label + "…";
   try {
     await request("/" + room + "/react", { reaction: reaction.id });
+    if (reactionNotice && $("notice").textContent === reactionNotice) $("notice").textContent = "";
+    reactionNotice = "";
+    $("emote-status").textContent = reaction.label + " sent. Give it a moment before the next emote.";
+    if ($("emotes-dialog").open) $("emotes-dialog").close();
     void poll();
     setTimeout(() => {
       reacting = false;
       for (const button of buttons) button.disabled = false;
+      $("emote-status").textContent = "Choose an emote. The table will see it at your seat.";
     }, REACTION_COOLDOWN);
   } catch (error) {
     reacting = false;
     for (const button of buttons) button.disabled = false;
-    $("notice").textContent = error.message;
+    reactionNotice = error.message;
+    $("notice").textContent = reactionNotice;
+    $("emote-status").textContent = reactionNotice;
   }
 }
 

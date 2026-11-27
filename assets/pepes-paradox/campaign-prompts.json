@@ -1,0 +1,22 @@
+[
+  {
+    "key": "corrupt-marsh-v1",
+    "transparent": false,
+    "prompt": "Use case: stylized-concept. Premium painted fantasy platformer background for Pepe's Paradox, side scrolling 16:9. Corrupt Marsh: ancient jade bamboo wetlands overtaken by violet corruption, luminous violet lotus pools, twisted dark bamboo trees, mossy stone frog shrines, broken gold lantern bridges, distant emerald temple towers sinking into mist. Rich handcrafted game concept art, coherent emerald/gold/violet palette, atmospheric layered depth. Upper two thirds rich scenery, quiet dark lower third for separately drawn platform collision. No foreground game path, characters, UI, text, letters or logos. Wide landscape edge-to-edge."
+  },
+  {
+    "key": "campaign-map-v1",
+    "transparent": false,
+    "prompt": "Use case: stylized-concept. High quality hand-painted fantasy adventure world map for Pepe's Paradox journey to rescue Pepina. Widescreen 16:9 parchment island atlas with four distinct readable regions arranged left to right: emerald bamboo mountain valley and a small safe temple outpost; violet corrupted marsh and a lantern village base; black volcanic mountain pass with gold lava citadel; distant moonlit jade palace atop floating cliffs. An elegant winding gold pilgrimage road connects regions; many clear empty spaces along road for code-rendered stage nodes and labels later. Intricate terrain illustration, miniature frog architecture, fine antique gold cartographic borders, jade gemstones at corners, atmospheric watercolor-painterly high-quality game map. NO text, numbers, letters, words, UI labels, icons resembling map pins or node circles, characters, coins or watermark. Scenic art only, readable at phone scale."
+  },
+  {
+    "key": "marsh-sentinel-v1",
+    "transparent": true,
+    "prompt": "Use case: stylized-concept. Production transparent 2D game enemy sprite for Pepe's Paradox. ONE squat corrupted jade stone frog sentinel, side profile facing LEFT, chunky dark mossy obsidian/jade armor plates, bright violet crystal eyes and a few violet crystals growing from back, short sturdy legs, hostile but charming arcade frog civilization design. Painted premium game illustration with crisp readable silhouette at90px wide, full body centered,15 percent transparent padding. Genuine transparent background. No floor, shadow plane, scenery, text, UI, logo, aura fog or frame."
+  },
+  {
+    "key": "journey-relics-v1",
+    "transparent": true,
+    "prompt": "Use case: stylized-concept. Production 2D fantasy platformer collectible sprite sheet for Pepe's Paradox. Strict regular TWO columns ONE row, equal square cells, request1024x512. Left cell: elegant emerald-and-gold winged travel boots, pair together, polished jade panels, fine gold feather filigree, recognizable silhouette. Right cell: an antique gold lotus medallion containing a faceted emerald heart, magical protective relic. Each object centered within its own cell,15 percent transparent padding, no overlap across cells. Premium hand-painted fantasy game loot with restrained cyan rim reflections, legible at64px. Genuine transparent background across sheet, no grid lines, text, words, letters, backdrop, floor, characters, frame or logo."
+  }
+]

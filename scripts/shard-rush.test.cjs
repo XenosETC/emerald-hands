@@ -20,7 +20,7 @@ function game({ reducedMotion = false, mode = "classic", storageBlocked = false,
       textContent: '', hidden: false, disabled: false, innerHTML: '',
       attributes: {},
       setAttribute(name, value) { this.attributes[name] = value; },
-      classList: { add() {}, remove() {} },
+      classList: { add() {}, remove() {}, toggle() {} },
       addEventListener(type, listener) {
         if (!listeners.has(type)) listeners.set(type, []);
         listeners.get(type).push(listener);
@@ -506,4 +506,19 @@ test('replay-only storage failure keeps the score saved and retries persistence 
   g.run('startGame(); update(60)');
   assert.equal(g.saves.get('shard-rush-ghost-v1'), original);
   assert.match(g.nodes.get('#dailyResult').textContent, /ghost is ready/);
+});
+test('final sprint cues follow remaining time and reset in classic and daily modes',()=>{
+ for(const mode of ['classic','daily']) {
+  const g=game({mode});g.run('startGame();state.timeLeft=9.9;updateHud()');
+  assert.equal(g.nodes.get('#sprintPhase').textContent,'FINAL SPRINT');
+  assert.match(g.nodes.get('#sprintAnnouncement').textContent,/10 seconds left/);
+  assert.equal(g.nodes.get('#sprintClock').value,9.9);
+  g.run('state.timeLeft=4.9;updateHud()');assert.match(g.nodes.get('#sprintAnnouncement').textContent,/5 seconds left/);
+  assert.equal(g.run('state.score+state.cleanCatches+state.hazardsHit'),0);
+  assert.equal(g.rewards.length,0);
+  g.run('state.running=false;updateHud();startGame();updateHud()');
+  assert.equal(g.nodes.get('#sprintPhase').textContent,'seconds');
+  assert.equal(g.nodes.get('#sprintAnnouncement').textContent,'');
+  assert.equal(g.nodes.get('#sprintClock').value,60);
+ }
 });

@@ -55,3 +55,23 @@ test('CPU tournament victory records a loss without a champion unlock',()=>{
  const g=game();g.run('showRosterStep("tournament");launchSelectedFight();endRound(fighters[1]);update(2.3);endRound(fighters[1])');
  assert.equal(g.run('gameState'),'match-over');assert.equal(g.rewards.length,1);assert.equal(g.rewards[0][1].tournamentWon,false);assert.equal(g.rewards[0][1].wins,0);
 });
+
+test('tournament touch and keyboard share controls without releasing each other',()=>{
+ const g=game();g.run('showRosterStep("tournament");launchSelectedFight();pressTouchCode("KeyD")');
+ g.window.emit('keydown',{code:'KeyD'});g.run('releaseTouchCode("KeyD")');
+ assert.equal(g.run('keys.has("KeyD")'),true);
+ g.run('pressTouchCode("KeyD")');g.window.emit('keyup',{code:'KeyD'});
+ assert.equal(g.run('keys.has("KeyD")'),true);
+ g.run('resetInput()');assert.equal(g.run('keys.size+keyboardKeys.size+touchKeys.size+pressed.size'),0);
+ g.window.EmeraldArcade.isPaused=()=>true;g.run('pressTouchCode("KeyF")');assert.equal(g.run('keys.size'),0);
+ g.window.EmeraldArcade.isPaused=()=>false;g.run('openSetup();showRosterStep("pvp");launchSelectedFight();pressTouchCode("KeyF")');
+ assert.equal(g.run('keys.size'),0,'touch controls belong to the solo tournament');
+});
+
+test('touch actions use the real jump, kick, block and charge mechanics',()=>{
+ const g=game();g.run('showRosterStep("tournament");launchSelectedFight();pressTouchCode("KeyW");update(.016)');
+ assert.equal(g.run('fighters[0].grounded'),false);
+ g.run('resetRound();pressTouchCode("KeyG");update(.016)');assert.equal(g.run('fighters[0].action'),'kick');
+ g.run('resetRound();fighters[0].energy=0;pressTouchCode("KeyH");update(.016)');assert.equal(g.run('fighters[0].block'),true);
+ g.run('resetRound();fighters[0].energy=0;pressTouchCode("KeyS");update(.1)');assert.ok(g.run('fighters[0].energy')>0);
+});

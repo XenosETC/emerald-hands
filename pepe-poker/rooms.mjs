@@ -30,7 +30,7 @@ async function body(request) {
 }
 
 function addPlayer(room, name, avatarId = DEFAULT_AVATAR_ID, bot = false) {
-  if (room.players.length >= 6) throw new Error("This table is full.");
+  if (room.players.length >= 8) throw new Error("This table is full (8 players maximum).");
   if (typeof name !== "string" || !name.trim() || name.trim().length > 20) throw new Error("Enter a name with 1–20 characters.");
   if (room.players.some(player => player.name.toLowerCase() === name.trim().toLowerCase())) throw new Error("That name is already seated.");
   if (!avatarIds.has(avatarId)) throw new Error("Choose an avatar from the gallery.");
@@ -81,7 +81,7 @@ function state(room, index) {
     ? labels[handCategory(evaluate([...viewer.cards, ...room.board]))]
     : null;
   return {
-    id: room.id, index, practice: room.practice, settings: room.settings, hand: room.hand, street: room.street, board: room.board, result: room.result,
+    id: room.id, index, maxSeats: 8, practice: room.practice, settings: room.settings, hand: room.hand, street: room.street, board: room.board, result: room.result,
     revision: room.revision, deadline: room.turn === -1 ? null : room.deadline,
     turnSeconds: room.turnSeconds,
     canExtend: index >= 0 && room.turn === index && !room.players[index].usedTimeBank,

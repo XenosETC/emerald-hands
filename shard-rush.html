@@ -7,7 +7,7 @@
     <title>Shard Rush</title>
     <link rel="preload" href="assets/shard-rush/arena-background.png" as="image">
     <link rel="preload" href="assets/shard-rush/sprite-sheet.png" as="image">
-    <link rel="stylesheet" href="shard-rush.css?v=8">
+    <link rel="stylesheet" href="shard-rush.css?v=sprint-9">
     <link rel="stylesheet" href="game-polish.css?v=1">
     <link rel="stylesheet" href="canvas-game-screen.css?v=1">
   </head>
@@ -43,9 +43,10 @@
               <span id="scoreLabel">0</span>
               <small>score</small>
             </div>
-            <div>
+            <div id="timeStatus">
               <span id="timeLabel">60</span>
-              <small>seconds</small>
+              <small id="sprintPhase">seconds</small>
+              <progress id="sprintClock" max="60" value="60" aria-label="Sprint time remaining"></progress>
             </div>
             <div>
               <span id="comboLabel">x1</span>
@@ -56,6 +57,7 @@
               <small id="rankKind">rank</small>
             </div>
           </section>
+          <span id="sprintAnnouncement" class="rush-announcement" role="status" aria-live="polite"></span>
           <section class="rush-overlay" id="rushOverlay">
             <p class="eyebrow" id="modeLabel">Market Sprint</p>
             <h2 id="overlayTitle">Catch the green. Dodge the red.</h2>
@@ -94,7 +96,7 @@
     <script src="arcade-pet.js?v=sanctuary-1"></script>
     <script src="shard-rush-challenges.js?v=1"></script>
     <script src="shard-rush-ghost.js?v=1"></script>
-    <script src="shard-rush.js?v=8"></script>
+    <script src="shard-rush.js?v=sprint-9"></script>
   <script src="arcade-library.js?v=library-2-launch"></script><script src="arcade-visit.js?v=library-2"></script>
 </body>
 </html>

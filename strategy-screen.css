@@ -189,3 +189,35 @@ body[data-strategy-screen="rocket"] .systems span{display:grid;grid-template-col
  body[data-strategy-screen="rocket"] .systems{grid-area:2/2!important;grid-template-columns:1fr}
  body[data-strategy-screen="rocket"] .strategy-mission-summary{grid-area:3/2;font-size:.68rem;align-self:end}
 }
+
+/* Purchase panels: compact controls and visible spending context. */
+.strategy-purchase-context{position:sticky;top:0;z-index:2;margin:0 0 8px;padding:10px 12px;border:1px solid #6eaa7855;border-radius:8px;background:#10291a;color:#e9f9dd;font-weight:700;font-size:.85rem;box-shadow:0 4px 12px #0005}
+.strategy-build-guidance{font-size:.85rem;line-height:1.5;color:#d9e8d1}
+body[data-strategy-screen="hands"] .strategy-panel-tabs{flex-wrap:nowrap;overflow:auto;scrollbar-width:thin}
+body[data-strategy-screen="hands"] .strategy-panel-tabs button{flex:none;font-size:.7rem;padding:6px 9px}
+body[data-strategy-screen] .strategy-screen-tools .strategy-next-step{min-width:0;max-width:350px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.7rem;color:#d9edb8}
+body[data-strategy-screen="hands"] .strategy-details .hands-shop-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+body[data-strategy-screen="hands"] .strategy-details .hands-shop-heading h2{font-size:1rem}
+body[data-strategy-screen="hands"] .hands-shop-heading .eyebrow{display:none}
+body[data-strategy-screen="hands"] .strategy-details .hands-shop-heading label{gap:5px;font-size:.72rem}
+body[data-strategy-screen="hands"] .hands-shop-heading select{width:100px;max-width:100%;padding:5px}
+.strategy-shop-shortcuts{grid-column:1/-1;display:flex;gap:6px;overflow:auto;max-width:100%;width:100%;padding:2px 2px 7px;scrollbar-width:thin}
+body[data-strategy-screen] .strategy-shop-shortcuts button{flex:none;font-size:.7rem;padding:6px 9px}
+body[data-strategy-screen="hands"] .strategy-details .shop{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+body[data-strategy-screen="hands"] .strategy-details .upgrade-card{grid-template-columns:64px minmax(0,1fr);grid-template-rows:auto auto;gap:8px;min-width:0;padding:10px;scroll-margin-top:55px}
+body[data-strategy-screen="hands"] .strategy-details .upgrade-card img{width:64px;height:72px;border-radius:8px;object-fit:cover}
+body[data-strategy-screen="hands"] .strategy-details .upgrade-card h2{font-size:1rem;margin:3px 0}
+body[data-strategy-screen="hands"] .strategy-details .upgrade-card p{font-size:.65rem;margin:0 0 3px}
+body[data-strategy-screen="hands"] .strategy-details .upgrade-card span{font-size:.75rem;line-height:1.35}
+body[data-strategy-screen="hands"] .strategy-details .buy-button{grid-column:1/-1;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:600px){body[data-strategy-screen="hands"] .strategy-details .shop{grid-template-columns:minmax(0,1fr)}body[data-strategy-screen="satoshi"] .strategy-screen-tools{flex-wrap:wrap}body[data-strategy-screen="satoshi"] .strategy-screen-tools .strategy-next-step{flex-basis:100%;max-width:none;min-height:30px;padding:4px 8px}}
+@media(max-height:480px) and (min-width:601px){
+ body[data-strategy-screen="hands"] .strategy-details[open]{grid-template-rows:auto minmax(0,1fr)}
+ body[data-strategy-screen="hands"] .strategy-details>header{position:absolute;right:14px;top:14px}
+ body[data-strategy-screen="hands"] .strategy-details>header h2{display:none}
+ body[data-strategy-screen="hands"] .strategy-panel-tabs{padding-right:68px}
+ body[data-strategy-screen="hands"] .strategy-panel-content{grid-row:2}
+ body[data-strategy-screen="hands"] .strategy-details .hands-shop-heading{grid-template-columns:auto minmax(0,1fr);padding:0 0 8px}
+ body[data-strategy-screen="hands"] .hands-shop-heading>div{display:none}
+ body[data-strategy-screen="hands"] .strategy-shop-shortcuts{grid-column:2;padding-bottom:2px}
+}

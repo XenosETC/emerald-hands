@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pepe Chess | Emerald Arcade</title>
-  <link rel="stylesheet" href="preview.css?v=play-8">
+  <link rel="stylesheet" href="preview.css?v=threats-9">
   <link rel="stylesheet" href="screen.css?v=1">
 </head>
 <body>
@@ -32,7 +32,9 @@
         <div class="board-utility">
           <button id="flip-board" type="button" aria-pressed="false">Flip board</button>
           <button id="undo" type="button" disabled>Undo move</button>
+          <button id="show-threats" type="button" aria-pressed="false" aria-describedby="threat-note">Show threats</button>
           <p id="board-move" hidden></p>
+          <p id="threat-note" class="threat-note" role="status" hidden></p>
         </div>
         <div class="seat seat--black" id="black-seat">
           <img src="assets/pieces-v1/black-king.png" alt="">
@@ -159,8 +161,11 @@
         </section>
         <div class="match-controls">
           <button id="export" type="button" disabled>Download PGN</button>
+          <button id="import" type="button" aria-describedby="import-note">Import PGN</button>
           <button id="reset" type="button">Reset board</button>
         </div>
+        <input id="pgn-file" type="file" accept=".pgn,application/x-chess-pgn,text/plain" hidden>
+        <p id="import-note" role="status">Restore moves from a PGN with the standard starting position. Opponent and takeback rules stay the same.</p>
         <p id="save-note" role="status">Play on this device.</p>
       </aside>
     </div>
@@ -179,9 +184,9 @@
   </main>
   <script src="vendor/chess-1.4.0.js"></script>
   <script src="beginner-bot.js?v=2"></script>
-  <script src="game.js?v=12"></script>
+  <script src="game.js?v=threats-14"></script>
   <script src="../arcade-library.js?v=library-2-chess"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
-  <script src="screen.js?v=1"></script>
+  <script src="screen.js?v=options-2"></script>
 </body>
 </html>

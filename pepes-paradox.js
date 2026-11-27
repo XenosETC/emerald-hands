@@ -20,6 +20,8 @@
     bambooDistant:loadImage("assets/pepes-paradox/bamboo-distant.png"),
     bambooTemple:loadImage("assets/pepes-paradox/bamboo-temple-path.png"),
     bambooForeground:loadImage("assets/pepes-paradox/bamboo-foreground.png"),
+    marsh:loadImage("assets/pepes-paradox/corrupt-marsh-v1.webp"),
+    sentinel:loadImage("assets/pepes-paradox/marsh-sentinel-v1.webp"),
     fallen:loadImage("assets/pepe-relic-rumble/fallen-idle.png")
   };
   const parallaxRates = { distant:.055, temple:.16, foreground:.32 };
@@ -73,7 +75,7 @@
   let checkpoint = {x:180,y:FLOOR-154};
   let falls = 0;
   let runId = 0;
-  const originalWisps = wisps.map(w => ({...w}));
+  let originalWisps = wisps.map(w => ({...w}));
   let audio;
   function stopMotion(){player.vx=0;player.dash=0;ability.jumpBuffer=0;}
   function clearInput(){keys.clear();touchPointers.clear();syncTouchButtons();stopMotion();}
@@ -84,6 +86,7 @@
   }
   function start(){
     if(window.EmeraldArcade?.isPaused?.() || ["playing","cutscene","escape"].includes(state.mode)) return;
+    if(campaignAPI){configureStage(campaignAPI.stages.find(s=>s.id===journey.current));if(activeStage.base){enterBase();return;}}
     runId++;ui.report.hidden=true;ui.report.textContent="";
     clearInput(); particles.length=0;
     Object.assign(ability,{realm:"jade",shiftCooldown:0,dashCooldown:0,coyote:.12,jumpBuffer:0,flash:0,hurt:0,hits:0,dispersals:0});
@@ -97,7 +100,7 @@
     const petBonus=window.ArcadePet?.activeBonus("paradox");
     Object.assign(player,{x:180,y:FLOOR-154,vx:0,vy:0,grounded:true,shards:0,relics:0,frogs:0,dash:0,facing:1});
     Object.assign(state,{mode:"playing",time:0,platformTime:0,camera:0,cutsceneStep:0,tauntDone:false,finished:false,petCollectRadius:Number(petBonus?.collectibleRadius||0)});
-    [...shards,...relics,...frogs].forEach(o=>o.got=false); ui.overlay.classList.add("is-hidden"); ui.dialogue.hidden=true; canvas.focus(); syncHud(); tone(220,.15,"triangle");
+    [...shards,...relics,...frogs].forEach(o=>o.got=false); ui.overlay.classList.add("is-hidden"); ui.dialogue.hidden=true;if(campaignAPI)restoreJourney(); canvas.focus(); syncHud(); tone(220,.15,"triangle");
   }
   function jump(){
     if(window.EmeraldArcade?.isPaused?.()||!["playing","escape"].includes(state.mode))return;
@@ -106,7 +109,7 @@
   }
   function tryJump(){
     if(ability.jumpBuffer>0&&(player.grounded||ability.coyote>0)){
-      player.vy=-740;player.grounded=false;ability.coyote=0;ability.jumpBuffer=0;tone(440,.08,"triangle");
+      player.vy=-(campaignAPI&&journey.owned.includes("leap")?780:740);player.grounded=false;ability.coyote=0;ability.jumpBuffer=0;tone(440,.08,"triangle");
     }
   }
   function shiftRealm(){
@@ -116,17 +119,17 @@
     tone(ability.realm==="echo"?330:660,.18,"triangle");
     ui.recovery.textContent=`${ability.realm==="echo"?"Echo":"Jade"} realm revealed. Glowing stones are solid; outlined stones are memories.`;
   }
-  function dash(){ if(!window.EmeraldArcade?.isPaused?.()&&["playing","escape"].includes(state.mode)&&ability.dashCooldown<=0){ability.dashCooldown=.9;player.dash=.24;player.vx=player.facing*720;tone(170,.12,"sawtooth",.03);burst(player.x+player.w/2,player.y+player.h/2,"#9affac",16);} }
+  function dash(){ if(!window.EmeraldArcade?.isPaused?.()&&["playing","escape"].includes(state.mode)&&ability.dashCooldown<=0){ability.dashCooldown=campaignAPI&&journey.owned.includes("dash")?.7:.9;player.dash=.24;player.vx=player.facing*720;tone(170,.12,"sawtooth",.03);burst(player.x+player.w/2,player.y+player.h/2,"#9affac",16);} }
   function beginTaunt(){ stopMotion(); state.mode="cutscene";state.cutsceneStep=0;state.cutsceneClock=0;rival.x=player.x+720;rival.alpha=1;player.vx=0;showLine();ui.next.focus();tone(85,.35,"sawtooth",.025); }
   function showLine(){ const line=dialogue[state.cutsceneStep];ui.name.textContent=line.name;ui.text.textContent=line.text;ui.portrait.src=line.portrait;ui.dialogue.hidden=false; }
   function advanceDialogue(){
     if(state.mode!=="cutscene"||window.EmeraldArcade?.isPaused?.()) return; state.cutsceneStep++;
     if(state.cutsceneStep<dialogue.length){showLine();tone(120+state.cutsceneStep*35,.08,"square",.02);return;}
-    ui.dialogue.hidden=true;stopMotion();canvas.focus();state.mode="escape";state.cutsceneClock=0;state.tauntDone=true;tone(520,.1,"triangle");
+    ui.dialogue.hidden=true;stopMotion();canvas.focus();state.mode="escape";state.cutsceneClock=0;state.tauntDone=true;saveCheckpoint();tone(520,.1,"triangle");
   }
-  function finish(){ if(state.finished||!["playing","escape"].includes(state.mode)||!state.tauntDone)return;clearInput();state.finished=true;state.mode="won";tone(523,.18);const wonRun=runId;setTimeout(()=>{if(runId===wonRun&&state.mode==="won")tone(659,.18);},180);setTimeout(()=>{if(runId===wonRun&&state.mode==="won")tone(784,.3);},360);window.EmeraldArcade?.recordAndNotify("paradox",{score:player.shards*120+player.relics*600+player.frogs*1000,rank:"Mountain Pursuer",shards:player.shards,relics:player.relics,frogs:player.frogs,stage:2,played:true});ui.overlay.querySelector("p:first-child").textContent="Mountain Archive · Rage Bait Survived";ui.overlay.querySelector("h1").textContent="The Ancient Temple has opened.";ui.overlay.querySelectorAll("p")[1].textContent="The bamboo bells speak Pepina's name. Fallen escaped through the temple gate, but the recovered frog sigil remembers the path.";ui.report.textContent=`Bamboo Mountains cleared · ${player.shards*120+player.relics*600+player.frogs*1000} points · ${player.shards}/${shards.length} shards · ${player.relics}/${relics.length} relics · ${player.frogs}/${frogs.length} hidden frogs · ${falls} fall recoveries. The Ancient Temple is the next story lead; this build ends here.`;ui.report.hidden=false;ui.start.textContent="Replay Bamboo Mountains";ui.overlay.classList.remove("is-hidden");syncHud();ui.start.focus(); }
+  function finish(){ if(campaignAPI){finishJourneyStage();return;} if(state.finished||!["playing","escape"].includes(state.mode)||!state.tauntDone)return;clearInput();state.finished=true;state.mode="won";tone(523,.18);const wonRun=runId;setTimeout(()=>{if(runId===wonRun&&state.mode==="won")tone(659,.18);},180);setTimeout(()=>{if(runId===wonRun&&state.mode==="won")tone(784,.3);},360);window.EmeraldArcade?.recordAndNotify("paradox",{score:player.shards*120+player.relics*600+player.frogs*1000,rank:"Mountain Pursuer",shards:player.shards,relics:player.relics,frogs:player.frogs,stage:2,played:true});ui.overlay.querySelector("p:first-child").textContent="Mountain Archive · Rage Bait Survived";ui.overlay.querySelector("h1").textContent="The Ancient Temple has opened.";ui.overlay.querySelectorAll("p")[1].textContent="The bamboo bells speak Pepina's name. Fallen escaped through the temple gate, but the recovered frog sigil remembers the path.";ui.report.textContent=`Bamboo Mountains cleared · ${player.shards*120+player.relics*600+player.frogs*1000} points · ${player.shards}/${shards.length} shards · ${player.relics}/${relics.length} relics · ${player.frogs}/${frogs.length} hidden frogs · ${falls} fall recoveries. The Ancient Temple is the next story lead; this build ends here.`;ui.report.hidden=false;ui.start.textContent="Replay Bamboo Mountains";ui.overlay.classList.remove("is-hidden");syncHud();ui.start.focus(); }
   function update(dt){
-    if(window.EmeraldArcade?.isPaused?.())return;
+    if(window.EmeraldArcade?.isPaused?.()||journeyUI?.isOpen())return;
     state.time+=dt;
     if(state.tauntDone&&["playing","escape"].includes(state.mode)&&rival.alpha>0){rival.x+=660*dt;rival.alpha=Math.max(0,rival.alpha-dt*.65);}
     if(state.mode==="escape"){state.cutsceneClock+=dt;if(state.cutsceneClock>1.5)state.mode="playing";}
@@ -157,7 +160,7 @@
       if(!landing.moving&&!landing.realm){
         checkpoint={x:Math.max(landing.x+12,Math.min(landing.x+landing.w-player.w-12,player.x)),y:landing.y-player.h};
         const shrine=shrines[platforms.indexOf(landing)];
-        if(shrine&&!shrine.lit){shrine.lit=true;burst(shrine.x,shrine.y-55,"#edcf86",18);ui.recovery.textContent="Safe footing reached. This island is your new recovery point.";tone(480,.15,"triangle");}
+        if(shrine&&!shrine.lit){if(campaignAPI)checkpointSlot=shrines.indexOf(shrine);shrine.lit=true;burst(shrine.x,shrine.y-55,"#edcf86",18);ui.recovery.textContent="Safe footing reached. This island is your new recovery point.";tone(480,.15,"triangle");saveCheckpoint();}
       }
     }
     // Resolve a landed gate crossing before a held/buffered jump launches again.
@@ -167,7 +170,7 @@
     if(player.grounded){if(touchHeld("jump"))ability.jumpBuffer=.14;tryJump();}
     if(player.y>H+100)recover();
     for(const item of shards) collect(item,player.x+52,player.y+70,26,"shards");for(const item of relics) collect(item,player.x+52,player.y+70,34,"relics");for(const item of frogs) collect(item,player.x+52,player.y+70,38,"frogs");
-    updateWisps(dt);
+    updateWisps(dt);if(campaignAPI)updateSentinels(dt);
     if(!state.tauntDone&&player.x>2180)beginTaunt();if(player.x>5100&&player.grounded&&player.y+player.h<=FLOOR+1)finish();
     state.camera=Math.max(0,Math.min(WORLD_W-W,player.x-W*.36));
     for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=260*dt;if(p.life<=0)particles.splice(i,1);}
@@ -192,20 +195,22 @@
         w.banished=3.5;ability.dispersals++;burst(w.x,wispY(w),"#dfadff",26);
         ui.recovery.textContent="Wisp dispersed! Its lantern will reform in a few seconds.";tone(830,.12,"triangle");
       }else if(ability.hurt<=0){
-        ability.hurt=1.1;ability.hits++;ability.coyote=0;player.grounded=false;
+        ability.hurt=campaignAPI&&journey.owned.includes("ward")?1.6:1.1;ability.hits++;ability.coyote=0;player.grounded=false;
         player.vx=(dx<0?-1:1)*310;player.vy=-390;
         ui.recovery.textContent="Wisp struck! Brief protection active. Jump over it or dash through.";
         burst(player.x+52,player.y+80,"#e3a6ff",12);tone(105,.18,"square",.03);
       }
     }
   }
-  function collect(item,px,py,r,key){if(!["playing","escape"].includes(state.mode))return;const distance=Math.hypot(px-item.x,py-item.y),baseRadius=r+42;if(item.got||distance>baseRadius+state.petCollectRadius)return;if(state.petCollectRadius>0&&distance>baseRadius)window.ArcadePet?.showAssist("paradox",true);item.got=true;player[key]++;burst(item.x,item.y,key==="relics"?"#ffd86c":"#72ff9b",18);tone(key==="relics"?760:620,.1,"sine");syncHud();}
+  function collect(item,px,py,r,key){if(!["playing","escape"].includes(state.mode))return;const distance=Math.hypot(px-item.x,py-item.y),baseRadius=r+42;if(item.got||distance>baseRadius+state.petCollectRadius+(campaignAPI&&journey.owned.includes("lens")?18:0))return;if(state.petCollectRadius>0&&distance>baseRadius)window.ArcadePet?.showAssist("paradox",true);item.got=true;player[key]++;burst(item.x,item.y,key==="relics"?"#ffd86c":"#72ff9b",18);tone(key==="relics"?760:620,.1,"sine");saveCheckpoint();syncHud();}
   function burst(x,y,color,count){for(let i=0;i<count;i++)particles.push({x,y,vx:(Math.random()-.5)*260,vy:-Math.random()*260,life:.45+Math.random()*.5,color});}
   function syncHud(){ui.trail.value=state.mode==="won"?1:Math.max(0,Math.min(1,(player.x-180)/(5100-180)));ui.trail.setAttribute("aria-valuetext",`${Math.round(ui.trail.value*100)}% along the Bamboo Mountains trail`);const goal=state.mode==="ready"?"Begin the pursuit to explore Bamboo Mountains.":state.mode==="cutscene"?`Fallen’s taunt · line ${state.cutsceneStep+1} of ${dialogue.length}. Choose Continue or press Enter.`:state.mode==="escape"?"Fallen is escaping. Move now to pursue him!":state.mode==="won"?"Bamboo Mountains cleared. Replay to find missed collectibles.":state.tauntDone?"Reach the temple gate. Collectibles are optional score bonuses.":"Follow the trail to Fallen, then reach the temple gate. Collectibles are optional score bonuses.";if(ui.goal.textContent!==goal)ui.goal.textContent=goal;ui.shards.textContent=`${player.shards} / ${shards.length}`;ui.relics.textContent=`${player.relics} / ${relics.length}`;ui.frogs.textContent=`${player.frogs} / ${frogs.length}`;canvas.dataset.debugState=JSON.stringify({mode:state.mode,realm:ability.realm,dashCooldown:ability.dashCooldown,shiftCooldown:ability.shiftCooldown,grounded:player.grounded,touches:[...touchPointers.values()],vx:Math.round(player.vx),vy:Math.round(player.vy),falls,hits:ability.hits,dispersals:ability.dispersals,protection:ability.hurt,checkpoint:{...checkpoint},x:Math.round(player.x),y:Math.round(player.y),camera:Math.round(state.camera),tauntDone:state.tauntDone,shards:player.shards,relics:player.relics,frogs:player.frogs,parallax:{distant:Math.round(state.camera*parallaxRates.distant),temple:Math.round(state.camera*parallaxRates.temple),foreground:Math.round(state.camera*parallaxRates.foreground)},movingPlatforms:platforms.filter(p=>p.moving).map(p=>({x:Math.round(p.x),y:p.y}))});}
-  function draw(){ctx.clearRect(0,0,W,H);drawSky();ctx.save();ctx.translate(-state.camera,0);drawWorld();drawLandmarks();drawRealmStones();drawItems();drawWisps();drawRival();drawPlayer();drawParticles();ctx.restore();drawForeground();drawProgress();drawAbilities();syncHud();}
+  const legacySyncHud=syncHud;
+  syncHud=function(){legacySyncHud();if(!campaignAPI)return;const data=JSON.parse(canvas.dataset.debugState);Object.assign(data,{stage:activeStage.id,journeyShards:journey.shards,owned:[...journey.owned],completed:[...journey.completed],saveProblem,sentinels:sentinels.map(s=>({x:s.x,y:s.y,banished:s.banished,warning:!!s.warning})),surge:activeStage.event==='surge'&&state.platformTime%5>3.8});canvas.dataset.debugState=JSON.stringify(data);ui.trail.setAttribute('aria-valuetext',`${Math.round(ui.trail.value*100)}% along ${activeStage.name}`);if(state.mode==='base')ui.goal.textContent='Rest at the base. Open the journey map to reopen camp, buy gear, or replay cleared trails.';else if(state.mode==='playing')ui.goal.textContent=`${activeStage.name} · ${state.tauntDone?'Reach the waygate.':'Find Pepina’s signal, then reach the waygate.'} ${saveProblem?'Progress is not saving.':''}`;};
+  function draw(){ctx.clearRect(0,0,W,H);drawSky();ctx.save();ctx.translate(-state.camera,0);drawWorld();drawLandmarks();drawRealmStones();drawItems();drawWisps();drawJourneyHazards();drawRival();drawPlayer();drawParticles();ctx.restore();drawForeground();drawProgress();drawAbilities();syncHud();}
   function drawLoopLayer(image,rate,alpha=1){if(!image.complete||!image.naturalWidth)return false;const dw=H*(image.naturalWidth/image.naturalHeight);const travel=state.camera*rate;const offset=-((travel%dw)+dw)%dw;ctx.save();ctx.globalAlpha=alpha;for(let x=offset-dw;x<W+dw;x+=dw)ctx.drawImage(image,x,0,dw,H);ctx.restore();return true;}
-  function drawSky(){ctx.fillStyle="#062018";ctx.fillRect(0,0,W,H);drawLoopLayer(sprites.bambooDistant,parallaxRates.distant,1);drawLoopLayer(sprites.bambooTemple,parallaxRates.temple,.58);const mist=ctx.createLinearGradient(0,180,0,H);mist.addColorStop(0,"rgba(8,40,34,.03)");mist.addColorStop(1,"rgba(0,7,4,.34)");ctx.fillStyle=mist;ctx.fillRect(0,0,W,H);}
-  function drawForeground(){drawLoopLayer(sprites.bambooForeground,parallaxRates.foreground,.3);}
+  function drawSky(){if(campaignAPI&&activeStage?.biome==="marsh"){ctx.fillStyle="#170e25";ctx.fillRect(0,0,W,H);drawLoopLayer(sprites.marsh,.1,1);return;}ctx.fillStyle="#062018";ctx.fillRect(0,0,W,H);drawLoopLayer(sprites.bambooDistant,parallaxRates.distant,1);drawLoopLayer(sprites.bambooTemple,parallaxRates.temple,.58);const mist=ctx.createLinearGradient(0,180,0,H);mist.addColorStop(0,"rgba(8,40,34,.03)");mist.addColorStop(1,"rgba(0,7,4,.34)");ctx.fillStyle=mist;ctx.fillRect(0,0,W,H);}
+  function drawForeground(){if(campaignAPI&&activeStage?.biome==="marsh")return;drawLoopLayer(sprites.bambooForeground,parallaxRates.foreground,.3);}
   function drawWorld(){
     for(const p of platforms){
       ctx.save();
@@ -277,7 +282,7 @@
     ctx.font="12px system-ui";ctx.fillStyle="#d5e5df";
     ctx.fillText(ability.dashCooldown>0?"DASH RECHARGING":"SHIFT · DASH READY",38,H-50);
     ctx.fillStyle="#21382f";ctx.fillRect(195,H-60,72,7);ctx.fillStyle=color;
-    ctx.fillRect(195,H-60,72*(1-ability.dashCooldown/.9),7);
+    ctx.fillRect(195,H-60,72*(1-ability.dashCooldown/(campaignAPI&&journey.owned.includes("dash")?.7:.9)),7);
   }
   function diamond(x,y,size,color){ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4+state.time);ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=16;ctx.fillRect(-size/2,-size/2,size,size);ctx.restore();}
   function drawAtlasItem(cellX,cellY,x,y,size){if(!sprites.collectibles.complete)return;const cw=sprites.collectibles.naturalWidth/3,ch=sprites.collectibles.naturalHeight/2;ctx.save();ctx.translate(x,y);ctx.rotate(Math.sin(state.time*2+x)*.05);ctx.shadowColor="#74ff9d";ctx.shadowBlur=16;ctx.drawImage(sprites.collectibles,cellX*cw,cellY*ch,cw,ch,-size/2,-size/2,size,size);ctx.restore();}
@@ -315,8 +320,9 @@
   addEventListener("emeraldarcade:pause",clearInput);
   document.addEventListener("visibilitychange",()=>{if(document.hidden)clearInput();});
   addEventListener("keydown",e=>{
-    if(window.EmeraldArcade?.isPaused?.()||e.ctrlKey||e.metaKey||e.altKey||e.target?.closest?.("input,select,textarea,[contenteditable],a,.arcade-runtime-dock,.arcade-runtime-modal"))return;
+    if(window.EmeraldArcade?.isPaused?.()||e.ctrlKey||e.metaKey||e.altKey||e.target?.closest?.("input,select,textarea,[contenteditable],a,dialog,.arcade-runtime-dock,.arcade-runtime-modal"))return;
     if((e.code==="Space"||e.code==="Enter")&&e.target?.closest?.("button"))return;
+    if(journeyUI?.isOpen())return;
     const movement=["ArrowLeft","ArrowRight","KeyA","KeyD"].includes(e.code);
     if(movement&&["playing","escape","cutscene"].includes(state.mode)){e.preventDefault();keys.add(e.code);return;}
     if(state.mode==="cutscene"){if(e.code==="Enter"&&!e.repeat){e.preventDefault();advanceDialogue();}return;}
@@ -357,7 +363,7 @@
     controlButtons.set(action,button);button.setAttribute("aria-pressed","false");
     button.addEventListener("pointerdown",e=>{
       e.preventDefault();
-      if(window.EmeraldArcade?.isPaused?.()||!["playing","escape","cutscene"].includes(state.mode))return;
+      if(window.EmeraldArcade?.isPaused?.()||journeyUI?.isOpen()||!["playing","escape","cutscene"].includes(state.mode))return;
       touchPointers.set(e.pointerId,action);syncTouchButtons();
       try{button.setPointerCapture?.(e.pointerId);}catch{/* Cancellation still releases this pointer through the handlers below. */}
       if(action==="jump")jump();else if(action==="dash")dash();else if(action==="shift")shiftRealm();
@@ -382,6 +388,108 @@
       wisps:wisps.map(w=>({x:w.x,y:wispY(w),r:w.r,banished:w.banished})),
       collectibles:[...shards.map(o=>({...o,kind:"shard"})),...relics.map(o=>({...o,kind:"relic"})),...frogs.map(o=>({...o,kind:"frog"}))]})
   };
+  // Campaign is optional: the original single-course game remains a usable fallback.
+  const campaignAPI=window.ParadoxCampaign||null;
+  let journey=null,activeStage=null,journeyUI=null,saveProblem=false,checkpointSlot=0;
+  const sentinels=[];
+  const legacyDialogue=dialogue.map(line=>({...line}));
+  const legacyLayout=JSON.parse(JSON.stringify({platforms,echo:echoPlatforms,shards,relics,frogs,wisps,sentinels:[],shrines,signs}));
+  function persistJourney(){
+    if(!campaignAPI)return;
+    let storage;try{storage=window.localStorage;}catch{}
+    saveProblem=!campaignAPI.save(storage,journey);
+    const status=document.querySelector('#journeySaveStatus');
+    if(status)status.textContent=saveProblem?'Storage is unavailable. Progress works for this visit but cannot survive a reload.':'Journey saved on this browser.';
+  }
+  function saveCheckpoint(){
+    if(!campaignAPI||!activeStage||activeStage.base||!["playing","escape","cutscene"].includes(state.mode))return;
+    journey.current=activeStage.id;
+    journey.inProgress={id:activeStage.id,slot:checkpointSlot,x:checkpoint.x,tauntDone:state.tauntDone,
+      shards:shards.flatMap((s,i)=>s.got?[i]:[]),relics:relics.flatMap((s,i)=>s.got?[i]:[]),frogs:frogs.flatMap((s,i)=>s.got?[i]:[])};
+    persistJourney();
+  }
+  function configureStage(stage){
+    activeStage=stage;const layout=campaignAPI.layout(stage,legacyLayout);
+    for(const [target,key] of [[platforms,'platforms'],[echoPlatforms,'echo'],[shards,'shards'],[relics,'relics'],[frogs,'frogs'],[wisps,'wisps'],[sentinels,'sentinels'],[shrines,'shrines'],[signs,'signs']])target.splice(0,target.length,...layout[key]);
+    originalWisps=wisps.map(w=>({...w}));checkpointSlot=0;
+    if(stage.index===0)dialogue.splice(0,dialogue.length,...legacyDialogue.map(line=>({...line})));
+    if(stage.index!==0){
+      dialogue[0].text=`${stage.name}. Pepina left a lantern signal here. You are getting closer, little frog.`;
+      dialogue[1].text=stage.event==='surge'?'The blight pulses across this crossing. Shift into Echo when the violet warning rises.':'My sentinels remember every footstep. Jump over them, or dash through their armor.';
+      dialogue[2].text=stage.stage===4?'An outpost waits beyond this gate. Recover your strength before the next realm.':'The next waygate is open. Your lanterns will remember the path.';
+    }
+    document.querySelector('#journeyStage').textContent=`Level ${stage.level} · Stage ${stage.stage} of 5`;
+    document.querySelector('#journeyName').textContent=stage.name;
+    canvas.parentElement.setAttribute('aria-label',`${campaignAPI.levels[stage.level-1].name}: ${stage.name}`);
+  }
+  function restoreJourney(){
+    const saved=journey.inProgress;if(!saved||saved.id!==activeStage.id)return;
+    const ground=platforms.filter(p=>!p.moving&&!p.realm).slice(0,6),p=ground[saved.slot]||ground[0];
+    checkpointSlot=Math.min(saved.slot,ground.length-1);checkpoint={x:Math.max(p.x+12,Math.min(p.x+p.w-player.w-12,saved.x)),y:p.y-player.h};
+    Object.assign(player,{...checkpoint,vx:0,vy:0,grounded:true});
+    for(const [items,key] of [[shards,'shards'],[relics,'relics'],[frogs,'frogs']]){items.forEach((item,i)=>item.got=saved[key].includes(i));player[key]=saved[key].length;}
+    shrines.forEach((s,i)=>s.lit=i<=checkpointSlot);state.tauntDone=saved.tauntDone;state.camera=Math.max(0,Math.min(WORLD_W-W,player.x-W*.36));
+    ui.recovery.textContent='Journey resumed at your saved lantern. Collected items restored.';
+  }
+  function finishJourneyStage(){
+    if(state.finished||!["playing","escape"].includes(state.mode)||!state.tauntDone)return;
+    clearInput();state.finished=true;state.mode='won';
+    const result=campaignAPI.complete(journey,activeStage,player.shards);journey=result.state;persistJourney();
+    window.EmeraldArcade?.recordAndNotify('paradox',{score:player.shards*120+player.relics*600+player.frogs*1000,rank:activeStage.level===2?'Marsh Wayfarer':'Mountain Pursuer',shards:player.shards,relics:player.relics,frogs:player.frogs,stage:activeStage.level,played:true});
+    ui.overlay.querySelector('p:first-child').textContent=`Level ${activeStage.level} · Stage ${activeStage.stage} cleared`;
+    ui.overlay.querySelector('h1').textContent=activeStage.stage===4?'A safe lantern is waiting.':'Pepina’s signal grows brighter.';
+    ui.overlay.querySelectorAll('p')[1].textContent=`${activeStage.name} cleared. ${result.earned} new journey shards recovered; ${journey.shards} available for permanent gear at stage-five bases.`;
+    ui.report.textContent=`${player.shards}/${shards.length} shards · ${player.relics}/${relics.length} relics · ${falls} recoveries. ${saveProblem?'Saving unavailable.':'Journey saved.'}`;
+    ui.report.hidden=false;ui.start.textContent=activeStage.stage===4?'Enter the base':'Next stage';ui.overlay.classList.remove('is-hidden');ui.start.focus();syncHud();tone(660,.2);
+  }
+  function enterBase(){state.mode='base';state.finished=false;clearInput();ui.overlay.classList.add('is-hidden');ui.dialogue.hidden=true;journeyUI.showBase(activeStage);syncHud();}
+  function onward(stage){
+    const result=campaignAPI.complete(journey,stage);journey=result.state;persistJourney();state.mode='ready';
+    if(stage.level===2){
+      ui.overlay.querySelector('p:first-child').textContent='Two realms restored · Chapter complete';
+      ui.overlay.querySelector('h1').textContent='The Cinder Crown is on the horizon.';
+      ui.overlay.querySelectorAll('p')[1].textContent='Eight trails and two bases are complete. Pepina’s rescue continues in the planned volcano and moonlit citadel. Replay cleared stages to recover missed journey shards.';
+      ui.start.textContent='Return to Lantern Refuge';ui.overlay.classList.remove('is-hidden');ui.start.focus();
+    }else start();
+  }
+  function updateSentinels(dt){
+    for(const s of sentinels){s.banished=Math.max(0,s.banished-dt);const cycle=(state.platformTime+s.phase)%3.6;
+      s.warning=cycle>2.1&&cycle<2.7;s.charging=cycle>=2.7;s.x=s.homeX+Math.sin(state.platformTime*(s.charging?5:1)+s.phase)*s.range;
+      if(s.banished>0)continue;const dx=player.x+52-s.x,dy=player.y+110-s.y;
+      if(Math.abs(dx)>65||Math.abs(dy)>54)continue;
+      if(player.dash>0){s.banished=5;ability.dispersals++;burst(s.x,s.y,'#c1ff99',25);ui.recovery.textContent='Sentinel armor shattered. It reforms in five seconds.';}
+      else if(ability.hurt<=0){ability.hurt=journey.owned.includes('ward')?1.6:1.1;ability.hits++;player.vy=-390;player.vx=(dx<0?-1:1)*310;player.grounded=false;ui.recovery.textContent='Sentinel struck! Jump above the charge, or dash through it.';}
+    }
+    if(activeStage.event==='surge'&&player.x>1850&&player.x<2600&&(state.platformTime%5)>3.8&&ability.realm!=='echo'&&ability.hurt<=0&&player.dash<=0){
+      ability.hurt=journey.owned.includes('ward')?1.6:1.1;ability.hits++;player.vy=-310;player.grounded=false;burst(player.x+52,player.y+80,'#d683ff',20);ui.recovery.textContent='Blight surge! Echo realm protects you from the violet pulse.';
+    }
+  }
+  function drawJourneyHazards(){
+    if(!campaignAPI)return;
+    for(const s of sentinels){ctx.save();ctx.globalAlpha=s.banished>0?.25:1;
+      if(s.warning){ctx.fillStyle='#ffb87a';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.fillText('! CHARGING',s.x,s.y-70);}
+      if(sprites.sentinel.complete&&sprites.sentinel.naturalWidth)ctx.drawImage(sprites.sentinel,s.x-65,s.y-64,130,100);ctx.restore();
+    }
+    if(activeStage?.event==='surge'){
+      const phase=state.platformTime%5;ctx.save();ctx.fillStyle=phase>3.8?'#ca73ff55':phase>2.8?'#b366ff22':'#814bad0b';ctx.fillRect(1850,0,750,FLOOR);
+      ctx.fillStyle='#efcaff';ctx.font='bold 17px system-ui';ctx.textAlign='center';ctx.fillText(phase>3.8?'BLIGHT SURGE · ECHO IS SAFE':phase>2.8?'SURGE INCOMING · Q TO ECHO':'BLIGHT CROSSING · ECHO PROTECTS',2225,220);ctx.restore();
+    }
+  }
+  if(campaignAPI){
+    let storage,legacy;try{storage=window.localStorage;legacy=JSON.parse(storage.getItem('emerald-arcade-v1')||'null');}catch{}
+    journey=campaignAPI.load(storage,legacy);activeStage=campaignAPI.stages.find(s=>s.id===journey.current);configureStage(activeStage);
+    journeyUI=window.createParadoxJourneyUI(campaignAPI,{
+      getSave:()=>journey,pause:clearInput,resume:()=>{loop.last=null;canvas.focus();},
+      select:stage=>{journey.current=stage.id;journey.inProgress=null;persistJourney();state.mode='ready';start();},
+      buy:(id,base)=>{const next=campaignAPI.purchase(journey,id,base);if(next){journey=next;persistJourney();tone(770,.12);}},onward
+    });
+    ui.overlay.querySelector('p:first-child').textContent='Pepe’s Paradox · The lantern road';
+    ui.overlay.querySelector('h1').textContent='Two realms. One rescue.';
+    ui.overlay.querySelectorAll('p')[1].textContent='Follow Pepina across Jade Mountain and Corrupt Marsh. Four trails lead to a base in each level. Gather journey shards for permanent gear; your lanterns remember progress.';
+    ui.start.textContent=journey.inProgress?'Resume journey':activeStage.base?'Enter base':'Begin the journey';
+    addEventListener('pagehide',saveCheckpoint);addEventListener('blur',saveCheckpoint);
+  }
+
   const previewParams=new URLSearchParams(location.search);
   if(previewParams.has("taunt-preview")){start();player.x=2240;state.camera=1740;beginTaunt();}
   if(previewParams.has("platform-preview")){start();state.tauntDone=true;const p=platforms.find(item=>item.moving);player.x=p.x+32;player.y=p.y-player.h;player.grounded=true;state.camera=Math.max(0,player.x-W*.36);}

@@ -5,6 +5,7 @@ const royal = window.EmeraldRoyal;
 const weather = window.EmeraldWeather;
 const route = window.EmeraldRoute;
 const rush = window.EmeraldRush;
+const actTwo = window.EmeraldActTwo;
 
 const ui = {
   score: document.querySelector("#scoreLabel"),
@@ -71,6 +72,13 @@ const auraImage = new Image();
 auraImage.src = "assets/pepecoin-run/pepecoin-power-aura-v1.webp";
 const rushImage = new Image();
 rushImage.src = "assets/pepecoin-run/emerald-frog-statue-v1.webp";
+const starrailImage = new Image(); starrailImage.src = "assets/pepecoin-run/obsidian-starrail-v1.webp";
+const lunarImage = new Image(); lunarImage.src = "assets/pepecoin-run/lunar-lotus-sea-v1.webp";
+const cathedralImage = new Image(); cathedralImage.src = "assets/pepecoin-run/eclipse-cathedral-v1.webp";
+const cometBoardImage = new Image(); cometBoardImage.src = "assets/pepecoin-run/comet-board-v1.webp";
+const bellImage = new Image(); bellImage.src = "assets/pepecoin-run/cathedral-bell-v1.webp";
+const corruptWorldImage = new Image(); corruptWorldImage.src = "assets/pepecoin-run/corrupt-frontier-v1.webp";
+const volcanicWorldImage = new Image(); volcanicWorldImage.src = "assets/pepecoin-run/volcanic-forge-v1.webp";
 const roadImage = new Image();
 roadImage.src = "assets/pepecoin-run/jade-track-v1.webp";
 const shardImage = new Image();
@@ -133,6 +141,7 @@ const state = {
 royal.reset(state);
 weather.reset(state);
 rush.reset(state);
+actTwo.reset(state);
 
 let audioContext;
 const audioVoices = new Set();
@@ -157,14 +166,11 @@ const crownClearances = [];
 const rushStatues = [];
 const rushClearances = [];
 let nextRushX = route.opening.rush;
-let rushRandom = seededRandom(4);
 let nextCrownX = route.opening.crown;
 let nextStatueX = route.opening.statue;
 let currentRoad = null;
 let terrainMeta = "offline market simulation";
 let courseRandom = seededRandom(1);
-let statueRandom = seededRandom(2);
-let crownRandom = seededRandom(3);
 
 function seededRandom(seed) {
   return () => {
@@ -296,9 +302,6 @@ function startGame({ sameRoad = false } = {}) {
     currentRoad = { seed, prices: terrainSource.slice(), isLive: terrainIsLive, meta: terrainMeta, attempt: 1, best: 0, farthestDistance: 0, lastResult: null };
   }
   courseRandom = seededRandom(currentRoad.seed);
-  statueRandom = seededRandom(currentRoad.seed ^ 0xa5a5a5a5);
-  crownRandom = seededRandom(currentRoad.seed ^ 0x7f4a7c15);
-  rushRandom = seededRandom(currentRoad.seed ^ 0x476ffc);
   courseEnd = 760;
   lastHazardX = -Infinity;
   nextStatueX = route.opening.statue;
@@ -312,6 +315,8 @@ function startGame({ sameRoad = false } = {}) {
   royal.reset(state);
   weather.reset(state);
   rush.reset(state);
+  actTwo.reset(state);
+  state.corruptWorldBlend = 0; state.volcanicWorldBlend = 0;
   state.routeId = "valley";
   ui.retry.hidden = true;
   ui.overlay.classList.remove("is-results");
@@ -347,23 +352,23 @@ function buildCourse() {
   while (nextStatueX < horizon + 650) {
     statueClearances.push(nextStatueX);
     if (nextStatueX >= state.distance - 120) statues.push({ x: nextStatueX, collected: false });
-    nextStatueX += 7500 + statueRandom() * 1200;
+    nextStatueX += route.pickupSpacing.statue;
   }
   while (nextCrownX < horizon + 650) {
     crownClearances.push(nextCrownX);
     if (nextCrownX >= state.distance - 120) crowns.push({ x: nextCrownX, collected: false });
-    nextCrownX += 14000 + crownRandom() * 2000;
+    nextCrownX += route.pickupSpacing.crown;
   }
   while (nextRushX < horizon + 650) {
     rushClearances.push(nextRushX);
     if (nextRushX >= state.distance - 120) rushStatues.push({ x: nextRushX, collected: false });
-    nextRushX += 18000 + rushRandom() * 4000;
+    nextRushX += route.pickupSpacing.rush;
   }
   for (; courseEnd < horizon; courseEnd += 310 + courseRandom() * 270) {
     const worldX = courseEnd;
     // At 570 units/s, the 690 / 1750 jump takes ~450 units to land.
     // Reserve another 100 units for a fresh tap before the next spike.
-    if (courseRandom() < .68 && worldX - lastHazardX >= 550 && !pickupApproach(worldX, statueClearances) && !pickupApproach(worldX, crownClearances) && !pickupApproach(worldX, rushClearances)) {
+    if (courseRandom() < .68 && worldX - lastHazardX >= actTwo.hazardGap(worldX) && !pickupApproach(worldX, statueClearances) && !pickupApproach(worldX, crownClearances) && !pickupApproach(worldX, rushClearances) && !pickupApproach(worldX, route.actTwo.bells)) {
       lastHazardX = worldX;
       hazards.push({ x: worldX, width: 42 + courseRandom() * 26, height: 52 + courseRandom() * 34, hit: false });
     }
@@ -384,6 +389,7 @@ function pickupApproach(worldX, reservations) {
 
 function jump() {
   if (state.mode !== "running") return;
+  if (actTwo.vault(state)) { tone(740, .1, "triangle"); return; }
   if (royal.soar(state)) { tone(660, .1, "sine"); return; }
   state.jumpBuffer = .12;
   performJump();
@@ -392,7 +398,8 @@ function jump() {
 function performJump() {
   if (player.grounded && state.jumpBuffer > 0) {
     state.jumpBuffer = 0;
-    player.vy = -690;
+    state.moonJump = actTwo.isLunar(state.distance + player.x);
+    player.vy = state.moonJump ? -580 : -690;
     player.grounded = false;
     tone(420, .07, "triangle");
     burst(player.x - 10, player.y + player.radius, "#73ffac", 8);
@@ -404,6 +411,24 @@ function update(dt) {
   updateEffects(dt);
   if (state.mode !== "running") return;
   state.elapsed += dt;
+  const comet = actTwo.step(state, dt, state.distance + player.x, reducedMotion?.matches);
+  if (comet.launch) {
+    state.railEntryLift = Math.max(0, terrainAt(state.distance + player.x) - player.radius - player.y);
+    state.railLift = state.railEntryLift;
+    showMilestone("COMET EXPRESS · Tap to vault on the starrail!", 2);
+    ui.announcement.textContent = "Comet Express! Eight seconds of protected rail riding. Tap to vault; landing stays protected.";
+    tone(620, .2, "triangle");
+  }
+  if (comet.eclipse) {
+    rush.collect(state);
+    showMilestone("EMERALD ECLIPSE · Cathedral magnet awakened!", 2);
+    ui.announcement.textContent = "Emerald Eclipse! Seven seconds of wider emerald attraction. Keep jumping unless another power protects you.";
+    tone(990, .2, "sine");
+  }
+  if (comet.warn) {
+    showMilestone(`${state.railKind === "slingshot" ? "ECLIPSE" : "COMET"} LANDING · Returning to the road`, 3);
+    ui.announcement.textContent = "Ride landing soon. Prepare to jump when protection ends.";
+  }
   if (rush.step(state, dt)) {
     ui.announcement.textContent = "Two seconds of Emerald Rush attraction left. Purple spikes remain dangerous.";
   }
@@ -415,21 +440,22 @@ function update(dt) {
   }
   if (state.cosmicTime > 0 && state.cosmicTime <= 2 && !state.cosmicWarned) {
     state.cosmicWarned = true;
-    ui.announcement.textContent = royal.active(state) ? "Cosmic burst ending; Royal Skyride still protects you." : "Two seconds of cosmic shield left. Get ready to jump again.";
-    showMilestone(royal.active(state) ? "COSMIC BURST ENDING · Skyride active" : "SHIELD ENDING · Get ready to jump", 3);
+    const riding = royal.active(state) || actTwo.active(state);
+    ui.announcement.textContent = riding ? "Cosmic burst ending; your ride still protects you." : "Two seconds of cosmic shield left. Get ready to jump again.";
+    showMilestone(riding ? "COSMIC BURST ENDING · Ride active" : "SHIELD ENDING · Get ready to jump", 3);
     tone(440, .12, "sine");
   }
   if (wasCosmic && !state.cosmicTime) {
     stopAudio();
-    ui.announcement.textContent = royal.active(state) ? "Cosmic burst ended. Royal Skyride still protects you." : "Cosmic burst ending. Shield fading as you slow down.";
+    ui.announcement.textContent = royal.active(state) || actTwo.active(state) ? "Cosmic burst ended. Your ride still protects you." : "Cosmic burst ending. Shield fading as you slow down.";
   }
   // Protection remains through the short deceleration, preventing an abrupt
   // speed change and an unavoidable collision at the last powered frame.
   const previousBoost = state.boost;
   state.boost = state.cosmicTime > 0 ? 1 : Math.max(0, state.boost - dt / BOOST_COOLDOWN);
-  if (previousBoost > 0 && !state.boost && !royal.active(state)) clearCosmicExit();
+  if (previousBoost > 0 && !state.boost && !royal.active(state) && !actTwo.active(state)) clearCosmicExit();
   const ride = royal.step(state, dt, reducedMotion?.matches);
-  if (ride.landed && !state.boost) clearCosmicExit();
+  if ((ride.landed || comet.landed) && !state.boost && !royal.active(state) && !actTwo.active(state)) clearCosmicExit();
   if (ride.warn) {
     showMilestone("SKYRIDE LANDING · Returning to the road", 3);
     ui.announcement.textContent = state.boost > 0 ? "Skyride landing soon. Cosmic shield remains active." : "Skyride landing soon. Prepare to jump after landing.";
@@ -438,15 +464,20 @@ function update(dt) {
   state.cosmicBlend += (state.boost - state.cosmicBlend) * Math.min(1, dt * 4);
   const beyondTarget = state.boost > 0 && state.cosmicTime <= COSMIC_SECONDS * .3 ? 1 : 0;
   state.beyondBlend += (beyondTarget - state.beyondBlend) * Math.min(1, dt * 5);
-  state.speed = Math.min(570, 310 + state.elapsed * 7.2) * (1 + (COSMIC_SPEED - 1) * state.boost);
+  state.speed = Math.min(570, 310 + state.elapsed * 7.2) * Math.max(1 + (COSMIC_SPEED - 1) * state.boost, actTwo.speedMultiplier(state));
   state.distance += state.speed * dt;
   const worldX = state.distance + player.x;
+  state.corruptWorldBlend += ((worldX >= route.frontier.start && worldX < route.frontier.volcanic ? 1 : 0) - state.corruptWorldBlend) * Math.min(1, dt * 3);
+  state.volcanicWorldBlend += ((worldX >= route.frontier.volcanic ? 1 : 0) - state.volcanicWorldBlend) * Math.min(1, dt * 3);
   const chapter = route.chapterAt(worldX);
   if (chapter.id !== state.routeId) {
     state.routeId = chapter.id;
     if (chapter.id !== "tempest") {
-      showMilestone(chapter.id === "beyond" ? "OPENING ROUTE COMPLETE · Into the endless road!" : `${chapter.name.toUpperCase()} · Keep rolling`, chapter.id === "beyond" ? 2 : 1);
-      ui.announcement.textContent = chapter.id === "beyond" ? "Opening route complete. Continue into the endless road." : `Entering ${chapter.name}.`;
+      const milestone = chapter.id === "beyond" ? "OPENING ROUTE COMPLETE · ACT II: OBSIDIAN STARRAIL!"
+        : chapter.id === "corrupt" ? "ACT II COMPLETE · CORRUPT FRONTIER AWAKENS!"
+        : chapter.id === "endless" ? "FRONTIER COMPLETE · Beyond the Forge!" : `${chapter.name.toUpperCase()} · Keep rolling`;
+      showMilestone(milestone, ["beyond", "corrupt", "volcanic", "endless"].includes(chapter.id) ? 2 : 1);
+      ui.announcement.textContent = chapter.id === "lunar" ? "Lunar Lotus Sea. Lower gravity starts with your next jump; spikes have wider spacing." : milestone;
     }
   }
   const storm = weather.step(state, dt, worldX, reducedMotion?.matches);
@@ -463,25 +494,35 @@ function update(dt) {
   const ground = terrainAt(state.distance + player.x) - player.radius;
   state.jumpBuffer = Math.max(0, state.jumpBuffer - dt);
   const wasGrounded = player.grounded;
-  if (royal.active(state)) {
-    player.y = ground - state.rideLift;
+  if (royal.active(state) || actTwo.active(state)) {
+    let lift = Math.max(royal.active(state) ? state.rideLift : 0, actTwo.active(state) ? state.railLift : 0);
+    if (actTwo.active(state) && state.railKind === "slingshot") lift = Math.min(lift, Math.max(0, ground - 145));
+    player.y = ground - lift;
+    state.moonJump = false;
     player.vy = 0;
     player.grounded = false;
     state.jumpBuffer = 0;
   } else {
-    if (ride.landed) { player.y = ground; player.vy = 0; }
+    if (ride.landed || comet.landed) { player.y = ground; player.vy = 0; }
     player.grounded = false;
-    player.vy += 1750 * dt;
+    player.vy += (state.moonJump ? 1250 : 1750) * dt;
     player.y += player.vy * dt;
     if (player.y >= ground) {
       if (!wasGrounded && player.vy > 180) burst(player.x, ground + player.radius, state.boost ? "#ffdc87" : "#96d9bb", 6);
       player.y = ground;
       player.vy = 0;
       player.grounded = true;
+      state.moonJump = false;
     }
     performJump();
   }
   player.rotation += (state.speed / player.radius) * dt;
+
+  for (const bell of state.bells) {
+    if (bell.collected || bell.missed) continue;
+    const x = bell.x - state.distance, y = terrainAt(bell.x) - bell.lift;
+    if (distance(player.x, player.y, x, y) < player.radius + 26) ringCathedralBell(bell, x, y);
+  }
 
   for (const statue of statues) {
     if (statue.collected) continue;
@@ -514,7 +555,7 @@ function update(dt) {
     if (distance(player.x, player.y, x, y) < player.radius + 34) collectRush(statue, x, y);
   }
 
-  const magnetRadius = state.rushTime > 0 ? rush.magnetRadius : royal.active(state) ? 185 : 0;
+  const magnetRadius = state.eclipseTime > 0 ? 360 : state.rushTime > 0 ? rush.magnetRadius : royal.active(state) ? 185 : 0;
   for (const shard of emeralds) {
     if (shard.collected) continue;
     let sx = shard.x - state.distance;
@@ -576,7 +617,7 @@ function updateEffects(dt) {
   }
 }
 
-function protectedRide() { return state.boost > 0 || royal.active(state); }
+function protectedRide() { return state.boost > 0 || royal.active(state) || actTwo.active(state); }
 
 function collectCrown(crown, x, y) {
   if (crown.collected || state.mode !== "running") return;
@@ -602,6 +643,17 @@ function collectRush(statue, x, y) {
   ui.announcement.textContent = "Emerald Rush! Green eyes and seven seconds of wider emerald attraction. Keep jumping: spikes are still dangerous.";
   burst(x, y, "#71ff99", 20);
   tone(880, .2, "sine");
+}
+
+function ringCathedralBell(bell, x, y) {
+  const lift = terrainAt(state.distance + player.x) - player.radius - player.y;
+  if (!actTwo.ringBell(state, bell, lift)) return;
+  const finale = state.bellsRung === route.actTwo.bells.length;
+  showMilestone(finale ? "ECLIPSE SLINGSHOT · Three bells awaken the cathedral!" : `CATHEDRAL BELL ${state.bellsRung}/3 · Jump to ring the next`, 2);
+  ui.announcement.textContent = finale ? "All three cathedral bells! Eclipse Slingshot launches you into a protected arc. Tap Surge for more lift; landing stays protected."
+    : `Cathedral bell ${state.bellsRung} of three. Ring all three to awaken Eclipse Slingshot.`;
+  burst(x, y, "#a8ffc2", 16);
+  tone([660, 825, 990][state.bellsRung - 1], .3, "sine");
 }
 
 function updateSkyride(dt) {
@@ -746,10 +798,12 @@ function crash(hazard) {
     ui.resultSmashes.textContent = state.smashed.toLocaleString();
     ui.resultStatues.textContent = state.statuesCaught.toLocaleString();
     const reached = route.chapterAt(state.distance + player.x);
-    ui.resultRoute.textContent = reached.id === "beyond" ? "Opening route complete · Beyond the Valley"
+    ui.resultRoute.textContent = state.distance + player.x >= route.frontier.end ? "Frontier complete · Beyond the Forge"
+      : state.distance + player.x >= route.frontier.start ? `Act Two complete · ${reached.name} · ${Math.floor(route.frontierProgress(state.distance + player.x) * 100)}% of frontier`
+      : state.distance + player.x >= route.openingEnd ? `Opening route complete · Act Two: ${reached.name} · ${Math.floor(route.actTwoProgress(state.distance + player.x) * 100)}%`
       : `Region ${reached.index + 1}/${route.chapters.length}: ${reached.name} · ${Math.floor(route.progressAt(state.distance + player.x) * 100)}% of opening route`;
     const crownResult = state.crownsCaught ? ` · ${state.crownsCaught} crown${state.crownsCaught === 1 ? "" : "s"} caught` : "";
-    ui.resultPeak.textContent = (state.eventPeak ? `Simulated event peak: $${state.eventPeak.toLocaleString(undefined, { maximumFractionDigits: 2 })} · game effect` : "Catch a gold frog to start a cosmic event.") + crownResult + (state.skyGates ? ` · ${state.skyGates} sky gates` : "") + (state.rushCaught ? ` · ${state.rushCaught} emerald rushes` : "");
+    ui.resultPeak.textContent = (state.eventPeak ? `Simulated event peak: $${state.eventPeak.toLocaleString(undefined, { maximumFractionDigits: 2 })} · game effect` : "Catch a gold frog to start a cosmic event.") + crownResult + (state.skyGates ? ` · ${state.skyGates} sky gates` : "") + (state.rushCaught ? ` · ${state.rushCaught} emerald rushes` : "") + (state.railRuns ? ` · ${state.railRuns} Comet Express ride` : "") + (state.bellsRung ? ` · bells ${state.bellsRung}/3` : "") + (state.slingshots ? " · Eclipse Slingshot awakened" : "");
     ui.resultCompare.hidden = !previousResult;
     ui.resultCompare.textContent = previousResult
       ? `Vs previous try: ${signed(finalScore - previousResult.score)} points · ${signed(Math.floor(state.distance / 10) - previousResult.distance)}m`
@@ -798,8 +852,10 @@ function draw() {
   ctx.save();
   ctx.translate(-runnerViewOffset(), 0);
   drawRoad();
+  drawCometRail();
   drawSkyride();
   drawObjects();
+  drawCathedralBells();
   drawFarthestMarker();
   drawPlayer();
   drawParticles();
@@ -856,6 +912,11 @@ function drawSky() {
   drawBackdrop(cosmicImage, state.cosmicBlend);
   drawBackdrop(beyondImage, state.beyondBlend * state.cosmicBlend);
   drawBackdrop(skyrealmImage, state.rideBlend * .88);
+  drawBackdrop(starrailImage, state.starrailBlend);
+  drawBackdrop(lunarImage, state.lunarBlend);
+  drawBackdrop(cathedralImage, state.cathedralBlend);
+  drawBackdrop(corruptWorldImage, state.corruptWorldBlend);
+  drawBackdrop(volcanicWorldImage, state.volcanicWorldBlend);
   // A stable exposure veil keeps both skies behind the gameplay contrast.
   const veil = ctx.createLinearGradient(0, 0, 0, H);
   veil.addColorStop(0, "rgba(3,9,22,.12)");
@@ -864,6 +925,8 @@ function drawSky() {
   ctx.fillRect(0, 0, W, H);
   if (state.cosmicBlend > .01) drawDiscoLights();
   if (state.stormBlend > .01) drawStorm();
+  drawActTwoAtmosphere();
+  drawFrontierAtmosphere();
   ctx.globalAlpha = .45;
   for (let i = 0; i < 42; i += 1) {
     const x = ((i * 191 - state.distance * (.035 + (i % 4) * .012)) % (viewWidth + 80) + viewWidth + 80) % (viewWidth + 80) - 40;
@@ -907,6 +970,120 @@ function drawStorm() {
     ctx.beginPath(); ctx.moveTo(x - 13, 112); ctx.lineTo(x + 24, 136); ctx.lineTo(x + 12, 155); ctx.stroke();
   }
   ctx.restore();
+}
+
+function drawFrontierAtmosphere() {
+  const volcanic = state.volcanicWorldBlend || 0, corrupt = state.corruptWorldBlend || 0;
+  if (volcanic < .01 && corrupt < .01) return;
+  const time = reducedMotion?.matches ? 0 : state.elapsed;
+  ctx.save();
+  ctx.globalAlpha = Math.max(volcanic, corrupt) * .35;
+  for (let i = 0; i < 24; i += 1) {
+    const x = ((i * 149 + time * (volcanic > corrupt ? 9 : -6)) % canvas.width + canvas.width) % canvas.width;
+    const y = 110 + ((i * 73 - time * (volcanic > corrupt ? 30 : 12)) % 380 + 380) % 380;
+    ctx.fillStyle = volcanic > corrupt ? ['#ffbc67','#fb805b','#ffd890'][i%3] : ['#d3a3ff','#9d74e3','#a6f2d1'][i%3];
+    ctx.beginPath(); ctx.arc(x, y, 1.5 + i % 3, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawDiscoMotes() {
+  const calm = reducedMotion?.matches;
+  const time = calm ? 0 : state.elapsed;
+  ctx.save();
+  for (let i = 0; i < 8; i += 1) {
+    const x = -55 - i * 20 + (calm ? 0 : Math.sin(time * 2 + i) * 8);
+    const y = Math.sin(i * 1.7 + time * 2.4) * 24;
+    const hue = (i * 47 + time * 38) % 360;
+    ctx.save(); ctx.translate(x,y); ctx.rotate(calm ? .3 : time * .8 + i);
+    ctx.fillStyle = `hsla(${hue},85%,72%,${.6-i*.045})`;
+    ctx.shadowColor = `hsl(${hue},85%,65%)`; ctx.shadowBlur = 9;
+    const size = 5 + i % 3 * 2;
+    if (i % 2) {ctx.beginPath();ctx.arc(0,0,size,0,Math.PI*2);ctx.fill();}
+    else ctx.fillRect(-size,-size,size*2,size*2);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function drawActTwoAtmosphere() {
+  const time = reducedMotion?.matches ? 0 : state.elapsed;
+  const width = canvas.width;
+  ctx.save();
+  if (state.starrailBlend > .01) {
+    ctx.globalAlpha = state.starrailBlend * .32;
+    ctx.strokeStyle = "#e7bcff"; ctx.lineWidth = 2;
+    for (let i = 0; i < 6; i += 1) {
+      const x = ((i * 251 - time * 90) % (width + 140) + width + 140) % (width + 140) - 70;
+      const y = 115 + (i * 61) % 210;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 45, y - 18); ctx.stroke();
+    }
+  }
+  if (state.lunarBlend > .01) {
+    ctx.globalAlpha = state.lunarBlend * .3;
+    ctx.strokeStyle = "#a8e8ff"; ctx.lineWidth = 1;
+    for (let i = 0; i < 12; i += 1) {
+      const x = (i * 157 + 40) % width;
+      const y = 125 + ((i * 53 - time * 14) % 250 + 250) % 250;
+      ctx.beginPath(); ctx.arc(x, y, 4 + i % 4 * 3, 0, Math.PI * 2); ctx.stroke();
+    }
+  }
+  if (state.eclipseTime > 0) {
+    ctx.globalAlpha = .22;
+    ctx.strokeStyle = "#83ffbb"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(width * .64, 215, 125, 43, -.2, 0, Math.PI * 2); ctx.stroke();
+    for (let i = 0; i < 5; i += 1) {
+      const angle = time * .5 + i * Math.PI * 2 / 5;
+      ctx.fillStyle = "#c2ffb1";
+      ctx.fillRect(width * .64 + Math.cos(angle) * 125 - 2, 215 + Math.sin(angle) * 43 - 2, 4, 4);
+    }
+  }
+  ctx.restore();
+}
+
+function drawCometRail() {
+  if (!actTwo.active(state) || state.railKind !== "comet") return;
+  ctx.save();
+  ctx.globalAlpha = state.railTime > 0 ? .8 : state.railLanding / actTwo.landingSeconds * .8;
+  ctx.beginPath();
+  for (let x = -80; x <= W + 80; x += 30) {
+    const y = terrainAt(state.distance + x) - state.railLift + 15;
+    if (x === -80) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = "#453346"; ctx.lineWidth = 13; ctx.stroke();
+  ctx.strokeStyle = "#d0ae68"; ctx.lineWidth = 7; ctx.stroke();
+  ctx.strokeStyle = "#9af4ff"; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+}
+
+function drawCathedralBells() {
+  for (const [index, bell] of state.bells.entries()) {
+    const x = bell.x - state.distance;
+    if (x < -100 || x > W + 100 || bell.collected && !bell.ringTime) continue;
+    const y = terrainAt(bell.x) - bell.lift;
+    ctx.save(); ctx.translate(x, y);
+    if (bell.collected) {
+      const life = bell.ringTime / .8;
+      ctx.globalAlpha = life * .7;
+      ctx.strokeStyle = "#a5ffd0"; ctx.lineWidth = 3;
+      const radius = reducedMotion?.matches ? 48 : 35 + (1 - life) * 70;
+      ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.stroke();
+    } else {
+      ctx.globalAlpha = bell.missed ? .3 : 1;
+      ctx.strokeStyle = "#a5ffd077"; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(0, 0, 46, 54, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.save();
+      if (!reducedMotion?.matches) ctx.rotate(Math.sin(state.elapsed * 2 + index) * .06);
+      if (bellImage.complete && bellImage.naturalWidth) ctx.drawImage(bellImage, -42, -46, 84, 92);
+      else { ctx.fillStyle = "#e6c784"; ctx.fillRect(-24, -30, 48, 60); }
+      ctx.restore();
+      for (let i = 0; i < 3; i += 1) {
+        ctx.fillStyle = i === index ? "#b5ffd4" : "#7d957e";
+        ctx.fillRect(-13 + i * 11, 62, 5, 5);
+      }
+    }
+    ctx.restore();
+  }
 }
 
 function drawBackdrop(image, alpha) {
@@ -1207,6 +1384,27 @@ function drawPlayer() {
   ctx.restore();
   ctx.save();
   ctx.translate(player.x, player.y);
+  if (actTwo.active(state)) {
+    ctx.save();
+    const bank = reducedMotion?.matches ? 0 : Math.sin(state.railAge * 4) * .12;
+    ctx.rotate(bank);
+    if (state.railKind === "slingshot") {
+      for (let i = 0; i < 3; i += 1) {
+        ctx.strokeStyle = ["#adffd0", "#e7ce88", "#a5eaff"][i]; ctx.lineWidth = i === 1 ? 3 : 2;
+        ctx.beginPath(); ctx.ellipse(0, player.radius + 9, 45 + i * 10, 10 + i * 5, i * .12 - .12, 0, Math.PI * 2); ctx.stroke();
+      }
+    } else if (cometBoardImage.complete && cometBoardImage.naturalWidth) {
+      ctx.drawImage(cometBoardImage, -72, player.radius - 8, 144, 48);
+    } else {
+      ctx.fillStyle = "#151c32"; ctx.strokeStyle = "#e7c480"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(0, player.radius + 14, 52, 9, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+    if (state.railKind !== "slingshot") {
+      ctx.fillStyle = "#8ef4ff";
+      ctx.beginPath(); ctx.moveTo(-40, player.radius + 12); ctx.lineTo(-95 - state.railVault * 40, player.radius + 22); ctx.lineTo(-40, player.radius + 20); ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
   ctx.rotate(state.rideBank);
   if (royal.active(state)) {
     ctx.save();
@@ -1240,14 +1438,7 @@ function drawPlayer() {
       ctx.strokeStyle = royal.active(state) ? "#a2f4ff" : "#ffe292"; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.arc(0, 0, player.radius + 12, 0, Math.PI * 2); ctx.stroke();
     }
-    if (!reducedMotion?.matches) {
-      for (let i = 0; i < 4; i += 1) {
-        ctx.strokeStyle = ["#f9d46c", "#9df4ff", "#e7a5ff", "#9affcd"][i];
-        ctx.globalAlpha = .45;
-        ctx.beginPath(); ctx.moveTo(-50, (i - 1.5) * 14); ctx.lineTo(-125 - i * 15, (i - 1.5) * 14); ctx.stroke();
-      }
-      ctx.globalAlpha = 1;
-    }
+    drawDiscoMotes();
   }
   ctx.rotate(player.rotation);
   ctx.beginPath(); ctx.arc(0, 0, player.radius + 5, 0, Math.PI * 2);
@@ -1322,17 +1513,27 @@ function updateHud() {
   ui.goal.classList.toggle("has-milestone", state.mode === "running" && state.noticeTime > 0);
   ui.jump.disabled = state.mode !== "running" || Boolean(window.EmeraldArcade?.isPaused?.());
   const cosmicPowered = state.mode === "running" && state.boost > 0;
+  const cometPowered = state.mode === "running" && actTwo.active(state);
+  const slingshot = cometPowered && state.railKind === "slingshot";
   const chapter = route.chapterAt(state.distance + player.x);
+  const inActTwo = state.distance + player.x >= route.actTwo.start;
+  const inFrontier = state.distance + player.x >= route.frontier.start;
   ui.route.hidden = state.mode !== "running";
-  ui.routeProgress.value = route.progressAt(state.distance + player.x);
-  ui.routeTitle.textContent = `${chapter.index + 1} · ${chapter.name.toUpperCase()}`;
+  ui.routeProgress.value = inFrontier ? route.frontierProgress(state.distance + player.x) : inActTwo ? route.actTwoProgress(state.distance + player.x) : route.progressAt(state.distance + player.x);
+  ui.routeProgress.setAttribute("aria-label", inFrontier ? "Frontier route progress" : inActTwo ? "Act Two route progress" : "Opening route progress");
+  ui.routeTitle.textContent = `${inFrontier ? "FRONTIER" : inActTwo ? "ACT II" : chapter.index + 1} · ${chapter.name.toUpperCase()}`;
   ui.routeDetail.textContent = chapter.id === "tempest" ? "Rain · blue-aura spikes"
+    : chapter.id === "lunar" ? "Low gravity · longer jumps"
+    : chapter.id === "eclipse" ? `Bells ${state.bellsRung}/3 · ${state.slingshots ? "slingshot awakened" : "jump to ring"}`
+    : chapter.id === "corrupt" ? "Act Two complete · violet crystal kingdom"
+    : chapter.id === "volcanic" ? "Molten forge · next region ahead"
+    : chapter.id === "endless" ? "Frontier complete · endless road"
     : chapter.next ? `Next region · ${Math.ceil(Math.max(0, chapter.next.start - state.distance - player.x) / 10)}m`
     : "Opening route complete · endless road";
   const royalPowered = state.mode === "running" && royal.active(state);
   const rushPowered = state.mode === "running" && state.rushTime > 0;
-  const powered = cosmicPowered || royalPowered || rushPowered;
-  ui.jump.textContent = royalPowered ? "Soar ↑" : "Jump ↑";
+  const powered = cosmicPowered || royalPowered || rushPowered || cometPowered;
+  ui.jump.textContent = slingshot ? "Surge ↑" : cometPowered ? "Vault ↑" : royalPowered ? "Soar ↑" : "Jump ↑";
   const nextStatue = statues.find(s => !s.collected && s.x >= state.distance + player.x - 40);
   const nextCrown = crowns.find(c => !c.collected && c.x >= state.distance + player.x - 40);
   const nextRush = rushStatues.find(s => !s.collected && s.x >= state.distance + player.x - 40);
@@ -1343,23 +1544,25 @@ function updateHud() {
   const approaching = state.mode === "running" && !powered && gap <= 900;
   const showCrown = royalPowered || approaching && crownAhead;
   const showRush = !royalPowered && !cosmicPowered && (rushPowered || approaching && rushAhead);
-  const icon = showCrown ? crownImage.src : showRush ? rushImage.src : statueImage.src;
+  const icon = cometPowered ? coinImage.src : showCrown ? crownImage.src : showRush ? rushImage.src : statueImage.src;
   if (ui.powerIcon.src !== icon) ui.powerIcon.src = icon;
   ui.cosmic.hidden = !powered && !approaching;
-  ui.cosmic.classList.toggle("is-ending", royalPowered ? state.rideTime <= 2 : cosmicPowered ? state.cosmicTime <= 2 : rushPowered && state.rushTime <= 2);
+  ui.cosmic.classList.toggle("is-ending", cometPowered ? state.railTime <= 2 : royalPowered ? state.rideTime <= 2 : cosmicPowered ? state.cosmicTime <= 2 : rushPowered && state.rushTime <= 2);
   ui.cosmicTitle.textContent = approaching ? crownAhead ? "CELESTIAL CROWN AHEAD" : rushAhead ? "EMERALD FROG AHEAD" : "GOLD FROG AHEAD"
-    : royalPowered ? state.rideTime > 0 ? "ROYAL SKYRIDE" : "ROYAL LANDING" : cosmicPowered ? state.cosmicTime <= 2 ? "SHIELD ENDING" : "COSMIC DISCO" : "EMERALD RUSH";
+    : cometPowered ? state.railTime > 0 ? slingshot ? "ECLIPSE SLINGSHOT" : "COMET EXPRESS" : slingshot ? "ECLIPSE LANDING" : "COMET LANDING"
+    : royalPowered ? state.rideTime > 0 ? "ROYAL SKYRIDE" : "ROYAL LANDING" : cosmicPowered ? state.cosmicTime <= 2 ? "SHIELD ENDING" : "COSMIC DISCO" : state.eclipseTime > 0 ? "EMERALD ECLIPSE" : "EMERALD RUSH";
   ui.cosmicTime.textContent = approaching ? `${Math.ceil(gap / 10)}m · roll into the ${crownAhead ? "crown" : "statue"}`
+    : cometPowered ? state.railTime > 0 ? `${state.railTime.toFixed(1)}s · tap to ${slingshot ? "surge" : "vault"} · shielded${cosmicPowered ? ` · disco ${state.cosmicTime.toFixed(1)}s` : ""}` : "Protected landing · prepare to jump"
     : royalPowered ? state.rideTime > 0 ? `${state.rideTime.toFixed(1)}s · gates ${state.rideGateChain}/3${cosmicPowered ? ` · disco ${state.cosmicTime.toFixed(1)}s` : " · attract emeralds"}` : "Protected landing · prepare to jump"
     : cosmicPowered ? state.cosmicTime > 0 ? `${state.cosmicTime.toFixed(1)}s · +35% speed · ${state.smashed} smashed` : "Shield fading · prepare to jump"
     : `${state.rushTime.toFixed(1)}s · emerald magnet · keep jumping`;
   ui.cosmic.classList.toggle("has-rush", rushPowered);
-  ui.rushBanner.hidden = !rushPowered || !(royalPowered || cosmicPowered);
-  ui.rushBanner.textContent = `EMERALD RUSH · ${state.rushTime.toFixed(1)}s magnet`;
+  ui.rushBanner.hidden = !rushPowered || !(royalPowered || cosmicPowered || cometPowered);
+  ui.rushBanner.textContent = `${state.eclipseTime > 0 ? "EMERALD ECLIPSE" : "EMERALD RUSH"} · ${state.rushTime.toFixed(1)}s magnet`;
   ui.cosmicMeter.hidden = !powered;
-  ui.cosmicMeter.max = royalPowered ? royal.seconds : cosmicPowered ? COSMIC_SECONDS : rush.seconds;
-  ui.cosmicMeter.value = royalPowered ? state.rideTime : cosmicPowered ? state.cosmicTime : state.rushTime;
-  ui.cosmicMeter.setAttribute("aria-label", royalPowered ? "Royal Skyride time remaining" : cosmicPowered ? "Cosmic burst time remaining" : "Emerald Rush time remaining");
+  ui.cosmicMeter.max = cometPowered ? actTwo.rideSeconds(state) : royalPowered ? royal.seconds : cosmicPowered ? COSMIC_SECONDS : rush.seconds;
+  ui.cosmicMeter.value = cometPowered ? state.railTime : royalPowered ? state.rideTime : cosmicPowered ? state.cosmicTime : state.rushTime;
+  ui.cosmicMeter.setAttribute("aria-label", cometPowered ? `${slingshot ? "Eclipse Slingshot" : "Comet Express"} time remaining` : royalPowered ? "Royal Skyride time remaining" : cosmicPowered ? "Cosmic burst time remaining" : "Emerald Rush time remaining");
   ui.event.hidden = !cosmicPowered;
   ui.eventName.textContent = eventPhase();
   ui.eventPrice.textContent = `$${state.eventPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

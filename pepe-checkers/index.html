@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#111d17">
   <title>Pepe Checkers · Emerald Arcade</title>
   <link rel="stylesheet" href="checkers.css?v=board-16">
-  <link rel="stylesheet" href="screen.css?v=1">
+  <link rel="stylesheet" href="screen.css?v=capture-2">
 </head>
 <body>
   <header>
@@ -46,6 +46,7 @@
       <div class="board-actions" role="group" aria-label="Board controls">
         <button id="undo" type="button" disabled>Undo turn</button>
         <button id="hint" type="button" aria-expanded="false" aria-controls="hint-panel">Show hint</button>
+        <button id="show-capture-routes" type="button" aria-haspopup="dialog" aria-controls="match-options-dialog" hidden>Capture routes</button>
         <button id="flip" type="button" aria-pressed="false">Flip board</button>
         <button id="review" type="button" disabled>Review</button>
         <p id="last-play" hidden></p>
@@ -140,7 +141,7 @@
   </dialog>
   <script src="../arcade-library.js?v=library-2-checkers"></script>
   <script src="../arcade-visit.js?v=library-2"></script>
-  <script type="module" src="checkers.js?v=board-18"></script>
-  <script src="screen.js?v=1"></script>
+  <script type="module" src="checkers.js?v=forecast-20"></script>
+  <script src="screen.js?v=capture-2"></script>
 </body>
 </html>

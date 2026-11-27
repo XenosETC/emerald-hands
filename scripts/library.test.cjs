@@ -22,7 +22,8 @@ test('new Pepe games appear in their real genres and touch filter excludes keybo
   assert.deepEqual(lib.select(null, { genre: 'strategy' }).map(game => game.id), ['feudalism', 'towerDefense', 'pepePoker', 'pepeCheckers', 'pepeChess', 'pepeWars']);
   assert.ok(lib.select(null, { genre: 'adventure' }).some(game => game.id === 'soulWorld'));
   assert.ok(lib.select(null, { genre: 'arcade', touch: true }).some(game => game.id === 'templeRun'));
-  assert.ok(!lib.select(null, { touch: true }).some(game => ['rumble', 'feudalism'].includes(game.id)));
+  assert.ok(!lib.select(null, { touch: true }).some(game => game.id === 'feudalism'));
+  assert.ok(lib.select(null, { touch: true }).some(game => game.id === 'rumble'));
   for (const query of ["pepes paradox", "Pepe’s Paradox", "Pepe's Paradox"]) {
     assert.deepEqual(lib.select(null, { genre: "adventure", touch: true, query }).map(game => game.id), ["paradox"]);
   }

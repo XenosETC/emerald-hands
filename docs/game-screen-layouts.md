@@ -42,7 +42,10 @@ remain part of the suite. Temple Run was also started and paused with its normal
 
 Use `npm test` and `npm run test:browser`. These checks establish browser screen
 and interaction behavior, not complete campaign balance or physical-device quality.
-Keyboard-required games retain that control requirement. Internal manuals,
+Relic Rumble's solo Tournament now has a touch pad that reserves space beneath
+the stage, with 44px controls and a compact health/energy HUD. Local Versus
+retains keyboard controls for both players. Other keyboard-required games
+retain that requirement. Internal manuals,
 fighter drafts, inventories and management panels can scroll when necessary.
 
 Paradox's proposed pixel-art production experiment is documented separately in

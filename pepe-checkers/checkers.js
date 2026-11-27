@@ -1,4 +1,4 @@
-import { analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play, previewRepetition, repetitionCount, repetitionLimit } from "./engine.mjs?v=draw-2";
+import { analyzeCaptureRoute, analyzeHint, botMove, captureRoutes, isFinished, legalMoves, newGame, play, previewRepetition, repetitionCount, repetitionLimit } from "./engine.mjs?v=forecast-3";
 import { decodeMatch, encodeMatch, matchKey } from "./match-save.mjs?v=draw-2";
 
 const $ = id => document.getElementById(id);
@@ -171,8 +171,10 @@ routeList.addEventListener("keydown", clearRoutePreview);
 
 function renderCaptureRoutes(moves, waiting) {
   const panel = $("capture-panel");
+  const shortcut = $("show-capture-routes");
   const forced = !waiting && moves[0]?.capture != null;
   panel.hidden = !forced;
+  shortcut.hidden = !forced;
   if (!forced) {
     routePreview = null;
     routeList.replaceChildren();
@@ -180,6 +182,7 @@ function renderCaptureRoutes(moves, waiting) {
   }
 
   const routes = captureRoutes(game).filter(route => selected === null || route.path[0].from === selected);
+  shortcut.textContent = "Capture routes (" + routes.length + ")";
   $("capture-description").textContent = game.chain !== null
     ? "Finish the turn with the same piece."
     : "Choose any listed route. Once you start, finish the jumps with that piece.";
@@ -194,14 +197,30 @@ function renderCaptureRoutes(moves, waiting) {
     button.dataset.route = label;
     button.setAttribute("aria-controls", "board");
     button.addEventListener("click", () => {
-      routePreview = routePreview?.label === label ? null : { path, label, game };
-      paintRoutePreview();
+      if (routePreview?.label === label) {
+        routePreview = null;
+        paintRoutePreview();
+        return;
+      }
+      clearHint();
+      selected = path[0].from;
+      routePreview = { path, label, game };
+      render();
+      // Return an explicitly chosen preview to the unobscured board. Selecting
+      // a route changes neither the board position nor the saved move list.
+      board.dispatchEvent(new CustomEvent("checkers:route-preview", { detail: { to: path[0].to } }));
     });
     const notation = document.createElement("strong");
     notation.textContent = label;
     const detail = document.createElement("span");
     detail.textContent = path.length + (path.length === 1 ? " jump" : " jumps") + (crowns ? " · crowns" : "");
-    button.append(notation, detail);
+    const forecast = analyzeCaptureRoute(game, path);
+    const outcome = document.createElement("span");
+    outcome.className = "route-outcome";
+    outcome.textContent = forecast.wins ? "Wins this turn" : forecast.draws ? "Draws by repetition"
+      : forecast.recapturable ? "Landing can be captured next turn" : "No immediate reply captures this landing";
+    if (forecast.capturedKings) detail.textContent += " · takes " + forecast.capturedKings + (forecast.capturedKings === 1 ? " king" : " kings");
+    button.append(notation, detail, outcome);
     route.append(button);
     return route;
   }));

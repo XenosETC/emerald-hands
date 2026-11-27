@@ -8,12 +8,18 @@
   const flipButton = document.querySelector("#flip-board");
   const undoButton = document.querySelector("#undo");
   const boardMove = document.querySelector("#board-move");
+  const threatButton = document.querySelector("#show-threats");
+  const threatNote = document.querySelector("#threat-note");
+  let showThreats = false;
   const status = document.querySelector("#match-status");
   const promotion = document.querySelector("#promotion");
   const moveList = document.querySelector("#move-list");
   const moveScroll = document.querySelector("#move-scroll");
   const emptyHistory = document.querySelector("#empty-history");
   const exportButton = document.querySelector("#export");
+  const importButton = document.querySelector("#import");
+  const pgnFile = document.querySelector("#pgn-file");
+  const importNote = document.querySelector("#import-note");
   const saveNote = document.querySelector("#save-note");
   const reviewControls = document.querySelector("#review-controls");
   const reviewStatus = document.querySelector("#review-status");
@@ -57,6 +63,7 @@
   let saveConflict = false;
   let botTimer;
   let flipped = false;
+  let importAttempt = 0;
 
   function flipBoard() {
     flipped = !flipped;
@@ -235,6 +242,13 @@
       ? `${reviewing ? "Reviewed move" : "Last move"} · ${lastMove.from} → ${lastMove.to}`
       : "";
     const position = reviewing ? new Chess(lastMove?.after ?? DEFAULT_POSITION) : game;
+    const threatened = new Set(showThreats ? squares.filter(button => {
+      const square = button.dataset.square;
+      const piece = position.get(square);
+      return piece?.color === position.turn() && position.isAttacked(square, piece.color === "w" ? "b" : "w");
+    }).map(button => button.dataset.square) : []);
+    threatNote.hidden = !showThreats;
+    threatNote.textContent = showThreats ? `${sides[position.turn()]}: ${threatened.size} ${threatened.size === 1 ? "piece is" : "pieces are"} attacked in this position. Rings show attacks, including defended pieces; they do not predict a safe move.` : "";
     const moves = selected ? game.moves({ square: selected, verbose: true }) : [];
     const targets = new Map(moves.map(move => [move.to, move]));
     const turn = sides[game.turn()];
@@ -264,7 +278,8 @@
       const piece = position.get(square);
       const move = targets.get(square);
       const label = piece ? `${sides[piece.color]} ${roles[piece.type]}` : "empty";
-      button.setAttribute("aria-label", `${square}, ${label}${move ? ", legal destination" : ""}`);
+      button.setAttribute("aria-label", `${square}, ${label}${move ? ", legal destination" : ""}${threatened.has(square) ? ", under attack" : ""}`);
+      button.classList.toggle("under-attack", threatened.has(square));
       button.setAttribute("aria-pressed", String(square === selected));
       button.setAttribute("aria-disabled", String(reviewing || finished || isBotTurn()));
       button.classList.toggle("legal", Boolean(move));
@@ -306,9 +321,9 @@
 
   function scheduleBot() {
     clearTimeout(botTimer);
-    if (!isBotTurn() || reviewPly !== null) return;
+    if (!isBotTurn() || reviewPly !== null || document.querySelector("#match-options-dialog")?.open) return;
     botTimer = setTimeout(() => {
-      if (!isBotTurn() || reviewPly !== null) return;
+      if (!isBotTurn() || reviewPly !== null || document.querySelector("#match-options-dialog")?.open) return;
       const move = window.PepeChessBot.chooseMove(game, mode === "club" ? "club" : "beginner");
       if (move) movePiece(move);
     }, 360);
@@ -374,6 +389,12 @@
     }
   });
   flipButton.addEventListener("click", flipBoard);
+  threatButton.addEventListener("click", () => {
+    showThreats = !showThreats;
+    threatButton.setAttribute("aria-pressed", String(showThreats));
+    threatButton.textContent = showThreats ? "Hide threats" : "Show threats";
+    render();
+  });
   undoButton.addEventListener("click", () => {
     if (undoButton.disabled || pendingPromotion) return;
     clearTimeout(botTimer);
@@ -438,6 +459,60 @@
     link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   });
+
+  function importSnapshot() {
+    return JSON.stringify([game.fen(), history.map(move => move.san), mode, noTakebacks, reviewPly]);
+  }
+
+  importButton.addEventListener("click", () => pgnFile.click());
+  pgnFile.addEventListener("change", async () => {
+    const file = pgnFile.files?.[0];
+    pgnFile.value = "";
+    if (!file) return;
+    const attempt = ++importAttempt;
+    const snapshot = importSnapshot();
+    importButton.disabled = true;
+    importNote.textContent = "Checking PGN…";
+    try {
+      if (file.size > 131072) throw new Error("Use a PGN smaller than 128 KB.");
+      const text = await file.text();
+      if (attempt !== importAttempt) return;
+      if (!text.trim()) throw new Error("The selected PGN is empty.");
+      const candidate = new Chess();
+      try { candidate.loadPgn(text, { strict: true }); }
+      catch { throw new Error("This PGN could not be read as a legal chess game."); }
+      const moves = candidate.history({ verbose: true });
+      const start = moves[0]?.before ?? candidate.fen();
+      const fenHeader = Object.entries(candidate.getHeaders()).find(([key]) => key.toLowerCase() === "fen")?.[1];
+      if (start !== DEFAULT_POSITION || fenHeader && fenHeader !== DEFAULT_POSITION) {
+        throw new Error("Only PGNs from the standard starting position can be restored here.");
+      }
+      if (moves.length > 2048) throw new Error("Use a PGN with no more than 2,048 half-moves.");
+      // Validate the complete replacement before touching the live board or save.
+      const verified = new Chess();
+      for (const move of moves) {
+        if (verified.isGameOver()) throw new Error("The PGN continues after this arcade's game-ending rules.");
+        verified.move(move.san, { strict: true });
+      }
+      if (pendingPromotion || snapshot !== importSnapshot()) {
+        throw new Error("The board changed while reading. Select the PGN again when ready.");
+      }
+      if (history.length && !window.confirm("Import this PGN and replace the current match? Opponent and takeback settings stay the same.")) {
+        importNote.textContent = "Import cancelled. Current match unchanged.";
+        return;
+      }
+      clearTimeout(botTimer);
+      game.reset(); history = []; selected = null;
+      for (const move of moves) history.push(game.move(move.san, { strict: true }));
+      commitPosition();
+      importNote.textContent = `Loaded ${moves.length} half-move${moves.length === 1 ? "" : "s"}. Opponent and takeback rules are unchanged. Review the moves or close Match options to continue.`;
+    } catch (error) {
+      importNote.textContent = `${error.message} Current match unchanged.`;
+    } finally {
+      if (attempt === importAttempt) importButton.disabled = false;
+    }
+  });
+  document.addEventListener("pepechess:optionschange", scheduleBot);
 
   restoreMatch();
   window.addEventListener("storage", event => {

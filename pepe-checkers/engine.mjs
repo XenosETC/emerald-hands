@@ -163,6 +163,21 @@ export function captureRoutes(game) {
   return extend(game, []);
 }
 
+// Forecast one complete legal capture route without changing the live match.
+// A reply may reach the landing piece later in its mandatory jump chain.
+export function analyzeCaptureRoute(game, path) {
+  let next = game;
+  for (const move of path) next = play(next, move.from, move.to);
+  const landing = path.at(-1).to;
+  return {
+    crowns: Math.abs(next.board[landing]) > Math.abs(game.board[path[0].from]),
+    wins: next.winner === game.turn,
+    draws: Boolean(next.draw),
+    recapturable: captureRoutes(next).some(reply => reply.path.some(move => move.capture === landing)),
+    capturedKings: path.filter(move => Math.abs(game.board[move.capture]) === 2).length,
+  };
+}
+
 export function analyzeHint(game) {
   const first = botMove(game, "expert");
   if (!first) return null;
@@ -180,7 +195,7 @@ export function analyzeHint(game) {
     crowns: Math.abs(game.board[first.from]) < Math.abs(next.board[to]),
     wins: next.winner === game.turn,
     draws: Boolean(next.draw),
-    recapturable: legalMoves(next).some(reply => reply.capture === to),
+    recapturable: captureRoutes(next).some(reply => reply.path.some(move => move.capture === to)),
     capturedKings: path.filter(({ capture }) => capture !== null && Math.abs(game.board[capture]) === 2).length,
   };
 }
