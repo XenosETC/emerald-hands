@@ -276,3 +276,10 @@ body[data-game="runner"] .arcade-toast-stack { display:none; }
 #jumpButton:disabled { opacity: .45; cursor: default; }
 #jumpButton:focus-visible { outline: 3px solid white; outline-offset: 3px; }
 @media (max-width: 760px) { .game-shell { min-height: 0; } .run-controls { flex-direction: column; gap: 10px; } #jumpButton { width: 100%; } }
+.world-tour-gallery { grid-column:1 / -1; min-width:0; padding:12px; border:1px solid #387355; border-radius:12px; background:#071c14; }
+.world-tour-gallery summary { display:list-item; min-height:44px; padding:10px 0; color:#b9ffca; cursor:pointer; font-weight:800; }
+.world-tour-gallery summary:focus-visible { outline:2px solid #b9ffca; outline-offset:3px; }
+.world-tour-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr)); gap:12px; margin-top:12px; }
+.world-tour-grid figure { min-width:0; margin:0; overflow:hidden; border:1px solid #3e674b; border-radius:10px; background:#0c2119; }
+.world-tour-grid img { display:block; width:100%; height:auto; aspect-ratio:16 / 9; object-fit:cover; }
+.world-tour-grid figcaption { padding:10px; font-size:.8rem; color:#e6ecd3; }

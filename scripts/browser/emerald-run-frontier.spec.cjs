@@ -21,7 +21,7 @@ for(const width of [390,1440]) {
     await expect.poll(()=>page.evaluate(()=>state.volcanicWorldBlend)).toBeGreaterThan(.8);
     await page.screenshot({path:info.outputPath('volcanic-frontier.png')});
     await page.emulateMedia({reducedMotion:'reduce'});
-    await enter(50401);await expect(page.locator('#routeTitle')).toContainText('BEYOND THE FORGE');
+    await enter(50401);await expect(page.locator('#routeTitle')).toContainText('JADE CANOPY');
     await page.evaluate(()=>hazards.push({x:state.distance+player.x+5,width:50,height:70,hit:false}));
     await expect(page.getByRole('button',{name:'Retry Same Road'})).toBeVisible();
     await expect(page.locator('#resultRoute')).toContainText('Frontier complete');

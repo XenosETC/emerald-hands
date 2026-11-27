@@ -1,6 +1,6 @@
 # Emerald Run: Corrupt Frontier and Volcanic Forge
 
-Act Two still completes at world coordinate 33,600. The new frontier follows: Corrupt Frontier spans 33,600–42,000 and Volcanic Forge spans 42,000–50,400. Each has 8,400 units of road before Beyond the Forge becomes endless. The route HUD switches to a separate frontier progress meter without changing Act Two completion. Results name the actual region reached.
+Act Two still completes at world coordinate 33,600. The new frontier follows: Corrupt Frontier spans 33,600–42,000 and Volcanic Forge spans 42,000–50,400. Each has 8,400 units of road before the twelve-world Grand Tour begins. See `emerald-run-world-tour.md` for the extended route. The route HUD switches to a separate frontier progress meter without changing Act Two completion. Results name the actual region reached.
 
 Two new generated backgrounds retain quiet lower thirds, so the existing road, hazards and collectibles stay readable. Violet dust and amber embers use a bounded particle count. The old four horizontal disco strokes are replaced by eight orbiting colored motes and rotating square facets with smoothly changing hues. Reduced motion fixes their position/color and disables particle motion; shield and magnet timers retain their gameplay duration.
 

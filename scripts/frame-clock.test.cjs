@@ -80,6 +80,7 @@ function game(file, options = {}) {
   let source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
   if (file === 'pepecoin-run.js') {
     read(fs.readFileSync(path.join(__dirname, '..', 'pepecoin-route.js'), 'utf8'));
+    read(fs.readFileSync(path.join(__dirname, '..', 'pepecoin-world-tour.js'), 'utf8'));
     read(fs.readFileSync(path.join(__dirname, '..', 'pepecoin-royal.js'), 'utf8'));
     read(fs.readFileSync(path.join(__dirname, '..', 'pepecoin-weather.js'), 'utf8'));
     read(fs.readFileSync(path.join(__dirname, '..', 'pepecoin-rush.js'), 'utf8'));
@@ -684,14 +685,64 @@ test('Emerald Run optional sky gates award style once and keep the flight trail 
 
 test('Emerald Run authored route orders pickups, storm and the expandable endless section', () => {
   const g = game('pepecoin-run.js');g.start();
-  assert.equal(g.read('route.chapters.map(c=>c.id).join(",")'), 'valley,cosmic,royal,tempest,stormbreak,grove,beyond,lunar,eclipse,corrupt,volcanic,endless');
+  assert.equal(g.read('route.chapters.map(c=>c.id).join(",")'), 'valley,cosmic,royal,tempest,stormbreak,grove,beyond,lunar,eclipse,corrupt,volcanic,jade-canopy,monsoon-kingdom,sunscar-dunes,glass-desert,deep-space,solar-gardens,nebula-ocean,singularity-throne,time-space,dimension-weave,many-worlds,frog-god-cosmos,endless');
   assert.ok(g.read('route.chapters.every((c,i)=>!i||c.start>route.chapters[i-1].start)'));
   assert.equal(g.read('statues[0].x'), g.read('route.opening.statue'));
   assert.equal(g.read('crowns[0].x'), g.read('route.opening.crown'));
   g.read('state.distance=12000;buildCourse()');
   assert.equal(g.read('rushStatues[0].x'), g.read('route.opening.rush'));
   assert.ok(g.read('rushStatues.every(s=>hazards.every(h=>Math.abs(s.x-h.x)>=210))'));
-  assert.equal(g.read('route.chapterAt(100000).id'), 'endless');
+  assert.equal(g.read('route.chapterAt(route.odyssey.end).id'), 'endless');
+});
+
+test('Emerald Run grand tour has twelve equal world spans and a final endless region', () => {
+  const g=game('pepecoin-run.js');
+  assert.equal(g.read('route.odyssey.worlds.length'),12);
+  assert.equal(g.read('route.odyssey.start'),50400);
+  assert.equal(g.read('route.odyssey.end'),151200);
+  assert.equal(g.read('route.odysseyProgress(route.odyssey.start)'),0);
+  assert.equal(g.read('route.odysseyProgress(route.odyssey.end)'),1);
+  assert.ok(g.read('route.odyssey.worlds.every((w,i)=>route.chapterAt(w.start).id===w.id&&route.chapterAt(w.start+8399).id===w.id&&w.start===route.odyssey.start+i*8400)'));
+  assert.equal(g.read('route.odyssey.worlds.at(-1).id'),'frog-god-cosmos');
+});
+
+test('Emerald Run world loader crossfades with a bounded cache across every world', () => {
+  const g=game('pepecoin-run.js');
+  g.read('const tourTest=window.EmeraldWorldTour.create(route.odyssey.worlds,class { complete=true;naturalWidth=1280 });');
+  for(let index=0;index<12;index++){
+    g.read(`tourTest.update(route.odyssey.worlds[${index}].start,.1)`);
+    assert.equal(g.read('tourTest.snapshot().shown'),index);
+    assert.ok(g.read('tourTest.snapshot().cached')<=4);
+    assert.equal(g.read('tourTest.layers().at(-1).alpha'),.2);
+    if(index)assert.equal(g.read('tourTest.layers().length'),2);
+    g.read(`tourTest.update(route.odyssey.worlds[${index}].start,1)`);
+    assert.equal(g.read('tourTest.layers().length'),1);
+  }
+});
+
+test('Emerald Run late or missing world art retains its last readable sky', () => {
+  const g=game('pepecoin-run.js');
+  g.read('const pendingArt=[]; const lateTour=window.EmeraldWorldTour.create(route.odyssey.worlds,class { complete=false;naturalWidth=0;constructor(){pendingArt.push(this)} });');
+  g.read('lateTour.update(route.odyssey.start,.1)');
+  assert.equal(g.read('lateTour.layers().length'),0);
+  g.read('pendingArt[0].complete=true;pendingArt[0].naturalWidth=1280;lateTour.update(route.odyssey.start,1)');
+  assert.equal(g.read('lateTour.layers().length'),1);
+  g.read('lateTour.update(route.odyssey.worlds[4].start,1)');
+  assert.equal(g.read('lateTour.snapshot().shown'),0);
+  assert.equal(g.read('lateTour.layers()[0].alpha'),1);
+  assert.ok(g.read('lateTour.snapshot().cached')<=4);
+});
+
+test('Emerald Run grand tour loader freezes on pause and clears on retry', () => {
+  const g=game('pepecoin-run.js');g.start();
+  g.read('state.distance=route.odyssey.start-player.x+1;buildCourse();hazards.length=0;statues.length=0;crowns.length=0;rushStatues.length=0;update(.1)');
+  assert.equal(g.read('worldTour.snapshot().target'),0);
+  const before=g.read('JSON.stringify(worldTour.snapshot())');
+  g.read('window.EmeraldArcade.isPaused=()=>true;state.distance=route.odyssey.end;update(1)');
+  assert.equal(g.read('JSON.stringify(worldTour.snapshot())'),before);
+  g.read('window.EmeraldArcade.isPaused=()=>false;crash({});startGame({sameRoad:true})');
+  assert.equal(g.read('worldTour.snapshot().cached'),0);
+  assert.equal(g.read('worldTour.snapshot().shown'),-1);
 });
 
 test('Emerald Run storm freezes on pause, calms lightning and preserves lethal spikes', () => {

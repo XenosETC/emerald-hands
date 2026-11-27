@@ -6,6 +6,7 @@ const weather = window.EmeraldWeather;
 const route = window.EmeraldRoute;
 const rush = window.EmeraldRush;
 const actTwo = window.EmeraldActTwo;
+const worldTour = window.EmeraldWorldTour.create(route.odyssey.worlds);
 
 const ui = {
   score: document.querySelector("#scoreLabel"),
@@ -317,6 +318,7 @@ function startGame({ sameRoad = false } = {}) {
   rush.reset(state);
   actTwo.reset(state);
   state.corruptWorldBlend = 0; state.volcanicWorldBlend = 0;
+  worldTour.reset();
   state.routeId = "valley";
   ui.retry.hidden = true;
   ui.overlay.classList.remove("is-results");
@@ -469,13 +471,15 @@ function update(dt) {
   const worldX = state.distance + player.x;
   state.corruptWorldBlend += ((worldX >= route.frontier.start && worldX < route.frontier.volcanic ? 1 : 0) - state.corruptWorldBlend) * Math.min(1, dt * 3);
   state.volcanicWorldBlend += ((worldX >= route.frontier.volcanic ? 1 : 0) - state.volcanicWorldBlend) * Math.min(1, dt * 3);
+  worldTour.update(worldX, dt);
   const chapter = route.chapterAt(worldX);
   if (chapter.id !== state.routeId) {
     state.routeId = chapter.id;
     if (chapter.id !== "tempest") {
       const milestone = chapter.id === "beyond" ? "OPENING ROUTE COMPLETE · ACT II: OBSIDIAN STARRAIL!"
         : chapter.id === "corrupt" ? "ACT II COMPLETE · CORRUPT FRONTIER AWAKENS!"
-        : chapter.id === "endless" ? "FRONTIER COMPLETE · Beyond the Forge!" : `${chapter.name.toUpperCase()} · Keep rolling`;
+        : chapter.id === "jade-canopy" ? "FRONTIER COMPLETE · THE GRAND WORLD TOUR!"
+        : chapter.id === "endless" ? "GRAND TOUR COMPLETE · Beyond All Worlds!" : `${chapter.name.toUpperCase()} · Keep rolling`;
       showMilestone(milestone, ["beyond", "corrupt", "volcanic", "endless"].includes(chapter.id) ? 2 : 1);
       ui.announcement.textContent = chapter.id === "lunar" ? "Lunar Lotus Sea. Lower gravity starts with your next jump; spikes have wider spacing." : milestone;
     }
@@ -798,7 +802,8 @@ function crash(hazard) {
     ui.resultSmashes.textContent = state.smashed.toLocaleString();
     ui.resultStatues.textContent = state.statuesCaught.toLocaleString();
     const reached = route.chapterAt(state.distance + player.x);
-    ui.resultRoute.textContent = state.distance + player.x >= route.frontier.end ? "Frontier complete · Beyond the Forge"
+    ui.resultRoute.textContent = state.distance + player.x >= route.odyssey.end ? "Grand tour complete · Beyond All Worlds"
+      : state.distance + player.x >= route.odyssey.start ? `Frontier complete · ${reached.name} · ${Math.floor(route.odysseyProgress(state.distance + player.x) * 100)}% of grand tour`
       : state.distance + player.x >= route.frontier.start ? `Act Two complete · ${reached.name} · ${Math.floor(route.frontierProgress(state.distance + player.x) * 100)}% of frontier`
       : state.distance + player.x >= route.openingEnd ? `Opening route complete · Act Two: ${reached.name} · ${Math.floor(route.actTwoProgress(state.distance + player.x) * 100)}%`
       : `Region ${reached.index + 1}/${route.chapters.length}: ${reached.name} · ${Math.floor(route.progressAt(state.distance + player.x) * 100)}% of opening route`;
@@ -917,6 +922,7 @@ function drawSky() {
   drawBackdrop(cathedralImage, state.cathedralBlend);
   drawBackdrop(corruptWorldImage, state.corruptWorldBlend);
   drawBackdrop(volcanicWorldImage, state.volcanicWorldBlend);
+  for (const layer of worldTour.layers()) drawBackdrop(layer.image, layer.alpha);
   // A stable exposure veil keeps both skies behind the gameplay contrast.
   const veil = ctx.createLinearGradient(0, 0, 0, H);
   veil.addColorStop(0, "rgba(3,9,22,.12)");
@@ -973,7 +979,8 @@ function drawStorm() {
 }
 
 function drawFrontierAtmosphere() {
-  const volcanic = state.volcanicWorldBlend || 0, corrupt = state.corruptWorldBlend || 0;
+  const cover = worldTour.layers().at(-1)?.alpha || 0;
+  const volcanic = (state.volcanicWorldBlend || 0) * (1 - cover), corrupt = (state.corruptWorldBlend || 0) * (1 - cover);
   if (volcanic < .01 && corrupt < .01) return;
   const time = reducedMotion?.matches ? 0 : state.elapsed;
   ctx.save();
@@ -1517,17 +1524,19 @@ function updateHud() {
   const slingshot = cometPowered && state.railKind === "slingshot";
   const chapter = route.chapterAt(state.distance + player.x);
   const inActTwo = state.distance + player.x >= route.actTwo.start;
+  const inTour = state.distance + player.x >= route.odyssey.start;
   const inFrontier = state.distance + player.x >= route.frontier.start;
   ui.route.hidden = state.mode !== "running";
-  ui.routeProgress.value = inFrontier ? route.frontierProgress(state.distance + player.x) : inActTwo ? route.actTwoProgress(state.distance + player.x) : route.progressAt(state.distance + player.x);
-  ui.routeProgress.setAttribute("aria-label", inFrontier ? "Frontier route progress" : inActTwo ? "Act Two route progress" : "Opening route progress");
-  ui.routeTitle.textContent = `${inFrontier ? "FRONTIER" : inActTwo ? "ACT II" : chapter.index + 1} · ${chapter.name.toUpperCase()}`;
+  ui.routeProgress.value = inTour ? route.odysseyProgress(state.distance + player.x) : inFrontier ? route.frontierProgress(state.distance + player.x) : inActTwo ? route.actTwoProgress(state.distance + player.x) : route.progressAt(state.distance + player.x);
+  ui.routeProgress.setAttribute("aria-label", inTour ? "Grand tour progress" : inFrontier ? "Frontier route progress" : inActTwo ? "Act Two route progress" : "Opening route progress");
+  ui.routeTitle.textContent = `${inTour ? "GRAND TOUR" : inFrontier ? "FRONTIER" : inActTwo ? "ACT II" : chapter.index + 1} · ${chapter.name.toUpperCase()}`;
   ui.routeDetail.textContent = chapter.id === "tempest" ? "Rain · blue-aura spikes"
     : chapter.id === "lunar" ? "Low gravity · longer jumps"
     : chapter.id === "eclipse" ? `Bells ${state.bellsRung}/3 · ${state.slingshots ? "slingshot awakened" : "jump to ring"}`
     : chapter.id === "corrupt" ? "Act Two complete · violet crystal kingdom"
     : chapter.id === "volcanic" ? "Molten forge · next region ahead"
-    : chapter.id === "endless" ? "Frontier complete · endless road"
+    : chapter.id === "endless" ? "Grand tour complete · endless road"
+    : chapter.detail ? `${chapter.detail} · next ${Math.ceil(Math.max(0, chapter.next.start - state.distance - player.x) / 10)}m`
     : chapter.next ? `Next region · ${Math.ceil(Math.max(0, chapter.next.start - state.distance - player.x) / 10)}m`
     : "Opening route complete · endless road";
   const royalPowered = state.mode === "running" && royal.active(state);

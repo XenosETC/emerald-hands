@@ -1,0 +1,101 @@
+{
+  "generator": "Built-in imagegen",
+  "worlds": [
+    {
+      "id": "jade-canopy-v1",
+      "name": "Jade Canopy",
+      "theme": "jungle",
+      "order": 0,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Jade Canopy. Scene: An immense primeval jungle with enormous emerald leaves, mossy frog temple towers, orchids, high rope bridges and sunshafts piercing green mist. Lush living rainforest, jade/gold craftsmanship. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "jade-canopy-v1.webp"
+    },
+    {
+      "id": "monsoon-kingdom-v1",
+      "name": "Monsoon Kingdom",
+      "theme": "rainforest",
+      "order": 1,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Monsoon Kingdom. Scene: A majestic tropical jungle civilization during warm monsoon rain: layered teal waterfalls, flooded golden frog shrines, luminous lotus pools, huge roots and misty dark blue mountains. Rain curtains distant, not on the gameplay foreground. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "monsoon-kingdom-v1.webp"
+    },
+    {
+      "id": "sunscar-dunes-v1",
+      "name": "Sunscar Dunes",
+      "theme": "desert",
+      "order": 2,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Sunscar Dunes. Scene: An immense desert of sculpted amber dunes, ancient emerald-inlaid frog sphinxes, gold sandstone temples, green oasis far below, a deep copper twilight sky and windblown sand. Monumental elegant desert fantasy. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "sunscar-dunes-v1.webp"
+    },
+    {
+      "id": "glass-desert-v1",
+      "name": "Glass Desert",
+      "theme": "crystal",
+      "order": 3,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Glass Desert. Scene: A surreal night desert of obsidian glass dunes and giant translucent jade crystal formations, buried golden observatories, violet milky way, emerald aurora reflecting in dark glass. Distinct from sandy desert, intricate precious-mineral detail. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "glass-desert-v1.webp"
+    },
+    {
+      "id": "deep-space-v1",
+      "name": "Starborne Expanse",
+      "theme": "space",
+      "order": 4,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Starborne Expanse. Scene: Deep interstellar space: a vast dark sapphire starfield, immense pale ringed emerald planet, distant golden frog orbital ruins and fine turquoise nebula dust. Majestic scale, mostly dark space, no cartoony floating foreground planets. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "deep-space-v1.webp"
+    },
+    {
+      "id": "solar-gardens-v1",
+      "name": "Solar Gardens",
+      "theme": "solar",
+      "order": 5,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Solar Gardens. Scene: A complete fantastical solar system viewed from a distant jade-and-gold frog observatory: blazing golden sun near upper horizon, several differently colored planets and orbital rings, luminous plasma loops, tranquil emerald celestial gardens on distant floating islands. Clearly separated planet silhouettes. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "solar-gardens-v1.webp"
+    },
+    {
+      "id": "nebula-ocean-v1",
+      "name": "Nebula Ocean",
+      "theme": "nebula",
+      "order": 6,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Nebula Ocean. Scene: An ocean made of luminous turquoise nebula clouds in interstellar space, enormous violet/gold cloud arches, gemstone stars and celestial jade frog sanctuary islands. Peaceful, impossibly majestic, deep flowing cloud seas, fantasy cosmic painting. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "nebula-ocean-v1.webp"
+    },
+    {
+      "id": "singularity-throne-v1",
+      "name": "Singularity Throne",
+      "theme": "singularity",
+      "order": 7,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Singularity Throne. Scene: A gargantuan black hole with a golden accretion halo bending a deep-indigo starfield, ruined jade-and-gold frog throne temples suspended at a safe cosmic distance, emerald gravitational ribbons. Awe and scale, restrained luminous details, no large white washout. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "singularity-throne-v1.webp"
+    },
+    {
+      "id": "time-space-v1",
+      "name": "Time & Space",
+      "theme": "time",
+      "order": 8,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Time & Space. Scene: A magnificent cosmic clockwork universe: immense antique gold astronomical clock rings intertwined with warped sapphire space, emerald hourglass-like star nebula, distant frog observatory temples, several temporal arcs showing ancient and future architecture. No numbers or clockface lettering. Time folding visually into space. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "time-space-v1.webp"
+    },
+    {
+      "id": "dimension-weave-v1",
+      "name": "Dimension Weave",
+      "theme": "dimension",
+      "order": 9,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Dimension Weave. Scene: A multidimensional realm of impossible interlocking jade/gold tesseract architecture, portals showing distinct violet, blue and emerald spatial layers, folded geometric horizons, floating frog temple fragments seen from contradictory perspectives. Elegant painterly fantasy, visually clear depth, not a wireframe diagram. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "dimension-weave-v1.webp"
+    },
+    {
+      "id": "many-worlds-v1",
+      "name": "Many Worlds",
+      "theme": "multiverse",
+      "order": 10,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: Many Worlds. Scene: A many-worlds interpretation fantasy panorama: a branching golden cosmic tree whose distant branches hold luminous universe bubbles, each containing a different tiny jungle/desert/space frog civilization. Deep emerald and indigo void, rich violet branch nebulae, expansive sense of alternate realities. Conceptual fantasy, no scientific labels. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "many-worlds-v1.webp"
+    },
+    {
+      "id": "frog-god-cosmos-v1",
+      "name": "The Cosmic Frog God",
+      "theme": "divine",
+      "order": 11,
+      "prompt": "Use case: stylized-concept. Asset type: premium widescreen 16:9 painted side-view arcade runner environment for PepeCoin Emerald Run. World: The Cosmic Frog God. Scene: An original colossal benevolent Pepe-inspired cosmic frog deity overseeing the entire universe: calm half-lidded frog eyes, dignified broad orange-brown lips, a living emerald jade body adorned with gold cosmic filigree, its head and shoulders formed from stardust in the upper sky, hands gently cradling a tiny galaxy. Orbiting solar systems, jade/gold celestial temples far beneath. Awe-inspiring, majestic cosmic civilization, not comedic sticker art. The universe fits beneath this immense being. Style: cinematic, highly detailed handcrafted fantasy game environment, tactile stone, precious metal, gemstone and atmospheric depth; emerald/jade and antique gold identity with each biome's distinct palette. Composition: major landmarks and focal features in the upper two thirds; bottom third dark, quiet and unobstructed for a separately drawn playable road, coin and spikes. Landscape edge to edge. Avoid: foreground gameplay road, player coin, HUD, text, lettering, logos, watermark, framing border, panels, collage, excessive bloom or flash.",
+      "file": "frog-god-cosmos-v1.webp"
+    }
+  ]
+}
